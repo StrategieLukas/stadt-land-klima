@@ -89,10 +89,10 @@
             >
               <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
                 <input
+                  v-model="answers[question.id]"
                   type="radio"
                   :name="'question-' + question.id"
                   :value="option.value"
-                  v-model="answers[question.id]"
                   :disabled="isPastCutoff"
                   class="radio w-8 h-8 sm:w-10 sm:h-10 border-2"
                   :class="[option.radioClass, { 'opacity-50 cursor-not-allowed': isPastCutoff }]"
@@ -136,9 +136,9 @@
         <!-- Submit Button -->
         <div v-if="!isPastCutoff" class="pt-8 flex flex-col items-center">
           <button
-            @click="submitAnswers"
             :disabled="!isFormComplete || submitting"
             class="btn btn-primary btn-lg px-12 text-white font-bold rounded-full shadow-lg transition-all hover:scale-105 disabled:opacity-50"
+            @click="submitAnswers"
           >
             <span v-if="submitting" class="loading loading-spinner"></span>
 	            {{ $t("generic.confirm") }}
@@ -164,48 +164,45 @@ import {
 } from '~/shared/wahlcheckAnswerOptions'
 import { formatBerlinDate, getBerlinEndOfDay } from '~/shared/eventDateTime'
 
-const route = useRoute()
-const { $t, $locale } = useNuxtApp()
-
 import { CandidateReadSchema } from "~/shared/contracts/elections"
 import { singleRouteValue } from "~/shared/routeValues"
 import type { AnswerValue } from "~/shared/domain"
 import { CandidateAnswersRequestSchema } from "~/shared/contracts/candidateAnswers"
+
+const route = useRoute()
+const { $t, $locale } = useNuxtApp()
 const accessToken = singleRouteValue(route.params.access_token)
 if (!accessToken || !/^[A-Za-z0-9_-]{1,100}$/.test(accessToken)) throw createError({statusCode: 404, statusMessage: "Not found"})
-const candidateKey = `candidate-page-${useId()}`
-onUnmounted(() => clearNuxtData(candidateKey))
+useResponseHeader("Cache-Control").value = "private, no-store"
+useResponseHeader("Referrer-Policy").value = "no-referrer"
+definePageMeta({key: route => route.path})
 
 const answers = ref<Record<string, AnswerValue | null | undefined>>({})
 const explanations = ref<Record<string, string>>({}) // Store reasoning for each question
 const submitting = ref(false)
 const submitted = ref(false)
 
-const { data, pending, error } = await useAsyncData(
-  candidateKey,
-  async () => {
-    const result = await $fetch(`/api/candidate/${encodeURIComponent(accessToken!)}`)
-    return CandidateReadSchema.parse(result)
-  },
-  {
-    getCachedData: (key, app) => {
-      if (!app.isHydrating) return undefined;
-      const result = CandidateReadSchema.safeParse(app.payload.data[key]);
-      return result.success ? result.data : undefined;
-    },
-    transform: (result: import("zod").z.output<typeof import("~/shared/contracts/elections").CandidateReadSchema>) => {
-      // Initialize answers from existing data
-      if (result?.existingAnswers) {
-        result.existingAnswers.forEach((ans) => {
-          const questionId = ans.question
-          answers.value[questionId] = ans.response
-          explanations.value[questionId] = ans.explanation || ''
-        })
-      }
-      return CandidateReadSchema.parse(result)
-    },
+// Candidate drafts are private browser state, never part of the SSR payload or Nuxt data cache.
+const data = shallowRef<import("zod").z.output<typeof CandidateReadSchema> | null>(null)
+const pending = ref(true)
+const error = shallowRef<unknown>(null)
+const candidateRequest = new AbortController()
+onBeforeUnmount(() => { candidateRequest.abort(); data.value = null; })
+onMounted(async () => {
+  try {
+    const result = CandidateReadSchema.parse(await $fetch(`/api/candidate/${encodeURIComponent(accessToken!)}`, {signal: candidateRequest.signal}))
+    if (candidateRequest.signal.aborted) return
+    for (const answer of result.existingAnswers) {
+      answers.value[answer.question] = answer.response
+      explanations.value[answer.question] = answer.explanation || ''
+    }
+    data.value = result
+  } catch (cause) {
+    if (!candidateRequest.signal.aborted) error.value = cause
+  } finally {
+    if (!candidateRequest.signal.aborted) pending.value = false
   }
-)
+})
 
 const candidate = computed(() => data.value?.candidate)
 const candidateState = computed(() => candidate.value?.election?.localteam?.municipality_id?.state || '')

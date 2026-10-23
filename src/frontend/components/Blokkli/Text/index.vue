@@ -76,7 +76,7 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  content?: string
+  content?: string | undefined
 }>()
 
 const sizeClass = computed(() => {

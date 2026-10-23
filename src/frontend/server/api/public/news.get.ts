@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { NewsListSchema, EventSchema, ContentIdentitySchema, ProjectIdentitySchema, FileSchema, NullableTextSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
         sort: ["-date_published", "-date_created"],
         limit: 50,
       }),
-    ),
+    ).then(cmsRows),
     client.request(
       readItems("articles", {
         filter: { status: { _eq: "published" } },
@@ -32,7 +33,7 @@ export default defineEventHandler(async (event) => {
         sort: ["-date_created"],
         limit: 20,
       }),
-    ),
+    ).then(cmsRows),
     client.request(
       readItems("events", {
         filter: { status: { _eq: "published" } },
@@ -54,7 +55,7 @@ export default defineEventHandler(async (event) => {
         sort: ["-start_date"],
         limit: 20,
       }),
-    ),
+    ).then(cmsRows),
     client.request(
       readItems("municipalities", {
         filter: { status: { _eq: "published" } },
@@ -62,7 +63,7 @@ export default defineEventHandler(async (event) => {
         sort: ["-date_updated"],
         limit: 20,
       }),
-    ),
+    ).then(cmsRows),
     client.request(
       readItems("measure_catalog", {
         filter: { hidden: { _eq: false } },
@@ -70,7 +71,7 @@ export default defineEventHandler(async (event) => {
         sort: ["-date_created"],
         limit: 10,
       }),
-    ),
+    ).then(cmsRows),
     client.request(
       readItems("success_project_tour_stops", {
         filter: {
@@ -96,7 +97,7 @@ export default defineEventHandler(async (event) => {
         sort: ["-date_published"],
         limit: 50,
       }),
-    ),
+    ).then(cmsRows),
   ]);
   setResponseHeader(event, "Cache-Control", "public, max-age=60");
   return {

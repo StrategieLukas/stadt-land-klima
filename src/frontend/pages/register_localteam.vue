@@ -249,15 +249,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { getCurrentBackendCatalogVersion } from '~/composables/getCatalogVersion'
 
 import { AreaSchema, type Area } from "~/shared/contracts/search"
-import { parseGeoCenter, parseGeoData } from "~/shared/contracts/geometry"
+import { parseGeoData } from "~/shared/contracts/geometry"
 import type { AreaResult } from "~/types/components/navigation"
 import { singleRouteValue } from "~/shared/routeValues"
 const route = useRoute()
 const { $stadtlandzahlAPI, $t } = useNuxtApp()
-const currentVersionBackend = await getCurrentBackendCatalogVersion()
 
 // --- Query-param pre-fill ---
 const hasQueryParams = computed(() => !!route.query.ars)
@@ -266,9 +264,9 @@ const hasQueryParams = computed(() => !!route.query.ars)
 interface AreaInfo {
   name: string
   ars: string
-  prefix?: string
-  population?: number | null
-  state?: string | null
+  prefix?: string | undefined
+  population?: number | null | undefined
+  state?: string | null | undefined
 }
 
 const registrationSuccess = ref(false)
@@ -317,12 +315,12 @@ function resetSelection() {
   existingScorePublished.value = false
   hasExistingTeam.value = false
   areaGeoData.value = null
-  nextTick(() => searchBarRef.value?.focus())
+  void nextTick(() => searchBarRef.value?.focus())
 }
 
 async function checkExistingLocalteam(
   ars: string,
-  slugs: string[] = [],
+  _slugs: string[] = [],
 ): Promise<{ hasTeam: boolean; slug: string | null; percentageRated: number | null; published: boolean }> {
   try {
     // Use server route — $directus is only available during SSR, not on client
@@ -406,7 +404,7 @@ async function initFromQueryParams(ars: string, name?: string) {
 
 onMounted(() => {
   const ars = singleRouteValue(route.query.ars)
-  if (ars) initFromQueryParams(ars, singleRouteValue(route.query.name))
+  if (ars) void initFromQueryParams(ars, singleRouteValue(route.query.name))
 })
 
 watch(

@@ -101,7 +101,7 @@
 
 </template>
 <script setup lang="ts">
-import type { ComparisonRating, Municipality, MeasureRating, MunicipalityScore  } from '~/types/components/municipality';
+import type { Municipality, MeasureRating, MunicipalityScore  } from '~/types/components/municipality';
 import { parseGeoCenter } from '~/shared/contracts/geometry';
 import type { NumericValue } from '~/shared/domain';
 
@@ -178,7 +178,7 @@ import type { PropType } from 'vue';
 
 
     // Step 2: Fetch better ratings
-    const { ratings: rawRatingResultsBeforeFilter } = await $fetch<{ ratings: ComparisonRating[] }>('/api/public/measure-ratings', {
+    const { ratings: rawRatingResultsBeforeFilter } = await $fetch('/api/public/measure-ratings', {
       query: { measureId },
     });
 
@@ -187,7 +187,7 @@ import type { PropType } from 'vue';
     const rawRatingResults = (rawRatingResultsBeforeFilter ?? []).filter(row => higherRatings.includes(String(row.rating))).filter((row) => {
       const scores = row?.localteam_id?.municipality_id?.[0]?.scores ?? [];
       return scores.some((s) => {
-        const cv = typeof s.catalog_version === 'object' ? s.catalog_version?.id : s.catalog_version;
+        const cv = s.catalog_version;
         return cv === props.municipalityScore.catalog_version.id && isMunicipalityScoreComplete(s);
       });
     });

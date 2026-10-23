@@ -47,9 +47,9 @@
 
       <div v-if="tourOptions.length > 0" class="pb-2 xs:hidden">
         <FilterBadgeDropdown
+          v-model="selectedTour"
           :label="$t('tour.filter_all')"
           :options="tourOptions"
-          v-model="selectedTour"
           width="min-w-[15rem]"
         />
       </div>
@@ -74,36 +74,36 @@
           </svg>
           <div class="flex flex-wrap gap-2">
             <FilterBadgeDropdown
+              v-model="selectedState"
               :label="$t('filters.all_states')"
               :options="stateOptions"
-              v-model="selectedState"
               width="min-w-[13rem]"
             />
             <FilterBadgeDropdown
+              v-model="selectedSector"
               :label="$t('measure_sectors.all')"
               :options="sectorOptions"
-              v-model="selectedSector"
               width="min-w-[11rem]"
             />
             <FilterBadgeDropdown
               v-if="orgOptions.length > 0"
+              v-model="selectedOrgId"
               :label="$t('filters.all_organisations')"
               :options="orgOptions"
-              v-model="selectedOrgId"
               width="min-w-[12rem]"
             />
             <div v-if="tourOptions.length > 0" class="hidden xs:block">
               <FilterBadgeDropdown
+                v-model="selectedTour"
                 :label="$t('tour.filter_all')"
                 :options="tourOptions"
-                v-model="selectedTour"
                 width="min-w-[15rem]"
               />
             </div>
-            <FilterBadgeBoolean :label="$t('projects.filters.autonomous')" v-model="filterAutonomous" />
-            <FilterBadgeBoolean :label="$t('projects.filters.profitable')" v-model="filterProfitable" />
-            <FilterBadgeBoolean :label="$t('projects.filters.role_model')" v-model="filterRoleModel" />
-            <FilterBadgeBoolean :label="$t('projects.filters.acceptance')" v-model="filterAcceptance" />
+            <FilterBadgeBoolean v-model="filterAutonomous" :label="$t('projects.filters.autonomous')" />
+            <FilterBadgeBoolean v-model="filterProfitable" :label="$t('projects.filters.profitable')" />
+            <FilterBadgeBoolean v-model="filterRoleModel" :label="$t('projects.filters.role_model')" />
+            <FilterBadgeBoolean v-model="filterAcceptance" :label="$t('projects.filters.acceptance')" />
           </div>
         </div>
 
@@ -136,15 +136,15 @@
           <div class="flex flex-wrap gap-2">
             <button
               type="button"
-              @click="sortOrder = 'date'"
               :class="['slk-filter-pill', sortOrder === 'date' ? 'slk-filter-pill--active' : '']"
+              @click="sortOrder = 'date'"
             >
               {{ $t("projects.sort.newest_first") }}
             </button>
             <button
               type="button"
-              @click="sortOrder = 'savings'"
               :class="['slk-filter-pill', sortOrder === 'savings' ? 'slk-filter-pill--active' : '']"
+              @click="sortOrder = 'savings'"
             >
               {{ $t("projects.sort.highest_savings") }}
             </button>
@@ -234,7 +234,7 @@ const tourOptions = computed(() => (tourData.value?.series ?? [])
   .map((series) => ({ label: series.title, value: series.slug })));
 const selectedTour = computed({
   get: () => typeof route.query.tour === "string" ? route.query.tour : null,
-  set: (tour) => router.replace({ query: { ...route.query, tour: tour || undefined } }),
+  set: (tour) => { void router.replace({ query: { ...route.query, tour: tour || undefined } }); },
 });
 
 // ── Filter state ────────────────────────────────────────────────────────────

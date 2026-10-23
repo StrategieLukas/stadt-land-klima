@@ -147,9 +147,9 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  label?: string
-  heading?: string
-  linkText?: string
+  label?: string | undefined
+  heading?: string | undefined
+  linkText?: string | undefined
 }>()
 
 
@@ -157,7 +157,7 @@ const { data: projects } = await useAsyncData(
   `projects-carousel-${uuid}`,
   async () => {
     try {
-      const result = await $fetch<{ articles: { id: string; slug: string; title: string; abstract: string | null; image: { id: string; type: string } | null }[] }>('/api/public/articles')
+      const result = await $fetch('/api/public/articles')
       return result.articles.slice(0, parseInt(options.value.limit) || 10)
     } catch {
       return []
@@ -166,7 +166,7 @@ const { data: projects } = await useAsyncData(
   { watch: [() => options.value.limit] },
 )
 
-function isRasterImage(type?: string): boolean {
+function isRasterImage(type?: string | null): boolean {
   return isRaster(type)
 }
 

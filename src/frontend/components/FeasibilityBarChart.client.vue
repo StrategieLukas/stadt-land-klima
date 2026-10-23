@@ -38,7 +38,7 @@ const props = defineProps({
     required: true,
   },
   darkIcon: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   label: {
@@ -46,11 +46,11 @@ const props = defineProps({
     required: true,
   },
   value: {
-    type: Number,
+    type: Number as PropType<number | undefined>,
     default: 0,
   },
   max: {
-    type: Number,
+    type: Number as PropType<number | undefined>,
     default: 5,
   },
 });

@@ -55,7 +55,7 @@
                 v-if="area.geoArea"
                 :geojson="area.geoArea"
                 :options="{ style: { color: '#3B82F6', weight: 2, fillColor: '#3B82F6', fillOpacity: 0.3 } }"
-                @ready="() => onNearbyGeoJsonReady(area.ars, area.geoArea)"
+                v-on="{ ready: () => onNearbyGeoJsonReady(area.ars, area.geoArea) }"
               />
             </LMap>
           </div>
@@ -151,6 +151,7 @@
 </template>
 
 <script setup lang="ts">
+// vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
 import { z } from 'zod';
 import type { Map as LeafletMap } from 'leaflet';
 import type { ComponentPublicInstance } from 'vue';

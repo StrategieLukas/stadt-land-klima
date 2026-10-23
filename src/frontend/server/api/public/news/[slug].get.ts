@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { NewsDetailSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
@@ -23,7 +24,7 @@ export default defineEventHandler(async (event) => {
       { report_event: ['id', 'slug', 'title', { series: ['slug', 'title', 'format'] }] },
     ],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!items.length) {
     throw createError({ statusCode: 404, statusMessage: 'News item not found' })

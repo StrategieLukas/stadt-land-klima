@@ -20,7 +20,7 @@
       :aria-pressed="isChecked(value, item.value) ? 'true' : 'false'"
       :disabled="disabled"
       :class="[
-        { checked: isChecked(value, item.value), block },
+        { checked: isChecked(value, item.value) },
         valueToClass(item.value)
       ]"
       @click="selectOption(item.value, field)"

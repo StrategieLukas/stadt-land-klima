@@ -32,7 +32,7 @@ export default defineEventHandler((event) => {
 
   const authorizationHeader = event.node.req.headers.authorization ?? "";
   const credentials = parseBasicAuthHeader(
-    Array.isArray(authorizationHeader) ? authorizationHeader[0] : authorizationHeader,
+    authorizationHeader,
   );
 
   if (credentials?.username === configuredUsername && credentials.password === configuredPassword) {

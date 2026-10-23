@@ -85,7 +85,7 @@ import type { PropType } from 'vue';
 
 defineProps({
   result: { type: Object as PropType<AreaResult>, required: true },
-  showPopulation: { type: Boolean, default: false },
+  showPopulation: { type: Boolean as PropType<boolean | undefined>, default: false },
 });
 defineEmits<{ "chip-action": [payload: AreaChipAction] }>();
 </script>

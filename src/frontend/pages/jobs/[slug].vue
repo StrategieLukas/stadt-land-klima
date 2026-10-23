@@ -189,9 +189,12 @@ import sanitizeHtml from "sanitize-html";
 import { computed } from "vue";
 import { useReferrer } from "~/composables/useReferrer";
 import { isRaster } from "~/shared/utils";
+import { routeSlug } from "~/shared/routeValues";
 
 const { $t } = useNuxtApp();
 const route = useRoute();
+const slug = routeSlug(route.params.slug);
+if (!slug) throw createError({statusCode: 404, statusMessage: "Job not found"});
 const { backHref, backLabel } = useReferrer("/jobs", $t("jobs.back_label"));
 
 const md = new MarkdownIt({
@@ -214,8 +217,8 @@ const markdownSanitizeOptions = {
   },
 };
 
-const { data: jobData, error } = await useAsyncData(`job-${String(route.params.slug)}`, () =>
-  $fetch(`/api/public/jobs/${encodeURIComponent(String(route.params.slug))}`),
+const { data: jobData, error } = await useAsyncData(`job-${slug}`, () =>
+  $fetch(`/api/public/jobs/${encodeURIComponent(slug)}`),
 );
 
 if (error.value && error.value.status !== 404) throw error.value;

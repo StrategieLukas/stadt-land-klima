@@ -1,5 +1,5 @@
 import { WahlcheckCompletionRequestSchema } from "~/shared/contracts/submissions";
-import { createError, defineEventHandler, readBody } from 'h3'
+import { createError, defineEventHandler } from 'h3'
 import { useRuntimeConfig } from '#imports'
 
 /**
@@ -7,7 +7,7 @@ import { useRuntimeConfig } from '#imports'
  * The browser cannot call Directus directly, so this route uses the server token.
  */
 export default defineEventHandler(async (event) => {
-  const body = WahlcheckCompletionRequestSchema.safeParse(await readRequestBody<unknown>(event))
+  const body = WahlcheckCompletionRequestSchema.safeParse(await readRequestBody(event))
   const electionId = body.success ? body.data.electionId : undefined
 
   if (!electionId || typeof electionId !== 'string' || !/^[a-z0-9-]{1,64}$/.test(electionId)) {
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
-  const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055'
+  const directusUrl = (config.directusServerUrl) || 'http://directus:8055'
   const token = config.directusFrontendServerToken as string | undefined
 
   if (!token) {

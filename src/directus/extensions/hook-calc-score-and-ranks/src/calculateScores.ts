@@ -1,4 +1,8 @@
-import type { Logger, Schema, Services } from '@directus/types';
+import type { ApiExtensionContext, SchemaOverview } from '@directus/types';
+
+type Logger = ApiExtensionContext['logger'];
+type Schema = SchemaOverview;
+type Services = ApiExtensionContext['services'];
 
 interface CalculateScoresParams {
   municipalityIds?: Array<number | string> | null;
@@ -88,22 +92,22 @@ export async function calculateScores(
 
   const ratingsService = new services.ItemsService('ratings_measures', {
     schema,
-    accountability: { admin: true },
+    accountability: { admin: true, role: null, roles: [], user: null, app: false, ip: null },
   });
 
   const measuresService = new services.ItemsService('measures', {
     schema,
-    accountability: { admin: true },
+    accountability: { admin: true, role: null, roles: [], user: null, app: false, ip: null },
   });
 
   const municipalitiesService = new services.ItemsService('municipalities', {
     schema,
-    accountability: { admin: true },
+    accountability: { admin: true, role: null, roles: [], user: null, app: false, ip: null },
   });
 
   const municipalityScoresService = new services.ItemsService('municipality_scores', {
     schema,
-    accountability: { admin: true },
+    accountability: { admin: true, role: null, roles: [], user: null, app: false, ip: null },
   });
 
   try {

@@ -1,12 +1,12 @@
 import type { DynamicTranslator } from "./i18n";
 interface NavigationItem {
-  label?: string | null;
-  name?: string | null;
-  page_slug?: string | null;
-  slug?: string | null;
-  translation_key?: string | null;
-  title?: string | null;
-  description?: string | null;
+  label?: string | null | undefined;
+  name?: string | null | undefined;
+  page_slug?: string | null | undefined;
+  slug?: string | null | undefined;
+  translation_key?: string | null | undefined;
+  title?: string | null | undefined;
+  description?: string | null | undefined;
 }
 export default function translatedNavigationLabel(
   item: NavigationItem | null | undefined,

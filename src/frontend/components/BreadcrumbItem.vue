@@ -74,11 +74,11 @@ import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
   label: { type: String, required: true },
-  href: { type: String as PropType<string | null>, default: null },
-  isCurrent: { type: Boolean, default: false },
-  siblingLevel: { type: Number as PropType<number | null>, default: null },
-  arsPrefix: { type: String, default: "" },
-  currentArs: { type: String as PropType<string | null>, default: null },
+  href: { type: String as PropType<string | null | undefined>, default: null },
+  isCurrent: { type: Boolean as PropType<boolean | undefined>, default: false },
+  siblingLevel: { type: Number as PropType<number | null | undefined>, default: null },
+  arsPrefix: { type: String as PropType<string | undefined>, default: "" },
+  currentArs: { type: String as PropType<string | null | undefined>, default: null },
 });
 
 const toSlug = areaToSlug;

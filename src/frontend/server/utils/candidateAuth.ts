@@ -1,12 +1,13 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
-import { CandidateReadSchema, ElectionCandidateSchema, ElectionSchema, ElectionQuestionSchema, ElectionAnswerSchema } from "~/shared/contracts/elections";
+import { ElectionCandidateSchema, ElectionSchema, ElectionQuestionSchema, ElectionAnswerSchema } from "~/shared/contracts/elections";
 import { parseCms } from "./parseCms";
 import { readItems } from '@directus/sdk'
-import { createError, getHeader, getQuery, getRouterParam, setCookie, setResponseHeader, type H3Event } from 'h3'
+import { createError } from 'h3'
 import { createDirectusServerClient } from './directusServerClient'
 
 const candidatePublicFields = ['id', 'name', 'party', 'election', 'has_answered', 'time_first_submitted', 'time_last_edited']
-const electionPublicFields = ['id', 'descriptor', 'is_public', 'is_party_election', 'simple_answer_mode', 'custom_logo', 'response_cutoff_date', 'localteam']
+
 const questionPublicFields = ['id', 'title', 'thesis', 'background_information', 'status']
 const answerPublicFields = ['id', 'response', 'explanation', 'candidate', 'question']
 
@@ -32,7 +33,7 @@ export async function verifyCandidateAccessToken(accessToken: string) {
       'election.localteam.municipality_id.state',
     ],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!candidates || candidates.length === 0) {
     return null
@@ -52,7 +53,7 @@ export async function loadCandidateQuestions(electionId: string) {
     fields: questionPublicFields,
     sort: ['date_created'],
     limit: 101,
-  }))
+  })).then(cmsRows)
 
   if (questions.length > 100) {
     throw createError({ statusCode: 502, statusMessage: 'Questions limit exceeded' })
@@ -72,7 +73,7 @@ export async function loadCandidateAnswers(candidateId: string, questionIds: str
     },
     fields: [...answerPublicFields, 'question.id'],
     limit: 101,
-  }))
+  })).then(cmsRows)
 
   if (answers.length > 100) {
     throw createError({ statusCode: 502, statusMessage: 'Answers limit exceeded' })

@@ -1,19 +1,19 @@
 import type { MediaFile, TourMedia } from "./tourMedia";
 import type { TourPoint } from "./tour";
 import type { ComputedRef, InjectionKey } from "vue";
-export const TOUR_REPORT_MEDIA: InjectionKey<ComputedRef<{ fileIds: Set<string>; accessToken?: string | null }>> =
+export const TOUR_REPORT_MEDIA: InjectionKey<ComputedRef<{ fileIds: Set<string>; accessToken?: string | null | undefined }>> =
   Symbol("tour-report-media");
 export type SuccessProjectTour = {
   id: string;
   slug: string;
   title: string;
   status: string;
-  introduction?: string | null;
-  closing_reflection?: string | null;
-  cover_image?: MediaFile | null;
-  cover_image_credits?: string | null;
-  brand_logo?: MediaFile | null;
-  featured_on_projects?: boolean;
+  introduction?: string | null | undefined;
+  closing_reflection?: string | null | undefined;
+  cover_image?: MediaFile | null | undefined;
+  cover_image_credits?: string | null | undefined;
+  brand_logo?: MediaFile | null | undefined;
+  featured_on_projects?: boolean | undefined;
 };
 export type SuccessProjectTourStop = {
   id: string;
@@ -21,26 +21,26 @@ export type SuccessProjectTourStop = {
   title: string;
   status: string;
   tour: SuccessProjectTour;
-  sort?: number | null;
-  location?: string | null;
-  state?: string | null;
-  geolocation?: TourPoint | null;
+  sort?: number | null | undefined;
+  location?: string | null | undefined;
+  state?: string | null | undefined;
+  geolocation?: TourPoint | null | undefined;
   start_date: string;
-  end_date?: string | null;
-  date_only?: boolean;
-  visit_details?: string | null;
-  itinerary_image?: MediaFile | null;
-  itinerary_image_credits?: string | null;
+  end_date?: string | null | undefined;
+  date_only?: boolean | undefined;
+  visit_details?: string | null | undefined;
+  itinerary_image?: MediaFile | null | undefined;
+  itinerary_image_credits?: string | null | undefined;
   report_status: string;
-  report_title?: string | null;
-  teaser?: string | null;
-  author?: string | null;
-  date_published?: string | null;
-  image?: MediaFile | null;
-  image_credits?: string | null;
-  media?: TourMedia[];
-  legacy_report_id?: string | null;
-  source_news_item?: string | null;
+  report_title?: string | null | undefined;
+  teaser?: string | null | undefined;
+  author?: string | null | undefined;
+  date_published?: string | null | undefined;
+  image?: MediaFile | null | undefined;
+  image_credits?: string | null | undefined;
+  media?: TourMedia[] | undefined;
+  legacy_report_id?: string | null | undefined;
+  source_news_item?: string | null | undefined;
 };
 export const TOUR_FIELDS = [
   "id",

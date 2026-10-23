@@ -1,5 +1,6 @@
 <template>
   <CanonicalButton
+    :on-click="props.onClick"
     :label="$t('generic.log_in')"
     href="/backend"
     icon-slug="icon_login_arrow"
@@ -9,5 +10,6 @@
 </template>
 
 <script setup lang="ts">
+const props = defineProps<{ onClick?: ((event: MouseEvent) => void) | undefined }>()
 const { $t } = useNuxtApp()
 </script>

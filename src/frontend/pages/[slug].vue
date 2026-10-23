@@ -20,11 +20,7 @@
         <template v-if="!isEditing && pageBlocks.length === 0 && page.contents">
           <template v-for="(block, index) in processedPageContent" :key="index">
             <div v-if="block.type === 'html'" v-html="block.html" />
-            <component
-              v-else-if="block.type === 'component'"
-              :is="block.component"
-              v-bind="block.props"
-            />
+            <OnboardingBox v-else-if="block.type === 'component'" name="Otto" :avatar-src="onboardingAvatarUrl" />
           </template>
         </template>
       </article>
@@ -40,16 +36,16 @@
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
+import { routeSlug } from "~/shared/routeValues"
 const { $t } = useNuxtApp()
 const config = useRuntimeConfig()
 const { isAuthenticated, initialize } = useAuth()
 useBlockHashNavigation()
 const canEdit = ref(false)
 onMounted(() => {
-  initialize()
+  void initialize()
   watchEffect(() => { canEdit.value = isAuthenticated.value })
 })
-import { routeSlug } from "~/shared/routeValues"
 const route = useRoute()
 const slug = routeSlug(route.params.slug)
 if (!slug) throw createError({ statusCode: 404, statusMessage: "Page not found" })
@@ -96,18 +92,14 @@ const processedPageContent = computed(() => {
   if (!page.value?.contents) return []
 
   const parts = page.value.contents.split("[[[ONBOARDING_BOX]]]")
-  const blocks: ({ type: "html"; html: string } | { type: "component"; component: typeof OnboardingBox; props: { name: string; "avatar-src": string } })[] = []
+  const blocks: ({ type: "html"; html: string } | { type: "component" })[] = []
 
   parts.forEach((html, idx) => {
     if (html) blocks.push({ type: "html", html })
     if (idx < parts.length - 1) {
       blocks.push({
         type: "component",
-        component: OnboardingBox,
-        props: {
-          name: "Otto",
-          "avatar-src": onboardingAvatarUrl.value,
-        },
+
       })
     }
   })

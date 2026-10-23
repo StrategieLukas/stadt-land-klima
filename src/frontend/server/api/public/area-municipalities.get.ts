@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { PublicMunicipalitySchema } from "~/shared/contracts/search";
 import { parseCms } from "~/server/utils/parseCms";
@@ -21,12 +22,12 @@ export default defineEventHandler(async event => {
   const municipalities = await client.request(readItems('municipalities', {
     filter: { status: { _eq: 'published' }, ...(ars.length ? { ars: { _in: ars } } : {}), ...(slugs.length ? { slug: { _in: slugs } } : {}), ...(arsPrefix ? { ars: { _starts_with: arsPrefix } } : {}) },
     fields: ['id', 'ars', 'slug', 'name', 'status', 'localteam_id', 'image', 'image_credits'], limit: 10001,
-  }))
+  })).then(cmsRows)
   if (municipalities.length > 10000) throw createError({ statusCode: 502, statusMessage: 'Municipality limit exceeded' })
   const scores = municipalities.length ? await client.request(readItems('municipality_scores', {
     filter: { municipality: { _in: municipalities.map(row => row.id) }, catalog_version: { _in: catalogs.map(catalog => catalog.id) }, published: { _eq: true } },
     fields: ['municipality', 'published', 'percentage_rated', 'score_total', 'catalog_version', 'rank'], limit: 10001,
-  })) : []
+  })).then(cmsRows) : []
   if (scores.length > 10000) throw createError({ statusCode: 502, statusMessage: 'Score limit exceeded' })
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
   return { municipalities: parseCms(z.array(PublicMunicipalitySchema), municipalities.map(row => ({ ...row, scores: scores.filter(score => score.municipality === row.id).sort((a, b) => Number(b.catalog_version === selectedCatalog.id) - Number(a.catalog_version === selectedCatalog.id)).map(({ municipality: _municipality, ...score }) => ({ ...score, catalog_version: { id: score.catalog_version, name: catalogs.find(catalog => catalog.id === score.catalog_version)?.name } })) }))) }

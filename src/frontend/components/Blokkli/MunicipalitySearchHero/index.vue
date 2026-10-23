@@ -114,8 +114,8 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  title?: string
-  subtitle?: string
+  title?: string | undefined
+  subtitle?: string | undefined
 }>()
 
 const bgClass = computed(() => {
@@ -264,7 +264,7 @@ onMounted(async () => {
   try {
     const catalog = await getCurrentFrontendCatalogVersion()
     if (!catalog) return
-    const result = await $fetch<{ scores: { published: boolean; percentage_rated: number | string | null; score_total: number | string | null; municipality: { id: string; name: string; slug: string; population: number | null } | null }[] }>(`/api/public/stats/${encodeURIComponent(catalog.name)}`)
+    const result = await $fetch(`/api/public/stats/${encodeURIComponent(catalog.name)}`)
     const data = result.scores.filter(isMunicipalityScoreComplete)
       .sort((a, b) => Number(b.municipality?.population ?? 0) - Number(a.municipality?.population ?? 0)).slice(0, 2500)
 

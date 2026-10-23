@@ -1,5 +1,8 @@
 import { Meilisearch } from 'meilisearch';
-import type { Database, Logger } from '@directus/types';
+import type { ApiExtensionContext } from '@directus/types';
+
+type Database = ApiExtensionContext['database'];
+type Logger = ApiExtensionContext['logger'];
 
 const SKIP_BUNDLES = ['container', 'carousel', 'directus_page', 'vega_chart', 'page_nav'];
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

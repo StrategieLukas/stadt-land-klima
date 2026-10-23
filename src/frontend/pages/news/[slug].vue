@@ -34,8 +34,8 @@
           <!-- Header: image, title, teaser -->
           <div v-if="item.image" class="not-prose mb-6 rounded-xl overflow-hidden">
             <SmartImg
-              :assetId="item.image.id"
-              :isRaster="isRaster(item.image.type)"
+              :asset-id="item.image.id"
+              :is-raster="isRaster(item.image.type)"
               :alt="item.title"
               :width="900"
               img-class="w-full h-auto block"
@@ -66,12 +66,12 @@
             <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">{{ $t('news.editor.metadata') }}</h2>
             <button
               type="button"
-              @click="editOpen = !editOpen"
               class="text-xs px-3 py-1.5 rounded-full border border-[#16BAE7] text-[#16BAE7] hover:bg-[#E8F7FD] transition-colors"
+              @click="editOpen = !editOpen"
             >{{ editOpen ? $t('generic.close') : $t('generic.edit') }}</button>
           </div>
 
-          <form v-if="editOpen" @submit.prevent="saveMetadata" class="flex flex-col gap-4 bg-[#f5fafb] rounded-lg p-5 border border-gray-100">
+          <form v-if="editOpen" class="flex flex-col gap-4 bg-[#f5fafb] rounded-lg p-5 border border-gray-100" @submit.prevent="saveMetadata">
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $t('news.editor.title_required') }}</label>
               <input
@@ -164,7 +164,7 @@ import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence
 
 import { requestErrorMessage } from "~/shared/requestError"
 import type { z } from "zod"
-import { NewsDetailSchema } from "~/shared/contracts/content"
+import type { NewsDetailSchema } from "~/shared/contracts/content"
 import { isRaster } from '~/shared/utils'
 const { $t, $locale } = useNuxtApp()
 const { backHref, backLabel } = useReferrer('/news', $t('news.back_to_overview'))
@@ -213,7 +213,7 @@ onMounted(async () => {
 
 const blocksKey = getBlokkliDataKey(
   'news_items',
-  String(item.value?.id || `missing-${route.params.slug}`),
+  String(item.value?.id || `missing-${slug}`),
 )
 
 const { data: blocksData } = await useAsyncData(

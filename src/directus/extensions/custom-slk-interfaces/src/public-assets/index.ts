@@ -1,4 +1,6 @@
-import type { Database, HookConfig } from '@directus/types';
+import type { HookConfig, ApiExtensionContext } from '@directus/types';
+
+type Database = ApiExtensionContext['database'];
 
 const PUBLIC_FOLDER_NAME = 'public';
 

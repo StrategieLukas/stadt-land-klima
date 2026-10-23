@@ -1,3 +1,4 @@
+import { directusErrorDetails, requestErrorStatus } from "~/shared/requestError";
 import { RegistrationRequestSchema } from "~/shared/contracts/submissions";
 import { randomBytes } from 'node:crypto';
 import { sendDirectusMailFlow } from '../utils/sendDirectusMailFlow';
@@ -170,16 +171,10 @@ function createRegistrationError(statusCode: number, message: string, data?: Ret
   });
 }
 
-function isDuplicateEmailError(err: any): boolean {
-  const errorLists = [
-    err?.data?.errors,
-    err?.response?._data?.errors,
-    err?.response?.data?.errors,
-  ].filter(Array.isArray);
-
-  return errorLists.flat().some((directusError: any) => {
-    const code = String(directusError?.extensions?.code ?? '').toUpperCase();
-    const message = String(directusError?.message ?? '').toLowerCase();
+function isDuplicateEmailError(err: unknown): boolean {
+  return directusErrorDetails(err).some((directusError) => {
+    const code = directusError.code.toUpperCase();
+    const message = directusError.message.toLowerCase();
 
     return (
       ['RECORD_NOT_UNIQUE', 'INVALID_UNIQUE', 'UNIQUE_CONSTRAINT'].includes(code) ||
@@ -198,9 +193,9 @@ function duplicateEmailRegistrationError(steps: RegistrationSteps) {
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
+  const hmacKey: string = (config.altchaSecret) || 'dev-secret-change-in-production';
 
-  const parsedBody = RegistrationRequestSchema.safeParse(await readRequestBody<unknown>(event));
+  const parsedBody = RegistrationRequestSchema.safeParse(await readRequestBody(event));
   if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
   const body = parsedBody.data;
   const { firstName, lastName, email, organisation, ars, municipalityName, population, state, geolocation, altcha } = body ?? {};
@@ -217,12 +212,12 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify CAPTCHA
-  const devMode = (config.public.appEnv as string) === 'development';
+  const devMode = (config.public.appEnv) === 'development';
   if (!altcha || !await verifyAltcha(altcha, hmacKey, { devMode, purpose: 'register' })) {
     throw createRegistrationError(400, 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.');
   }
 
-  const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055';
+  const directusUrl = (config.directusServerUrl) || 'http://directus:8055';
   const adminToken = config.directusAdminToken as string | undefined;
 
   if (!adminToken) {
@@ -255,14 +250,14 @@ export default defineEventHandler(async (event) => {
 
     const normalizedEmail = email.trim().toLocaleLowerCase();
     const emailAlreadyExists = existingUsers.data?.some(
-      (user) => String(user.email ?? '').trim().toLocaleLowerCase() === normalizedEmail,
+      (user) => (user.email ?? '').trim().toLocaleLowerCase() === normalizedEmail,
     );
 
     if (emailAlreadyExists) {
       throw duplicateEmailRegistrationError(steps);
     }
-  } catch (err: any) {
-    if (err?.statusCode === 422) throw err;
+  } catch (err: unknown) {
+    if (requestErrorStatus(err) === 422) throw err;
     // Non-fatal: the unique constraint below remains the final safeguard.
     console.warn('[register-municipality] Email duplicate check failed (non-fatal):', err);
   }
@@ -280,8 +275,8 @@ export default defineEventHandler(async (event) => {
         registrationErrorData(steps, undefined, 'localteam.register.error.municipality_already_registered'),
       );
     }
-  } catch (err: any) {
-    if (err.statusCode === 422) throw err;
+  } catch (err: unknown) {
+    if (requestErrorStatus(err) === 422) throw err;
     // Non-fatal: proceed with registration if the check itself fails
     console.warn('[register-municipality] ARS duplicate check failed (non-fatal):', err);
   }
@@ -318,7 +313,7 @@ export default defineEventHandler(async (event) => {
     userId = userResult.data.id;
     await ensureUserRole(directusUrl, headers, userId, LOKALTEAM_ADMIN_ROLE);
     steps.user = true;
-  } catch (err: any) {
+  } catch (err: unknown) {
     await deleteUserAfterFailedRegistration(directusUrl, headers, userId);
     const isUnique = isDuplicateEmailError(err);
     throw createRegistrationError(
@@ -348,7 +343,7 @@ export default defineEventHandler(async (event) => {
       },
     });
     localteamId = teamResult.data.id;
-  } catch (err: any) {
+  } catch {
     await deleteUserAfterFailedRegistration(directusUrl, headers, userId);
     throw createRegistrationError(
       422,
@@ -401,7 +396,7 @@ export default defineEventHandler(async (event) => {
           ars: ars.trim(),
           creator_verified: false,
           preview_token: previewToken,
-          ...(population != null ? { population: Number(population) } : {}),
+          ...(population != null ? { population: (population) } : {}),
           ...(state ? { state: state.trim() } : {}),
           ...(geolocation ? { geolocation } : {}),
         },
@@ -441,8 +436,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const appPublicUrl = (config.appPublicUrl as string) || 'https://stadt-land-klima.de';
-  const directusPublicUrl = (config.directusPublicUrl as string) || 'https://stadt-land-klima.de/backend';
+  const appPublicUrl = (config.appPublicUrl) || 'https://stadt-land-klima.de';
+  const directusPublicUrl = (config.directusPublicUrl) || 'https://stadt-land-klima.de/backend';
   const previewUrl = municipalitySlug
     ? `${appPublicUrl}/municipalities/${municipalitySlug}?preview=${previewToken}`
     : null;
@@ -451,7 +446,7 @@ export default defineEventHandler(async (event) => {
   const welcomeEmailFlowUrl = config.directusFlowWelcomeEmail as string | undefined;
 
   // --- Step 5: Notify admin ---
-  const adminEmail = (config.adminNotificationEmail as string) || 'info@stadt-land-klima.de';
+  const adminEmail = (config.adminNotificationEmail) || 'info@stadt-land-klima.de';
   if (!notifyAdminFlowUrl) {
     console.warn('[register-municipality] DIRECTUS_FLOW_NOTIFY_ADMIN not configured — skipping admin notification');
   } else {
@@ -482,9 +477,9 @@ export default defineEventHandler(async (event) => {
     console.warn('[register-municipality] DIRECTUS_FLOW_WELCOME_EMAIL not configured — skipping welcome email');
   } else {
     try {
-      const tutorialUrl = (config.welcomeEmailTutorialUrl as string) || '';
-      const calendarUrl = (config.welcomeEmailCalendarUrl as string) || '';
-      const signalUrl = (config.welcomeEmailSignalUrl as string) || '';
+      const tutorialUrl = (config.welcomeEmailTutorialUrl) || '';
+      const calendarUrl = (config.welcomeEmailCalendarUrl) || '';
+      const signalUrl = (config.welcomeEmailSignalUrl) || '';
       await sendDirectusMailFlow(welcomeEmailFlowUrl, directusUrl, adminToken, {
         to: email.trim(),
         subject: `Willkommen bei Stadt.Land.Klima! – Dein Lokalteam für ${municipalityName.trim()} ist eingerichtet`,

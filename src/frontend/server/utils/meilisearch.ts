@@ -6,8 +6,8 @@ export function getMeilisearch(): Meilisearch {
   if (!client) {
     const config = useRuntimeConfig()
     client = new Meilisearch({
-      host: (config.meilisearchUrl as string) || 'http://meilisearch:7700',
-      apiKey: config.meilisearchMasterKey as string,
+      host: (config.meilisearchUrl) || 'http://meilisearch:7700',
+      apiKey: config.meilisearchMasterKey,
     })
   }
   return client

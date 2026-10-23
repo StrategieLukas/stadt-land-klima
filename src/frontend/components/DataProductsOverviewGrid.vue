@@ -34,7 +34,7 @@ defineProps<{
   collections: Collection[];
   ars: string;
   baseUrl: string;
-  population?: number | null;
+  population?: number | null | undefined;
   areaName: string;
   scrollMarginTop: number;
 }>();

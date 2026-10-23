@@ -87,23 +87,23 @@ const statePaths = stateBordersData.features.map((f) => {
 
 const props = defineProps({
   /** WGS84 latitude */
-  lat: { type: Number as PropType<number | null>, default: null },
+  lat: { type: Number as PropType<number | null | undefined>, default: null },
   /** WGS84 longitude */
-  lon: { type: Number as PropType<number | null>, default: null },
+  lon: { type: Number as PropType<number | null | undefined>, default: null },
   /** Display width in pixels */
-  size: { type: Number, default: 80 },
+  size: { type: Number as PropType<number | undefined>, default: 80 },
   /** State fill color */
-  fillColor: { type: String, default: '#dbeafe' },
+  fillColor: { type: String as PropType<string | undefined>, default: '#dbeafe' },
   /** State stroke color */
-  strokeColor: { type: String, default: '#93c5fd' },
+  strokeColor: { type: String as PropType<string | undefined>, default: '#93c5fd' },
   /** Marker color */
-  markerColor: { type: String, default: '#006e94' },
+  markerColor: { type: String as PropType<string | undefined>, default: '#006e94' },
   /** State fill color in dark mode */
-  darkFillColor: { type: String, default: 'var(--slk-blue-tint)' },
+  darkFillColor: { type: String as PropType<string | undefined>, default: 'var(--slk-blue-tint)' },
   /** State stroke color in dark mode */
-  darkStrokeColor: { type: String, default: 'var(--slk-blue)' },
+  darkStrokeColor: { type: String as PropType<string | undefined>, default: 'var(--slk-blue)' },
   /** Marker color in dark mode */
-  darkMarkerColor: { type: String, default: 'var(--slk-blue-bright)' },
+  darkMarkerColor: { type: String as PropType<string | undefined>, default: 'var(--slk-blue-bright)' },
 });
 
 const indicatorStyle = computed(() => ({

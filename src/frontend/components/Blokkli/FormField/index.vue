@@ -80,7 +80,7 @@
 import type { FieldListItem } from "#blokkli/types";
 
 const props = defineProps<{
-  label?: FieldListItem[];
+  label?: FieldListItem[] | undefined;
 }>();
 
 const { $t } = useNuxtApp();

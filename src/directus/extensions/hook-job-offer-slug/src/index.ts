@@ -1,6 +1,8 @@
 import { defineHook } from '@directus/extensions-sdk';
-import type { Database } from '@directus/types';
+import type { ApiExtensionContext } from '@directus/types';
 import slugify from 'slugify';
+
+type Database = ApiExtensionContext['database'];
 
 const JOB_OFFERS = 'job_offers';
 const MAX_BASE_LENGTH = 90;

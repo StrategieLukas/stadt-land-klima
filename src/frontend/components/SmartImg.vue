@@ -19,19 +19,19 @@ import type { PropType } from 'vue';
   import { TOUR_REPORT_MEDIA } from '~/shared/successProjectTour';
 
   const props = defineProps({
-    assetId: { type: String as PropType<string | null>, required: false, default: null },
-    isRaster: { type: Boolean, required: false, default: true },
-    alt: { type: String, default: '' },
-    imgClass: { type: String, default: '' },
-    assetBaseUrl: { type: String as PropType<string | null>, default: null },
-    accessToken: { type: String as PropType<string | null>, default: null },
+    assetId: { type: String as PropType<string | null | undefined>, required: false, default: null },
+    isRaster: { type: Boolean as PropType<boolean | undefined>, required: false, default: true },
+    alt: { type: String as PropType<string | undefined>, default: '' },
+    imgClass: { type: String as PropType<string | undefined>, default: '' },
+    assetBaseUrl: { type: String as PropType<string | null | undefined>, default: null },
+    accessToken: { type: String as PropType<string | null | undefined>, default: null },
 
     // Transform options
-    width: { type: Number as PropType<number | null>, default: null },
-    height: { type: Number as PropType<number | null>, default: null },
+    width: { type: Number as PropType<number | null | undefined>, default: null },
+    height: { type: Number as PropType<number | null | undefined>, default: null },
     // Quality for uploads is already reduced to 70 on upload, this would further decrease it
-    quality: { type: Number, default: 100 },
-    fit: { type: String, default: 'cover' },
+    quality: { type: Number as PropType<number | undefined>, default: 100 },
+    fit: { type: String as PropType<string | undefined>, default: 'cover' },
 
     // Optional responsive srcset
     // responsiveWidths: { type: Array, default: () => [] }, // e.g. [400, 800, 1200]

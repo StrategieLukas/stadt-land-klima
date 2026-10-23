@@ -17,15 +17,15 @@
         <LGeoJson
           v-for="neighbor in visibleNeighbors"
           :key="neighbor.ars"
-          :geojson="parseGeo(neighbor.geo_area ?? neighbor.geoArea) ?? undefined"
+          :geojson="parseGeo(neighbor.geo_area ?? neighbor.geoArea) ?? []"
           :options="areaOptions(neighbor, false)"
         />
 
         <LGeoJson
           v-if="areaBoundary"
-          :geojson="areaBoundary"
+          :geojson="areaBoundary ?? []"
           :options="areaOptions(area, true)"
-          @ready="onBoundaryReady"
+          v-on="{ ready: onBoundaryReady }"
         />
       </LMap>
     </ClientOnly>
@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+// vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
 import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from 'leaflet';
 import { parseGeoData, parseGeoCenter } from '~/shared/contracts/geometry';
 import type { PropType } from 'vue';
@@ -53,8 +54,8 @@ import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
   area: { type: Object as PropType<Area>, required: true },
-  nearbyAreas: { type: Array as PropType<Area[]>, default: () => [] },
-  nearbyAreasLoading: { type: Boolean, default: false },
+  nearbyAreas: { type: Array as PropType<Area[] | undefined>, default: () => [] },
+  nearbyAreasLoading: { type: Boolean as PropType<boolean | undefined>, default: false },
 });
 
 const router = useRouter();

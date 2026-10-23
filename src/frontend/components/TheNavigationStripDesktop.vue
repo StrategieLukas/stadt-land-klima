@@ -183,7 +183,7 @@ const { $translateDynamic, $t } = useNuxtApp();
 
 const props = defineProps({
   items: {
-    type: Array as PropType<NavigationItem[]>,
+    type: Array as PropType<NavigationItem[] | undefined>,
     default: () => [],
   },
 });

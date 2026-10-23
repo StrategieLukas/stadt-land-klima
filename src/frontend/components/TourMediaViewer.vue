@@ -23,7 +23,7 @@
 import { isVideoMedia } from '~/shared/tourMedia';
 import type { MediaFile, TourMedia } from '~/shared/tourMedia';
 import { relationId } from '~/shared/tour';
-const props = defineProps<{ previewToken?: string | null }>();
+const props = defineProps<{ previewToken?: string | null | undefined }>();
 const emit = defineEmits<{ change: [open: boolean] }>();
 const { $t } = useNuxtApp();
 const dialog = ref<HTMLDialogElement | null>(null);

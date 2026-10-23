@@ -21,17 +21,18 @@
       <LMarker
         v-if="markerIcons.get(stop.index)"
         :lat-lng="stop.point"
-        :icon="leafletMarkerIcon(markerIcons.get(stop.index))"
+        v-bind="leafletMarkerProps(leafletMarkerIcon(markerIcons.get(stop.index)))"
         :z-index-offset="stop.index === activeIndex ? 1000 : 0"
         :options="{ title: `${stop.index + 1}. ${stop.name}`, alt: `${stop.index + 1}. ${stop.name}` }"
-        @click="emit('select', stop.index)"
+        v-on="{ click: () => emit('select', stop.index) }"
       />
     </template>
   </LMap>
 </template>
 
 <script setup lang="ts">
-import { leafletMarkerIcon } from '~/shared/leafletMarker';
+// vue-leaflet remaps click listeners but omits their types. Owner: app maintainers.
+import { leafletMarkerIcon, leafletMarkerProps } from '~/shared/leafletMarker';
 import { computed, markRaw, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import type { DivIcon, Map as LeafletMap } from "leaflet";
 import type { TourPoint } from "~/shared/tour";
@@ -42,7 +43,7 @@ type MapPosition = { x: number; y: number; width: number; height: number };
 
 
 const props = defineProps<{
-  stops: { id: string; slug?: string; title?: string; location?: string | null; geolocation?: TourPoint | null }[];
+  stops: { id: string; slug?: string | undefined; title?: string | undefined; location?: string | null | undefined; geolocation?: TourPoint | null | undefined }[];
   activeIndex: number;
 }>();
 const emit = defineEmits<{
@@ -50,7 +51,7 @@ const emit = defineEmits<{
   (event: "position", position: MapPosition | null): void;
 }>();
 const { tileUrl, subdomains, attribution } = useCartoBasemap();
-const mapRef = ref<{ leafletObject?: LeafletMap } | null>(null);
+const mapRef = ref<{ leafletObject?: LeafletMap | undefined } | null>(null);
 const divIconFactory = shallowRef<typeof import("leaflet")["divIcon"] | null>(null);
 const ready = ref(false);
 const reducedMotion = ref(false);

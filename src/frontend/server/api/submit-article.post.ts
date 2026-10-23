@@ -1,6 +1,8 @@
+import { directusErrorDetails, errorRecord, requestErrorData, requestErrorStatus } from "~/shared/requestError";
 import { randomBytes } from "node:crypto";
 import type { H3Event } from "h3";
 import {
+  ArticleSubmissionErrorSchema,
   ARTICLE_SUBMISSION_LIMITS,
   ARTICLE_SUBMISSION_MAX_IMAGE_BYTES,
   ARTICLE_SUBMISSION_MAX_MULTIPART_BYTES,
@@ -55,7 +57,7 @@ type MultipartPart = {
   data: Buffer;
 };
 
-type EventWithWebBody = H3Event & {
+type EventWithWebBody = {
   req?: {
     arrayBuffer?: () => Promise<ArrayBuffer>;
   };
@@ -280,7 +282,7 @@ async function readRequestBuffer(event: H3Event) {
     event.node.req.on("data", (chunk: Buffer | string) => {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     });
-    event.node.req.on("end", () => resolve(Buffer.concat(chunks)));
+    event.node.req.on("end", () => { resolve(Buffer.concat(chunks)); });
     event.node.req.on("error", reject);
   });
 }
@@ -306,7 +308,7 @@ function parseContentDisposition(value: string) {
 
 async function readMultipartParts(event: H3Event) {
   const contentTypeHeader = event.node.req.headers["content-type"];
-  const contentType = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : (contentTypeHeader ?? "");
+  const contentType = contentTypeHeader ?? "";
   const boundary =
     /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType)?.[1] ??
     /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType)?.[2];
@@ -351,10 +353,11 @@ async function readMultipartParts(event: H3Event) {
     const { name, filename } = parseContentDisposition(disposition);
     if (!name) continue;
 
+    const contentType = headers.get("content-type");
     parts.push({
       name,
       ...(filename ? { filename } : {}),
-      ...(headers.get("content-type") ? { type: headers.get("content-type") } : {}),
+      ...(contentType ? { type: contentType } : {}),
       data,
     });
   }
@@ -374,7 +377,7 @@ async function submitArticle(event: H3Event) {
   }
 
   const config = useRuntimeConfig();
-  const hmacKey = (config.altchaSecret as string) || "dev-secret-change-in-production";
+  const hmacKey = (config.altchaSecret) || "dev-secret-change-in-production";
   const altcha = getInternalTextField(parts, "altcha", 4096, true);
 
   if (!await verifyAltcha(altcha, hmacKey, { purpose: 'article' })) {
@@ -415,7 +418,7 @@ async function submitArticle(event: H3Event) {
   }
   validateImage(image);
 
-  const directusUrl = (config.directusServerUrl as string) || "http://directus:8055";
+  const directusUrl = (config.directusServerUrl) || "http://directus:8055";
   const adminToken = config.directusAdminToken as string | undefined;
   if (!adminToken) {
     console.error("[submit-article] DIRECTUS_ADMIN_TOKEN not configured");
@@ -444,7 +447,7 @@ async function submitArticle(event: H3Event) {
     imageForm.append("image_credits", imageCredits);
     imageForm.append(
       "file",
-      new Blob([Uint8Array.from(image.data)], { type: image.type }),
+      new Blob([Uint8Array.from(image.data)], { type: image.type ?? "" }),
       sanitizeFilename(image.filename ?? "erfolgsprojekt-bild"),
     );
 
@@ -480,10 +483,10 @@ async function submitArticle(event: H3Event) {
       body: articlePayload,
     });
 
-    const directusPublicUrl = (config.directusPublicUrl as string) || "https://stadt-land-klima.de/backend";
+    const directusPublicUrl = (config.directusPublicUrl) || "https://stadt-land-klima.de/backend";
     const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "articles", article.data.id);
     const notifyAdminFlowUrl = config.directusFlowNotifyAdmin as string | undefined;
-    const notificationEmail = (config.erfolgsprojekteNotificationEmail as string) || "presse@stadt-land-klima.de";
+    const notificationEmail = (config.erfolgsprojekteNotificationEmail) || "presse@stadt-land-klima.de";
     if (!notifyAdminFlowUrl) {
       console.warn(
         "[submit-article] DIRECTUS_FLOW_NOTIFY_ADMIN not configured - skipping Erfolgsprojekte notification",
@@ -518,26 +521,22 @@ async function submitArticle(event: H3Event) {
           ]),
           "</table>",
         ].join("\n"),
-      }).catch((err) => {
+      }).catch((err: unknown) => {
         console.warn("[submit-article] Erfolgsprojekte notification email failed (non-fatal):", err);
       });
     }
 
     return { success: true, id: article.data.id, status: article.data.status };
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (imageId) {
-      await $fetch(`${directusUrl}/files/${imageId}`, { method: "DELETE", headers }).catch((cleanupErr) => {
+      await $fetch(`${directusUrl}/files/${imageId}`, { method: "DELETE", headers }).catch((cleanupErr: unknown) => {
         console.warn("[submit-article] Failed to clean up uploaded image after article error:", cleanupErr);
       });
     }
-    const directusError = err?.data?.errors?.[0];
-    const directusCode = directusError?.extensions?.code;
-    const directusStatus = err?.statusCode ?? err?.response?.status;
-    console.error("[submit-article] Directus error:", {
-      status: directusStatus,
-      code: directusCode,
-      message: directusError?.message ?? err?.message,
-    });
+    const directusError = directusErrorDetails(err)[0];
+    const directusCode = directusError?.code;
+    const directusStatus = requestErrorStatus(err);
+    console.error("[submit-article] Directus error:", {status: directusStatus, code: directusCode});
     if (directusStatus === 401 || directusStatus === 403 || directusCode === "FORBIDDEN") {
       console.error("[submit-article] DIRECTUS_ADMIN_TOKEN lacks permission to create articles or files");
       throw submissionError(
@@ -557,12 +556,14 @@ async function submitArticle(event: H3Event) {
 export default defineEventHandler(async (event) => {
   try {
     return await submitArticle(event);
-  } catch (err: any) {
-    const errorData = err?.data as ArticleSubmissionErrorData | undefined;
-    if (errorData?.errorCode) {
-      const statusCode = Number(err.statusCode) || 500;
+  } catch (err: unknown) {
+    const parsedError = ArticleSubmissionErrorSchema.safeParse(requestErrorData(err));
+    if (parsedError.success) {
+      const errorData = parsedError.data;
+      const statusCode = requestErrorStatus(err) || 500;
       event.node.res.statusCode = statusCode;
-      event.node.res.statusMessage = err.statusMessage || submissionStatusMessage(statusCode);
+      const statusMessage = errorRecord(err).statusMessage;
+      event.node.res.statusMessage = typeof statusMessage === "string" ? statusMessage : submissionStatusMessage(statusCode);
       return {
         success: false,
         error: errorData,

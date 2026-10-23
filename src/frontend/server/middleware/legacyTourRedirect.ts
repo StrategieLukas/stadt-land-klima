@@ -5,7 +5,7 @@ export default defineEventHandler(async event => {
   const match = path.match(/^\/(events\/series|events|news)\/([^/]+)\/?$/);
   if (!match) return;
   const config = useRuntimeConfig(event);
-  const base = String(config.directusServerUrl || config.public.serverDirectusUrl).replace(/\/$/,'');
+  const base = (config.directusServerUrl || config.public.serverDirectusUrl).replace(/\/$/,'');
   const token = config.directusFrontendServerToken as string | undefined
   const headers = {Authorization:`Bearer ${token}`};
   const slug = decodeURIComponent(match[2] ?? "");
@@ -23,4 +23,5 @@ export default defineEventHandler(async event => {
     if (stop?.tour) target=`/projects/tours/${stop.tour.slug}/${stop.slug}`;
   }
   if(target) return new Response(null,{status:301,headers:{Location:target+requestUrl.search}});
+  return undefined;
 });

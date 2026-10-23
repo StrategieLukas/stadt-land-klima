@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { ContentPageSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
     filter: { slug: { _eq: slug }, status: { _eq: 'published' } },
     fields: pageFields,
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!pages[0]) {
     throw createError({ statusCode: 404, statusMessage: 'Page not found' })

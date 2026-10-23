@@ -205,7 +205,7 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  blocks?: FieldListItem[]
+  blocks?: FieldListItem[] | undefined
 }>()
 
 const bgClass = computed(() => {

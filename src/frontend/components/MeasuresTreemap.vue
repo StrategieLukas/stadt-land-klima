@@ -23,7 +23,7 @@ const props = defineProps({
     required: true,
   },
   onNavigate: {
-    type: Function as PropType<((slug: string) => void) | null>,
+    type: Function as PropType<((slug: string) => void) | null | undefined>,
     default: null,
   },
 });

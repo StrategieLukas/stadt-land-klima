@@ -95,7 +95,7 @@ const iconInvestDark = '/icons/icon_invest-dark.svg'
       required: true,
     },
     hideAbout: {
-      type: Boolean,
+      type: Boolean as PropType<boolean | undefined>,
       default: false,
     },
   });

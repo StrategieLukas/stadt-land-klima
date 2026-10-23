@@ -138,10 +138,10 @@ const props = defineProps<{
   collection: Collection;
   ars: string;
   baseUrl: string;
-  population?: number | null;
-  areaName?: string;
-  exportUpdatedAt?: string;
-  exportAttribution?: string;
+  population?: number | null | undefined;
+  areaName?: string | undefined;
+  exportUpdatedAt?: string | undefined;
+  exportAttribution?: string | undefined;
 }>();
 
 interface CarouselItem {

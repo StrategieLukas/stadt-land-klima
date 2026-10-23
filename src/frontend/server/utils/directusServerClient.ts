@@ -9,7 +9,7 @@ import { createDirectus, rest, staticToken } from '@directus/sdk'
  */
 function serverCredentials() {
   const runtimeConfig = useRuntimeConfig()
-  const directusUrl = (runtimeConfig.directusServerUrl as string) || 'http://directus:8055'
+  const directusUrl = (runtimeConfig.directusServerUrl) || 'http://directus:8055'
   const token = runtimeConfig.directusFrontendServerToken as string | undefined
 
   if (!token) {

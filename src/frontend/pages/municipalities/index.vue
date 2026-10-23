@@ -19,10 +19,12 @@
   <!-- Mobile CTA strip (lg:hidden) — above filter -->
   <div class="lg:hidden flex flex-col gap-2 mb-4">
     <!-- Werde Klimachecker -->
-    <button @click="openCalMobile"
-       class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3 text-left w-full"
-       style="border-color: #339737;">
-      <img :src="onboardingAvatarUrl"
+    <button
+class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3 text-left w-full"
+       style="border-color: #339737;"
+       @click="openCalMobile">
+      <img
+:src="onboardingAvatarUrl"
            alt="Otto" class="w-10 h-10 rounded-full flex-shrink-0 object-cover" />
       <div class="flex-1 min-w-0">
         <h2 class="text-sm font-bold font-heading leading-tight" style="color: #339737;">{{ $t("municipalities.cta.onboarding.title") }}</h2>
@@ -33,7 +35,8 @@
       </span>
     </button>
     <!-- Lokalteam gründen -->
-    <NuxtLink to="/register_localteam"
+    <NuxtLink
+to="/register_localteam"
        class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3"
        style="border-color: #AFCA0B;">
       <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #AFCA0B;">
@@ -50,7 +53,8 @@
       </span>
     </NuxtLink>
     <!-- Dashboard Stats -->
-    <NuxtLink to="/stats#massnahmenstatistiken"
+    <NuxtLink
+to="/stats#massnahmenstatistiken"
        class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3"
        style="border-color: #006e94;">
       <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #006e94;">
@@ -208,7 +212,7 @@
     </div>
 
     <!-- Right Column: Success Projects (1/3 width) -->
-    <div class="lg:col-span-1 mb-3 overflow-y-auto" v-if="projects && projects.length > 0"  :style="{ maxHeight: rankingColumnHeight + 'px' }">
+    <div v-if="projects && projects.length > 0" class="lg:col-span-1 mb-3 overflow-y-auto"  :style="{ maxHeight: rankingColumnHeight + 'px' }">
       <div class="sticky">
         <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
@@ -299,16 +303,19 @@
   <!-- Mobile cal.com overlay -->
   <teleport to="body">
     <transition name="mun-cal-fade">
-      <div v-if="showCalMobile"
+      <div
+v-if="showCalMobile"
            class="fixed inset-0 z-[10001] bg-black/60 flex items-center justify-center p-4"
            @click.self="closeCalMobile">
         <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
           <div class="flex justify-end p-2 flex-shrink-0">
-            <button @click="closeCalMobile"
-                    class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                    :aria-label="$t('generic.close')">✕</button>
+            <button
+class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    :aria-label="$t('generic.close')"
+                    @click="closeCalMobile">✕</button>
           </div>
-          <div id="my-cal-inline-onboarding-mobile"
+          <div
+id="my-cal-inline-onboarding-mobile"
                class="flex-1 overflow-y-auto min-h-[400px]"></div>
         </div>
       </div>
@@ -319,16 +326,16 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
+import lodash from "lodash";
+import { isRaster } from "~/shared/utils";
+
 const majorCitySelected = '/icons/major-city-light.svg'
 const majorCityNotSelected = '/icons/major-city-dark.svg'
 const minorCitySelected = '/icons/minor-city-light.svg'
 const minorCityNotSelected = '/icons/minor-city-dark.svg'
 
-import { ref, onMounted, computed, nextTick, watch } from 'vue'
-import lodash from "lodash";
-import { isRaster } from "~/shared/utils";
 
-const { sortBy, last, get } = lodash;
 const { $t, $locale } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
 const onboardingAvatarUrl = computed(() => `${String(runtimeConfig.public.clientDirectusUrl || "").replace(/\/+$/, "")}/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96`);
@@ -349,19 +356,17 @@ function updateRankingColumnHeight() {
 
 onMounted(() => {
   // Initial measurement after DOM renders
-  nextTick(updateRankingColumnHeight)
+  void nextTick(updateRankingColumnHeight)
 
   // Re-measure on window resize (only on client)
-  if (process.client) {
+  if (import.meta.client) {
     window.addEventListener('resize', updateRankingColumnHeight)
   }
 })
 
 // Also re-measure whenever the DOM changes (reactively)
-watchEffect(async () => {
-  // wait for DOM updates after reactive changes
-  await nextTick()
-  updateRankingColumnHeight()
+watchEffect(() => {
+  void nextTick(updateRankingColumnHeight)
 })
 
 
@@ -377,7 +382,7 @@ const isMapView = computed(() => route.query.view === 'map'); // Default to map 
 
 const selectedCatalogVersion = ref(await getCatalogVersion(route));
 onMounted(() => {
-  setCatalogVersionUrl(route, router, selectedCatalogVersion.value);
+  void setCatalogVersionUrl(route, router, selectedCatalogVersion.value);
 });
 
 // Share the complete public score projection with the map and statistics pages.
@@ -423,9 +428,9 @@ onMounted(() => {
   if (!Array.isArray(scores) || scores.length === 0) return;
 
   // sort by nested municipality.date_updated
-  const sorted = sortBy(scores, (s) => get(s, "municipality.date_updated"));
+  const sorted = lodash.sortBy(scores, (s) => lodash.get(s, "municipality.date_updated"));
 
-  const latest = get(last(sorted), "municipality.date_updated");
+  const latest = lodash.get(lodash.last(sorted), "municipality.date_updated");
   if (!latest) return;
 
   const lastUpdatedAt = new Date(latest);
@@ -447,7 +452,7 @@ const selected = computed({
     return v === 'major_city' || v === 'minor_city' ? v : 'all'
   },
   set(val) {
-    router.replace({ query: { ...route.query, filter: val === 'all' ? undefined : val } })
+    void router.replace({ query: { ...route.query, filter: val === 'all' ? undefined : val } })
   },
 })
 

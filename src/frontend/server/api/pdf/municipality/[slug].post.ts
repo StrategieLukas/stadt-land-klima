@@ -1,3 +1,4 @@
+import { MunicipalityPdfRequestSchema } from "~/shared/contracts/submissions";
 import { createError, defineEventHandler, getRouterParam, readBody, setResponseHeader } from 'h3'
 import { useRuntimeConfig } from '#imports'
 
@@ -11,14 +12,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid municipality slug' })
   }
 
-  const body = await readBody(event)
-  const catalogVersion = body?.catalogVersion as string | undefined
-  if (!catalogVersion || !/^[a-z0-9._-]{1,100}$/.test(catalogVersion)) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing or invalid catalog version' })
-  }
+  const parsed = MunicipalityPdfRequestSchema.safeParse(await readBody<unknown>(event))
+  if (!parsed.success || (parsed.data.slug && parsed.data.slug !== slug)) throw createError({ statusCode: 400, statusMessage: 'Invalid PDF request' })
+  const { catalogVersion } = parsed.data
 
   const config = useRuntimeConfig()
-  const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055'
+  const directusUrl = (config.directusServerUrl) || 'http://directus:8055'
   const token = config.directusFrontendServerToken as string | undefined
 
   if (!token) {
@@ -35,8 +34,7 @@ export default defineEventHandler(async (event) => {
   })
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => '')
-    throw createError({ statusCode: response.status, statusMessage: `PDF generation failed: ${errorText}` })
+    throw createError({ statusCode: response.status, statusMessage: 'PDF generation failed' })
   }
 
   const arrayBuffer = await response.arrayBuffer()

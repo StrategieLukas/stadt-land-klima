@@ -4,7 +4,6 @@ import InterfaceIconRadio from './interface.vue';
 const config: DirectusInterfaceConfig = {
   id: 'icon-radio',
   name: 'Icon Button Group',
-  type: 'interface',
   description: 'Radio selection group with icon buttons',
   icon: 'view_carousel',
   component: InterfaceIconRadio,

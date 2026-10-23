@@ -351,11 +351,11 @@ const props = defineProps({
     required: true
   },
   userAnswers: {
-    type: Object as PropType<UserAnswers>,
+    type: Object as PropType<UserAnswers | undefined>,
     default: () => ({})
   },
   doubleWeightedQuestions: {
-    type: [Set, Array] as PropType<Set<string> | string[]>,
+    type: [Set, Array] as PropType<Set<string> | string[] | undefined>,
     default: () => new Set()
   }
 })

@@ -1,4 +1,4 @@
-<template lang="">
+<template>
   <!-- Content when municipality data is available -->
   <div>
     <!-- Mobile: Single column layout -->
@@ -60,7 +60,7 @@
       </div>
       <p class="mb-4 mt-0 text-center text-xs">
         <ClientOnly>
-          {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
+          {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? '', $locale) }}
         </ClientOnly>
       </p>
 
@@ -322,12 +322,13 @@
                 :key="project.id"
                 :slug="project.slug"
                 :title="project.title"
-                :municipality_name="project.municipality_name"
-                :state="project.state"
-                :abstract="project.abstract"
-                :author="project.author"
-                :date="new Date(project.date_created)"
-                :image_id="project.image"
+                :municipality_name="project.municipality_name ?? undefined"
+                :state="project.state ?? undefined"
+                :abstract="project.abstract ?? undefined"
+                :author="project.author ?? undefined"
+                :date="project.date"
+                :image_id="project.image_id ?? undefined"
+                :image_is_raster="project.image_is_raster ?? undefined"
                 :organisation="project.organisation"
               />
             </div>
@@ -340,7 +341,7 @@
               <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-4 w-4 opacity-60" />
               <ClientOnly>
                 <span>{{
-                  $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale)
+                  $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? '', $locale)
                 }}</span>
               </ClientOnly>
             </div>
@@ -352,7 +353,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Project, Organisation } from '~/types/components/content';
+import type { Project } from '~/types/components/content';
 import type {  MunicipalityScore, RatingsBySector  } from '~/types/components/municipality';
 
 import type { PropType } from 'vue';
@@ -361,7 +362,7 @@ import { ref, onMounted, computed } from "vue";
 import lodash from "lodash";
 import MarkdownIt from "markdown-it";
 
-import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
+import { isRaster, formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
 
 const md = new MarkdownIt({
   html: false, // XSS safety
@@ -415,40 +416,16 @@ async function fetchMunicipalityProjects() {
 
   loadingProjects.value = true;
   try {
-    const { articles } = await $fetch<{ articles: (Omit<Project, 'organisation'> & { organisation?: string | null })[] }>('/api/public/articles', {
+    const { articles } = await $fetch('/api/public/articles', {
       query: { municipality: municipality.name, limit: 5, sort: '-date_created' },
     });
-
-    // Get organisation details if articles have organisations
-    const orgIds = [
-      ...new Set(
-        articles
-          .map((article) => {
-            const org = article.organisation;
-            if (org == null) return null;
-            return org;
-          })
-          .filter((id) => id != null),
-      ),
-    ];
-
-    let organisations: Organisation[] = [];
-    if (orgIds.length > 0) {
-      const { organisations: orgs } = await $fetch<{ organisations: Organisation[] }>('/api/public/organisations');
-      organisations = orgs.filter((org) => org.id != null && orgIds.includes(String(org.id)));
-    }
-
-    const orgMap = new Map(organisations.map((org) => [org.id, org]));
-
-    municipalityProjects.value = articles.map((article) => {
-      const orgRaw = article.organisation;
-      if (orgRaw == null) return { ...article, organisation: null };
-      const orgId = orgRaw;
-      return {
-        ...article,
-        organisation: orgMap.get(orgId) || null,
-      };
-    });
+    municipalityProjects.value = articles.map((article) => ({
+      ...article,
+      date: article.date_created,
+      image_id: article.image?.id ?? null,
+      image_is_raster: isRaster(article.image?.type),
+      measures: article.measures?.flatMap(link => link.measures_id ? [link.measures_id] : []) ?? [],
+    }));
   } catch (err) {
     console.error("❌ Failed to fetch municipality projects:", err);
     municipalityProjects.value = [];

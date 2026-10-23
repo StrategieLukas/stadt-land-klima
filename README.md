@@ -147,7 +147,12 @@ credential retirement and safe response boundaries. The plan is not an
 implementation-complete status report.
 
 Rebuild each extension after changing its dependencies, then restart Directus so
-it loads the rebuilt `dist` bundles. Run `cd bin && ./test_dev.sh`, the Blökkli
+it loads the rebuilt `dist` bundles. Every maintained extension now runs its compiler
+in `prebuild` (`vue-tsc` for packages with Vue components, otherwise `tsc`).
+After installing locked dependencies with `npm ci` in each package, run
+`./bin/check_extensions.sh` from the repository root for checks, or
+`./bin/check_extensions.sh --build` for all checked builds.
+See [DIRECTUS_EXTENSION_TYPES_REVIEW.md](DIRECTUS_EXTENSION_TYPES_REVIEW.md). Run `cd bin && ./test_dev.sh`, the Blökkli
 persistence test in `bin/test_suite`, the CLI tour-migration test inside Directus,
 and the CSV tests in `src/directus/extensions/hook-measure-rating-reports`.
 Verify a frontend production build as well as `curl http://localhost:8080`.

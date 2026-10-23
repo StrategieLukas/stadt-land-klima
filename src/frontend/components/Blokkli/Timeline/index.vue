@@ -71,8 +71,8 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  title?: string
-  items?: FieldListItem[]
+  title?: string | undefined
+  items?: FieldListItem[] | undefined
 }>()
 
 const linePositionClass = computed(() => {

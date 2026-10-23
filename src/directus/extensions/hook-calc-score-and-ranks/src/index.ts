@@ -1,5 +1,9 @@
-import type { Logger, Schema, Services } from '@directus/types';
+import type { ApiExtensionContext, SchemaOverview } from '@directus/types';
 import { calculateScores } from './calculateScores.ts';
+
+type Logger = ApiExtensionContext['logger'];
+type Schema = SchemaOverview;
+type Services = ApiExtensionContext['services'];
 
 interface HookContext {
   action: (event: string, handler: (meta: any, ctx?: unknown) => Promise<void>) => void;
@@ -22,7 +26,7 @@ interface FilterContext {
   accountability?: Accountability | null;
 }
 
-const adminAccountability = { admin: true } as const;
+const adminAccountability = { admin: true, role: null, roles: [], user: null, app: false, ip: null };
 const unverifiedPublishError = 'Your account must be verified before publishing municipality scores.';
 
 type RankedMunicipalityScore = {
@@ -94,7 +98,7 @@ const updateRanks = async (
 ): Promise<void> => {
   logger.info(`Updating ranks for catalogVersionId=${catalogVersionId}`);
   const schema = await getSchema();
-  const municipalityScoresService = new services.ItemsService('municipality_scores', {
+  const municipalityScoresService = new services.ItemsService<RankedMunicipalityScore>('municipality_scores', {
     schema,
     accountability: adminAccountability,
   });
@@ -157,7 +161,7 @@ const syncMunicipalityPublicationStatus = async (
   { services, getSchema, logger }: ServiceContext
 ): Promise<void> => {
   const schema = await getSchema();
-  const municipalityScoresService = new services.ItemsService('municipality_scores', {
+  const municipalityScoresService = new services.ItemsService<RankedMunicipalityScore>('municipality_scores', {
     schema,
     accountability: adminAccountability,
   });
@@ -193,7 +197,7 @@ const createEmptyRatingsForNewMunicipality = async (
     schema,
     accountability: adminAccountability,
   });
-  const ratingsService = new services.ItemsService('ratings_measures', {
+  const ratingsService = new services.ItemsService<{ id: string | number; localteam_id: RelationId; measure_published?: boolean }>('ratings_measures', {
     schema,
     accountability: adminAccountability,
   });
@@ -238,7 +242,7 @@ const createEmptyScoresForMunicipality = async (
     schema,
     accountability: adminAccountability,
   });
-  const municipalityScoresService = new services.ItemsService('municipality_scores', {
+  const municipalityScoresService = new services.ItemsService<RankedMunicipalityScore>('municipality_scores', {
     schema,
     accountability: adminAccountability,
   });
@@ -284,7 +288,7 @@ const ensureRatingsForPublishedMeasure = async (
     schema,
     accountability: adminAccountability,
   });
-  const ratingsService = new services.ItemsService('ratings_measures', {
+  const ratingsService = new services.ItemsService<{ id: string | number; localteam_id: RelationId; measure_published?: boolean }>('ratings_measures', {
     schema,
     accountability: adminAccountability,
   });
@@ -350,7 +354,7 @@ const syncAllMunicipalityScores = async ({ services, getSchema, logger }: Servic
     schema,
     accountability: adminAccountability,
   });
-  const scoresService = new services.ItemsService('municipality_scores', {
+  const scoresService = new services.ItemsService<RankedMunicipalityScore>('municipality_scores', {
     schema,
     accountability: adminAccountability,
   });
@@ -463,7 +467,7 @@ const captureMeasureSnapshots = async (
   if (!measureIds.length) return;
 
   const schema = await serviceContext.getSchema();
-  const measuresService = new serviceContext.services.ItemsService('measures', {
+  const measuresService = new serviceContext.services.ItemsService<{ id: string | number; status?: string | null; catalog_version?: RelationId }>('measures', {
     schema,
     accountability: adminAccountability,
   });
@@ -537,7 +541,7 @@ const syncCreatorVerified = async (
 
 const handleMunicipalityCreated = async (meta: any, ctx: ServiceContext): Promise<void> => {
   const schema = await ctx.getSchema();
-  const munService = new ctx.services.ItemsService('municipalities', {
+  const munService = new ctx.services.ItemsService<{ id: number; name: string; localteam_id: number }>('municipalities', {
     schema,
     accountability: adminAccountability,
   });
@@ -556,7 +560,7 @@ const handleMeasuresCreatedOrUpdated = async (meta: any, ctx: ServiceContext): P
   }
 
   const schema = await ctx.getSchema();
-  const measureService = new ctx.services.ItemsService('measures', {
+  const measureService = new ctx.services.ItemsService<{ id: string | number; status?: string | null; catalog_version?: RelationId; choices_rating?: unknown }>('measures', {
     schema,
     accountability: adminAccountability,
   });
@@ -564,7 +568,7 @@ const handleMeasuresCreatedOrUpdated = async (meta: any, ctx: ServiceContext): P
     id: number | string;
     status?: string | null;
     catalog_version?: RelationId;
-    choices_rating?: any;
+    choices_rating?: unknown;
   }> = await measureService.readByQuery({
     limit: -1,
     filter: { id: { _in: measureIds } },
@@ -717,7 +721,7 @@ const handleMunicipalityScoreUpdated = async (meta: any, ctx: ServiceContext): P
   }
 
   const schema = await ctx.getSchema();
-  const scoresService = new ctx.services.ItemsService('municipality_scores', {
+  const scoresService = new ctx.services.ItemsService<{ catalog_version: RelationId; municipality: RelationId }>('municipality_scores', {
     schema,
     accountability: adminAccountability,
   });

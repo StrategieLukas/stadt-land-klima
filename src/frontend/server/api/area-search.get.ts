@@ -1,3 +1,4 @@
+import { queryChoice, queryText } from "~/server/utils/publicQuery";
 import { z } from "zod";
 import { parseCms } from "~/server/utils/parseCms";
 /**
@@ -29,7 +30,7 @@ type RestArea = {
   stadtlandklima_data_all: RestAreaData[]
 }
 
-type RestSearchResponse = { results?: RestArea[] }
+
 
 /** Normalise a REST area record to the camelCase shape expected by the composables. */
 function normalise(area: RestArea) {
@@ -55,9 +56,9 @@ async function fetchFromRest(params: Record<string, string>) {
 }
 
 export default defineEventHandler(async (event) => {
-  const searchParams = getRequestSearchParams(event)
-  const term = searchParams.get('term') ?? ''
-  const mode = searchParams.get('mode') ?? 'reasonable'
+  const query = getQuery(event)
+  const term = queryText(query.term, 200) ?? ''
+  const mode = queryChoice(query.mode, ['normal', 'reasonable', 'all'], 'reasonable')
 
   if (!term || !term.trim()) return []
 

@@ -7,7 +7,7 @@
 <script setup lang="ts">
 const props = defineProps({
   label: { type: String, required: true },
-  modelValue: { type: Boolean, default: false },
+  modelValue: { type: Boolean as PropType<boolean | undefined>, default: false },
 });
 
 const emit = defineEmits<{ "update:modelValue": [value: boolean] }>();

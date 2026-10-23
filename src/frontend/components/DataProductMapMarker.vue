@@ -14,7 +14,7 @@
 </template>
 <script setup lang="ts">
 const props = defineProps<{
-  item: {coordinates: [number, number]; properties?: {power_kw?: number; popup_content?: string | null} | null};
+  item: {coordinates: [number, number]; properties?: {power_kw?: number | undefined; popup_content?: string | null | undefined} | null | undefined};
 }>();
 const markerClass = computed(() => {
   const power = props.item.properties?.power_kw;

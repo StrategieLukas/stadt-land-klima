@@ -1,100 +1,85 @@
-/**
- * Provisions the Frontend-Server and Frontend-Public Directus service users.
- * Run from the repo root:
- *   docker compose -f docker-compose.yaml exec directus node /directus/cli/tasks/provisionServiceUsers.ts
- *
- * Creates users, generates static tokens, and prints the tokens for .env configuration.
+/** Provisions the configured service roles without changing role/policy configuration.
+ * Run inside Directus with CLI_DIRECTUS_STATIC_TOKEN. Printed tokens are intended for private .env files.
  */
+import {
+  createDirectus,
+  createUser,
+  readRoles,
+  rest,
+  staticToken,
+} from '@directus/sdk';
+import { randomBytes } from 'node:crypto';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-import { randomBytes } from 'node:crypto'
-import { createDirectus, rest, staticToken, customEndpoint } from '@directus/sdk'
-
-const directusUrl = process.env.DIRECTUS_URL || 'http://localhost:8081'
-const adminToken = process.env.CLI_DIRECTUS_STATIC_TOKEN
-
-if (!adminToken) {
-  console.error('CLI_DIRECTUS_STATIC_TOKEN is required')
-  process.exit(1)
-}
-
-const client = createDirectus(directusUrl).with(staticToken(adminToken)).with(rest())
-
-async function findRole(name: string): Promise<string> {
-  const roles = await client.request(customEndpoint<{ data: Array<{ id: string }> }>({
-    path: '/items/directus_roles',
-    method: 'GET',
-    params: {
-      filter: JSON.stringify({ name: { _eq: name } }),
-      fields: 'id',
-      limit: '1',
+export async function provisionServiceUsers(url: string, adminToken: string) {
+  const client = createDirectus<{}>(url)
+    .with(staticToken(adminToken))
+    .with(rest());
+  const definitions = [
+    {
+      role: 'Frontend-Server',
+      email: 'frontend-server@stadt-land-klima.local',
+      lastName: 'Server',
+      variable: 'DIRECTUS_FRONTEND_SERVER_TOKEN',
     },
-  }))
-
-  if (!roles.data || !roles.data.length) {
-    throw new Error(`Role "${name}" not found`)
+    {
+      role: 'Frontend-Public',
+      email: 'frontend-public@stadt-land-klima.local',
+      lastName: 'Public',
+      variable: 'DIRECTUS_FRONTEND_PUBLIC_TOKEN',
+    },
+  ];
+  // Resolve both roles before creating any users. Ambiguous/missing roles must stop provisioning.
+  const roles = await Promise.all(
+    definitions.map(async (definition) => {
+      const matches = await client.request(
+        readRoles({
+          filter: { name: { _eq: definition.role } },
+          fields: ['id'],
+          limit: 2,
+        }),
+      );
+      if (matches.length !== 1 || !matches[0])
+        throw new Error(`Role "${definition.role}" was not uniquely found`);
+      return matches[0].id;
+    }),
+  );
+  const assignments: Record<string, string> = {};
+  for (const [index, definition] of definitions.entries()) {
+    const role = roles[index];
+    if (!role) throw new Error('Missing service role');
+    const token = randomBytes(32).toString('hex');
+    await client.request(
+      createUser({
+        email: definition.email,
+        first_name: 'Frontend',
+        last_name: definition.lastName,
+        password: randomBytes(32).toString('base64'),
+        token,
+        role,
+        status: 'active',
+        provider: 'default',
+      }),
+    );
+    assignments[definition.variable] = token;
   }
-  return roles.data[0].id
+  return assignments;
 }
 
-async function createUserWithToken(roleName: string, email: string, firstName: string, lastName: string) {
-  const roleId = await findRole(roleName)
-  const password = randomBytes(32).toString('base64')
-
-  console.info(`\n=== Creating ${roleName} user ===`)
-
-  // Create user via custom endpoint
-  const userId = await client.request({
-    path: '/users',
-    method: 'POST',
-    data: {
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      password,
-      role: roleId,
-      status: 'active',
-      provider: 'default',
-    },
-  } as any)
-
-  console.info(`User created: ${email} (ID: ${userId})`)
-
-  // Generate static token
-  const tokenResult: any = await client.request({
-    path: `/users/${userId}/token`,
-    method: 'POST',
-  } as any)
-
-  const tokenValue = typeof tokenResult === 'string' ? tokenResult : tokenResult?.token
-  console.info(`Static token for ${roleName}: ${tokenValue}`)
-
-  return { email, token: tokenValue }
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+) {
+  const token = process.env.CLI_DIRECTUS_STATIC_TOKEN;
+  if (!token) throw new Error('CLI_DIRECTUS_STATIC_TOKEN is required');
+  const values = await provisionServiceUsers(
+    process.env.DIRECTUS_URL || 'http://localhost:8081',
+    token,
+  );
+  console.info(
+    Object.entries(values)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n'),
+  );
 }
-
-async function main() {
-  const results: { name: string; token: string }[] = []
-
-  const serverResult = await createUserWithToken(
-    'Frontend-Server',
-    'frontend-server@stadt-land-klima.local',
-    'Frontend',
-    'Server'
-  )
-  results.push({ name: 'DIRECTUS_FRONTEND_SERVER_TOKEN', token: serverResult.token })
-
-  const publicResult = await createUserWithToken(
-    'Frontend-Public',
-    'frontend-public@stadt-land-klima.local',
-    'Frontend',
-    'Public'
-  )
-  results.push({ name: 'DIRECTUS_FRONTEND_PUBLIC_TOKEN', token: publicResult.token })
-
-  console.info('\n=== Add to .env ===')
-  console.info(results.map(r => `${r.name}=${r.token}`).join('\n'))
-}
-
-void main().catch(error => {
-  console.error('Provisioning failed:', error?.message || error)
-  process.exitCode = 1
-})

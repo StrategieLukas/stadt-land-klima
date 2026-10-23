@@ -97,9 +97,9 @@ const props = withDefaults(defineProps<{
   collection: Collection;
   ars: string;
   baseUrl: string;
-  population?: number | null;
-  showKpi?: boolean;
-  expanded?: boolean;
+  population?: number | null | undefined;
+  showKpi?: boolean | undefined;
+  expanded?: boolean | undefined;
 }>(), { showKpi: true, expanded: false });
 
 defineEmits<{
@@ -109,7 +109,7 @@ defineEmits<{
 const cardRef = ref<HTMLElement | null>(null);
 const collectionDetails = ref<Collection | null>(null);
 const aggregate = ref<Record<string, unknown> | null>(null);
-const canonicalKpi = ref<{ value: number | null; precision?: number | null } | null>(null);
+const canonicalKpi = ref<{ value: number | null; precision?: number | null | undefined } | null>(null);
 const hasRequestedSummary = ref(false);
 const hasRequestedDetails = ref(false);
 const runtimeConfig = useRuntimeConfig();
@@ -190,7 +190,7 @@ async function loadSummary() {
     aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null;
     const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {};
     canonicalKpi.value =
-      (kpiValues?.[kpi.value.plot_id] as { value: number | null; precision?: number | null } | undefined) ?? null;
+      (kpiValues?.[kpi.value.plot_id] as { value: number | null; precision?: number | null | undefined } | undefined) ?? null;
   } catch {
     aggregate.value = null;
     canonicalKpi.value = null;

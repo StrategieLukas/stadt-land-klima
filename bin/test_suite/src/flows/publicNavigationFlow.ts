@@ -69,6 +69,9 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
     await create('organisation_teams', { team_key: slug, label: `Public team ${config.runId}`, email: 'public@example.org', tasks: [], color: '#505050' });
     const news = await create('news_items', { title: newsTitle, slug, status: 'published', is_tour_redirect: false, date_published: `${timelineDay}T12:00:00` });
     await create('events', { title: `Public timeline event ${config.runId}`, slug: `${slug}-timeline`, status: 'published', event_category: 'own_public', event_type: 'other', start_date: `${timelineDay}T11:30:00.000Z` });
+    const ordinarySeries = await create('event_series', {title: `Public ordinary series ${config.runId}`, slug: `${slug}-series`, status: 'published', format: 'standard'});
+    await create('events', {title: `Published ordinary event ${config.runId}`, slug: `${slug}-series-visible`, status: 'published', series: ordinarySeries.id, start_date: `${timelineDay}T12:00:00`});
+    await create('events', {title: hidden, slug: `${slug}-series-draft`, status: 'draft', series: ordinarySeries.id, start_date: `${timelineDay}T12:00:00`});
     const draft = await create('news_items', { title: hidden, slug: `${slug}-draft`, status: 'draft', is_tour_redirect: false });
     const pageRecord = await create('pages', { name: `Public blocks ${config.runId}`, slug, status: 'published', contents: '' });
     const privatePage = await create('pages', { name: `Private page ${config.runId}`, slug: `${slug}-private`, status: 'draft', contents: hidden });
@@ -136,6 +139,10 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         assert((await fetch(`${config.frontendUrl}${path}`)).status === 400, 'Unscoped block listing must fail');
       }
       assert((await fetch(`${config.frontendUrl}/api/public/blocks?entityType=news_items&entityUuid=${draft.id}`)).status === 404, 'A published block on a draft parent remains private');
+      assert((await fetch(`${config.frontendUrl}/api/public/news/${slug}-draft`)).status === 404, 'Draft news metadata must remain private');
+      const ordinary = await json(`/api/public/event-series/${slug}-series`);
+      assert(ordinary.events.length === 1 && ordinary.events[0].slug === `${slug}-series-visible`, 'A public ordinary series includes only its published events');
+      assertNotIncludes(JSON.stringify(ordinary), hidden, 'Draft child metadata must not escape through an event series');
       assert((await fetch(`${config.frontendUrl}/api/public/blocks?entityType=pages&entityUuid=${privatePage.id}`)).status === 404, 'Published blocks on draft pages must remain private');
       const pageBlocks = await json(`/api/public/blocks?entityType=pages&entityUuid=${pageRecord.id}`);
       assertNotIncludes(JSON.stringify(pageBlocks), hidden, 'Draft blocks on published pages must remain private');
@@ -165,6 +172,38 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
           assert(errors.length === 0, `News hydration must be consistent in ${timezoneId}: ${errors.join('; ')}`);
         } finally { await newsContext.close(); }
       }
+    });
+
+    await runner.step('Public CAPTCHA: native widget solves challenges with signed purpose and expiry', async () => {
+      const page = await context.newPage();
+      try {
+        await page.goto(`${config.frontendUrl}/contact`, {waitUntil: 'domcontentloaded'});
+        await waitForHydration(page);
+        const payload = await page.evaluate(async () => {
+          await customElements.whenDefined('altcha-widget');
+          const widget = document.createElement('altcha-widget') as HTMLElement & {verify(): Promise<void>};
+          widget.setAttribute('challenge', '/api/altcha?purpose=contact');
+          const verified = new Promise<string>((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('Native CAPTCHA verification timeout')), 15000);
+            widget.addEventListener('statechange', event => {
+              const {state, payload} = (event as CustomEvent<{state: string; payload: string}>).detail;
+              if (state === 'verified') {clearTimeout(timer); resolve(payload);}
+              if (state === 'error') {clearTimeout(timer); reject(new Error('Native CAPTCHA verification failed'));}
+            });
+          });
+          await new Promise<void>(resolve => {
+            widget.addEventListener('load', () => resolve(), {once: true});
+            document.body.append(widget);
+          });
+          void widget.verify();
+          try {return await verified;} finally {widget.remove();}
+        });
+        const proof = JSON.parse(Buffer.from(payload, 'base64').toString()) as {algorithm: string; salt: string};
+        assert(proof.algorithm === 'SHA-256', 'Native widget must retain the supported algorithm');
+        const metadata = new URLSearchParams(proof.salt.split('?')[1]);
+        assert(metadata.get('purpose') === 'contact', 'Native widget must retain cryptographically signed purpose');
+        assert(Number(metadata.get('expires')) > Date.now(), 'Native widget must retain cryptographically signed expiry');
+      } finally {await page.close();}
     });
 
     await runner.step('Public navigation: measures, catalog switching, sector filters and detail hydration', async () => {

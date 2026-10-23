@@ -1,4 +1,5 @@
-import { queryText, queryIds } from "~/server/utils/publicQuery";
+import { cmsRows } from "~/server/utils/cmsValue";
+import { queryText } from "~/server/utils/publicQuery";
 import { z } from "zod";
 import { ContentIdentitySchema, FileSchema, NullableTextSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
@@ -38,7 +39,7 @@ export default defineEventHandler(async (event) => {
       },
     ],
     limit: -1,
-  })))
+  })).then(cmsRows))
 
   const visits = links
     .flatMap(link => link.stop?.tour ? [link.stop] : [])

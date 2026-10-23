@@ -101,7 +101,7 @@ function safeFileName(value: string): string {
 
 function buildEventUrl(eventSlug: string, requestOrigin: string): string {
   const config = useRuntimeConfig();
-  const baseUrl = String(config.appPublicUrl || requestOrigin).replace(/\/$/, "");
+  const baseUrl = (config.appPublicUrl || requestOrigin).replace(/\/$/, "");
   return `${baseUrl}/events/${encodeURIComponent(eventSlug)}`;
 }
 
@@ -202,13 +202,13 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig();
   const directusUrl =
-    (config.directusServerUrl as string) || (config.public.serverDirectusUrl as string) || "http://directus:8055";
+    (config.directusServerUrl) || (config.public.serverDirectusUrl) || "http://directus:8055";
   const directusToken = config.directusFrontendServerToken as string | undefined;
   let response: DirectusEventResponse;
 
   try {
     response = await $fetch<DirectusEventResponse>(`${directusUrl}/items/events`, {
-      headers: directusToken ? { Authorization: `Bearer ${directusToken}` } : undefined,
+      ...(directusToken ? { headers: { Authorization: `Bearer ${directusToken}` } } : {}),
       params: {
         filter: JSON.stringify({ slug: { _eq: slug }, status: { _eq: "published" } }),
         limit: 1,

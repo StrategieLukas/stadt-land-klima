@@ -46,15 +46,15 @@ const props = defineProps<{
   collectionSlug: string;
   ars: string;
   baseUrl: string;
-  population?: number | null;
-  flush?: boolean;
+  population?: number | null | undefined;
+  flush?: boolean | undefined;
 }>();
 
 const { t } = useSlzLocale();
 
 const loading = ref(false);
 const aggregate = ref<Record<string, unknown> | null>(null);
-const canonicalKpi = ref<{ value: number | null; precision?: number | null } | null>(null);
+const canonicalKpi = ref<{ value: number | null; precision?: number | null | undefined } | null>(null);
 
 const unitText = computed(() => t(props.element.unit));
 const labelText = computed(() => t(props.element.label));
@@ -122,7 +122,7 @@ onMounted(async () => {
     aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null;
     const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {};
     canonicalKpi.value =
-      (kpiValues?.[props.element.plot_id] as { value: number | null; precision?: number | null } | undefined) ?? null;
+      (kpiValues?.[props.element.plot_id] as { value: number | null; precision?: number | null | undefined } | undefined) ?? null;
   } catch {
     // Silently fail — display '—'
   } finally {

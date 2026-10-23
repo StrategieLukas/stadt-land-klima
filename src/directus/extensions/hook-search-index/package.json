@@ -22,7 +22,9 @@
     "build": "directus-extension build",
     "dev": "directus-extension build -w --no-minify",
     "link": "directus-extension link",
-    "validate": "directus-extension validate"
+    "validate": "directus-extension validate",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prebuild": "npm run typecheck"
   },
   "dependencies": {
     "meilisearch": "^0.62.0"

@@ -184,9 +184,9 @@ const { $t } = useNuxtApp();
 const { isOpen, query, embeddedInput, close, open: _open } = useSearchPalette();
 
 defineProps({
-  municipalities: { type: Array as PropType<Municipality[]>, default: () => [] },
-  pages: { type: Array as PropType<NavigationPage[]>, default: () => [] },
-  navItems: { type: Array as PropType<NavigationItem[]>, default: () => [] },
+  municipalities: { type: Array as PropType<Municipality[] | undefined>, default: () => [] },
+  pages: { type: Array as PropType<NavigationPage[] | undefined>, default: () => [] },
+  navItems: { type: Array as PropType<NavigationItem[] | undefined>, default: () => [] },
 });
 
 const scrolled = ref(false);

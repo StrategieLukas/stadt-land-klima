@@ -1,9 +1,9 @@
 export interface ComparableMunicipality {
-  name?: string;
-  population?: number | string | null;
-  state?: string | null;
-  party_mayor?: string | null;
-  geolocation?: { lat: number; lon: number } | null;
+  name?: string | undefined;
+  population?: number | string | null | undefined;
+  state?: string | null | undefined;
+  party_mayor?: string | null | undefined;
+  geolocation?: { lat: number; lon: number } | null | undefined;
 }
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371; // Earth's radius in km

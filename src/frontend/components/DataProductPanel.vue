@@ -171,7 +171,7 @@ const props = defineProps({
     required: true,
   },
   municipalityName: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   baseUrl: {
@@ -179,21 +179,21 @@ const props = defineProps({
     required: true,
   },
   population: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null,
   },
   exportUpdatedAt: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   exportAttribution: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   // Legacy props kept for compatibility with existing call sites
-  areaBoundary: { type: Object as PropType<GeoJsonObject | null>, default: null },
-  nearbyAreas: { type: Array as PropType<Area[]>, default: () => [] },
-  hideMap: { type: Boolean, default: false },
+  areaBoundary: { type: Object as PropType<GeoJsonObject | null | undefined>, default: null },
+  nearbyAreas: { type: Array as PropType<Area[] | undefined>, default: () => [] },
+  hideMap: { type: Boolean as PropType<boolean | undefined>, default: false },
 });
 
 // State

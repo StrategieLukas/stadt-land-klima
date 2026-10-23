@@ -76,7 +76,9 @@
   "scripts": {
     "build": "directus-extension build",
     "dev": "directus-extension build -w --no-minify",
-    "link": "directus-extension link"
+    "link": "directus-extension link",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "prebuild": "npm run typecheck"
   },
   "dependencies": {
     "@directus/errors": "^2.5.2",
@@ -88,7 +90,9 @@
     "esbuild": "^0.28.2",
     "sass": "^1.105.2",
     "typescript": "^5.9.3",
-    "vue": "3.5.43"
+    "vue": "3.5.43",
+    "vue-tsc": "3.3.13",
+    "@types/express": "^4.17.25"
   },
   "overrides": {
     "esbuild": "^0.28.2",

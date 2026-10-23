@@ -31,21 +31,13 @@ The registry's stable TypeScript release is 7.0.2 and a 7.1 beta exists. Neither
 
 ---
 
-### TypeScript Diagnostic Baseline Reduction
+### Permanent TypeScript enforcement
 
-**Priority:** Low (incremental)
-**Status:** In progress via Phases 6–8 of TypeScript migration plan
-**Current count:** 193 diagnostics (109 unique file:line/error-code entries)
+**Status:** Implemented in Phase 8; validation recorded in PHASE_8_REVIEW.md.
 
-The build gate uses `.ts-baseline.txt` to allow existing type errors while failing on new ones. Nuxt preparation and checker crashes also fail; raw checker output is preserved in command output. The goal is to reduce the baseline to zero over time.
+The diagnostic baseline and refresh command have been removed. The build gate now rejects every compiler error across app/server/shared/node contexts and strict Vue templates, checks inclusion of every maintained source and enforces unsafe-value/promise lint throughout TS/Vue. Optional Vue props explicitly accept undefined where Vue applies defaults. Three legacy JS tooling configs are checked separately; application JS is disabled. Defensive runtime conditions remain allowed at I/O boundaries. Nitro 2's void-only plugin declaration has two documented, locally scoped promise-rule exceptions owned by application maintainers. Five Leaflet event sites use local object listeners because installed declarations omit those supported runtime events.
 
-The framework upgrade and Phase 3 repairs removed 40 previously recorded diagnostic locations; the October 22 compatibility repairs removed another 18 existing locations (301 → 282 diagnostics) without adding baseline exemptions; the jobs pilot itself has no baseline exemptions. Phase 4 removes another 24 diagnostics and 19 unique entries (282 → 258 diagnostics; 193 → 174 entries), without adding exemptions. Migrated shared scripts, composables, plugins, auth state and translation tooling pass scoped checking and unsafe-value lint. The unmounted historical tour component is archived under `docs/legacy/`; maintained pages and deeper editor/visualization contracts remain phases 6–8. Phase 5 removes another 65 diagnostics/entries (258 → 193; 174 → 109), with zero remaining component exemptions. The gate also runs strict component templates and unsafe-value lint across all components. Page/server/editor diagnostics remain phases 6–8; the application does not yet pass an unbaselined full check. See [PHASE_4_REVIEW.md](PHASE_4_REVIEW.md) and [PHASE_5_REVIEW.md](PHASE_5_REVIEW.md).
-
-**What to do:**
-- Reduce errors incrementally as part of related code changes (Phases 6–8 of `TYPESCRIPT_MIGRATION_PLAN.md`).
-- Remove resolved entries after each reduction. `npm run typecheck:baseline` is an explicit refresh command, checks tool failures, and still requires reviewing the resulting diff; never accept new debt automatically.
-
-**References:** `src/frontend/.ts-baseline.txt`, `TYPESCRIPT_MIGRATION_PLAN.md`
+New sources must pass `npm run typecheck`; do not reintroduce diagnostic baselines. Directus extensions now have explicit compiler gates before bundling; see DIRECTUS_EXTENSION_TYPES_REVIEW.md. The Directus CLI remains the separate open workstream in section 6 of TYPESCRIPT_MIGRATION_PLAN.md. Its JavaScript import/export tasks have no compiler gate. During that migration, fix and regression-test the `limite` query typo in `tasks/import/importCollectionItems.mjs` and awaited sequencing of asynchronous item/flow update loops; do not turn privileged import failures into silent successes. Preserve the executable and ESM behavior, Directus 11.17.4 and code-first policy/schema configuration.
 
 ---
 
@@ -69,10 +61,10 @@ The Blökkli editor is an alpha release. While the migration from V1 to V2 is co
 ### Dependency Audit — Open Findings
 
 **Priority:** Medium
-**Status:** 17 affected package entries (14 high, 3 moderate)
-**Last checked:** 2026-10-21
+**Status:** 14 affected package entries (14 high; zero moderate/critical)
+**Last checked:** 2026-10-23
 
-The Nuxt 4.6.2 upgrade removes all seven direct Nuxt advisories recorded for 4.4.8. Audit still flags Nuxt through transitive Nitro/build-tool chains, along with `micromatch`/`braces`, `node-forge`, and the alpha's `mammoth` → `argparse` → `sprintf-js` chain. These are affected package entries, not 17 distinct demonstrated exploits. Downgrading Nuxt to audit's suggested older version would reintroduce fixed framework vulnerabilities. The production output does not include the Mammoth chain, but the dependency finding remains.
+The Nuxt 4.6.2 upgrade removes all seven direct Nuxt advisories recorded for 4.4.8. Audit still flags Nuxt through transitive Nitro/build-tool chains, along with `micromatch`/`braces` and `node-forge`. The earlier moderate Mammoth-chain findings are absent from the current audit. These are affected package entries, not 14 distinct demonstrated exploits. Downgrading Nuxt to audit's suggested older version would reintroduce fixed framework vulnerabilities. The production output does not include the Mammoth chain, but the dependency finding remains.
 
 **What to do:**
 - Periodically re-run `npm audit` and assess new fixes.

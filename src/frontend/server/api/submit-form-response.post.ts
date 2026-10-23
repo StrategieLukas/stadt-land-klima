@@ -48,8 +48,12 @@ function normalizeFieldName(value: unknown) {
 }
 
 function normalizeFieldType(value: unknown): FieldType {
-  const candidate = String(value || "text") as FieldType;
+  const candidate = (typeof value === "string" ? value : "text") as FieldType;
   return FIELD_TYPES.has(candidate) ? candidate : "text";
+}
+
+function scalarText(value: unknown): string {
+  return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? String(value) : "";
 }
 
 function normalizeValue(value: unknown, type: FieldType) {
@@ -59,10 +63,10 @@ function normalizeValue(value: unknown, type: FieldType) {
 
   const normalized = Array.isArray(value)
     ? value
-        .map((item) => String(item).trim())
+        .map((item: unknown) => scalarText(item).trim())
         .filter(Boolean)
         .join(", ")
-    : String(value ?? "")
+    : scalarText(value)
         .replace(/\0/g, "")
         .trim();
 
@@ -163,14 +167,14 @@ function findSenderName(fields: NormalizedField[]) {
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const hmacKey = (config.altchaSecret as string) || "dev-secret-change-in-production";
-  const parsedBody = GenericFormRequestSchema.safeParse(await readRequestBody<unknown>(event));
+  const hmacKey = (config.altchaSecret) || "dev-secret-change-in-production";
+  const parsedBody = GenericFormRequestSchema.safeParse(await readRequestBody(event));
   if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
   const body = parsedBody.data;
 
   const { formKey, formTitle, pagePath, notificationEmail, sendCopy, fields, values, altcha } = body ?? {};
 
-  if (!altcha || !await verifyAltcha(String(altcha), hmacKey, { purpose: 'form' })) {
+  if (!altcha || !await verifyAltcha((altcha), hmacKey, { purpose: 'form' })) {
     throw submissionError(400, "CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.");
   }
 
@@ -183,9 +187,9 @@ export default defineEventHandler(async (event) => {
     throw submissionError(413, "Die Formularantwort ist zu groß.");
   }
 
-  const normalizedFields = normalizeFields(fields, values as SubmittedValues);
+  const normalizedFields = normalizeFields(fields, values);
   const responseSummary = buildResponseSummary(normalizedFields);
-  const directusUrl = (config.directusServerUrl as string) || "http://directus:8055";
+  const directusUrl = (config.directusServerUrl) || "http://directus:8055";
   const adminToken = config.directusAdminToken as string | undefined;
 
   if (!adminToken) {
@@ -193,11 +197,9 @@ export default defineEventHandler(async (event) => {
     throw submissionError(503, "Formularantworten können momentan nicht gespeichert werden.");
   }
 
-  const fallbackEmail = String(
-    (config.formResponseNotificationEmail as string) ||
-      (config.adminNotificationEmail as string) ||
-      "info@stadt-land-klima.de",
-  );
+  const fallbackEmail = ((config.formResponseNotificationEmail) ||
+      (config.adminNotificationEmail) ||
+      "info@stadt-land-klima.de");
   const recipientEmail = normalizeNotificationEmail(notificationEmail, fallbackEmail);
   const senderEmail = findSenderEmail(normalizedFields);
   const senderName = findSenderName(normalizedFields);
@@ -239,7 +241,7 @@ export default defineEventHandler(async (event) => {
       },
     );
 
-    const directusPublicUrl = (config.directusPublicUrl as string) || directusUrl;
+    const directusPublicUrl = (config.directusPublicUrl) || directusUrl;
     const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "form_responses", result.data.id);
     return {
       success: true,

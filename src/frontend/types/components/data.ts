@@ -1,17 +1,17 @@
 export interface HistogramConfig {
-  title?: string;
-  histogramUrl?: string | null;
-  unit?: string | null;
-  dataProductName?: string;
-  population?: number | null;
-  municipalityName?: string;
-  isPercentage?: boolean;
-  currentValue?: number | null;
-  dataType?: string | null;
-  attributeName?: string | null;
-  populationNormalized?: boolean;
-  orangeThreshold?: number | null;
-  yellowThreshold?: number | null;
-  lightGreenThreshold?: number | null;
-  darkGreenThreshold?: number | null;
+  title?: string | undefined;
+  histogramUrl?: string | null | undefined;
+  unit?: string | null | undefined;
+  dataProductName?: string | undefined;
+  population?: number | null | undefined;
+  municipalityName?: string | undefined;
+  isPercentage?: boolean | undefined;
+  currentValue?: number | null | undefined;
+  dataType?: string | null | undefined;
+  attributeName?: string | null | undefined;
+  populationNormalized?: boolean | undefined;
+  orangeThreshold?: number | null | undefined;
+  yellowThreshold?: number | null | undefined;
+  lightGreenThreshold?: number | null | undefined;
+  darkGreenThreshold?: number | null | undefined;
 }

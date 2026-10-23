@@ -38,7 +38,7 @@ withDefaults(
   defineProps<{
     isPaid: boolean;
     label: string;
-    showLabel?: boolean;
+    showLabel?: boolean | undefined;
   }>(),
   {
     showLabel: false,

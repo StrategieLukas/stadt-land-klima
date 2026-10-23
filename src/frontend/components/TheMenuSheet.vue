@@ -362,8 +362,8 @@ onBeforeUnmount(() => {
 });
 
 const props = defineProps({
-  pages: { type: Array as PropType<NavigationPage[]>, default: () => [] },
-  navItems: { type: Array as PropType<NavigationItem[]>, default: () => [] },
+  pages: { type: Array as PropType<NavigationPage[] | undefined>, default: () => [] },
+  navItems: { type: Array as PropType<NavigationItem[] | undefined>, default: () => [] },
 });
 
 const safeNavItems = computed(() => (Array.isArray(props.navItems) ? props.navItems : []));

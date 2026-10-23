@@ -15,7 +15,7 @@
       :aria-pressed="selectedLocale === language.locale"
       @click="changeLanguage(language.locale)"
     >
-      <Icon :icon="language.icon" :ssr="true" ariaHidden="true" class="h-3 w-4 flex-shrink-0 ring-1 ring-black/15" />
+      <Icon :icon="language.icon" :ssr="true" :ariaHidden="true" class="h-3 w-4 flex-shrink-0 ring-1 ring-black/15" />
       <span class="uppercase">{{ language.shortLabel }}</span>
     </button>
   </div>
@@ -53,8 +53,8 @@ addIcon("flag:it-4x3", {
 
 const props = withDefaults(
   defineProps<{
-    size?: "default" | "compact";
-    variant?: "footer" | "header";
+    size?: "default" | "compact" | undefined;
+    variant?: "footer" | "header" | undefined;
   }>(),
   {
     size: "default",

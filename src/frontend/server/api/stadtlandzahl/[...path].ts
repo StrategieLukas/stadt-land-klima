@@ -1,3 +1,4 @@
+import type { H3Event } from "h3";
 const REQUEST_HEADERS_TO_REMOVE = [
   "accept-encoding",
   "authorization",
@@ -34,40 +35,22 @@ function isJson(contentType: string | null): boolean {
   return Boolean(contentType && (contentType.includes("application/json") || contentType.includes("+json")));
 }
 
-function getIncomingHeaders(event: any): Headers {
+function getIncomingHeaders(event: H3Event): Headers {
   const headers = new Headers();
-  const incoming = event.node?.req?.headers ?? event.req?.headers;
-
-  if (incoming instanceof Headers) return new Headers(incoming);
-  for (const [name, value] of Object.entries(incoming ?? {})) {
+  for (const [name, value] of Object.entries(event.node.req.headers)) {
     if (Array.isArray(value)) {
       for (const item of value) headers.append(name, item);
-    } else if (value !== undefined) {
-      headers.set(name, String(value));
-    }
+    } else if (value !== undefined) headers.set(name, value);
   }
   return headers;
 }
 
-async function readIncomingBody(event: any): Promise<Uint8Array | undefined> {
-  if (typeof event.request?.arrayBuffer === "function") {
-    return new Uint8Array(await event.request.arrayBuffer());
+async function readIncomingBody(event: H3Event): Promise<Uint8Array> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of event.node.req as AsyncIterable<Buffer | string>) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
-  if (typeof event.req?.arrayBuffer === "function") {
-    return new Uint8Array(await event.req.arrayBuffer());
-  }
-
-  const request = event.node?.req ?? event.req;
-  if (!request?.on) return undefined;
-
-  return await new Promise<Uint8Array>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    request.on("data", (chunk: Buffer | string) => {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    });
-    request.on("end", () => resolve(Buffer.concat(chunks)));
-    request.on("error", reject);
-  });
+  return Buffer.concat(chunks);
 }
 
 export default defineEventHandler(async (event) => {
@@ -101,7 +84,7 @@ export default defineEventHandler(async (event) => {
       upstreamResponse = await fetch(target, {
         method,
         headers: requestHeaders,
-        body: body ? Uint8Array.from(body) : undefined,
+        ...(body ? { body: Uint8Array.from(body) } : {}),
         redirect: "manual",
       });
       break;

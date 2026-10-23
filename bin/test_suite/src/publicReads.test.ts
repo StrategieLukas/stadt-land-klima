@@ -4,8 +4,10 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
+import * as municipalityContracts from '../../../src/frontend/shared/contracts/municipality.js';
 import * as searchContracts from '../../../src/frontend/shared/contracts/search.js';
 
+const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 type Row = Record<string, any>;
 type Command = { collection: string; query: Row };
 const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value));
@@ -26,6 +28,15 @@ function load(path: string, dependencies: Record<string, unknown>, globals: Row 
   runInNewContext(compiled.outputText, {
     module, exports: module.exports, ...globals,
     require: (id: string) => {
+      if (!(id in dependencies)) {
+        if (id === "~/server/utils/cmsValue") return load("server/utils/cmsValue.ts", {});
+        if (id === "~/shared/contracts/navigation") return frontend("./shared/contracts/navigation.ts");
+        if (id === "zod") return frontend("zod");
+        if (id === "~/shared/contracts/municipality") return municipalityContracts;
+        if (id === "~/shared/contracts/search") return searchContracts;
+        if (id === "~/server/utils/parseCms" || id === "./parseCms") return load("server/utils/parseCms.ts", {h3, zod: frontend("zod")});
+        if (id === "./publicQuery") return load("server/utils/publicQuery.ts", {h3});
+      }
       assert.ok(id in dependencies, `Unexpected dependency in ${path}: ${id}`);
       return dependencies[id];
     },
@@ -33,13 +44,13 @@ function load(path: string, dependencies: Record<string, unknown>, globals: Row 
   return module.exports;
 }
 
-function cms(respond: (command: Command) => Row[] | Promise<Row[]>) {
+function cms(respond: (command: Command) => Row | Row[] | Promise<Row | Row[]>) {
   const commands: Command[] = [];
   const client = { request: async (command: Command) => { commands.push(plain(command)); return respond(command); } };
   return {
     commands, client,
     dependencies: {
-      h3, '@directus/sdk': { readItems: (collection: string, query: Row) => ({ collection, query }) },
+      h3, '@directus/sdk': { readItems: (collection: string, query: Row) => ({ collection, query }), readSingleton: (collection: string, query: Row) => ({collection, query, singleton: true}) },
       './directusServerClient': { createDirectusServerClient: () => client },
       '../../utils/directusServerClient': { createDirectusServerClient: () => client },
       '../../../utils/directusServerClient': { createDirectusServerClient: () => client },
@@ -96,13 +107,13 @@ const catalogs = [{ id: 'current-id', name: 'v1.0', isCurrentFrontend: true }, {
 test('statistics accept dotted catalog names and retain map coordinates through the actual score relation', async () => {
   const transport = cms(() => []);
   const reads: Command[] = [];
-  const municipality = { id: 'city', localteam_id: 'team', name: 'Public city', geolocation: { type: 'Point', coordinates: [13, 52] }, privateNote: 'secret' };
+  const municipality = { id: 'city', slug: 'city', status: 'published', localteam_id: 'team', name: 'Public city', geolocation: { type: 'Point', coordinates: [13, 52] }, privateNote: 'secret' };
   const route = load('server/api/public/stats/[catalog].get.ts', {
     ...transport.dependencies,
     '../../../utils/municipalityPageData': { readMunicipalityCatalogs: async () => catalogs, publicMeasureFields: ['id', 'name'] },
     '../../../utils/publicItems': { readPublicItems: async (collection: string, query: Row) => {
       reads.push({ collection, query: plain(query) });
-      if (collection === 'municipality_scores') return [{ id: 'score', municipality, published: true }];
+      if (collection === 'municipality_scores') return [{ id: 'score', municipality, published: true, percentage_rated: 100, score_total: null, score_max: null, score_points: null, rank: null, score_agriculture: null, score_buildings: null, score_energy: null, score_industry: null, score_management: null, score_transport: null }];
       return collection === 'municipalities' ? [municipality] : [];
     } },
   });
@@ -133,7 +144,7 @@ test('measure projections select real columns rather than the feasibility interf
 });
 
 test('area enrichment joins municipality scores, keeps catalog metadata and prefers the requested catalog', async () => {
-  const transport = cms(({ collection }) => collection === 'municipalities' ? [{ id: 'city', ars: '110000000001', slug: 'city' }] : [
+  const transport = cms(({ collection }) => collection === 'municipalities' ? [{ id: 'city', name: 'City', ars: '110000000001', slug: 'city' }] : [
     { municipality: 'city', published: true, score_total: 40, catalog_version: 'old-id' },
     { municipality: 'city', published: true, score_total: 75, catalog_version: 'current-id' },
   ]);
@@ -255,4 +266,21 @@ test('area search distinguishes outdated, in-progress and unavailable external d
   const unavailable = areaSearchHarness([], true); await unavailable.run();
   assert.equal(unavailable.search.results.value.length, 0);
   assert.equal(unavailable.search.isLoading.value, false);
+});
+
+
+test('site layout reads the navigation singleton, retains nested links and strips private fields', async () => {
+  const transport = cms(command => {
+    if (command.collection === 'navigation_config') {
+      assert.equal((command as Row).singleton, true);
+      return {header_items: [{id: 'nav', label: 'Start', link_type: 'page', page_slug: 'start', children: [{id: 'child', label: 'Child', private: 'secret'}]}], footer_columns: []};
+    }
+    if (command.collection === 'municipalities') return [{id: 'm', name: 'Town', slug: 'town', preview_token: 'secret'}];
+    return [{id: 'p', slug: 'start', name: 'Start', contents: null, sort_order: 1, private: 'secret'}];
+  });
+  const route = load('server/api/public/site-layout.get.ts', transport.dependencies).default;
+  const result = plain(await route({}));
+  assert.equal(result.navigationConfig.header_items[0].children[0].label, 'Child');
+  assert.equal(result.municipalities[0].slug, 'town');
+  assert.doesNotMatch(JSON.stringify(result), /secret|private|preview_token/);
 });

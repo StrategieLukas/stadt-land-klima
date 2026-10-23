@@ -73,47 +73,47 @@ const props = defineProps({
     required: true
   },
   currentValue: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   municipalityName: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: null
   },
   unit: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: ''
   },
   dataProductName: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: ''
   },
   orangeThreshold: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   yellowThreshold: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   lightGreenThreshold: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   darkGreenThreshold: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   populationNormalized: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: false
   },
   population: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   isPercentage: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: false
   }
 });
@@ -121,8 +121,8 @@ const props = defineProps({
 const { $t } = useNuxtApp();
 const loading = ref(false);
 const histogramApiData = ref<Histogram | null>(null);
-const binDetailsData = ref<{bin_details: {bin_index: number; threshold_counts: Record<string, number>; areas_fetched?: boolean}[]} | null>(null); // Stores threshold breakdown for all bins
-const chartRef = ref<{chart?: ChartJS<'bar'>} | null>(null);
+const binDetailsData = ref<{bin_details: {bin_index: number; threshold_counts: Record<string, number>; areas_fetched?: boolean | undefined}[]} | null>(null); // Stores threshold breakdown for all bins
+const chartRef = ref<{chart?: ChartJS<'bar'> | undefined} | null>(null);
 const chartContainerRef = ref<HTMLElement | null>(null);
 
 const displayUnit = computed(() => {

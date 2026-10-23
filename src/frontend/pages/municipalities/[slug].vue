@@ -15,8 +15,8 @@
         </p>
         <div class="flex flex-wrap gap-2">
           <button
-            @click="copyShareLink('preview')"
             class="px-4 py-1.5 text-sm font-medium border border-rating-1 text-rating-1 rounded-md hover:bg-rating-1-light transition-colors"
+            @click="copyShareLink('preview')"
           >{{ copiedState.preview ? '\u2713 Link kopiert' : 'Share-Link kopieren' }}</button>
           <NuxtLink
             :to="`/contact?title=${encodeURIComponent('Verifizierung Lokalteam ' + previewMuniName)}&type=cooperation&content=${encodeURIComponent('Ich bitte um Verifizierung meines Lokalteam-Accounts für ' + previewMuniName + '.\n\nMeine Kontaktdaten:\n')}`"
@@ -79,8 +79,8 @@
           {{ $t("municipalities.preview_text") }}
         </p>
         <button
-          @click="copyShareLink('draft')"
           class="px-4 py-1.5 text-sm font-medium border border-rating-1 text-rating-1 rounded-md hover:bg-rating-1-light transition-colors"
+          @click="copyShareLink('draft')"
         >{{ copiedState.draft ? '\u2713 Link kopiert' : 'Vorschau-Link teilen' }}</button>
       </div>
     </div>
@@ -99,7 +99,7 @@
         </p>
         <div class="flex flex-wrap gap-2">
           <NuxtLink
-            :to="`/municipalities/${route.params.slug}`"
+            :to="`/municipalities/${slug}`"
             class="px-4 py-1.5 text-sm font-medium border border-rating-1 text-rating-1 rounded-md hover:bg-rating-1-light transition-colors"
           >Zur aktuellen Bewertung →</NuxtLink>
           <NuxtLink
@@ -114,7 +114,7 @@
     </NuxtLink>
     <article class="mb-8 mt-10">
       <detail-municipality
-        :municipalityScore="directusData.municipalityScore"
+        :municipality-score="directusData.municipalityScore"
         :ratings-by-sector="directusData.ratingsBySector ?? {}"
       ></detail-municipality>
     </article>
@@ -492,15 +492,14 @@
 
 
 <script setup lang="ts">
-const { $t } = useNuxtApp();
-const router = useRouter();
-
 import { useMunicipalityPageState } from '~/composables/useMunicipalityPageState';
-import { getStateMunicipalElectionYear } from '~/shared/utils';
 import { useReferrer } from '~/composables/useReferrer';
 import { MunicipalityPageSchema } from '~/shared/contracts/municipality';
 import { parseGeoCenter } from '~/shared/contracts/geometry';
 import { routeSlug, singleRouteValue } from "~/shared/routeValues";
+
+const { $t } = useNuxtApp();
+const router = useRouter();
 const route = useRoute();
 const slug = routeSlug(route.params.slug);
 if (!slug) throw createError({statusCode: 404, statusMessage: "Municipality not found"});
@@ -519,13 +518,12 @@ const suppliedPreview = route.query.preview === 'true'
   : route.query.preview
 const previewToken = typeof suppliedPreview === 'string' ? suppliedPreview : ''
 const municipalityPath = encodeURIComponent(slug)
-const publicEndpoint = `/api/public/municipalities/${municipalityPath}`
 // useId is SSR/hydration-stable and changes with each page instance. Never use
 // the raw token as an async-data key or reuse a previous authorized navigation.
 const pageDataKey = `municipality-page-${useId()}`
 const loadPage = async (preview: boolean) => MunicipalityPageSchema.parse(await $fetch(
   preview ? `/api/previews/municipality/${municipalityPath}` : `/api/public/municipalities/${municipalityPath}`,
-  {query: {v: singleRouteValue(route.query.v)}, headers: preview ? {'x-preview-token': previewToken} : undefined},
+  {query: {v: singleRouteValue(route.query.v)}, ...(preview ? {headers: {'x-preview-token': previewToken}} : {})},
 ));
 const { data: pageData, error: pageDataError } = await useAsyncData(
   pageDataKey, () => loadPage(!!previewToken),
@@ -537,10 +535,10 @@ const { data: pageData, error: pageDataError } = await useAsyncData(
     },
   },
 )
-onUnmounted(() => clearNuxtData(pageDataKey))
+onUnmounted(() => { clearNuxtData(pageDataKey); })
 // Invalid preview credentials show the ordinary locked page, while the API
 // itself rejects them. Upstream failures must not silently become public data.
-if (pageDataError.value?.statusCode === 404 && previewToken) {
+if (pageDataError.value?.status === 404 && previewToken) {
   pageData.value = await loadPage(false)
 } else if (pageDataError.value) {
   throw createError({ statusCode: 502, statusMessage: 'Municipality data unavailable' })
@@ -557,9 +555,9 @@ const { backHref, backLabel } = useReferrer(
 );
 
 // Change the URL to match the catalog version, if it didn't to begin with
-if (process.client && route.query.v != selectedCatalogVersion.name) {
+if (import.meta.client && route.query.v != selectedCatalogVersion.name) {
   onMounted(() => {
-    router.replace({ query: { ...route.query, v: selectedCatalogVersion.name } });
+    void router.replace({ query: { ...route.query, v: selectedCatalogVersion.name } });
   });
 }
 
@@ -567,7 +565,7 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
 // If no Directus data, fetch the area through the Nuxt server endpoint so the
 // same lookup works during SSR and client-side navigation.
 const slzAreaLookup = useAsyncData(
-  `slz-area-${route.params.slug}`,
+  `slz-area-${slug}`,
   async () => {
     if (directusData?.municipalityScore) return null;
     try {
@@ -586,7 +584,7 @@ const slzAreaLookup = useAsyncData(
         };
       }
       return null;
-    } catch (_) {
+    } catch {
       return null;
     }
   }
@@ -621,8 +619,8 @@ watch(
 // Copy-to-clipboard state for share buttons
 const copiedState = reactive({ preview: false, draft: false })
 function copyShareLink(key: "preview" | "draft") {
-  if (process.client) {
-    navigator.clipboard.writeText(window.location.href).then(() => {
+  if (import.meta.client) {
+    void navigator.clipboard.writeText(window.location.href).then(() => {
       copiedState[key] = true
       setTimeout(() => { copiedState[key] = false }, 2000)
     })

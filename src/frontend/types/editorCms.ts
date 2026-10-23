@@ -3,15 +3,15 @@ import type { SuccessProjectTour, SuccessProjectTourStop } from "~/shared/succes
 import type { TourMedia } from "~/shared/tourMedia";
 type File = DirectusFile<object>;
 type Tour = Omit<SuccessProjectTour, "cover_image" | "brand_logo"> & {
-  cover_image?: File | string | null;
-  brand_logo?: File | string | null;
+  cover_image?: File | string | null | undefined;
+  brand_logo?: File | string | null | undefined;
 };
-type Media = Omit<TourMedia, "file" | "poster"> & { file: File | string; poster?: File | string | null };
+type Media = Omit<TourMedia, "file" | "poster"> & { file: File | string; poster?: File | string | null | undefined };
 type Stop = Omit<SuccessProjectTourStop, "tour" | "image" | "itinerary_image" | "media"> & {
   tour: Tour;
-  image?: File | string | null;
-  itinerary_image?: File | string | null;
-  media?: Media[];
+  image?: File | string | null | undefined;
+  itinerary_image?: File | string | null | undefined;
+  media?: Media[] | undefined;
 };
 interface EditorialCollections {
   success_project_tours: Tour[];

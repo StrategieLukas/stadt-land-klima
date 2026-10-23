@@ -87,19 +87,19 @@ import { formatProjectDate } from '~/shared/projectDate';
 const { $locale } = useNuxtApp();
 
 const props = defineProps({
-    slug: String,
-    title: String,
-    municipality_name: String,
-    state: String,
-    abstract: String,
-    author: String,
-    date: [String, Date] as PropType<string | Date | null>,
-    tag: String,
-    image_id: String,
-    image_is_raster: Boolean,
-    image_credits: { type: String as PropType<string | null>, default: null },
-    organisation: Object as PropType<Organisation | null>, // can be null
-    measures: Array as PropType<Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null>, // can be null/empty
+    slug: {type: String as PropType<string | undefined>},
+    title: {type: String as PropType<string | undefined>},
+    municipality_name: {type: String as PropType<string | undefined>},
+    state: {type: String as PropType<string | undefined>},
+    abstract: {type: String as PropType<string | undefined>},
+    author: {type: String as PropType<string | undefined>},
+    date: [String, Date] as PropType<string | Date | null | undefined>,
+    tag: {type: String as PropType<string | undefined>},
+    image_id: {type: String as PropType<string | undefined>},
+    image_is_raster: {type: Boolean as PropType<boolean | undefined>},
+    image_credits: { type: String as PropType<string | null | undefined>, default: null },
+    organisation: Object as PropType<Organisation | null | undefined>, // can be null
+    measures: Array as PropType<Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null | undefined>, // can be null/empty
 })
 
 const config = useRuntimeConfig();

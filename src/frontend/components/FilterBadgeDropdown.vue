@@ -52,10 +52,10 @@ import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 const props = defineProps({
   label: { type: String, required: true }, // default/reset text e.g. "Alle Bundesländer"
   options: { type: Array as PropType<{ label: string; value: string }[]>, required: true }, // [{ label: String, value: String }]
-  modelValue: { type: String as PropType<string | null>, default: null },
-  width: { type: String, default: "min-w-[10rem]" }, // fixed width to prevent layout shift
-  activeColor: { type: String, default: "#16BAE7" }, // active state color
-  dark: { type: Boolean, default: false }, // kept for existing callers
+  modelValue: { type: String as PropType<string | null | undefined>, default: null },
+  width: { type: String as PropType<string | undefined>, default: "min-w-[10rem]" }, // fixed width to prevent layout shift
+  activeColor: { type: String as PropType<string | undefined>, default: "#16BAE7" }, // active state color
+  dark: { type: Boolean as PropType<boolean | undefined>, default: false }, // kept for existing callers
 });
 
 const emit = defineEmits<{ "update:modelValue": [value: string | null] }>();

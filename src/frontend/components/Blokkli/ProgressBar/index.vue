@@ -99,10 +99,10 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  label?: string
-  value?: string
-  unit?: string
-  description?: string
+  label?: string | undefined
+  value?: string | undefined
+  unit?: string | undefined
+  description?: string | undefined
 }>()
 
 const clampedValue = computed(() => {

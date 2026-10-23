@@ -19,9 +19,9 @@ Or call the suite directly:
 
 `run_tests.sh` installs local npm dependencies on first run and launches the TypeScript runner with `tsx`.
 
-Measured on the reviewed local stack: **55 isolated tests in about 2 seconds**;
-**about 30 seconds total** for the fast wrapper (55 isolated + 11 integration steps);
-**89 full workflow steps in about 5 minutes**. These are observed timings, not
+Measured on the reviewed local stack: **109 isolated tests in about 2–4 seconds**;
+**about 35 seconds total** for the fast wrapper (109 isolated + 12 integration steps);
+**90 full workflow steps in about 5 minutes**. These are observed timings, not
 hardcoded time budgets; cold dependency/browser installs are separate.
 
 The default **fast** profile runs all isolated tests, then the real CMS/API/browser
@@ -43,7 +43,9 @@ npm run test:unit
 npm run test:public -- https://staging.stadt-land-klima.de
 ```
 
-`test:unit` needs no running services. Phase 4 cases in `src/phase4.test.ts` check translation generation and real compiler key rejection, session validation/SSR isolation/auth races, malformed external replies, pagination cycles, cache retries and late search responses. It runs actual handlers, helpers, the adapter,
+`npm run test:boundaries` runs Phase 7 editor/visualization checks: all bundle/prop registrations, malformed/cyclic/duplicate block trees, draft history, actual adapter mutation/recovery/identity handling, supported native/compiled Vega interpreter execution, runtime loader URL/credential policy, MapLibre style/geometry validation and actual map-constructor/error branches. These tests need no services or GPU. `phase7.types.ts` adds negative compiler checks against actual installed Blökkli declarations. The default isolated suite includes all of these cases.
+
+`npm run test:pages` runs the focused Phase 6 contracts in `src/phase6.test.ts`: route/query values, page/template-check coverage, projection/privacy, submission/PDF/newsletter validation, candidate answer ownership, nullable statistics, SLZ metadata, search filtering/sanitization, signed CAPTCHA metadata/replay and municipality project filters. The fast public-navigation flow also solves a challenge with the actual installed ALTCHA web component, checks draft news/series filtering and exercises native chart navigation. `test:unit` needs no running services. Phase 4 cases in `src/phase4.test.ts` check translation generation and real compiler key rejection, session validation/SSR isolation/auth races, malformed external replies, pagination cycles, cache retries and late search responses. It runs actual handlers, helpers, the adapter,
 and Vue search reactivity with transport boundaries replaced. Stadt.Land.Zahl
 fixtures cover current/older/incomplete/unpublished assessments and upstream
 failure without live credentials. `test:public` needs no environment file or CMS
@@ -148,3 +150,17 @@ standalone checks are `test:contracts`, `test:blokkli:adapter`, `test:blokkli`,
 `test:security:migration`; security commands requiring service URLs also need the
 backend, frontend and `.env` arguments shown above. Migration asset scanning must
 use the **freshly built** public directory via `TEST_FRONTEND_BUILD_DIR`.
+
+
+Phase 8 permanent-check regressions are in `src/phase8.test.ts`: source/config coverage, deliberate strict compiler failures, build/mount wiring, checked search documents, Node proxy forwarding and unknown Directus error shapes. `phase5.test.ts` also checks actual native button click forwarding and attributes. `publicReads.test.ts` covers navigation singleton reads and nested public projection. These isolated tests are included in `npm run test:unit` and require no services. The full application gate is `npm --prefix src/frontend run typecheck`; it includes `lint:types` across all maintained TS/Vue and checked JS tooling. `.ts-baseline.txt` and its refresh command have been retired.
+
+
+For focused tour/editor acceptance without rerunning unrelated workflows:
+
+```bash
+npm run test:tours -- http://localhost:8081 http://localhost:8080 ../../src/directus/.env
+```
+
+This runs the existing Tour Series assertions with disposable fixture setup/cleanup. Keep it serial with all other fixture suites. The shared Blökkli pointer helper pans the transformed artboard using real wheel events, keeps field clicks clear of fixed toolbars and waits for canvas hit testing; it does not use synthetic DOM editing events.
+
+Directus extension regressions run with `npm run test:extensions` (`src/directusExtensions.test.ts`) and are included in `test:unit`. They check all 14 compiler/prebuild configurations and source inclusion, consent endpoint authentication/schema resolution, service-role exemptions and required legal agreements, report database wiring, Unsplash authentication and actual radio-selector rendering. They add about a second when run alone and need no services. From the repository root, `./bin/check_extensions.sh` checks extension sources; `./bin/check_extensions.sh --build` also builds the bundles, with each package’s `prebuild` enforcing its compiler. Install each extension’s locked dependencies first with `npm ci` in its directory. See `DIRECTUS_EXTENSION_TYPES_REVIEW.md` for the negative build proofs and runtime verification.

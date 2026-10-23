@@ -46,11 +46,11 @@ const { $t } = useNuxtApp();
 
 const _props = defineProps({
   to: { type: String, required: true },
-  measure_id: { type: String, default: '' },
-  name: { type: String, default: '' },
-  sector: { type: String as PropType<Sector | null>, default: null },
-  description: { type: String as PropType<string | null>, default: null },
-  image_id: { type: String as PropType<string | null>, default: null },
-  image_credits: { type: String as PropType<string | null>, default: null },
+  measure_id: { type: String as PropType<string | undefined>, default: '' },
+  name: { type: String as PropType<string | undefined>, default: '' },
+  sector: { type: String as PropType<Sector | null | undefined>, default: null },
+  description: { type: String as PropType<string | null | undefined>, default: null },
+  image_id: { type: String as PropType<string | null | undefined>, default: null },
+  image_credits: { type: String as PropType<string | null | undefined>, default: null },
 });
 </script>

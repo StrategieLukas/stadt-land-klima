@@ -297,7 +297,7 @@
 </template>
 
 <script setup lang="ts">
-import { requestErrorData } from "~/shared/requestError";
+import { captchaEventData, requestErrorData } from "~/shared/requestError";
 import { ArticleSubmissionErrorSchema } from "~/shared/articleSubmission";
 import {
   ARTICLE_SUBMISSION_LIMITS,
@@ -443,7 +443,7 @@ const emptyForm = (): ArticleSubmissionForm => ({
 });
 
 const form = reactive<ArticleSubmissionForm>(emptyForm());
-const altchaRef = ref<(HTMLElement & { value?: string }) | null>(null);
+const altchaRef = ref<(HTMLElement & { value?: string | undefined }) | null>(null);
 const imageInputRef = ref<HTMLInputElement | null>(null);
 const selectedImage = ref<File | null>(null);
 const altchaPayload = ref("");
@@ -453,7 +453,7 @@ const successMessage = ref("");
 const loading = ref(false);
 
 function onAltchaStateChange(e: Event) {
-  const { state, payload } = (e as CustomEvent).detail ?? {};
+  const { state, payload } = captchaEventData(e);
   if (state === "verified" && payload) {
     altchaPayload.value = payload;
     captchaError.value = "";

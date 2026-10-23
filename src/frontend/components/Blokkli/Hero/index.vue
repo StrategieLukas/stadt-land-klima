@@ -183,10 +183,10 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  title?: string
-  subtitle?: string
-  imageId?: string
-  blocks?: FieldListItem[]
+  title?: string | undefined
+  subtitle?: string | undefined
+  imageId?: string | undefined
+  blocks?: FieldListItem[] | undefined
 }>()
 
 const config = useRuntimeConfig()

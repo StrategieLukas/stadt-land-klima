@@ -196,10 +196,10 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  quote?: string
-  attribution?: string
-  source?: string
-  imageId?: string
+  quote?: string | undefined
+  attribution?: string | undefined
+  source?: string | undefined
+  imageId?: string | undefined
 }>()
 
 const linkTag = computed(() => {

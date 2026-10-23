@@ -51,8 +51,8 @@ import { ref, nextTick, watch } from 'vue'
 const { $t } = useNuxtApp()
 
 defineProps({
-  avatarSrc: { type: String, default: '' },
-  name: { type: String },
+  avatarSrc: { type: String as PropType<string | undefined>, default: '' },
+  name: { type: String as PropType<string | undefined> },
 })
 
 const showCal = ref(false)

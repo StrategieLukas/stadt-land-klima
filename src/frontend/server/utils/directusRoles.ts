@@ -2,7 +2,7 @@ const lokalteamAdminRoleNames = ['LokalteamAdmin', 'AdminLokalteam']
 
 export async function getLokalteamAdminRoleId(): Promise<string> {
   const config = useRuntimeConfig()
-  const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055'
+  const directusUrl = (config.directusServerUrl) || 'http://directus:8055'
 
   for (const roleName of lokalteamAdminRoleNames) {
     const result = await $fetch<{ data: Array<{ id: string }> }>(

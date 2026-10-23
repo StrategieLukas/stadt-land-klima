@@ -137,7 +137,7 @@ import { useAuth } from "~/composables/useAuth";
 
 const props = defineProps({
   isOpen: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: false,
   },
 });

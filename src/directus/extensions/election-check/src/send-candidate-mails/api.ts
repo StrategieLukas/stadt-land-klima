@@ -1,6 +1,10 @@
 import crypto from 'node:crypto';
-import type { Logger, Accountability, Services, GetSchema } from '@directus/extensions-sdk';
+import type { Accountability, ApiExtensionContext } from '@directus/types';
 import { HtmlValidate } from 'html-validate';
+
+type GetSchema = ApiExtensionContext['getSchema'];
+type Logger = ApiExtensionContext['logger'];
+type Services = ApiExtensionContext['services'];
 
 // ---------------------------------------------------------------------------
 // Types

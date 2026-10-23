@@ -237,18 +237,17 @@
 <script setup lang="ts">
 import type { ComparisonRating, Municipality  } from '~/types/components/municipality';
 import type { Catalog } from '~/shared/contracts/search';
-import type { ScorePublication } from '~/shared/domain';
 import type { PropType } from 'vue';
 
 import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing';
 import { ref, computed, watch } from "vue";
 type SankeyMunicipality = { key: string; name: string; slug: string; leftRating: string | null; rightRating: string | null };
 type CoverageMunicipality = Pick<Municipality, 'id' | 'name' | 'slug'> & { localteam_id: string | { id: string } | null };
-type MeasureVersion = { id: string; measure_id?: string; catalog_version: Catalog };
+type MeasureVersion = { id: string; measure_id?: string | undefined; catalog_version: Catalog };
 
 const props = defineProps({
   measureSlug: { type: String, required: true },
-  measureVersions: { type: Array as PropType<MeasureVersion[]>, default: () => [] }, // [{ catalog_version: { id, name } }]
+  measureVersions: { type: Array as PropType<MeasureVersion[] | undefined>, default: () => [] }, // [{ catalog_version: { id, name } }]
 });
 
 const { $t } = useNuxtApp();
@@ -334,14 +333,14 @@ async function fetchAll() {
     async function fetchRatings(versionId: string) {
       const measureId = vIdToMeasureId[versionId];
       if (!measureId) return [];
-      const result = await $fetch<{ ratings: ComparisonRating[] }>('/api/public/measure-ratings', { query: { measureId } });
+      const result = await $fetch('/api/public/measure-ratings', { query: { measureId } });
       return result.ratings;
     }
 
     const coverageMunicipalities = new Map<string, CoverageMunicipality>();
     async function fetchCoverageIds(versionId: string) {
       const version = orderedVersions.value.find(version => version.id === versionId);
-      const { scores } = await $fetch<{ scores: (ScorePublication & { municipality: CoverageMunicipality })[] }>(`/api/public/stats/${encodeURIComponent(version?.label ?? "")}`);
+      const { scores } = await $fetch(`/api/public/stats/${encodeURIComponent(version?.label ?? "")}`);
       const ids = new Set<string>();
       for (const score of scores.filter(isMunicipalityScoreComplete)) {
         const municipality = score.municipality;
@@ -439,6 +438,8 @@ function changeColorOf(m: SankeyMunicipality) {
       return "#f44336";
     case "na-change":
       return "#90a4ae";
+    case "same":
+    case "single":
     default:
       return "#9e9e9e";
   }

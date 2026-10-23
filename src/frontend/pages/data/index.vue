@@ -133,7 +133,6 @@
 <script setup lang="ts">
 import { CollectionSchema, CollectionsResponseSchema } from "~/shared/contracts/slz";
 import type { Collection, CollectionOverviewVisual } from "~/types/slz-api";
-import type { Area } from "~/shared/contracts/search";
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import DataProductsComingSoonTile from '~/components/DataProductsComingSoonTile.vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight'
@@ -258,23 +257,23 @@ onUnmounted(() => {
 
 watch(pillTop, updateBreadcrumbStuck, { flush: 'post' })
 
-const selectedState = ref<{ars: string; name: string; prefix?: string; geoCenter?: {lat: number; lon: number} | null; lat?: number; lon?: number} | null>(null)
+const selectedState = ref<{ars: string; name: string; prefix?: string | undefined; geoCenter?: {lat: number; lon: number} | null | undefined; lat?: number | undefined; lon?: number | undefined} | null>(null)
 const initialStateArs = computed(() => {
   const state = route.query.state
   return typeof state === 'string' && statesLookup.some((item) => item.ars === state) ? state : null
 })
 
-function onStateSelected(state: {ars: string; name: string; prefix?: string; geoCenter?: {lat: number; lon: number} | null; lat?: number; lon?: number}) {
+function onStateSelected(state: {ars: string; name: string; prefix?: string | undefined; geoCenter?: {lat: number; lon: number} | null | undefined; lat?: number | undefined; lon?: number | undefined}) {
   selectedState.value = state
   if (route.query.state !== state.ars) {
-    router.push({ query: { ...route.query, state: state.ars } })
+    void router.push({ query: { ...route.query, state: state.ars } })
   }
 }
 
 function onStateExited() {
   selectedState.value = null
   if (route.query.state) {
-    router.push({ query: { ...route.query, state: undefined } })
+    void router.push({ query: { ...route.query, state: undefined } })
   }
 }
 

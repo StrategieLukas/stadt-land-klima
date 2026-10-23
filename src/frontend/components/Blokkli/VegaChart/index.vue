@@ -69,8 +69,9 @@
 </template>
 
 <script setup lang="ts">
+import { checkedVisualizationSpec, safeVisualizationLoader } from "~/shared/visualizationSafety";
 import { z } from 'zod';
-import type { EmbedOptions, VisualizationSpec } from 'vega-embed';
+import type { EmbedOptions } from 'vega-embed';
 import { asRecord, cloneVisualization, displayScalar, attachVisualizationData, type VisualizationData } from '~/shared/visualization';
 
 import { ref, computed, watch, onMounted, nextTick, unref } from 'vue'
@@ -196,8 +197,8 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  spec?: string
-  query?: string
+  spec?: string | undefined
+  query?: string | undefined
 }>()
 
 const defaultSpec = JSON.stringify(
@@ -416,15 +417,17 @@ async function renderChart() {
     // Always set background based on current theme
     specObj.background = isDark.value ? '#17212b' : '#fbfbfb'
 
-    const { default: vegaEmbed } = await import('vega-embed')
+    const { default: vegaEmbed, vega } = await import('vega-embed')
 
     const embedOpts: EmbedOptions = {
+      ast: true,
+      loader: safeVisualizationLoader(vega.loader({http: {credentials: 'omit', redirect: 'error'}}), window.location.origin),
       actions: false,
       renderer: 'svg',
       ...(isDark.value ? { config: darkVegaConfig } : {}),
     }
 
-    await vegaEmbed(container, specObj as VisualizationSpec, embedOpts)
+    await vegaEmbed(container, checkedVisualizationSpec(specObj), embedOpts)
   } catch (err: unknown) {
     errorMessage.value = `Render-Fehler: ${errorText(err)}`
   } finally {

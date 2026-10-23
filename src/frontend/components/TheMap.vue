@@ -20,10 +20,10 @@
         <LTileLayer :key="tileUrl" :url="tileUrl" :attribution="attribution" :subdomains="subdomains" :max-zoom="20" />
 
         <!-- Germany border -->
-        <LGeoJson :geojson="germanyPolygon ?? undefined" :options="germanyStyle" />
+        <LGeoJson :geojson="germanyPolygon ?? []" :options="germanyStyle" />
 
         <!-- State borders -->
-        <LGeoJson :geojson="statePolygons ?? undefined" :options="stateStyle" />
+        <LGeoJson :geojson="statePolygons ?? []" :options="stateStyle" />
 
         <!-- Global grey mask -->
         <LRectangle
@@ -38,14 +38,14 @@
         />
 
         <!-- Germany cover to reveal map underneath -->
-        <LGeoJson :geojson="germanyPolygon ?? undefined" :options="germanyCoverStyle" />
+        <LGeoJson :geojson="germanyPolygon ?? []" :options="germanyCoverStyle" />
 
         <!-- Municipality markers -->
         <LMarker
           v-for="s in filteredMunicipalityScores"
           :key="s.municipality.slug"
           :lat-lng="[s.municipality.lat!, s.municipality.lon!]"
-          :icon="leafletMarkerIcon(getCustomIcon(s))"
+          v-bind="leafletMarkerProps(leafletMarkerIcon(getCustomIcon(s)))"
         >
           <LPopup>
             <div class="space-y-1 text-sm">
@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { leafletMarkerIcon } from '~/shared/leafletMarker';
+import { leafletMarkerIcon, leafletMarkerProps } from '~/shared/leafletMarker';
 import type { Map as LeafletMap, Control, DivIcon as LeafletDivIcon } from 'leaflet';
 import { parseGeoData } from '~/shared/contracts/geometry';
 import type { PropType } from 'vue';
@@ -92,7 +92,7 @@ const { $t } = useNuxtApp();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
 const props = defineProps({
-  municipalityScores: { type: Array as PropType<MunicipalityScore[]>, default: () => [] },
+  municipalityScores: { type: Array as PropType<MunicipalityScore[] | undefined>, default: () => [] },
   catalogVersion: { type: null as unknown as PropType<Catalog | null>, required: true },
 });
 

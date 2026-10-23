@@ -19,7 +19,7 @@ const props = defineProps({
     required: true
   },
   state: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: ''
   }
 })

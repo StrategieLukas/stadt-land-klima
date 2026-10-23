@@ -239,51 +239,51 @@ const props = defineProps({
     required: true
   },
   unit: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: null
   },
   code: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: null
   },
   description: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: null
   },
   calculation: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: null
   },
   dataSources: {
-    type: Array as PropType<{ id?: string | number; name?: string; url?: string; effectiveDt?: string | null; license?: {url?: string; name?: string; text?: string} | null; attribution?: string | null; attributionUrl?: string | null }[]>,
+    type: Array as PropType<{ id?: string | number | undefined; name?: string | undefined; url?: string | undefined; effectiveDt?: string | null | undefined; license?: {url?: string | undefined; name?: string | undefined; text?: string | undefined} | null | undefined; attribution?: string | null | undefined; attributionUrl?: string | null | undefined }[] | undefined>,
     default: () => []
   },
   showMeasureLink: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: true
   },
   defaultExpanded: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: false
   },
   histogramConfig: {
-    type: Object as PropType<HistogramConfig | null>,
+    type: Object as PropType<HistogramConfig | null | undefined>,
     default: null
   },
   mapEnabled: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: false
   },
   ars: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: null
   },
   dataProductType: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: null
   },
   areaBounds: {
-    type: Object as PropType<GeoJsonObject | null>,
+    type: Object as PropType<GeoJsonObject | null | undefined>,
     default: null
   }
 })

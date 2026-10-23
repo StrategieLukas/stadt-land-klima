@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { queryText, queryIds } from "~/server/utils/publicQuery";
 import { z } from "zod";
 import { OrganisationSchema } from "~/shared/contracts/content";
@@ -22,7 +23,7 @@ export default defineEventHandler(async (event) => {
       filter: { id: { _in: ids } },
       fields: orgFields,
       limit: 100,
-    }))
+    })).then(cmsRows)
 
     return { organisations: parseCms(z.array(OrganisationSchema), orgs) }
   }
@@ -30,7 +31,7 @@ export default defineEventHandler(async (event) => {
   const orgs = await client.request(readItems('organisations', {
     fields: orgFields,
     limit: 200,
-  }))
+  })).then(cmsRows)
 
   return { organisations: parseCms(z.array(OrganisationSchema), orgs) }
 })

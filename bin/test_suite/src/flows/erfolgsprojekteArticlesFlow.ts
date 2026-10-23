@@ -524,6 +524,17 @@ async function assertMunicipalityQueryFilter(
   const assertNoBrowserErrors = watchPageErrors(page, 'Projects municipality query filter');
 
   try {
+    const api = new URL('/api/public/articles', fixture.config.frontendUrl);
+    api.searchParams.set('municipality', state.sampleArticle.municipality_name ?? '');
+    api.searchParams.set('limit', '5');
+    api.searchParams.set('sort', '-date_created');
+    const response = await context.request.get(api.toString());
+    assertEqual(response.status(), 200, 'Municipality projects API must accept supported filters');
+    const payload = await response.json() as {articles: Article[]};
+    assert(payload.articles.some(article => article.id === state.sampleArticle.id), 'Municipality projects API must include its published article');
+    assert(payload.articles.every(article => article.municipality_name === state.sampleArticle.municipality_name), 'Municipality projects API must exclude other municipalities');
+    assert(!payload.articles.some(article => article.id === state.unpublishedArticle.id), 'Municipality projects API must exclude drafts');
+    assert(payload.articles.length <= 5, 'Municipality projects API must apply the requested limit');
     const url = new URL('/projects', fixture.config.frontendUrl);
     url.searchParams.set('municipality', state.sampleArticle.municipality_name ?? '');
     const text = await openFrontendPage(page, url.toString());

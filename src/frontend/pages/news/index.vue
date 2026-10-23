@@ -19,13 +19,13 @@
     <div class="flex flex-wrap gap-2 mb-6">
       <button
         type="button"
-        @click="activeFilter = null"
         :class="[
           'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors whitespace-nowrap',
           activeFilter === null
             ? 'bg-[#374151] text-white border-[#374151]'
             : 'bg-[#e5e7eb] text-[#374151] border-[#e5e7eb] hover:bg-[#d1d5db]',
         ]"
+        @click="activeFilter = null"
       >
         Alle
       </button>
@@ -33,13 +33,13 @@
         v-for="f in filterOptions"
         :key="f.value"
         type="button"
-        @click="activeFilter = f.value"
         :class="[
           'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors whitespace-nowrap',
           activeFilter === f.value
             ? f.activeClass
             : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400',
         ]"
+        @click="activeFilter = f.value"
       >
         {{ f.label }}
       </button>
@@ -156,13 +156,13 @@
             </div>
             <SmartImg
               v-else
-              :assetId="ev.image?.id"
-              :isRaster="ev.image?.type ? isRaster(ev.image.type) : true"
+              :asset-id="ev.image?.id"
+              :is-raster="ev.image?.type ? isRaster(ev.image.type) : true"
               :alt="ev.title"
               :width="480"
               :height="160"
               fit="cover"
-              imgClass="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              img-class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <span class="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full bg-[#1da64a] text-white">Veranstaltung</span>
             <!-- Image credits overlay on hover -->
@@ -200,7 +200,7 @@
       Keine Einträge gefunden.
     </div>
 
-    <div v-for="group in groupedByMonth" :key="group.monthKey" :id="`section-${group.monthKey}`" class="mb-10" :style="`scroll-margin-top: ${headerHeight + 16}px`">
+    <div v-for="group in groupedByMonth" :id="`section-${group.monthKey}`" :key="group.monthKey" class="mb-10" :style="`scroll-margin-top: ${headerHeight + 16}px`">
       <!-- Month heading -->
       <h2 class="text-base font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200 pb-2 mb-4">
         {{ group.label }}
@@ -208,8 +208,8 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <component
-        v-for="item in group.items"
         :is="item.href ? NuxtLinkComponent : 'div'"
+        v-for="item in group.items"
         :key="`${item.type}-${item.id}`"
         :to="item.href || undefined"
         :class="item.href
@@ -242,14 +242,14 @@
           </div>
           <SmartImg
             v-else-if="item.imageId && item.href"
-            :assetId="item.imageId"
+            :asset-id="item.imageId"
             :asset-base-url="item.assetBaseUrl"
-            :isRaster="isRaster(item.imageType)"
+            :is-raster="isRaster(item.imageType)"
             :alt="item.title"
             :width="480"
             :height="160"
             fit="cover"
-            imgClass="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            img-class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <!-- News: teal gradient + info icon -->
           <div
@@ -343,12 +343,9 @@
 </template>
 
 <script setup lang="ts">
-type FeedItem = {type: string; id: string | number; title: string; teaser?: string | null; imageId: string | null; imageType: string | null; imageCredits?: string | null; date: string | null; href: string; status?: string; endDate?: string | null; eventType?: string | null; location?: string | null; assetBaseUrl?: string};
 import { parseBerlinDateTime, formatBerlinDate as formatDate, formatBerlinDateRange as formatDateRange, getEventMonthKey, formatEventMonth } from '~/shared/eventDateTime'
 import { visitHasEnded } from '~/shared/tour'
 import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from 'vue'
-import type { z } from "zod"
-import { NewsListSchema } from "~/shared/contracts/content"
 import { requestErrorMessage } from "~/shared/requestError"
 import { useAuth } from '~/composables/useAuth'
 import { useHeaderHeight } from '~/composables/useHeaderHeight'
@@ -356,6 +353,7 @@ import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden'
 import sectorImages from '~/shared/sectorImages'
 
 import { isRaster } from '~/shared/utils'
+type FeedItem = {type: string; id: string | number; title: string; teaser?: string | null | undefined; imageId: string | null; imageType: string | null; imageCredits?: string | null | undefined; date: string | null; href: string; status?: string | undefined; endDate?: string | null | undefined; eventType?: string | null | undefined; location?: string | null | undefined; assetBaseUrl?: string | undefined};
 function stripHtml(html: string | null) {
   if (!html) return null
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || null
@@ -364,8 +362,6 @@ function stripHtml(html: string | null) {
 const NuxtLinkComponent = resolveComponent('NuxtLink')
 
 const { $t } = useNuxtApp()
-const config = useRuntimeConfig()
-const directusUrl = config.public.clientDirectusUrl
 
 const { isAuthenticated, initialize } = useAuth()
 const headerHeight = useHeaderHeight()
@@ -417,6 +413,7 @@ onUnmounted(() => {
 const editor = useNewsEditor()
 const adminNewsItems = shallowRef<Awaited<ReturnType<typeof editor.list>> | null>(null)
 
+watch(isAuthenticated, authenticated => { if (!authenticated) adminNewsItems.value = null })
 onMounted(async () => {
   await initialize()
   if (isAuthenticated.value) {

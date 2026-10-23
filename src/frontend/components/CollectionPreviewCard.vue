@@ -134,7 +134,7 @@ const props = defineProps<{
   areaSlug: string;
   ars: string;
   baseUrl: string;
-  population?: number | null;
+  population?: number | null | undefined;
 }>();
 
 const { t } = useSlzLocale();

@@ -78,9 +78,9 @@
             <!-- View toggle -->
             <button
               type="button"
-              @click="viewMode = 'list'"
               class="slk-filter-pill"
               :class="viewMode === 'list' ? 'slk-filter-pill--active' : ''"
+              @click="viewMode = 'list'"
             >
               <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -89,9 +89,9 @@
             </button>
             <button
               type="button"
-              @click="viewMode = 'cards'"
               class="slk-filter-pill"
               :class="viewMode === 'cards' ? 'slk-filter-pill--active' : ''"
+              @click="viewMode = 'cards'"
             >
               <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path
@@ -104,9 +104,9 @@
             </button>
             <button
               type="button"
-              @click="viewMode = 'treemap'"
               class="slk-filter-pill"
               :class="viewMode === 'treemap' ? 'slk-filter-pill--active' : ''"
+              @click="viewMode = 'treemap'"
             >
               <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path
@@ -179,9 +179,9 @@
           <div class="flex flex-wrap gap-2">
             <button
               type="button"
-              @click="filterHighImpact = !filterHighImpact"
               class="slk-filter-pill"
               :class="filterHighImpact ? 'slk-filter-pill--active' : ''"
+              @click="filterHighImpact = !filterHighImpact"
             >
               <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -190,9 +190,9 @@
             </button>
             <button
               type="button"
-              @click="filterLowCost = !filterLowCost"
               class="slk-filter-pill"
               :class="filterLowCost ? 'slk-filter-pill--active' : ''"
+              @click="filterLowCost = !filterLowCost"
             >
               <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path
@@ -205,9 +205,9 @@
             </button>
             <button
               type="button"
-              @click="filterLowControversy = !filterLowControversy"
               class="slk-filter-pill"
               :class="filterLowControversy ? 'slk-filter-pill--active' : ''"
+              @click="filterLowControversy = !filterLowControversy"
             >
               <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path
@@ -238,41 +238,41 @@
             <div class="flex flex-wrap gap-2">
               <button
                 type="button"
-                @click="sortOrder = 'id'"
                 class="slk-filter-pill"
                 :class="sortOrder === 'id' ? 'slk-filter-pill--active' : ''"
+                @click="sortOrder = 'id'"
               >
                 {{ $t("measures.sort.by_id") }}
               </button>
               <button
                 type="button"
-                @click="sortOrder = 'name'"
                 class="slk-filter-pill"
                 :class="sortOrder === 'name' ? 'slk-filter-pill--active' : ''"
+                @click="sortOrder = 'name'"
               >
                 {{ $t("measures.sort.alphabetical") }}
               </button>
               <button
                 type="button"
-                @click="sortOrder = 'impact'"
                 class="slk-filter-pill"
                 :class="sortOrder === 'impact' ? 'slk-filter-pill--active' : ''"
+                @click="sortOrder = 'impact'"
               >
                 {{ $t("measures.sort.impact_desc") }}
               </button>
               <button
                 type="button"
-                @click="sortOrder = 'economical'"
                 class="slk-filter-pill"
                 :class="sortOrder === 'economical' ? 'slk-filter-pill--active' : ''"
+                @click="sortOrder = 'economical'"
               >
                 {{ $t("measures.sort.cost_asc") }}
               </button>
               <button
                 type="button"
-                @click="sortOrder = 'political'"
                 class="slk-filter-pill"
                 :class="sortOrder === 'political' ? 'slk-filter-pill--active' : ''"
+                @click="sortOrder = 'political'"
               >
                 {{ $t("measures.sort.resistance_asc") }}
               </button>
@@ -365,10 +365,9 @@
 import { ref, computed, watch } from "vue";
 import sectorImages from "~/shared/sectorImages";
 
-const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'] as const;
-
-import { sectors, type Sector } from "~/shared/domain";
 import { singleRouteValue } from "~/shared/routeValues";
+
+const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'] as const;
 const { $t, $translateDynamic } = useNuxtApp();
 const config = useRuntimeConfig();
 const route = useRoute();
@@ -377,11 +376,11 @@ const measureCatalogDownloadUrl = (fileName: string) => {
   const directusUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081";
   return `${directusUrl.replace(/\/+$/, "")}/assets/${encodeURIComponent(fileName)}`;
 };
-let selectedCatalogVersion = await getCatalogVersion(route, true);
+const selectedCatalogVersion = await getCatalogVersion(route, true);
 const currentCatalogVersion = ref(selectedCatalogVersion);
 
 onMounted(() => {
-  setCatalogVersionUrl(route, router, selectedCatalogVersion);
+  void setCatalogVersionUrl(route, router, selectedCatalogVersion);
 });
 
 const title = ref($t("measures.nav_label"));
@@ -420,7 +419,7 @@ const activeFilterCount = computed(() => {
 
 function setSector(sector: string | null) {
   selectedSector.value = sector;
-  router.replace({ query: { ...route.query, sector: sector || undefined } });
+  void router.replace({ query: { ...route.query, sector: sector || undefined } });
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -436,7 +435,7 @@ function stripHtml(html: string | null) {
     .replace(/&uuml;/g, 'ü').replace(/&Uuml;/g, 'Ü')
     .replace(/&szlig;/g, 'ß').replace(/&eacute;/g, 'é').replace(/&egrave;/g, 'è')
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCharCode(parseInt(String(h), 16)))
     .replace(/\s+/g, ' ').trim();
 }
 

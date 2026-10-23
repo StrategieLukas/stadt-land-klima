@@ -234,6 +234,12 @@ export async function runContactSpamSecurityFlow(
         secondResp.status === 400,
         `Replayed CAPTCHA must be rejected with 400, got ${secondResp.status}: ${await secondResp.text()}`,
       );
+      for (const algorithm of ['SHA-512', 'arbitrary-replay-key']) {
+        const mutated = Buffer.from(JSON.stringify({...proof, algorithm})).toString('base64');
+        const response = await fetch(`${frontendUrl}/api/submit-feedback`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title: 'Replay variant', type: 'other', content: 'Rejected algorithm replay', name: 'Test', contact: 'test@example.invalid', altcha: mutated})});
+        assertEqual(response.status, 400, 'Changing the algorithm must not evade single-use consumption');
+      }
+
     },
   );
 
@@ -318,7 +324,7 @@ export async function runContactSpamSecurityFlow(
         number: solutionNumber,
         salt: challenge.salt,
         signature: challenge.signature,
-        purpose: 'register', // Wrong purpose for contact endpoint
+        purpose: 'contact', // Forged top-level purpose cannot override the signed salt
         expires_at: challenge.expires_at,
       };
       const altchaB64 = Buffer.from(JSON.stringify(wrongPurposeProof)).toString('base64');

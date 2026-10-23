@@ -1,8 +1,26 @@
-export function stripHtml(s: string): string {
+import { z } from "zod";
+const text = z.string().nullish().transform(value => value ?? "");
+const content = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
+  slug: text, name: text, title: text, status: text, bio: text,
+  first_name: text, last_name: text, show_on_team_page: z.boolean().optional(),
+  teaser: text, contents: text, description: text, event_type: text,
+  subtitle: text, abstract: text, article_text: text, sector: text,
+  description_about: text, description_benefit: text, description_evaluation_criteria: text,
+  description_implementation: text, description_legal: text, description_funding: text,
+  description_verification: text,
+});
+const blockContent = z.object({
+  uuid: z.string(), bundle: z.string(), entity_uuid: z.string(),
+  props: z.record(z.string(), z.unknown()).nullish().transform(value => value ?? {}),
+});
+export function stripHtml(input: unknown): string {
+  const s = typeof input === "string" ? input : "";
   return (s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
-export function stripMd(s: string): string {
+export function stripMd(input: unknown): string {
+  const s = typeof input === "string" ? input : "";
   return (s || '')
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // [label](url) → label
     .replace(/[#*_`~>]/g, '')
@@ -21,11 +39,14 @@ export function bundleLabel(bundle: string): string {
   return BUNDLE_LABELS[bundle] ?? bundle
 }
 
-export function extractBlockText(bundle: string, props: Record<string, any>): string {
+export function extractBlockText(bundle: string, props: Record<string, unknown>): string {
   const p = props || {}
   const parts: string[] = []
-  const add = (...vals: (string | undefined | null)[]) =>
-    vals.forEach(v => v && parts.push(String(v).trim()))
+  const add = (...vals: unknown[]) => {
+    vals.forEach(value => {
+      if (typeof value === "string" || typeof value === "number") parts.push(String(value).trim());
+    });
+  };
 
   switch (bundle) {
     case 'text':          parts.push(stripHtml(p.content)); break
@@ -172,8 +193,11 @@ export const STATIC_PAGES: Array<{ id: string; title: string; text: string; url:
   },
 ]
 
-export function buildMemberDoc(user: Record<string, any>): SiteContentDoc | null {
-  if (!user.show_on_team_page) return null
+export function buildMemberDoc(input: unknown): SiteContentDoc | null {
+  const parsed = content.safeParse(input);
+  if (!parsed.success) return null;
+  const user = parsed.data;
+  if (!user.show_on_team_page || user.id === undefined) return null
   const name = [user.first_name, user.last_name].filter(Boolean).join(' ')
   if (!name) return null
   return {
@@ -190,7 +214,10 @@ export function buildStaticPageDocs(): SiteContentDoc[] {
   return STATIC_PAGES.map(p => ({ ...p, type: 'static_page' as const }))
 }
 
-export function buildNewsItemDoc(item: Record<string, any>): SiteContentDoc | null {
+export function buildNewsItemDoc(input: unknown): SiteContentDoc | null {
+  const parsed = content.safeParse(input);
+  if (!parsed.success) return null;
+  const item = parsed.data;
   if (item.status !== 'published') return null
   return {
     id: `news_item_${item.slug}`,
@@ -202,7 +229,10 @@ export function buildNewsItemDoc(item: Record<string, any>): SiteContentDoc | nu
   }
 }
 
-export function buildPageDoc(page: Record<string, any>): SiteContentDoc | null {
+export function buildPageDoc(input: unknown): SiteContentDoc | null {
+  const parsed = content.safeParse(input);
+  if (!parsed.success) return null;
+  const page = parsed.data;
   if (!page.contents) return null
   return {
     id: `page_${page.slug}`,
@@ -214,7 +244,10 @@ export function buildPageDoc(page: Record<string, any>): SiteContentDoc | null {
   }
 }
 
-export function buildEventDoc(event: Record<string, any>): SiteContentDoc | null {
+export function buildEventDoc(input: unknown): SiteContentDoc | null {
+  const parsed = content.safeParse(input);
+  if (!parsed.success) return null;
+  const event = parsed.data;
   if (event.status !== 'published') return null
   return {
     id: `event_${event.slug}`,
@@ -226,7 +259,10 @@ export function buildEventDoc(event: Record<string, any>): SiteContentDoc | null
   }
 }
 
-export function buildArticleDoc(article: Record<string, any>): SiteContentDoc | null {
+export function buildArticleDoc(input: unknown): SiteContentDoc | null {
+  const parsed = content.safeParse(input);
+  if (!parsed.success) return null;
+  const article = parsed.data;
   if (article.status !== 'published') return null
   const text = [
     article.subtitle,
@@ -249,9 +285,12 @@ const MEASURE_DESC_FIELDS = [
   'description_legal', 'description_funding', 'description_verification',
 ]
 
-export function buildMeasureDoc(measure: Record<string, any>, catalogVersionName?: string): SiteContentDoc | null {
+export function buildMeasureDoc(input: unknown, catalogVersionName?: string): SiteContentDoc | null {
+  const parsed = content.safeParse(input);
+  if (!parsed.success) return null;
+  const measure = parsed.data;
   const text = MEASURE_DESC_FIELDS
-    .map(f => stripHtml(measure[f] || ''))
+    .map(f => stripHtml(measure[f as keyof typeof measure]))
     .filter(Boolean)
     .join(' ')
   const url = catalogVersionName
@@ -268,19 +307,22 @@ export function buildMeasureDoc(measure: Record<string, any>, catalogVersionName
 }
 
 export function buildBlockDoc(
-  block: Record<string, any>,
+  input: unknown,
   pageName: string,
   baseUrl = '',
-  entitySlug = block.entity_uuid,
+  entitySlug?: string,
 ): SiteContentDoc | null {
-  const text = extractBlockText(block.bundle, block.props || {})
+  const parsed = blockContent.safeParse(input);
+  if (!parsed.success) return null;
+  const block = parsed.data;
+  const text = extractBlockText(block.bundle, block.props)
   if (!text) return null
   return {
     id: `block_${block.uuid}`,
     type: 'block',
     title: pageName || block.entity_uuid,
     text,
-    url: `${baseUrl}/${entitySlug}#block-${block.uuid}`,
+    url: `${baseUrl}/${entitySlug ?? block.entity_uuid}#block-${block.uuid}`,
     meta: bundleLabel(block.bundle),
   }
 }

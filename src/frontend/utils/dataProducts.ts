@@ -1,11 +1,12 @@
-import { cloneVisualization, asRecord } from "~/shared/visualization";
+import { RenderElementSchema } from "../shared/contracts/slz";
+import { cloneVisualization, asRecord } from "../shared/visualization";
 import type {
   Collection,
   CollectionCoverImage,
   MapLibreRenderSpec,
   RenderElement,
   SummaryAggregate,
-} from "~/types/slz-api";
+} from "../types/slz-api";
 
 export const DATA_PRODUCT_SECTOR_COLORS: Record<string, string> = {
   energy: "#F59E0B",
@@ -69,7 +70,9 @@ export function sectorColor(collection: Pick<Collection, "sector">) {
   return DATA_PRODUCT_SECTOR_COLORS[sectorKey(collection)] ?? DATA_PRODUCT_SECTOR_COLORS.other;
 }
 
-export function firstKpiElement(collection: Pick<Collection, "render_elements">) {
+export function firstKpiElement(
+  collection: Pick<Collection, "render_elements" | "renderElements" | "render_config" | "renderConfig">,
+) {
   const camelCollection = collection as Collection & {
     renderElements?: RenderElement[];
     renderConfig?: Collection["render_config"];
@@ -78,29 +81,33 @@ export function firstKpiElement(collection: Pick<Collection, "render_elements">)
   const renderElementKpi = renderElements.find((element) => element.type === "kpi") ?? null;
   if (renderElementKpi) return renderElementKpi;
 
-  const renderConfig = ((collection as Collection).render_config ?? camelCollection.renderConfig) as
-    Record<string, any> | null | undefined;
-  const configKpi =
+  const renderConfig = asRecord((collection as Collection).render_config ?? camelCollection.renderConfig);
+  const configKpi = asRecord(
     renderConfig?.kpi ??
-    renderConfig?.primary_kpi ??
-    renderConfig?.primaryKpi ??
-    renderConfig?.threshold_bar ??
-    renderConfig?.thresholdBar ??
-    renderConfig?.kpis?.[0];
-
+      renderConfig?.primary_kpi ??
+      renderConfig?.primaryKpi ??
+      renderConfig?.threshold_bar ??
+      renderConfig?.thresholdBar ??
+      (Array.isArray(renderConfig?.kpis) ? renderConfig.kpis[0] : undefined),
+  );
   if (!configKpi?.field && !configKpi?.thresholds) return null;
-  return {
+  const result = RenderElementSchema.safeParse({
     type: "kpi",
     plot_id: configKpi.plot_id ?? configKpi.id ?? "render-config-kpi",
     field: configKpi.field ?? renderConfig?.color_field ?? renderConfig?.colorField,
     title: configKpi.title ?? configKpi.label ?? {},
     label: configKpi.label ?? configKpi.title ?? {},
     unit: configKpi.unit ?? {},
-    thresholds: configKpi.thresholds ?? configKpi.threshold_bar?.thresholds ?? configKpi.thresholdBar?.thresholds ?? {},
+    thresholds:
+      configKpi.thresholds ??
+      asRecord(configKpi.threshold_bar)?.thresholds ??
+      asRecord(configKpi.thresholdBar)?.thresholds ??
+      {},
     population_normalized: configKpi.population_normalized ?? configKpi.populationNormalized ?? false,
     is_percentage: configKpi.is_percentage ?? configKpi.isPercentage ?? false,
     vegalite_spec: null,
-  } as RenderElement;
+  });
+  return result.success ? result.data : null;
 }
 
 export function collectionCoverImage(collection: Collection, assetBaseUrl?: string | null) {
@@ -167,7 +174,9 @@ export function normalizeCollection(collection: Collection) {
   } as Collection;
 }
 
-export function firstMapElement(collection: Pick<Collection, "render_elements">) {
+export function firstMapElement(
+  collection: Pick<Collection, "render_elements" | "renderElements" | "render_config" | "renderConfig">,
+) {
   return collection.render_elements?.find((element) => element.type === "map" && hasMapVisual(element)) ?? null;
 }
 
@@ -203,7 +212,7 @@ export function kpiValueFromAggregate(
 }
 
 export function formatKpiValue(kpi: RenderElement | null, value: number | null, precision?: number | null) {
-  if (value === null || value === undefined) return "Keine Daten";
+  if (value == null) return "Keine Daten";
   if (kpi?.is_percentage) {
     const thresholds = kpi.thresholds ?? {};
     const values = Object.values(thresholds).filter((x) => typeof x === "number" && x > 0);
@@ -218,7 +227,7 @@ export function formatKpiValue(kpi: RenderElement | null, value: number | null, 
   return value.toLocaleString("de-DE", { maximumFractionDigits: Number.isInteger(value) ? 0 : 1 });
 }
 
-export function injectAreaIntoSpec(spec: unknown, ars: string): import("~/shared/visualization").EditableSpec | null {
+export function injectAreaIntoSpec(spec: unknown, ars: string): import("../shared/visualization").EditableSpec | null {
   if (!spec) return null;
   if (!ars) return cloneVisualization(spec);
   const cloned = cloneVisualization(spec);
@@ -233,7 +242,7 @@ export function injectAreaIntoSpec(spec: unknown, ars: string): import("~/shared
         data.url = url.toString();
       } catch {
         const separator = String(data.url).includes("?") ? "&" : "?";
-        data.url = `${data.url}${separator}area=${encodeURIComponent(ars)}`;
+        data.url = `${String(data.url)}${separator}area=${encodeURIComponent(ars)}`;
       }
     }
     if (Array.isArray(node?.layer)) node.layer.forEach(patchNode);

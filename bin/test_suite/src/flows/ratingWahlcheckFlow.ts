@@ -480,7 +480,15 @@ async function submitCandidateAnswers(
       submitAlert = dialog.message();
       dialog.accept().catch(() => undefined);
     });
-    await openFrontendPage(page, `${fixture.config.frontendUrl}/elections/thesen/${candidate.access_token}`);
+    const candidateUrl = `${fixture.config.frontendUrl}/elections/thesen/${candidate.access_token}`;
+    const serverResponse = await context.request.get(candidateUrl);
+    assertEqual(serverResponse.status(), 200, 'Candidate page must render its private loading shell');
+    const candidateHeaders = serverResponse.headers();
+    assertIncludes(candidateHeaders['cache-control'] ?? '', 'private', 'Candidate HTML must be private');
+    assertIncludes(candidateHeaders['cache-control'] ?? '', 'no-store', 'Candidate HTML must not be cached');
+    assertEqual(candidateHeaders['referrer-policy'], 'no-referrer', 'Candidate token must not leak through referrers');
+    assertNotIncludes(await serverResponse.text(), candidate.name, 'Candidate records must not enter the SSR/Nuxt payload');
+    await openFrontendPage(page, candidateUrl);
     await page.getByText(candidate.name).waitFor({ state: 'visible', timeout: 30_000 });
 
     for (const question of questions) {

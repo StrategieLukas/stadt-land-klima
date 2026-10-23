@@ -1,5 +1,5 @@
 import type { Request, Response, Router } from 'express';
-import type { EndpointConfig } from '@directus/extensions-sdk';
+import type { EndpointConfig } from '@directus/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -89,9 +89,13 @@ function timeoutSignal(ms: number): AbortSignal {
  * Relies on the `accountability` property that Directus injects into every
  * request object via its authentication middleware.
  */
-function isAuthenticated(req: Request): boolean {
-  const accountability = (req as Request & { accountability?: { user?: string | null } }).accountability;
-  return accountability?.user != null;
+function isAuthenticated(req: object): boolean {
+  if (!('accountability' in req)) return false;
+  const accountability = req.accountability;
+  return Boolean(
+    accountability && typeof accountability === 'object' &&
+    'user' in accountability && typeof accountability.user === 'string' && accountability.user
+  );
 }
 
 /**

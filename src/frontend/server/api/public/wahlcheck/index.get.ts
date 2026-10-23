@@ -1,3 +1,4 @@
+import { cmsRecord, cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { PublicElectionListSchema } from "~/shared/contracts/elections";
 import { parseCms } from "~/server/utils/parseCms";
@@ -5,7 +6,7 @@ import { readItems } from '@directus/sdk'
 import { defineEventHandler, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
 
-type Row = Record<string, any>
+type Row = Record<string, unknown>
 
 function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
       'date_created',
     ],
     sort: ['-date_created'],
-  }))
+  })).then(cmsRows)
 
   if (!elections || elections.length === 0) {
     return []
@@ -50,7 +51,7 @@ export default defineEventHandler(async (event) => {
       },
       fields: ['id'],
       limit: -1,
-    }))
+    })).then(cmsRows)
 
     const questions = await client.request(readItems('questions', {
       filter: {
@@ -59,17 +60,17 @@ export default defineEventHandler(async (event) => {
       },
       fields: ['id'],
       limit: -1,
-    }))
+    })).then(cmsRows)
 
     // Only include elections that have at least one candidate who answered
     if ((candidates?.length || 0) > 0) {
-      const localteam = election.localteam || {}
+      const localteam = cmsRecord(election.localteam || {})
       // municipality_id is a one-to-many alias, so it returns an array of municipalities.
       // Use the first municipality's slug, falling back to the localteam's own slug.
       const municipalities = Array.isArray(localteam.municipality_id)
         ? localteam.municipality_id
         : localteam.municipality_id ? [localteam.municipality_id] : []
-      const municipalitySlug = municipalities[0]?.slug || localteam.slug || null
+      const municipalitySlug = cmsRecord(municipalities[0] ?? {}).slug || localteam.slug || null
       results.push({
         ...pick(election, ['id', 'descriptor', 'custom_logo', 'is_party_election', 'date_created']),
         localteam: pick(localteam, ['id', 'name', 'slug', 'municipality_name']),

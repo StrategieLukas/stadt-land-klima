@@ -1,4 +1,4 @@
-<template lang="">
+<template>
   <div class="flex flex-col">
     <div
       :class="['relative w-full border', colorClass.border, layout === 'compact' ? 'h-4 rounded-sm' : 'h-8 rounded-md']"
@@ -33,14 +33,14 @@ const props = defineProps({
     required: true,
   },
   layout: {
-    type: String,
+    type: String as PropType<string | undefined>,
     validator(value: string) {
       return ["default", "compact"].includes(value);
     },
     default: "default",
   },
   showScaleMaximum: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: true,
   },
 });

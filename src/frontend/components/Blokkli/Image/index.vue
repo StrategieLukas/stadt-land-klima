@@ -90,9 +90,9 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  imageId?: string
-  alt?: string
-  caption?: string
+  imageId?: string | undefined
+  alt?: string | undefined
+  caption?: string | undefined
 }>()
 
 const sizeClass = computed(() => {

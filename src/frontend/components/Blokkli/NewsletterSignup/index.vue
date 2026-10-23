@@ -83,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import type { NewsletterRequest } from "~/shared/contracts/submissions";
 import {  requestErrorMessage } from '~/shared/requestError';
 interface NewsletterList {
   id: number
@@ -92,7 +93,7 @@ interface NewsletterList {
 
 const props = defineProps<{
   title: string
-  description?: string
+  description?: string | undefined
 }>()
 
 const { $t } = useNuxtApp()
@@ -132,7 +133,7 @@ const { options, uuid } = defineBlokkli({
 
 // Fetch all public lists from the server once per page load
 const { data: listsData } = await useAsyncData('newsletter-lists', () =>
-  $fetch<{ lists: NewsletterList[] }>('/api/newsletter-lists').catch(() => ({ lists: [] })),
+  $fetch('/api/newsletter-lists').catch(() => ({ lists: [] })),
 )
 
 const allLists = computed<NewsletterList[]>(() => listsData.value?.lists ?? [])
@@ -214,9 +215,9 @@ async function subscribe() {
   const listIds = selectedIds.value.length > 0 ? selectedIds.value : undefined
   subscribeState.value = 'subscribing'
   try {
-    const result = await $fetch<{ success: boolean; alreadySubscribed: boolean }>(
+    const result = await $fetch(
       '/api/newsletter-subscribe',
-      { method: 'POST', body: { email: email.value.trim(), listIds } },
+      { method: 'POST', body: { email: email.value.trim(), listIds } satisfies NewsletterRequest },
     )
     alreadySubscribed.value = result.alreadySubscribed
     subscribeState.value = 'success'

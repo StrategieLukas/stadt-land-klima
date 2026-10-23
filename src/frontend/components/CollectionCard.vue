@@ -73,8 +73,8 @@ const SECTOR_COLORS: Record<string, string> = {
 const props = defineProps<{
   collection: Collection;
   areaSlug: string;
-  sectorLabel?: string;
-  sectorKey?: string;
+  sectorLabel?: string | undefined;
+  sectorKey?: string | undefined;
 }>();
 
 const { t } = useSlzLocale();

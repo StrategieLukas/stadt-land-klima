@@ -1,3 +1,4 @@
+import { cmsRecord } from "~/server/utils/cmsValue";
 import { StatisticsSchema } from "~/shared/contracts/municipality";
 import { parseCms } from "~/server/utils/parseCms";
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
@@ -5,7 +6,7 @@ import { createDirectusServerClient } from '../../../utils/directusServerClient'
 import { readPublicItems } from '../../../utils/publicItems'
 import { readMunicipalityCatalogs, publicMeasureFields } from '../../../utils/municipalityPageData'
 
-type Row = Record<string, any>
+type Row = Record<string, unknown>
 
 function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
@@ -52,7 +53,7 @@ export default defineEventHandler(async (event) => {
       fields: measureFields,
     }),
   ])
-  const localteams = [...new Set(scores.map(score => score.municipality?.localteam_id).filter(Boolean))]
+  const localteams = [...new Set(scores.map(score => cmsRecord(score.municipality ?? {}).localteam_id).filter(Boolean))]
   const ratings = localteams.length ? await readPublicItems('ratings_measures', {
       filter: {
         measure_id: { catalog_version: { _eq: selectedCatalog.id }, status: { _eq: 'published' } },
@@ -65,12 +66,12 @@ export default defineEventHandler(async (event) => {
 
   return parseCms(StatisticsSchema, {
     catalogVersion: selectedCatalog,
-    municipalities: municipalities.map((m: any) => pick(m, municipalityFields)),
-    scores: scores.map((s: any) => ({
+    municipalities: municipalities.map((m) => pick(m, municipalityFields)),
+    scores: scores.map((s) => ({
       ...pick(s, scoreFields), catalog_version: selectedCatalog,
-      municipality: s.municipality ? pick(s.municipality, municipalityFields) : null,
+      municipality: s.municipality ? pick(cmsRecord(s.municipality), municipalityFields) : null,
     })),
-    measures: measures.map((m: any) => pick(m, measureFields)),
-    ratings: ratings.map((r: any) => pick(r, ratingFields)),
+    measures: measures.map((m) => pick(m, measureFields)),
+    ratings: ratings.map((r) => pick(r, ratingFields)),
   })
 })

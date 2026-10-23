@@ -22,9 +22,9 @@ function load(name: string, globals: Record<string, unknown> = {}, dependencies:
   const { descriptor, errors } = compiler.parse(readFileSync(new URL(name, componentRoot), 'utf8'));
   assert.deepEqual(errors, []);
   const script = compiler.compileScript(descriptor, {id: name, inlineTemplate: true});
-  const compiled = ts.transpileModule(script.content, {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022}});
+  const compiled = ts.transpileModule(script.content.replaceAll('import.meta.glob(', '__viteGlob('), {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022}});
   const module = {exports: {default: {} as import('../../../src/frontend/node_modules/vue/dist/vue.js').Component}};
-  runInNewContext(compiled.outputText, {module, exports: module.exports, URLSearchParams, console, ...vue,
+  runInNewContext(compiled.outputText, {module, exports: module.exports, URLSearchParams, console, ...vue, __viteGlob: () => ({}),
     useNuxtApp: () => ({$t: (key: string) => key, $locale: 'de-DE'}), useRuntimeConfig: () => ({public: {clientDirectusUrl: 'https://cms.example.org'}}),
     require: (id: string) => { if (id === 'vue') return dependencies.vue ?? vue; assert.ok(id in dependencies, `Unexpected import ${id}`); return dependencies[id]; }, ...globals});
   return module.exports.default;
@@ -143,7 +143,7 @@ test('map markers preserve coordinates, popups and power classes without rejecti
 
 test('captcha state events accept only string payloads and ignore malformed details', () => {
   assert.deepEqual(captchaEventData({detail: {state: 'verified', payload: 'proof'}} as unknown as Event), {state: 'verified', payload: 'proof'});
-  assert.deepEqual(captchaEventData({detail: {state: 'verified', payload: {secret: true}}} as unknown as Event), {state: 'verified', payload: undefined});
+  assert.deepEqual(captchaEventData({detail: {state: 'verified', payload: {secret: true}}} as unknown as Event), {state: 'verified'});
   assert.deepEqual(captchaEventData({detail: null} as unknown as Event), {});
 });
 
@@ -220,4 +220,23 @@ test('each treemap registers its own scales and native grouped/leaf payloads ret
     } finally {chart.destroy()}
   }
   native.Chart.unregister(native.LinearScale, treemap.TreemapController, treemap.TreemapElement);
+});
+
+
+test('CanonicalButton forwards a typed native click exactly once with disabled and link attributes intact', () => {
+  let clicks = 0;
+  const event = {type: 'click'} as MouseEvent;
+  const component = load('CanonicalButton.vue', {}, {
+    vue: {...vue, useAttrs: () => ({'data-test': 'action'})},
+    '@iconify/vue': {Icon: {}},
+  }) as {setup: (props: unknown, context: unknown) => (context: unknown, cache: unknown[]) => {props: Record<string, unknown>}};
+  const props = {label: 'Action', disabled: true, href: 'https://example.org', external: true,
+    onClick: (received: MouseEvent) => {assert.equal(received, event); clicks++;}};
+  const vnode = component.setup(props, {})(props, []);
+  assert.equal(vnode.props.disabled, true);
+  assert.equal(vnode.props.href, 'https://example.org');
+  assert.equal(vnode.props.rel, 'noopener noreferrer');
+  assert.equal(vnode.props['data-test'], 'action');
+  (vnode.props.onClick as (event: MouseEvent) => void)(event);
+  assert.equal(clicks, 1);
 });

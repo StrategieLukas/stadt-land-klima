@@ -388,7 +388,7 @@
               <div class="member-list">
                 <div
                   v-for="member in selectedTeam.members"
-                  :key="member.id || member.email"
+                  :key="member.id || member.email || member.name"
                   class="member-row"
                 >
                   <div>

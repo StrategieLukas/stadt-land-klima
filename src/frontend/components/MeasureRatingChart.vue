@@ -73,7 +73,7 @@ import type { ComparisonRating } from '~/types/components/municipality';
 import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
-  ratings: { type: Array as PropType<ComparisonRating[]>, default: () => [] },
+  ratings: { type: Array as PropType<ComparisonRating[] | undefined>, default: () => [] },
   measureIdStr: { type: String, required: true },
   catalogVersionName: { type: String, required: true },
 })

@@ -1,3 +1,4 @@
+import { cmsRecord, cmsString, cmsRows } from "~/server/utils/cmsValue";
 import { readItems } from "@directus/sdk";
 import { createError, defineEventHandler, getRouterParam, getQuery, setResponseHeader } from "h3";
 import { z } from "zod";
@@ -68,7 +69,7 @@ export default defineEventHandler(async (event) => {
   if (!uuid || !/^[\w-]{1,100}$/.test(uuid)) throw createError({ statusCode: 404 });
   const client = createDirectusServerClient();
   const scope = getQuery(event);
-  let blocks: Record<string, any>[];
+  let blocks: Record<string, unknown>[];
   if (typeof scope.entityType === "string" && typeof scope.entityUuid === "string") {
     blocks = await readPublicBlocks(scope.entityType, scope.entityUuid);
   } else {
@@ -78,11 +79,11 @@ export default defineEventHandler(async (event) => {
         fields: ["entity_type", "entity_uuid", "field_name"],
         limit: 1,
       }),
-    );
+    ).then(cmsRows);
     if (!root) throw createError({ statusCode: 404 });
-    blocks = await readPublicBlocks(root.entity_type, root.entity_uuid, root.field_name);
+    blocks = await readPublicBlocks(cmsString(root.entity_type), cmsString(root.entity_uuid), cmsString(root.field_name));
   }
-  function findChart(value: unknown, depth = 0): Record<string, any> | undefined {
+  function findChart(value: unknown, depth = 0): Record<string, unknown> | undefined {
     if (depth > 30 || !value || typeof value !== "object") return;
     if (Array.isArray(value)) {
       for (const child of value) {
@@ -101,17 +102,19 @@ export default defineEventHandler(async (event) => {
         }
       }
     }
+    return undefined;
   }
   const block = findChart(blocks);
   if (!block) throw createError({ statusCode: 404 });
   // Only a published author's stored configuration is accepted. Request parameters
   // can never supply a collection, filter or field projection.
+  const props = cmsRecord(block.props ?? {});
   let stored: unknown;
   try {
     stored =
-      typeof block.props?.query === "string" && block.props.query
-        ? JSON.parse(block.props.query)
-        : block.props?.query || JSON.parse(defaultVegaQuery);
+      typeof props.query === "string" && props.query
+        ? JSON.parse(props.query)
+        : props.query || JSON.parse(defaultVegaQuery);
   } catch {
     /* Invalid configuration fails closed below. */
   }
@@ -157,11 +160,12 @@ export default defineEventHandler(async (event) => {
     });
     const coverage = new Map<string, string[]>();
     for (const score of scores) {
-      const team = score.municipality?.localteam_id;
+      const rawTeam = cmsRecord(score.municipality ?? {}).localteam_id;
+      const team = rawTeam == null ? null : cmsString(rawTeam);
       if (!team) continue;
-      const teams = coverage.get(score.catalog_version) ?? [];
+      const teams = coverage.get(cmsString(score.catalog_version)) ?? [];
       teams.push(team);
-      coverage.set(score.catalog_version, teams);
+      coverage.set(cmsString(score.catalog_version), teams);
     }
     publicFilters.ratings_measures = {
       ...publicFilters.ratings_measures,
@@ -177,7 +181,7 @@ export default defineEventHandler(async (event) => {
   const filter = { _and: [query.filter ?? {}, publicFilters[collection]] };
   const rows =
     query.limit && query.limit > 0
-      ? await client.request(readItems(collection, { ...query, filter }))
+      ? await client.request(readItems(collection, { ...query, filter })).then(cmsRows)
       : await readPublicItems(collection, { ...query, filter });
   setResponseHeader(event, "Cache-Control", "public, max-age=60");
   return rows;

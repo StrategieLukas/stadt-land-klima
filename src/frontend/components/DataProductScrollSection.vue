@@ -207,9 +207,9 @@ const props = defineProps<{
   collection: Collection;
   ars: string;
   baseUrl: string;
-  population?: number | null;
+  population?: number | null | undefined;
   scrollMarginTop: number;
-  areaName?: string;
+  areaName?: string | undefined;
 }>();
 
 const sectionRef = ref<HTMLElement | null>(null);

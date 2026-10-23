@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { EventDetailSchema, ProjectIdentitySchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
@@ -5,11 +6,8 @@ import { readItems } from '@directus/sdk'
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
 
-type Row = Record<string, any>
 
-function pick(row: Row, fields: string[]): Row {
-  return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
-}
+
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
@@ -30,7 +28,7 @@ export default defineEventHandler(async (event) => {
       { series: ['slug', 'title', 'format'] },
     ],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!events || events.length === 0) {
     throw createError({ statusCode: 404, statusMessage: 'Event not found' })
@@ -43,14 +41,14 @@ export default defineEventHandler(async (event) => {
     filter: { report_event: { _eq: eventRow.id }, status: { _eq: 'published' }, is_tour_redirect: { _eq: false } },
     fields: ['slug'],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   // Fetch project links via events_articles junction table
   const links = await client.request(readItems('events_articles', {
     filter: { events_id: { _eq: eventRow.id }, articles_id: { status: { _eq: 'published' } } },
     fields: [{ articles_id: ['id', 'slug', 'title'] }],
     limit: -1,
-  }))
+  })).then(cmsRows)
   const projects = parseCms(z.array(z.object({articles_id: ProjectIdentitySchema.nullable()})), links).flatMap(link => link.articles_id ? [link.articles_id] : [])
 
   return {

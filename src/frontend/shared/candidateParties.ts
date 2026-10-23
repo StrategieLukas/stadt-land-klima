@@ -28,10 +28,10 @@ export const candidateParties = {
 
 export type CandidateParty = keyof typeof candidateParties;
 export interface CandidateIdentity {
-  name?: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
-  party?: string | null;
+  name?: string | null | undefined;
+  first_name?: string | null | undefined;
+  last_name?: string | null | undefined;
+  party?: string | null | undefined;
 }
 
 function normalizePartyValue(value: unknown): string {

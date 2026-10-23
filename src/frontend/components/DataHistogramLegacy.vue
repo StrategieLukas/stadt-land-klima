@@ -88,43 +88,43 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
 const props = defineProps({
   histogramUrl: {
-    type: String as PropType<string | null>,
+    type: String as PropType<string | null | undefined>,
     default: null
   },
   dataType: {
-    type: String,
+    type: String as PropType<string | undefined>,
     required: false
   },
   attributeName: {
-    type: String,
+    type: String as PropType<string | undefined>,
     required: false
   },
   currentValue: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   unit: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: ''
   },
   populationNormalized: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: false
   },
   orangeThreshold: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   yellowThreshold: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   lightGreenThreshold: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   },
   darkGreenThreshold: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null
   }
 });
@@ -575,6 +575,7 @@ async function fetchData() {
         case 'public_transport_score_data':
           sampleValue = legacyHistogramValue(sampleItem, 'publicTransportScoreData', props.attributeName ?? '');
           break;
+        case undefined:
         default:
           sampleValue = getNestedValue(sampleItem, props.attributeName);
       }

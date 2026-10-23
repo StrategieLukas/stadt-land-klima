@@ -1,5 +1,7 @@
 import type { Request, Response, Router } from "express";
-import type { Database } from "@directus/types";
+import type { ApiExtensionContext } from '@directus/types';
+
+type Database = ApiExtensionContext['database'];
 
 interface Accountability {
   admin?: boolean;
@@ -291,7 +293,7 @@ export default {
         const since = new Date(now.getTime() - days * MS_PER_DAY);
         const bucket = days > 120 ? "week" : "day";
 
-        const catalogs = (await database("measure_catalog as mc")
+        const catalogs = (await database<CatalogRow>("measure_catalog as mc")
           .leftJoin("measures as m", "m.catalog_version", "mc.id")
           .select(
             "mc.id",
@@ -301,7 +303,7 @@ export default {
             "mc.hidden",
             "mc.date_created",
           )
-          .count("m.id as measures")
+          .count<CatalogRow[]>("m.id as measures")
           .groupBy("mc.id")
           .orderBy("mc.date_created", "desc")) as CatalogRow[];
 

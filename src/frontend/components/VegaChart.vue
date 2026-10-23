@@ -66,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+import { checkedVisualizationSpec, safeVisualizationLoader } from "~/shared/visualizationSafety";
 import type { View } from 'vega';
 import { cloneVisualization, asRecord, displayScalar } from '~/shared/visualization';
 import type { PropType } from 'vue';
@@ -103,35 +104,35 @@ const props = defineProps({
     required: true,
   },
   height: {
-    type: Number as PropType<number | null>,
+    type: Number as PropType<number | null | undefined>,
     default: null,
   },
   exportAreaName: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   exportArs: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   exportTitle: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   exportSubtitle: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   exportCollectionName: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   exportUpdatedAt: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   exportAttribution: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
 });
@@ -161,7 +162,7 @@ async function render() {
   exportReady.value = false;
 
   try {
-    const { default: vegaEmbed } = await import("vega-embed");
+    const { default: vegaEmbed, vega } = await import("vega-embed");
 
     if (vegaView) {
       vegaView.finalize();
@@ -174,7 +175,9 @@ async function render() {
     const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(responsiveSpec);
     nativeZoomEnabled.value = hasNativeZoom;
 
-    const result = await vegaEmbed(vegaRef.value, embeddableSpec as VisualizationSpec, {
+    const result = await vegaEmbed(vegaRef.value, checkedVisualizationSpec(embeddableSpec), {
+      ast: true,
+      loader: safeVisualizationLoader(vega.loader({http: {credentials: "omit", redirect: "error"}}), window.location.origin),
       renderer: "canvas",
       actions: false,
       config: vegaConfig.value,

@@ -10,7 +10,7 @@ import { isVideoMedia } from '~/shared/tourMedia';
 import type { TourMedia } from '~/shared/tourMedia';
 import { relationId } from '~/shared/tour';
 import { isRaster } from '~/shared/utils';
-const props = defineProps<{ item: TourMedia; previewToken?: string | null; preserveAspectRatio?: boolean }>();
+const props = defineProps<{ item: TourMedia; previewToken?: string | null | undefined; preserveAspectRatio?: boolean | undefined }>();
 const { $t } = useNuxtApp();
 const previewFile = computed(() => isVideoMedia(props.item) ? props.item.poster : props.item.file);
 </script>

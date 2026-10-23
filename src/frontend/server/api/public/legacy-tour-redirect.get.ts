@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
@@ -30,7 +31,7 @@ export default defineEventHandler(async (event) => {
     filter,
     fields,
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!rows || rows.length === 0) {
     throw createError({ statusCode: 404, statusMessage: 'Not found' })

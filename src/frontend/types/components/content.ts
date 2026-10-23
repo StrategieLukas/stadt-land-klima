@@ -1,26 +1,26 @@
 import type { Measure } from "./municipality";
-export type Asset = string | { id: string; type?: string | null } | null;
+export type Asset = string | { id: string; type?: string | null | undefined } | null;
 export interface Organisation {
-  id?: string | number;
-  name?: string | null;
-  link?: string | null;
-  logo?: Asset;
-  instagram?: string | null;
-  linkedin?: string | null;
+  id?: string | number | undefined;
+  name?: string | null | undefined;
+  link?: string | null | undefined;
+  logo?: Asset | undefined;
+  instagram?: string | null | undefined;
+  linkedin?: string | null | undefined;
 }
 export interface Project {
-  id: string;
+  id: number;
   slug: string;
   title: string;
-  author?: string | null;
-  date?: string | Date | null;
-  municipality_name?: string | null;
-  municipality_slug?: string | null;
-  state?: string | null;
-  abstract?: string | null;
-  image_id?: string | null;
-  image_is_raster?: boolean | null;
-  image_credits?: string | null;
-  organisation?: Organisation | null;
-  measures?: Measure[] | null;
+  author?: string | null | undefined;
+  date?: string | Date | null | undefined;
+  municipality_name?: string | null | undefined;
+  municipality_slug?: string | null | undefined;
+  state?: string | null | undefined;
+  abstract?: string | null | undefined;
+  image_id?: string | null | undefined;
+  image_is_raster?: boolean | null | undefined;
+  image_credits?: string | null | undefined;
+  organisation?: Organisation | null | undefined;
+  measures?: Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null | undefined;
 }

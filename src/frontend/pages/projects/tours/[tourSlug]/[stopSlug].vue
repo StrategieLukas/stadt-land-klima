@@ -66,15 +66,19 @@ import { relationId } from '~/shared/tour';
 import { formatBerlinDate, formatEventDateTimeRange } from '~/shared/eventDateTime';
 import { orderedMedia } from '~/shared/tourMedia';
 import type { TourMedia } from '~/shared/tourMedia';
-import { STOP_FIELDS, publicStopFilter, tourHref } from '~/shared/successProjectTour';
+import { STOP_FIELDS, tourHref } from '~/shared/successProjectTour';
 import type { SuccessProjectTourStop, SuccessProjectTour } from '~/shared/successProjectTour';
+import { routeSlug } from "~/shared/routeValues";
 const { $t, $translateDynamic, $locale } = useNuxtApp();
 const route = useRoute();
+const tourSlug = routeSlug(route.params.tourSlug);
+const stopSlug = routeSlug(route.params.stopSlug);
+if (!tourSlug || !stopSlug) throw createError({statusCode: 404, statusMessage: "Stop not found"});
 const config = useRuntimeConfig();
 const { initialize, isAuthenticated, getAuthenticatedClient } = useAuth();
-const filter = { slug: { _eq: String(route.params.stopSlug) }, tour: { slug: { _eq: String(route.params.tourSlug) } } };
-const { data: rows } = await useAsyncData(`tour-stop-${route.params.tourSlug}-${route.params.stopSlug}`, async () => {
-  const { series } = await $fetch<{ series: SuccessProjectTour | null }>('/api/public/tour-detail', { query: { slug: String(route.params.tourSlug) } });
+const filter = { slug: { _eq: stopSlug }, tour: { slug: { _eq: tourSlug } } };
+const { data: rows } = await useAsyncData(`tour-stop-${tourSlug}-${stopSlug}`, async () => {
+  const { series } = await $fetch<{ series: SuccessProjectTour | null }>('/api/public/tour-detail', { query: { slug: tourSlug } });
   if (!series) return [];
   const { stops } = await $fetch<{ stops: SuccessProjectTourStop[] }>('/api/public/tour-stops-by-tour', { query: { tourId: series.id } });
   return stops.filter(stop => stop.slug === route.params.stopSlug);
@@ -88,7 +92,7 @@ const reportVisible = computed(() => Boolean(stop.value && (canEdit.value || sto
 const cover = computed(() => (reportVisible.value ? stop.value?.image : null) || stop.value?.itinerary_image);
 const coverCredit = computed(() => reportVisible.value && stop.value?.image ? stop.value.image_credits : stop.value?.itinerary_image_credits);
 const media = computed(() => reportVisible.value ? orderedMedia(stop.value) : []);
-const { data: links } = await useAsyncData(`tour-stop-projects-${route.params.stopSlug}`, () => stop.value ? $fetch<{ articles_id: { id: string; slug: string; title: string } | null }[]>('/api/public/tour-stop-articles', { query: { stopIds: stop.value.id } }) : Promise.resolve([]));
+const { data: links } = await useAsyncData(`tour-stop-projects-${stopSlug}`, () => stop.value ? $fetch<{ articles_id: { id: string; slug: string; title: string } | null }[]>('/api/public/tour-stop-articles', { query: { stopIds: stop.value.id } }) : Promise.resolve([]));
 const projects = computed(() => (links.value || []).map(link => link.articles_id).filter((project): project is NonNullable<typeof project> => Boolean(project)));
 const viewer = ref<{ open: (media: TourMedia[], index: number, title: string) => void } | null>(null);
 const saving = ref(false);

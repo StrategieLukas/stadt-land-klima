@@ -12,7 +12,7 @@
 <script setup lang="ts">
 const _props = defineProps({
   small: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: false
   }
 })

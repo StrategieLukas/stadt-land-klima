@@ -1,4 +1,5 @@
-import { queryText, queryIds } from "~/server/utils/publicQuery";
+import { cmsRows } from "~/server/utils/cmsValue";
+import { queryText } from "~/server/utils/publicQuery";
 import { TourSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
@@ -26,7 +27,7 @@ export default defineEventHandler(async (event) => {
     filter: { slug: { _eq: slug }, status: { _eq: 'published' } },
     fields: [...TOUR_FIELDS],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   return { series: series[0] ? parseCms(TourSchema, series[0]) : null }
 })

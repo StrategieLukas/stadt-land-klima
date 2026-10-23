@@ -182,7 +182,7 @@ const navTitle = (item: NavigationItem) => translatedNavigationLabel(item, $tran
 
 const props = defineProps({
   navItems: {
-    type: Array as PropType<NavigationItem[]>,
+    type: Array as PropType<NavigationItem[] | undefined>,
     default: () => [],
   },
 });

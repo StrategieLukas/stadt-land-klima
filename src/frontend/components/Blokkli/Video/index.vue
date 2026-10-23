@@ -85,7 +85,7 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  caption?: string
+  caption?: string | undefined
 }>()
 
 function getYouTubeId(url: string): string | null {

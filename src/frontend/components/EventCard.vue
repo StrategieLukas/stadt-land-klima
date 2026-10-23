@@ -81,26 +81,26 @@ import { formatEventDateTimeRange } from "~/shared/eventDateTime";
 import { isRaster } from "~/shared/utils";
 
 type EventImage = {
-  id?: string;
-  type?: string | null;
+  id?: string | undefined;
+  type?: string | null | undefined;
 };
 
 type EventListItem = {
-  end_date?: string | null;
-  date_only?: boolean;
-  event_type?: string | null;
-  event_category?: string | null;
-  image?: EventImage | string | null;
-  location?: string | null;
+  end_date?: string | null | undefined;
+  date_only?: boolean | undefined;
+  event_type?: string | null | undefined;
+  event_category?: string | null | undefined;
+  image?: EventImage | string | null | undefined;
+  location?: string | null | undefined;
   slug: string;
-  start_date?: string | null;
+  start_date?: string | null | undefined;
   title: string;
 };
 
 const props = withDefaults(
   defineProps<{
     event: EventListItem;
-    variant?: "current" | "future" | "past";
+    variant?: "current" | "future" | "past" | undefined;
   }>(),
   {
     variant: "future",

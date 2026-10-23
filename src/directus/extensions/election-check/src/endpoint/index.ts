@@ -1,7 +1,12 @@
 import generateQuestions from '../generate-questions/api.js';
 import sendCandidateMails from '../send-candidate-mails/api.js';
-import type { Router, Services, GetSchema, Logger, Accountability } from '@directus/extensions-sdk';
+import type { Accountability, ApiExtensionContext } from '@directus/types';
+import type { Router } from 'express';
 import type { Knex } from 'knex';
+
+type GetSchema = ApiExtensionContext['getSchema'];
+type Logger = ApiExtensionContext['logger'];
+type Services = ApiExtensionContext['services'];
 
 // ---------------------------------------------------------------------------
 // Types

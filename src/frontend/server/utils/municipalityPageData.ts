@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { CatalogSchema, type Catalog } from "~/shared/contracts/search";
 import { MunicipalityIdentitySchema, MunicipalityDetailSchema, MunicipalityPageSchema, MeasureSchema, RatingSchema, ScoreSchema } from "~/shared/contracts/municipality";
@@ -9,7 +10,7 @@ import { createError, getHeader, getQuery, getRouterParam, setResponseHeader, ty
 import { createDirectusServerClient } from './directusServerClient'
 import { verifyMunicipalityPreview } from './municipalityPreview'
 
-type Row = Record<string, unknown>
+
 type Client = ReturnType<typeof createDirectusServerClient>
 
 const catalogFields = ['id', 'name', 'isCurrentFrontend', 'isCurrentBackend', 'date_created']
@@ -38,7 +39,7 @@ const ratingFields = [
 export async function readMunicipalityCatalogs(client: Client): Promise<Catalog[]> {
   const rows = await client.request(readItems('measure_catalog', {
     fields: catalogFields, filter: { hidden: { _eq: false } }, limit: 101,
-  }))
+  })).then(cmsRows)
   if (rows.length > 100) throw createError({ statusCode: 502, statusMessage: 'Catalog limit exceeded' })
   return parseCms(z.array(CatalogSchema), rows)
 }
@@ -61,7 +62,7 @@ export async function loadMunicipalityPageData(
     filter: { _or: [{ slug: { _eq: slug } }, { ars: { _eq: slug } }] },
     fields: ['id', 'name', 'slug', 'ars', 'status', 'localteam_id.id', 'localteam_id.date_created'],
     limit: 1,
-  }))
+  })).then(cmsRows)
   const municipality = parseCms(z.array(MunicipalityIdentitySchema), rows)[0]
   const empty: z.output<typeof MunicipalityPageSchema> = { selectedCatalogVersion, municipality: null, directusData: {}, previewAuthorized: false }
   if (!municipality) {
@@ -84,18 +85,18 @@ export async function loadMunicipalityPageData(
       ...(!previewAuthorized ? { published: { _eq: true } } : {}),
     },
     fields: scoreFields, limit: 1,
-  }))
+  })).then(cmsRows)
   const score = parseCms(z.array(ScoreSchema), scores)[0]
   if (!score) return result
 
   const [details, measures, ratings] = await Promise.all([
     client.request(readItems('municipalities', {
       filter: { id: { _eq: municipality.id } }, fields: [...municipalityFields, 'geolocation'], limit: 1,
-    })),
+    })).then(cmsRows),
     client.request(readItems('measures', {
       filter: { catalog_version: { _eq: selectedCatalogVersion.id }, status: { _eq: 'published' } },
       fields: publicMeasureFields, limit: 501,
-    })),
+    })).then(cmsRows),
     municipality.localteam_id?.id ? client.request(readItems('ratings_measures', {
       filter: {
         localteam_id: { _eq: municipality.localteam_id.id },
@@ -103,7 +104,7 @@ export async function loadMunicipalityPageData(
         ...(!previewAuthorized ? { status: { _eq: 'published' }, approved: { _eq: true } } : {}),
       },
       fields: ratingFields, limit: 501,
-    })) : Promise.resolve([]),
+    })).then(cmsRows) : Promise.resolve([]),
   ])
   if (measures.length > 500 || ratings.length > 500) {
     throw createError({ statusCode: 502, statusMessage: 'Municipality data limit exceeded' })
@@ -130,8 +131,8 @@ export async function loadMunicipalityPageData(
     }
   }
   for (const ratings of Object.values(ratingsBySector)) {
-    ratings.sort((a, b) => (b.rating == null ? -1 : Number(b.rating)) - (a.rating == null ? -1 : Number(a.rating))
-      || String(a.measure.measure_id).localeCompare(String(b.measure.measure_id), undefined, { numeric: true }))
+    ratings.sort((a, b) => (b.rating == null ? -1 : (b.rating)) - (a.rating == null ? -1 : (a.rating))
+      || (a.measure.measure_id).localeCompare((b.measure.measure_id), undefined, { numeric: true }))
   }
   return parseCms(MunicipalityPageSchema, {
     ...result,
@@ -162,7 +163,7 @@ export async function municipalityPageHandler(event: H3Event, preview: boolean) 
     throw createError({ statusCode: 404, statusMessage: 'Preview not found' })
   }
   try {
-    return await loadMunicipalityPageData(createDirectusServerClient(), slug, query.v as string | undefined, token)
+    return await loadMunicipalityPageData(createDirectusServerClient(), slug, query.v, token)
   } catch (error: unknown) {
     if (error && typeof error === 'object' && 'statusCode' in error && (error.statusCode === 404 || error.statusCode === 503)) throw error
     // SDK errors can contain private filter values and upstream response data.

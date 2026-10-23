@@ -19,7 +19,7 @@ import type { ScorePublication } from "~/shared/domain";
 
 import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";
 interface PageStateOptions {
-  directusData: MaybeRef<{ municipalityScore?: ScorePublication | null } | null>;
+  directusData: MaybeRef<{ municipalityScore?: ScorePublication | null | undefined } | null>;
   selectedCatalogVersion: MaybeRef<Catalog>;
   directusMuniBySlug: Ref<unknown>;
   slzArea: Ref<unknown>;

@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 503, message: 'Newsletter-Dienst nicht konfiguriert.' });
   }
 
-  const parsedBody = NewsletterRequestSchema.safeParse(await readRequestBody<unknown>(event));
+  const parsedBody = NewsletterRequestSchema.safeParse(await readRequestBody(event));
   if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
   const body = parsedBody.data;
   const { email, name, listIds } = body ?? {};
@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
       headers: { Authorization: `Basic ${credentials}` },
       query: { page: 1, per_page: 100 },
     }));
-    const allLists = listsResult.data.results.filter(list => list.type === "public" || list.id === Number(defaultListId));
+    const allLists = listsResult.data.results.filter(list => list.type === "public" || (!listIds && list.id === Number(defaultListId)));
     if (targetIds.some(id => !allLists.some(list => list.id === id))) throw createError({statusCode: 400, message: "Ungültige Listen-IDs."});
     listUuids = targetIds
       .map((id) => allLists.find((l) => l.id === id)?.uuid)
@@ -53,8 +53,8 @@ export default defineEventHandler(async (event) => {
     if (listUuids.length === 0) {
       throw createError({ statusCode: 503, message: 'Keine passende Newsletter-Liste gefunden.' });
     }
-  } catch (err: any) {
-    if (err?.statusCode) throw err;
+  } catch (err: unknown) {
+    if (err && typeof err === "object" && "statusCode" in err && err.statusCode === 400) throw err;
     console.error('[newsletter-subscribe] Failed to fetch lists');
     throw createError({ statusCode: 502, message: 'Anmeldung fehlgeschlagen. Bitte versuche es später erneut.' });
   }
@@ -70,9 +70,9 @@ export default defineEventHandler(async (event) => {
         list_uuids: listUuids,
       },
     });
-  } catch (err: any) {
-    // 409 = already subscribed
-    if (err?.status === 409 || err?.response?.status === 409) {
+  } catch (err: unknown) {
+    // ofetch exposes the HTTP status on FetchError.status.
+    if (err && typeof err === "object" && "status" in err && err.status === 409) {
       return { success: true, alreadySubscribed: true };
     }
     console.error('[newsletter-subscribe] Subscription failed');

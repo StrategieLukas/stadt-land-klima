@@ -54,7 +54,7 @@
             <span class="link-label" :title="link.label || ''">{{ link.label || '(kein Label)' }}</span>
             <span
               class="link-target"
-              :title="link.link_type === 'page' ? '/' + link.page_slug : link.external_url"
+              :title="link.link_type === 'page' ? '/' + link.page_slug : (link.external_url ?? undefined)"
             >
               {{ link.link_type === 'page' ? '/' + link.page_slug : link.external_url }}
             </span>

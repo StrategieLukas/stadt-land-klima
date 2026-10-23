@@ -115,8 +115,8 @@
             <StaticMeasureDetails :measure="measure" />
             <MeasureDescriptions
               v-if="hasDescriptions"
-              :measure="measure"
               id="section-descriptions"
+              :measure="measure"
               :style="{ scrollMarginTop: headerHeight + 16 + 'px' }"
             />
             <MeasureRatingChart
@@ -219,7 +219,7 @@ let sectionObserver: IntersectionObserver | null = null;
 const currentCatalogVersion = ref(await getCatalogVersion(route, false));
 
 onMounted(() => {
-  setCatalogVersionUrl(route, router, currentCatalogVersion.value);
+  void setCatalogVersionUrl(route, router, currentCatalogVersion.value);
   window.addEventListener('keydown', handleArrowKey);
   setTimeout(initSectionObserver, 100);
 });
@@ -232,7 +232,7 @@ onUnmounted(() => {
 // Function key includes the version ID, so Nuxt never serves stale data from a different
 // version. The watch option triggers an automatic re-fetch when currentCatalogVersion changes.
 const { data: measureData } = await useAsyncData(
-  () => `measure-${route.params.slug}-${currentCatalogVersion.value.id}`,
+  () => `measure-${slug}-${currentCatalogVersion.value.id}`,
   () => $fetch(`/api/public/measures/${encodeURIComponent(slug!)}`, {
     query: { v: currentCatalogVersion.value.name },
   }),
@@ -244,7 +244,6 @@ const measureImageId = computed(() => {
   return image ?? null;
 });
 const measureImageCredits = computed(() => {
-  const image = measure.value?.image;
   return measure.value?.image_credits || "" || '';
 });
 
@@ -260,7 +259,7 @@ const feedbackLocation = computed(() => {
   const measureTitle = measure.value
     ? `${measure.value.measure_id}: ${measure.value.name}`
     : '';
-  const measureLink = `/measures/${route.params.slug}?v=${currentCatalogVersion.value.name}`;
+  const measureLink = `/measures/${slug}?v=${currentCatalogVersion.value.name}`;
 
   return {
     path: '/contact',
@@ -333,10 +332,10 @@ const { data: measureRatings } = await useAsyncData(
 
 // Fetch all measures in the same sector + version for prev/next navigation
 const { data: siblingMeasuresRaw } = await useAsyncData(
-  () => `measure-siblings-${route.params.slug}-${currentCatalogVersion.value.id}`,
-  () => $fetch('/api/public/measures', {
-    query: { v: currentCatalogVersion.value.name, sector: measure.value?.sector ?? '' },
-  }),
+  () => `measure-siblings-${slug}-${currentCatalogVersion.value.id}`,
+  async () => { const result = await $fetch('/api/public/measures', {
+    query: { v: currentCatalogVersion.value.name, sector: measure.value?.sector ?? undefined },
+  }); return result; },
   { watch: [currentCatalogVersion, measure] },
 );
 
@@ -347,10 +346,10 @@ const nextMeasure = computed(() => siblingIndex.value < siblingMeasures.value.le
 function handleArrowKey(e: KeyboardEvent) {
   if (e.key === 'ArrowLeft' && prevMeasure.value) {
     e.preventDefault();
-    router.push(measureDetailLocation(prevMeasure.value.slug));
+    void router.push(measureDetailLocation(prevMeasure.value.slug));
   } else if (e.key === 'ArrowRight' && nextMeasure.value) {
     e.preventDefault();
-    router.push(measureDetailLocation(nextMeasure.value.slug));
+    void router.push(measureDetailLocation(nextMeasure.value.slug));
   }
 }
 

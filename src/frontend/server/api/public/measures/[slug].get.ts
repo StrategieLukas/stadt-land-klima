@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { MeasureSchema } from "~/shared/contracts/municipality";
 import { CatalogSchema } from "~/shared/contracts/search";
@@ -7,11 +8,8 @@ import { defineEventHandler, getRouterParam, getQuery, createError, setResponseH
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
 import { readMunicipalityCatalogs, catalogForRequest, publicMeasureFields } from '../../../utils/municipalityPageData'
 
-type Row = Record<string, any>
 
-function pick(row: Row, fields: string[]): Row {
-  return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
-}
+
 
 const measureDetailFields = publicMeasureFields
 
@@ -36,7 +34,7 @@ export default defineEventHandler(async (event) => {
     },
     fields: [...measureDetailFields.filter(field => field !== 'image'), 'image.id', 'image.image_credits'],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!measures[0]) {
     throw createError({ statusCode: 404, statusMessage: 'Measure not found' })
@@ -45,7 +43,7 @@ export default defineEventHandler(async (event) => {
   const versions = await client.request(readItems('measures', {
     filter: { slug: { _eq: slug }, status: { _eq: 'published' }, catalog_version: { id: { _in: catalogs.map(catalog => catalog.id) } } },
     fields: ['id', 'measure_id', 'catalog_version.id', 'catalog_version.name'], limit: 101,
-  }))
+  })).then(cmsRows)
   if (versions.length > 100) throw createError({ statusCode: 502, statusMessage: 'Measure version limit exceeded' })
   return {
     measure: parseCms(MeasureSchema, measures[0]), catalogVersion: selectedCatalog,

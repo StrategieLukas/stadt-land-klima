@@ -2,7 +2,11 @@ import path from "path";
 import os from "os";
 import fs from "fs";
 import { stringifyRatingReport } from "./reportCsv";
-import type { Accountability, Database, Schema, Services } from "@directus/types";
+import type { Accountability, ApiExtensionContext, SchemaOverview } from '@directus/types';
+
+type Database = ApiExtensionContext['database'];
+type Schema = SchemaOverview;
+type Services = ApiExtensionContext['services'];
 
 interface RatingMeasure {
   id?: number;
@@ -106,7 +110,7 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
     try {
       const schema = await getSchema();
 
-      const itemsService = new ItemsService("ratings_measures", { database, schema });
+      const itemsService = new ItemsService("ratings_measures", { knex: database, schema });
 
       const results = await itemsService.readByQuery({
         limit: -1,

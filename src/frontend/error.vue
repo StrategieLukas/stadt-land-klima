@@ -12,7 +12,7 @@
           line-height: 1;
         "
       >
-        {{ error?.statusCode ?? 404 }}
+        {{ error?.status ?? 404 }}
       </div>
 
       <!-- Headline -->
@@ -62,7 +62,7 @@
   </NuxtLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useError, clearError } from '#app'
 
@@ -70,9 +70,9 @@ const error = useError()
 
 const isDev = process.env.APP_ENV === 'development'
 
-const is404 = computed(() => error.value?.statusCode === 404)
+const is404 = computed(() => error.value?.status === 404)
 
 function handleError() {
-  clearError({ redirect: '/' })
+  void clearError({ redirect: '/' })
 }
 </script>

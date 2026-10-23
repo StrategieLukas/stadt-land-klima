@@ -19,7 +19,7 @@ const props = defineProps<{
   entityBundle: string
   entityUuid: string
   entity?: unknown
-  canEdit?: boolean
+  canEdit?: boolean | undefined
 }>()
 const providerContext = computed(() => ({
   entityType: props.entityType,

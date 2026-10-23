@@ -30,51 +30,75 @@ export const PublicMunicipalitySchema = z.object({
   scores: z.array(PublicScoreSchema).default([]),
 });
 export type PublicMunicipality = z.infer<typeof PublicMunicipalitySchema>;
-const AreaImageSchema = z.union([z.string(), z.object({url: z.string().optional(), src: z.string().optional(), href: z.string().optional(), id: z.string().optional(), attribution_key: z.string().optional(), attributionKey: z.string().optional(), attribution: z.string().optional(), credits: z.string().optional()})]).nullable().optional();
-export const AreaSchema = z
-  .object({
-    ars: z.string(),
-    name: z.string(),
-    prefix: z.string(),
-    level: z.number().nullish(),
-    population: z.number().nullable().optional(),
-    slug: z.string().optional(),
-    isReasonableForMunicipalRating: z.boolean().optional(),
-    is_reasonable_for_municipal_rating: z.boolean().optional(),
-    geoCenter: z.unknown().transform(parseGeoCenter).optional(),
-    geo_center: z.unknown().transform(parseGeoCenter).optional(),
-    geoArea: z
-      .union([z.string(), z.record(z.string(), z.unknown())])
-      .nullable()
-      .optional(),
-    geo_area: z
-      .union([z.string(), z.record(z.string(), z.unknown())])
-      .nullable()
-      .optional(),
-    state: z.string().nullish(),
-    teaser_image_url: z.string().optional(), teaserImageUrl: z.string().optional(), cover_image_url: z.string().optional(), coverImageUrl: z.string().optional(), image_url: z.string().optional(), imageUrl: z.string().optional(), thumbnail_url: z.string().optional(), thumbnailUrl: z.string().optional(),
-    map_urls: z.record(z.string(), z.string()).optional(),
-    teaser_image: AreaImageSchema, teaserImage: AreaImageSchema, cover_image: AreaImageSchema, coverImage: AreaImageSchema, image: AreaImageSchema,
-    data_products: z
-      .object({ population_data: z.object({ population: z.number() }).nullable().optional() })
-      
-      .optional(),
-    stadtlandklima_data: z.array(z.object({ slug: z.string().nullable() })).optional(),
-    contained_by: z
-      .array(z.object({ ars: z.string(), name: z.string(), prefix: z.string(), level: z.number() }))
-      .optional(),
-    stadtlandklimaDataAll: z
-      .array(
-        z.object({
-          slug: z.string().nullable(),
-          scoreTotal: numeric,
-          percentageRated: numeric,
-          measureCatalogName: z.string(),
-        }),
-      )
-      .default([]),
-  })
-  ;
+const AreaImageSchema = z
+  .union([
+    z.string(),
+    z.object({
+      url: z.string().optional(),
+      src: z.string().optional(),
+      href: z.string().optional(),
+      id: z.string().optional(),
+      attribution_key: z.string().optional(),
+      attributionKey: z.string().optional(),
+      attribution: z.string().optional(),
+      credits: z.string().optional(),
+    }),
+  ])
+  .nullable()
+  .optional();
+export const AreaSchema = z.object({
+  ars: z.string(),
+  name: z.string(),
+  prefix: z.string(),
+  level: z.number().nullish(),
+  population: z.number().nullable().optional(),
+  slug: z.string().optional(),
+  isReasonableForMunicipalRating: z.boolean().optional(),
+  is_reasonable_for_municipal_rating: z.boolean().optional(),
+  geoCenter: z.unknown().transform(parseGeoCenter).optional(),
+  geo_center: z.unknown().transform(parseGeoCenter).optional(),
+  geoArea: z
+    .union([z.string(), z.record(z.string(), z.unknown())])
+    .nullable()
+    .optional(),
+  geo_area: z
+    .union([z.string(), z.record(z.string(), z.unknown())])
+    .nullable()
+    .optional(),
+  state: z.string().nullish(),
+  teaser_image_url: z.string().optional(),
+  teaserImageUrl: z.string().optional(),
+  cover_image_url: z.string().optional(),
+  coverImageUrl: z.string().optional(),
+  image_url: z.string().optional(),
+  imageUrl: z.string().optional(),
+  thumbnail_url: z.string().optional(),
+  thumbnailUrl: z.string().optional(),
+  map_urls: z.record(z.string(), z.string()).optional(),
+  teaser_image: AreaImageSchema,
+  teaserImage: AreaImageSchema,
+  cover_image: AreaImageSchema,
+  coverImage: AreaImageSchema,
+  image: AreaImageSchema,
+  data_products: z
+    .object({ population_data: z.object({ population: z.number() }).nullable().optional() })
+
+    .optional(),
+  stadtlandklima_data: z.array(z.object({ slug: z.string().nullable() })).optional(),
+  contained_by: z
+    .array(z.object({ ars: z.string(), name: z.string(), prefix: z.string(), level: z.number() }))
+    .optional(),
+  stadtlandklimaDataAll: z
+    .array(
+      z.object({
+        slug: z.string().nullable(),
+        scoreTotal: numeric,
+        percentageRated: numeric,
+        measureCatalogName: z.string(),
+      }),
+    )
+    .default([]),
+});
 export type Area = z.infer<typeof AreaSchema>;
 export type SearchMode = "normal" | "reasonable" | "all";
 export const ContentHitSchema = z.object({

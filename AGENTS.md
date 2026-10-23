@@ -100,7 +100,7 @@ If a `$readSingleton` / `$readItems` call returns empty data or a 403 error, the
 
 Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The adapter is `src/frontend/app/blokkli.editAdapter.ts`.
 
-### Adding a new block — all 6 steps are required
+### Adding a new block — all 7 steps are required
 
 **1. Component file** — `src/frontend/components/Blokkli/<Name>/index.vue`
 
@@ -116,6 +116,8 @@ Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The
 **5. `NESTED_FIELD_MAP` + `getFieldConfig()`** — add `bundle: ['fieldName']` to `NESTED_FIELD_MAP` in `mapState()`, and a `FieldConfig` entry in `getFieldConfig()` with `entityType: 'block'`, `entityBundle`, `name`, and `allowedBundles`.
 
 **6. `getEditableFieldConfig()`** — every field marked `v-blokkli-editable:fieldName` needs a matching entry here. Without it the directive renders but inline editing is never activated. Use `type: 'markup'` for HTML, `type: 'plain'` for plain text.
+
+**7. Checked persistence model** — register the bundle and its actual text/nested props in `src/frontend/shared/editorBlocks.ts`. Keep `BLOCK_DEFINITIONS`, component props, defaults and adapter field configuration aligned. `npm run test:boundaries` from `bin/test_suite` checks this registration against every maintained component. Unsupported or malformed persisted bundles are refused without truncating the draft.
 
 ### `v-blokkli-editable` requirements
 
@@ -182,7 +184,7 @@ See [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for tracked technical debt items, fut
 
 - **TypeScript 7 upgrade:** Currently on TypeScript 6.0.3, the newest stable compiler supported by typescript-eslint and Blökkli. Recheck their peer ranges and Vue tooling before upgrading to 7.x.
 - **Framework stack:** Nuxt 4.6.2 with Vite 8.3.5 and Blökkli 2.0.0-alpha.73. Keep platform bindings optional and preserve the Blökkli virtual-file Vite integration; see FRAMEWORK_UPGRADE_REVIEW.md.
-- **TypeScript diagnostic baseline:** 282 existing diagnostics (193 unique entries) tracked in `.ts-baseline.txt`; reducing via Phases 4–6 of the migration plan.
+- **Permanent TypeScript gate:** No diagnostic baseline. `npm run typecheck` enforces strict app/server/shared/node and Vue checking, source coverage, `lint:types`, scripts and checked JS tooling. Keep new maintained sources in these gates; see PHASE_8_REVIEW.md.
 
 ## Checks
 1. Run ./test_dev.sh in the bin folder and wait for checks to complete.

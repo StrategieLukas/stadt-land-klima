@@ -1,3 +1,7 @@
+import { z } from "zod";
+import type { Index } from "meilisearch";
+import { parseCms } from "../utils/parseCms";
+import { cmsRows } from "~/server/utils/cmsValue";
 import { createDirectus, rest, readItems, readUsers, staticToken } from '@directus/sdk'
 import {
   buildBlockDoc, buildPageDoc, buildEventDoc, buildArticleDoc, buildMeasureDoc,
@@ -6,6 +10,8 @@ import {
   type SiteContentDoc,
 } from '../utils/extractContent'
 
+const identity = z.object({ id: z.string(), slug: z.string(), name: z.string().nullish(), title: z.string().nullish() });
+const blockIdentity = z.looseObject({ entity_uuid: z.string() });
 const SKIP_BUNDLES = ['container', 'carousel', 'directus_page', 'vega_chart', 'page_nav']
 const BATCH_SIZE = 200
 const REINDEX_INTERVAL_MS_DEV = 15 * 60 * 1000
@@ -16,16 +22,18 @@ type ReindexGlobals = typeof globalThis & {
   __slkReindexRunning?: boolean
 }
 
-async function upsertBatch(index: any, docs: SiteContentDoc[]) {
+async function upsertBatch(index: Index<SiteContentDoc>, docs: SiteContentDoc[]) {
   for (let i = 0; i < docs.length; i += BATCH_SIZE) {
     await index.addDocuments(docs.slice(i, i + BATCH_SIZE))
   }
 }
 
+// Nitro 2 declares void plugins; retain the existing asynchronous background setup. Owner: app maintainers.
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 export default defineNitroPlugin(async () => {
   const config = useRuntimeConfig()
   const ms = getMeilisearch()
-  const index = ms.index('site_content')
+  const index = ms.index<SiteContentDoc>('site_content')
   const reindexIntervalMs = process.env.APP_ENV === 'production'
     ? REINDEX_INTERVAL_MS_PROD
     : REINDEX_INTERVAL_MS_DEV
@@ -49,7 +57,7 @@ export default defineNitroPlugin(async () => {
   const serverToken = config.directusFrontendServerToken as string | undefined
   if (!serverToken) throw new Error("Reindexing requires the private server token");
   const directus = createDirectus(
-    (config.directusServerUrl as string) || 'http://directus:8055',
+    (config.directusServerUrl) || 'http://directus:8055',
   )
     .with(rest())
     .with(staticToken(serverToken))
@@ -68,10 +76,10 @@ export default defineNitroPlugin(async () => {
     try {
       // --- Blocks ---
       const pages = await directus.request(
-        (readItems as Function)('pages', { limit: -1, fields: ['id', 'slug', 'name', 'contents'] }),
-      ) as any[]
+        readItems('pages', { limit: -1, fields: ['id', 'slug', 'name', 'contents'] }),
+      ).then(cmsRows)
       const pageByEntity = Object.fromEntries(
-        (pages || []).flatMap((page: any) => [
+        parseCms(z.array(identity), pages).flatMap((page) => [
           [page.id, page],
           // Transitional fallback for deliberately unmigrated legacy blocks.
           [page.slug, page],
@@ -79,7 +87,7 @@ export default defineNitroPlugin(async () => {
       )
 
       const blocks = await directus.request(
-        (readItems as Function)('blocks', {
+        readItems('blocks', {
           limit: -1,
           filter: {
             status: { _neq: 'archived' },
@@ -89,10 +97,10 @@ export default defineNitroPlugin(async () => {
           },
           fields: ['uuid', 'bundle', 'props', 'entity_uuid'],
         }),
-      ) as any[]
+      ).then(cmsRows)
 
-      const blockDocs = (blocks || [])
-        .map((block: any) => {
+      const blockDocs = parseCms(z.array(blockIdentity), blocks)
+        .map((block) => {
           const page = pageByEntity[block.entity_uuid]
           return buildBlockDoc(
             block,
@@ -107,21 +115,21 @@ export default defineNitroPlugin(async () => {
 
       // --- News blocks ---
       const newsItems = await directus.request(
-        (readItems as Function)('news_items', {
+        readItems('news_items', {
           limit: -1,
           filter: { status: { _eq: 'published' } },
           fields: ['id', 'slug', 'title', 'teaser', 'status'],
         }),
-      ) as any[]
+      ).then(cmsRows)
       const newsByEntity = Object.fromEntries(
-        (newsItems || []).flatMap((newsItem: any) => [
+        parseCms(z.array(identity), newsItems).flatMap((newsItem) => [
           [newsItem.id, newsItem],
           [newsItem.slug, newsItem],
         ]),
       )
 
       const newsBlocks = await directus.request(
-        (readItems as Function)('blocks', {
+        readItems('blocks', {
           limit: -1,
           filter: {
             status: { _neq: 'archived' },
@@ -131,9 +139,9 @@ export default defineNitroPlugin(async () => {
           },
           fields: ['uuid', 'bundle', 'props', 'entity_uuid'],
         }),
-      ) as any[]
-      const newsBlockDocs = (newsBlocks || [])
-        .map((block: any) => {
+      ).then(cmsRows)
+      const newsBlockDocs = parseCms(z.array(blockIdentity), newsBlocks)
+        .map((block) => {
           const newsItem = newsByEntity[block.entity_uuid]
           return buildBlockDoc(
             block,
@@ -148,43 +156,43 @@ export default defineNitroPlugin(async () => {
 
       // --- Pages (legacy HTML content only) ---
       const pageDocs = (pages || [])
-        .filter((p: any) => p.status === 'published' || p.status === undefined)
-        .map((p: any) => buildPageDoc(p))
+        .filter((p) => p.status === 'published' || p.status === undefined)
+        .map((p) => buildPageDoc(p))
         .filter((d): d is SiteContentDoc => d !== null)
       await upsertBatch(index, pageDocs)
       counts.pages = pageDocs.length
 
       // --- Events ---
       const events = await directus.request(
-        (readItems as Function)('events', {
+        readItems('events', {
           limit: -1,
           filter: { status: { _eq: 'published' } },
           fields: ['slug', 'title', 'description', 'event_type', 'status'],
         }),
-      ) as any[]
+      ).then(cmsRows)
       const eventDocs = (events || [])
-        .map((e: any) => buildEventDoc(e))
+        .map((e) => buildEventDoc(e))
         .filter((d): d is SiteContentDoc => d !== null)
       await upsertBatch(index, eventDocs)
       counts.events = eventDocs.length
 
       // --- News items ---
       const newsItemDocs = (newsItems || [])
-        .map((n: any) => buildNewsItemDoc(n))
+        .map((n) => buildNewsItemDoc(n))
         .filter((d): d is SiteContentDoc => d !== null)
       await upsertBatch(index, newsItemDocs)
       counts.news_items = newsItemDocs.length
 
       // --- Articles ---
       const articles = await directus.request(
-        (readItems as Function)('articles', {
+        readItems('articles', {
           limit: -1,
           filter: { status: { _eq: 'published' } },
           fields: ['slug', 'title', 'subtitle', 'abstract', 'article_text', 'status'],
         }),
-      ) as any[]
+      ).then(cmsRows)
       const articleDocs = (articles || [])
-        .map((a: any) => buildArticleDoc(a))
+        .map((a) => buildArticleDoc(a))
         .filter((d): d is SiteContentDoc => d !== null)
       await upsertBatch(index, articleDocs)
       counts.articles = articleDocs.length
@@ -192,16 +200,16 @@ export default defineNitroPlugin(async () => {
       // --- Measures ---
       // Fetch only from the isCurrentFrontend catalog so URLs always resolve correctly.
       const catalogVersions = await directus.request(
-        (readItems as Function)('measure_catalog', {
+        readItems('measure_catalog', {
           filter: { hidden: { _eq: false }, isCurrentFrontend: { _eq: true } },
           fields: ['id', 'name'],
           limit: 1,
         }),
-      ) as any[]
+      ).then(cmsRows)
       const frontendCatalog = catalogVersions?.[0]
       const measures = frontendCatalog
         ? await directus.request(
-            (readItems as Function)('measures', {
+            readItems('measures', {
               limit: -1,
               filter: { catalog_version: { _eq: frontendCatalog.id } },
               fields: [
@@ -211,10 +219,10 @@ export default defineNitroPlugin(async () => {
                 'description_legal', 'description_funding', 'description_verification',
               ],
             }),
-          ) as any[]
+          ).then(cmsRows)
         : []
       const measureDocs = (measures || [])
-        .map((m: any) => buildMeasureDoc(m, frontendCatalog?.name))
+        .map((m) => buildMeasureDoc(m, typeof frontendCatalog?.name === 'string' ? frontendCatalog.name : undefined))
         .filter((d): d is SiteContentDoc => d !== null)
 
       // Remove stale measure documents (IDs not in the current batch) by fetching + diffing.
@@ -222,7 +230,7 @@ export default defineNitroPlugin(async () => {
         const newIds = new Set(measureDocs.map(d => d.id))
         const existing = await index.getDocuments({ filter: 'type = "measure"', limit: 200 })
         const toDelete = existing.results
-          .map((d: any) => d.id as string)
+          .map((d) => d.id)
           .filter((id: string) => !newIds.has(id))
         if (toDelete.length > 0) {
           const delTask = await index.deleteDocuments(toDelete)
@@ -248,9 +256,9 @@ export default defineNitroPlugin(async () => {
             fields: ['id', 'first_name', 'last_name', 'bio', 'show_on_team_page'],
             limit: -1,
           }),
-        ) as any[]
+        ).then(cmsRows)
         const memberDocs = (members || [])
-          .map((u: any) => buildMemberDoc(u))
+          .map((u) => buildMemberDoc(u))
           .filter((d): d is SiteContentDoc => d !== null)
         await upsertBatch(index, memberDocs)
         counts.members = memberDocs.length

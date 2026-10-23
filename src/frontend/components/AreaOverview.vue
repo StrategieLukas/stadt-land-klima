@@ -360,17 +360,17 @@ import germanyBordersRaw from "~/assets/germany-state-borders.json";
 import statesLookupRaw from "~/assets/germany-states-lookup.json";
 type SvgPoint = { x: number; y: number };
 type ProjectPoint = (lon: number, lat: number) => [number, number];
-type StateView = { ars: string; name: string; prefix?: string; slug?: string; geometry?: BoundaryGeometry | null };
-type HoverInfo = { ars: string; prefix?: string; name: string; population?: number | null; scoreTotal?: number | null; statusLabel?: string; color?: string };
+type StateView = { ars: string; name: string; prefix?: string | undefined; slug?: string | undefined; geometry?: BoundaryGeometry | null | undefined };
+type HoverInfo = { ars: string; prefix?: string | undefined; name: string; population?: number | null | undefined; scoreTotal?: number | null | undefined; statusLabel?: string | undefined; color?: string | undefined };
 const germanyBorders = z.object({ features: z.array(z.object({ properties: z.object({ NAME_1: z.string() }), geometry: BoundaryGeometrySchema })) }).parse(germanyBordersRaw);
 
 const props = defineProps({
   area: { type: Object as PropType<Area>, required: true },
-  containedBy: { type: Array as PropType<Area[]>, default: () => [] },
-  initialStateArs: { type: String as PropType<string | null>, default: null },
+  containedBy: { type: Array as PropType<Area[] | undefined>, default: () => [] },
+  initialStateArs: { type: String as PropType<string | null | undefined>, default: null },
 });
 
-const emit = defineEmits<{ stateSelected: [state: { ars: string; name: string; prefix?: string; geoCenter: { lat: number; lon: number } | null }]; stateExited: [] }>();
+const emit = defineEmits<{ stateSelected: [state: { ars: string; name: string; prefix?: string | undefined; geoCenter: { lat: number; lon: number } | null }]; stateExited: [] }>();
 
 const { $stadtlandzahlAPI } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
@@ -1025,6 +1025,8 @@ function statusInfo(status: string | null | undefined) {
       return { label: "In Bewertung", color: "#F0AA00" };
     case "archived":
       return { label: "Abgebrochen", color: "#E30613" };
+    case null:
+    case undefined:
     default:
       return { label: "Noch nicht gegründet", color: "#CBD5E1" };
   }

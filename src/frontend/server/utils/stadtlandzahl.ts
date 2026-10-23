@@ -28,7 +28,7 @@ function parseBaseUrl(value: string | undefined, name: string): URL | null {
 }
 
 function getConfig(): StadtlandzahlRuntimeConfig {
-  return useRuntimeConfig() as StadtlandzahlRuntimeConfig;
+  return useRuntimeConfig();
 }
 
 export function getStadtlandzahlBaseUrls(): URL[] {
@@ -82,7 +82,7 @@ export function resolveStadtlandzahlUrl(
     if (Array.isArray(value)) {
       for (const item of value) url.searchParams.append(key, String(item));
     } else {
-      url.searchParams.set(key, String(value));
+      url.searchParams.set(key, typeof value === "string" ? value : JSON.stringify(value));
     }
   }
 
@@ -109,7 +109,7 @@ export function rewriteStadtlandzahlUrl(value: string): string {
 
 export function rewriteStadtlandzahlPayload<T>(value: T): T {
   if (typeof value === "string") return rewriteStadtlandzahlUrl(value) as T;
-  if (Array.isArray(value)) return value.map((item) => rewriteStadtlandzahlPayload(item)) as T;
+  if (Array.isArray(value)) return (value as unknown[]).map((item) => rewriteStadtlandzahlPayload(item)) as T;
   if (!value || typeof value !== "object") return value;
 
   const rewritten: Record<string, unknown> = {};

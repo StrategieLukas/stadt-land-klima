@@ -1,19 +1,24 @@
-import { createHash, createHmac, randomBytes } from 'node:crypto';
+import { createHash, createHmac, randomBytes, randomInt } from 'node:crypto';
+import { queryChoice } from '../utils/publicQuery';
 
 // Challenges expire after 20 minutes
 const CHALLENGE_TTL_MS = 20 * 60 * 1000;
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler((event) => {
   const config = useRuntimeConfig();
-  const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
+  const hmacKey: string = (config.altchaSecret) || 'dev-secret-change-in-production';
 
   const query = getQuery(event);
-  const purpose = typeof query.purpose === 'string' ? query.purpose : undefined;
+  const purpose = queryChoice(query.purpose, ['contact', 'register', 'form', 'article']);
 
-  const salt = randomBytes(12).toString('hex');
+  const expiresAt = Date.now() + CHALLENGE_TTL_MS;
+  // ALTCHA's salt is hashed into the challenge and therefore covered by its HMAC.
+  // Custom response properties alone are not signed or necessarily returned by the widget.
+  const metadata = new URLSearchParams({expires: String(expiresAt), purpose: purpose ?? 'generic'});
+  const salt = `${randomBytes(12).toString('hex')}?${metadata}`;
   const maxNumber = 100_000;
   // The client must brute-force which number produces this SHA-256 hash
-  const targetNumber = Math.floor(Math.random() * maxNumber);
+  const targetNumber = randomInt(maxNumber);
 
   const challenge = createHash('SHA-256')
     .update(`${salt}${targetNumber}`)
@@ -22,8 +27,6 @@ export default defineEventHandler(async (event) => {
   const signature = createHmac('SHA-256', hmacKey)
     .update(challenge)
     .digest('hex');
-
-  const expiresAt = Date.now() + CHALLENGE_TTL_MS;
 
   const result: Record<string, unknown> = {
     algorithm: 'SHA-256',

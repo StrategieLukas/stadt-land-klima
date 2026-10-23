@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import type { Request, Response, Router } from 'express';
-import type { Database } from '@directus/types';
+import type { ApiExtensionContext } from '@directus/types';
+
+type Database = ApiExtensionContext['database'];
 
 interface ExtensionContext {
   env: {

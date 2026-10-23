@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { readItems } from "@directus/sdk";
 import { createError } from "h3";
 import { createDirectusServerClient } from "./directusServerClient";
@@ -38,7 +39,7 @@ export async function readPublicBlocks(entityType: string, entityUuid: string, f
           tour: { status: { _eq: "published" } },
         }
       : { id: { _eq: entityUuid }, status: { _eq: "published" } };
-  const parents = await client.request(readItems(entityType, { filter: parentFilter, fields: ["id"], limit: 1 }));
+  const parents = await client.request(readItems(entityType, { filter: parentFilter, fields: ["id"], limit: 1 })).then(cmsRows);
   if (!parents.length) throw createError({ statusCode: 404, statusMessage: "Content not found" });
   const blocks = await client.request(
     readItems("blocks", {
@@ -52,7 +53,7 @@ export async function readPublicBlocks(entityType: string, entityUuid: string, f
       sort: ["sort_order"],
       limit: 1001,
     }),
-  );
+  ).then(cmsRows);
   if (blocks.length > 1000) throw createError({ statusCode: 502, statusMessage: "Block limit exceeded" });
   return blocks;
 }

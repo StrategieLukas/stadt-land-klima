@@ -1,3 +1,6 @@
+import { cmsString, cmsRows } from "~/server/utils/cmsValue";
+import { z } from "zod";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery } from 'h3'
 import { createDirectusServerClient } from '../utils/directusServerClient'
@@ -18,7 +21,7 @@ export default defineEventHandler(async (event) => {
       filter: { isCurrentBackend: { _eq: true } },
       fields: ['id'],
       limit: 1,
-    }))
+    })).then(cmsRows)
     const currentCatalogId = catalogs[0]?.id
     if (!currentCatalogId) {
       return { hasTeam: false, slug: null, percentageRated: null, published: false }
@@ -37,7 +40,7 @@ export default defineEventHandler(async (event) => {
         { scores: ['catalog_version', 'published', 'percentage_rated'] },
       ],
       limit: 1,
-    }))
+    })).then(cmsRows)
 
     const municipality = municipalities[0]
     if (!municipality?.localteam_id) {
@@ -45,7 +48,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Find the score for the current backend catalog
-    const score = (municipality.scores ?? []).find((item: any) => {
+    const score = parseCms(z.array(z.object({catalog_version: z.union([z.string(), z.object({id: z.string()})]).nullable(), published: z.boolean().nullish(), percentage_rated: z.union([z.number(), z.string()]).nullish()})), municipality.scores ?? []).find((item) => {
       const catalogVersion = typeof item.catalog_version === 'object'
         ? item.catalog_version?.id
         : item.catalog_version
@@ -54,7 +57,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       hasTeam: true,
-      slug: municipality.slug ?? null,
+      slug: municipality.slug == null ? null : cmsString(municipality.slug),
       percentageRated: score?.percentage_rated ?? null,
       published: score?.published === true,
     }

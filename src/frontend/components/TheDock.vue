@@ -40,7 +40,7 @@ import { defineProps } from "vue";
 import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
-const _props = defineProps<{ pages?: NavigationPage[] }>();
+const _props = defineProps<{ pages?: NavigationPage[] | undefined }>();
 const navLabel = (item: NavigationPage, field: "name" | "label" = "label") => translatedNavigationLabel(item, $translateDynamic, field);
 
 // Use the shared drawer state

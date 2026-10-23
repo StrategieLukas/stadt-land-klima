@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { queryChoice, queryLimit } from "~/server/utils/publicQuery";
 import { z } from "zod";
 import { EventSchema } from "~/shared/contracts/content";
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event) => {
     ],
     sort: [sort ?? '-start_date'],
     limit,
-  }))
+  })).then(cmsRows)
 
   return { events: parseCms(z.array(EventSchema), events) }
 })

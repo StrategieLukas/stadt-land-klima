@@ -12,7 +12,7 @@ const item = z.object({
 export type TreemapItem = z.infer<typeof item>;
 const datum = z.object({ _data: z.object({ sectorName: z.string().optional(), children: z.array(item).default([]) }) });
 /** Treemap uses an untyped internal grouping payload. Check it before callbacks read it. */
-export function treemapDatum(input: unknown): { sectorName?: string; children: TreemapItem[] } {
+export function treemapDatum(input: unknown): z.output<typeof datum>["_data"] {
   const result = datum.safeParse(input);
   return result.success ? result.data._data : { children: [] };
 }

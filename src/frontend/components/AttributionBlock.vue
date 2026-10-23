@@ -47,9 +47,9 @@ import type { SourceAttribution, SummaryAggregate } from "~/types/slz-api";
 import { localizedText } from "~/utils/dataProducts";
 
 const props = defineProps<{
-  summary?: SummaryAggregate | null;
-  sources?: SourceAttribution[] | null;
-  embedded?: boolean;
+  summary?: SummaryAggregate | null | undefined;
+  sources?: SourceAttribution[] | null | undefined;
+  embedded?: boolean | undefined;
 }>();
 
 const meta = computed(() => props.summary?.metadata ?? null);

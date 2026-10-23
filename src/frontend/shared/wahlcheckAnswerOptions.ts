@@ -1,7 +1,7 @@
 import type { Translator } from "./i18n";
 import type { AnswerValue } from "./domain";
 import type { TranslationKey } from "./translationKeys";
-type ElectionAnswerMode = { simple_answer_mode?: boolean | null } | null | undefined;
+type ElectionAnswerMode = { simple_answer_mode?: boolean | null | undefined } | null | undefined;
 type AnswerOption = {
   value: AnswerValue;
   labelKey: TranslationKey;

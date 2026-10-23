@@ -2,6 +2,7 @@
   "extends": "./.nuxt/tsconfig.app.json",
   "include": [
     "components/**/*.vue",
+    "pages/**/*.vue",
     "types/**/*.d.ts",
     ".nuxt/nuxt.d.ts",
     ".nuxt/imports.d.ts",
@@ -11,8 +12,12 @@
   "vueCompilerOptions": {
     "strictTemplates": true,
     "dataAttributes": [],
-    "htmlAttributes": ["aria-*", "data-*"],
+    "htmlAttributes": [
+      "aria-*",
+      "data-*",
+      "title"
+    ],
     "fallthroughAttributes": true,
-    "checkUnknownEvents": false
+    "checkUnknownEvents": true
   }
 }

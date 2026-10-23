@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 import type { Request, Response, Router } from "express";
-import type { Accountability, Database, ItemsService, Schema } from "@directus/types";
+import type { Accountability, ApiExtensionContext, SchemaOverview, AbstractService } from '@directus/types';
+
+type Database = ApiExtensionContext['database'];
+type ItemsService = AbstractService;
+type Schema = SchemaOverview;
 
 const TOUR_ENTITY_TYPES = new Set(["success_project_tours", "success_project_tour_stops"]);
 const ALLOWED_ENTITY_TYPES = new Set(["pages", "news_items", ...TOUR_ENTITY_TYPES]);

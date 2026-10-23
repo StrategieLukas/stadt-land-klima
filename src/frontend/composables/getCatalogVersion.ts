@@ -9,12 +9,15 @@ export async function getCatalogVersion(route: CatalogRoute, showCurrentBackend 
   if (!versions.length) throw new Error("No catalog versions available");
 
   const param = route.query.v;
+  if (param !== undefined && (typeof param !== "string" || !/^[a-z0-9][a-z0-9._-]{0,99}$/i.test(param))) {
+    throw createError({ statusCode: 400, statusMessage: "Invalid catalog" });
+  }
   const matched = versions.find((v) => v.name === param);
   if (matched) return matched;
 
   // If a preview token is present, always use the current backend version.
   // Otherwise respect the showCurrentBackend flag (defaults to isCurrentFrontend).
-  const useBackend = showCurrentBackend || !!route.query.preview;
+  const useBackend = showCurrentBackend || (typeof route.query.preview === "string" && !!route.query.preview);
   const defaults = versions.filter((v) => (useBackend ? v.isCurrentBackend === true : v.isCurrentFrontend === true));
   if (defaults.length !== 1) {
     throw new Error(

@@ -1,4 +1,12 @@
-import type { Router, Services } from '@directus/extensions-sdk';
+import type { Request, Router } from 'express';
+import type { Accountability, SchemaOverview, ApiExtensionContext } from '@directus/types';
+
+interface ConsentRequest extends Request {
+  accountability?: Accountability;
+  schema?: SchemaOverview;
+}
+
+type Services = ApiExtensionContext['services'];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +56,7 @@ async function getCurrentVersionsByType(
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
-export default (router: Router, { services }: { services: Services }) => {
+export default (router: Router, { services, getSchema }: Pick<ApiExtensionContext, 'services' | 'getSchema'>) => {
   const { ItemsService } = services;
 
   // ── GET /consent/status ────────────────────────────────────────────────────
@@ -56,14 +64,16 @@ export default (router: Router, { services }: { services: Services }) => {
   // Returns whether the authenticated user has accepted required agreements and
   // whether they are subscribed to the newsletter.
   //
-  router.get('/consent/status', async (req, res) => {
+  router.get('/consent/status', async (req: ConsentRequest, res) => {
     try {
-      const { accountability, schema } = req;
+      const { accountability } = req;
       const userId = accountability?.user;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
+
+      const schema = req.schema ?? await getSchema();
 
       const consentsService = new ItemsService('user_consent', {
         accountability: null,
@@ -130,14 +140,16 @@ export default (router: Router, { services }: { services: Services }) => {
   // any server-side logic. Centralising it here keeps all consent mutations in
   // one place and makes future auditing straightforward.
   //
-  router.post('/consent/newsletter/optin', async (req, res) => {
+  router.post('/consent/newsletter/optin', async (req: ConsentRequest, res) => {
     try {
-      const { accountability, schema } = req;
+      const { accountability } = req;
       const userId = accountability?.user;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
+
+      const schema = req.schema ?? await getSchema();
 
       const consentsService = new ItemsService('user_consent', {
         accountability: null,
@@ -199,14 +211,16 @@ export default (router: Router, { services }: { services: Services }) => {
   // semantics; deleting data violates that contract. Some email clients
   // pre-fetch GET links, which would silently opt users out.
   //
-  router.delete('/consent/newsletter/optout', async (req, res) => {
+  router.delete('/consent/newsletter/optout', async (req: ConsentRequest, res) => {
     try {
-      const { accountability, schema } = req;
+      const { accountability } = req;
       const userId = accountability?.user;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
+
+      const schema = req.schema ?? await getSchema();
 
       const consentsService = new ItemsService('user_consent', {
         accountability: null,
@@ -269,14 +283,16 @@ export default (router: Router, { services }: { services: Services }) => {
   // here lets us validate required fields server-side, run all inserts in
   // parallel, and make the frontend logic trivial.
   //
-  router.post('/consent/accept', async (req, res) => {
+  router.post('/consent/accept', async (req: ConsentRequest, res) => {
     try {
-      const { accountability, schema } = req;
+      const { accountability } = req;
       const userId = accountability?.user;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
+
+      const schema = req.schema ?? await getSchema();
 
       const { subscribeNewsletter } = (req.body ?? {}) as { subscribeNewsletter?: boolean };
 

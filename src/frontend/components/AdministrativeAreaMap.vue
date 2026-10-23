@@ -4,12 +4,13 @@
       <LTileLayer :key="tileUrl" :url="tileUrl" :attribution="attribution" :subdomains="subdomains" :max-zoom="20" />
 
       <!-- Display the area boundary if available -->
-      <LGeoJson v-if="geoArea" :geojson="geoArea" :options="geoJsonOptions" @ready="onGeoJsonReady" />
+      <LGeoJson v-if="geoArea" :geojson="geoArea" :options="geoJsonOptions" v-on="{ ready: onGeoJsonReady }" />
     </LMap>
   </div>
 </template>
 
 <script setup lang="ts">
+// vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
 import type { Map as LeafletMap } from 'leaflet';
 import type { PropType } from 'vue';
 import type { Point, GeoJsonObject } from 'geojson';
@@ -18,15 +19,15 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 
 const props = defineProps({
   geoCenter: {
-    type: Object as PropType<Point | null>,
+    type: Object as PropType<Point | null | undefined>,
     default: null,
   },
   geoArea: {
-    type: Object as PropType<GeoJsonObject | null>,
+    type: Object as PropType<GeoJsonObject | null | undefined>,
     default: null,
   },
   administrativeAreaName: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "Administrative Area",
   },
 });

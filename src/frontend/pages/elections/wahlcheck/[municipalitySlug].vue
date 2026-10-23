@@ -82,7 +82,7 @@
           :questions="electionData.questions"
           :election="electionData.election"
           :localteam="electionData.localteam"
-          :userAnswers="userAnswers"
+          :user-answers="userAnswers"
           :initial-question-index="initialQuestionIndex"
           @next="handleQuestionsNext"
           @prev="handlePrev"
@@ -93,8 +93,8 @@
           v-else-if="currentStep === 2 && electionData"
           :key="2"
           :questions="electionData.questions"
-          :userAnswers="userAnswers"
-          :doubleWeightedQuestions="doubleWeightedQuestions"
+          :user-answers="userAnswers"
+          :double-weighted-questions="doubleWeightedQuestions"
           :election="electionData.election"
           @next="handleSummaryNext"
           @prev="handlePrev"
@@ -108,9 +108,9 @@
           :election="electionData.election"
           :candidates="electionData.candidates"
           :questions="electionData.questions"
-          :userAnswers="userAnswers"
-          :doubleWeightedQuestions="doubleWeightedQuestions"
-          :candidateAnswers="electionData.answers"
+          :user-answers="userAnswers"
+          :double-weighted-questions="doubleWeightedQuestions"
+          :candidate-answers="electionData.answers"
           @restart="handleRestart"
           @prev="handlePrev"
         />
@@ -121,18 +121,18 @@
 </template>
 
 <script setup lang="ts">
+import type { WahlcheckCompletionRequest } from "~/shared/contracts/submissions";
 import { computed, ref, onMounted, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-
-const route = useRoute();
-const router = useRouter();
-const { $t } = useNuxtApp();
+import { useRoute } from "vue-router";
 
 import { routeSlug } from "~/shared/routeValues";
 import { checkedWahlcheckState } from "~/shared/contracts/elections";
 import type { z } from "zod";
 import type { WahlcheckSchema } from "~/shared/contracts/elections";
 import type { UserAnswers } from "~/types/components/elections";
+
+const route = useRoute();
+const { $t } = useNuxtApp();
 const municipalitySlug = routeSlug(route.params.municipalitySlug);
 if (!municipalitySlug) throw createError({statusCode: 404, statusMessage: "Not found"});
 definePageMeta({key: route => route.path});
@@ -191,7 +191,7 @@ async function trackWahlcheckCompletion() {
     completionTrackingPending = true;
     await $fetch("/api/wahlcheck-complete", {
       method: "POST",
-      body: { electionId },
+      body: { electionId } satisfies WahlcheckCompletionRequest,
     });
 
     markCompletionTracked(electionId);
@@ -433,7 +433,7 @@ onMounted(async () => {
 watch(
   () => route.params.municipalitySlug,
   () => {
-    loadElectionData();
+    void loadElectionData();
   },
 );
 

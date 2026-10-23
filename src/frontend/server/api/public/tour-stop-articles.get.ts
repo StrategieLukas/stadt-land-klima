@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { queryText, queryIds } from "~/server/utils/publicQuery";
 import { z } from "zod";
 import { ProjectIdentitySchema, NullableTextSchema } from "~/shared/contracts/content";
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event) => {
     },
     fields: ['stop', { articles_id: ['id', 'slug', 'title', 'profile_stage'] }],
     limit: -1,
-  }))
+  })).then(cmsRows)
 
   return parseCms(z.array(z.object({stop: z.string(), articles_id: ProjectIdentitySchema.extend({profile_stage: NullableTextSchema}).nullable()})), links)
 })

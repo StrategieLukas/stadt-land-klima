@@ -161,7 +161,7 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  slides?: FieldListItem[]
+  slides?: FieldListItem[] | undefined
 }>()
 
 const scrollEl = ref<HTMLElement | null>(null)

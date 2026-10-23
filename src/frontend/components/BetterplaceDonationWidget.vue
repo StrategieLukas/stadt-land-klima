@@ -31,7 +31,7 @@ import { BETTERPLACE_PROJECT_URL, getBetterplaceWidgetUrl } from "~/shared/donat
 
 const props = withDefaults(
   defineProps<{
-    height?: number;
+    height?: number | undefined;
   }>(),
   {
     height: 320,

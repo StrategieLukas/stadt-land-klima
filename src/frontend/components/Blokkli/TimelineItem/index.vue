@@ -77,9 +77,9 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  date?: string
-  title?: string
-  blocks?: FieldListItem[]
+  date?: string | undefined
+  title?: string | undefined
+  blocks?: FieldListItem[] | undefined
 }>()
 
 const colorMap: Record<string, { bg: string; text: string }> = {

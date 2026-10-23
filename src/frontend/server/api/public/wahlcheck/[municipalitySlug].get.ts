@@ -1,11 +1,12 @@
-import { z } from "zod";
+import { cmsRecord, cmsString, cmsRows } from "~/server/utils/cmsValue";
+
 import { WahlcheckSchema } from "~/shared/contracts/elections";
 import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
 
-type Row = Record<string, any>
+type Row = Record<string, unknown>
 
 function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
@@ -29,7 +30,7 @@ async function buildWahlcheckResponse(
     fields: ['id', 'is_party_election', 'simple_answer_mode', 'descriptor', 'custom_logo', 'response_cutoff_date'],
     sort: ['-date_created'],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!elections || elections.length === 0) {
     throw createError({ statusCode: 404, statusMessage: 'No public election found' })
@@ -46,7 +47,7 @@ async function buildWahlcheckResponse(
     fields: questionPublicFields,
     sort: ['date_created'],
     limit: 100,
-  }))
+  })).then(cmsRows)
 
   // Load candidates
   const candidates = await client.request(readItems('candidate', {
@@ -54,10 +55,10 @@ async function buildWahlcheckResponse(
     fields: candidatePublicFields,
     sort: ['name'],
     limit: 200,
-  }))
+  })).then(cmsRows)
 
   // Load answers for all candidates
-  const candidateIds = candidates.map((c: any) => c.id)
+  const candidateIds = candidates.map((c) => c.id)
   const answers: Row[] = []
   if (candidateIds.length > 0) {
     const loadedAnswers = await client.request(readItems('answers', {
@@ -67,23 +68,23 @@ async function buildWahlcheckResponse(
       },
       fields: ['candidate', 'question', 'response', 'explanation'],
       limit: 10000,
-    }))
+    })).then(cmsRows)
     answers.push(...loadedAnswers)
   }
 
   // Build answer map: candidateId -> questionId -> answer
   const answerMap = new Map<string, Map<string, Row>>()
   for (const ans of answers) {
-    const cId = String(ans.candidate)
-    const qId = String(ans.question)
+    const cId = cmsString(ans.candidate)
+    const qId = cmsString(ans.question)
     if (!answerMap.has(cId)) answerMap.set(cId, new Map())
     answerMap.get(cId)!.set(qId, pick(ans, answerPublicFields))
   }
 
   // Build response
-  const responseCandidates = candidates.map((c: any) => ({
+  const responseCandidates = candidates.map((c) => ({
     ...pick(c, candidatePublicFields),
-    answers: Array.from(answerMap.get(c.id) || new Map()).map(([qId, ans]) => ({
+    answers: Array.from(answerMap.get(cmsString(c.id)) || new Map<string, Row>()).map(([qId, ans]) => ({
       question: qId,
       ...ans,
     })),
@@ -92,7 +93,7 @@ async function buildWahlcheckResponse(
   return parseCms(WahlcheckSchema, {
     municipality: { slug: municipality.slug, name: municipality.name },
     election: pick(election, ['id', 'is_party_election', 'simple_answer_mode', 'descriptor', 'custom_logo', 'response_cutoff_date']),
-    questions: questions.map((q: any) => pick(q, questionPublicFields)),
+    questions: questions.map((q) => pick(q, questionPublicFields)),
     candidates: responseCandidates,
   })
 }
@@ -109,11 +110,11 @@ export default defineEventHandler(async (event) => {
   let localteamId: string | undefined
 
   // Find municipality by slug
-  let municipalities = await client.request(readItems('municipalities', {
+  const municipalities = await client.request(readItems('municipalities', {
     filter: { slug: { _eq: municipalitySlug } },
     fields: ['id', 'name', 'slug', 'localteam_id.id'],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   // If no municipality found, try to find by localteam slug
   if (!municipalities || municipalities.length === 0) {
@@ -121,25 +122,26 @@ export default defineEventHandler(async (event) => {
       filter: { slug: { _eq: municipalitySlug } },
       fields: ['id', 'name', 'municipality_name'],
       limit: 1,
-    }))
+    })).then(cmsRows)
 
     if (localteams && localteams.length > 0) {
-      localteamId = localteams[0]!.id
+      localteamId = cmsString(localteams[0]!.id)
       // Return a synthetic municipality object for the response
       const m = localteams[0]!
       const municipality = { slug: municipalitySlug, name: m.municipality_name || m.name }
-      return await buildWahlcheckResponse(client, {slug: String(municipality.slug), name: String(municipality.name)}, localteamId!)
+      return await buildWahlcheckResponse(client, {slug: cmsString(municipality.slug), name: cmsString(municipality.name)}, localteamId)
     } else {
       throw createError({ statusCode: 404, statusMessage: 'Not found' })
     }
   }
 
   const municipality = municipalities[0]!
-  localteamId = municipality.localteam_id?.id
+  const teamId = cmsRecord(municipality.localteam_id ?? {}).id
+  localteamId = teamId === undefined ? undefined : cmsString(teamId)
 
   if (!localteamId) {
     throw createError({ statusCode: 404, statusMessage: 'No local team found' })
   }
 
-  return await buildWahlcheckResponse(client, {slug: String(municipality.slug), name: String(municipality.name)}, localteamId!)
+  return await buildWahlcheckResponse(client, {slug: cmsString(municipality.slug), name: cmsString(municipality.name)}, localteamId)
 })

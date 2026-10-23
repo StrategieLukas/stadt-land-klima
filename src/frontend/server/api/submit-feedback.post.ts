@@ -10,9 +10,9 @@ const MAX_CONTACT_LENGTH = 255;
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
+  const hmacKey: string = (config.altchaSecret) || 'dev-secret-change-in-production';
 
-  const parsedBody = FeedbackRequestSchema.safeParse(await readRequestBody<unknown>(event));
+  const parsedBody = FeedbackRequestSchema.safeParse(await readRequestBody(event));
   if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
   const body = parsedBody.data;
   const { title, type, content, name, contact, sendCopy, altcha } = body ?? {};
@@ -47,13 +47,13 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify CAPTCHA
-  const devMode = (config.public.appEnv as string) === 'development';
+  const devMode = (config.public.appEnv) === 'development';
   if (!altcha || !await verifyAltcha(altcha, hmacKey, { devMode, purpose: 'contact' })) {
     throw createError({ statusCode: 400, message: 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.' });
   }
 
   // Submit to Directus using server-side admin token
-  const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055';
+  const directusUrl = (config.directusServerUrl) || 'http://directus:8055';
   const adminToken = config.directusAdminToken as string | undefined;
 
   if (!adminToken) {
@@ -71,7 +71,7 @@ export default defineEventHandler(async (event) => {
         content: content.trim(),
         sender_name: name.trim(),
         sender_contact: contact.trim(),
-        send_copy: sendCopy === true,
+        send_copy: sendCopy,
       }),
     );
   } catch (err) {

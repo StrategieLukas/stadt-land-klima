@@ -9,7 +9,7 @@
          but desktop users — the majority — get instant, SSR-rendered navigation). -->
     <the-header-desktop
       v-if="!hydrated || isDesktop"
-      :pages="pages ? pages.filter((page) => includes(page.menus, 'main')) : []"
+      :pages="pages ? pages.filter((page) => pageInMenu(page, 'main')) : []"
       :municipalities="publishedMunicipalities || []"
       :nav-items="navigationConfig?.header_items || []"
     />
@@ -24,7 +24,7 @@
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
     <div class="drawer flex-1">
-      <input id="page-drawer" type="checkbox" class="drawer-toggle" ref="drawerToggle" />
+      <input id="page-drawer" ref="drawerToggle" type="checkbox" class="drawer-toggle" />
 
       <div
         class="drawer-content flex min-w-0 flex-col font-sans text-neutral"
@@ -56,7 +56,7 @@
       <!-- Drawer Side (Menu) — desktop only; mobile uses TheMenuSheet below -->
       <the-drawer-side
         v-if="isDesktop"
-        :pages="(pages || []).filter((page) => includes(page.menus, 'main'))"
+        :pages="(pages || []).filter((page) => pageInMenu(page, 'main'))"
         :nav-items="navigationConfig?.header_items || []"
         class="z-[9999]"
       />
@@ -64,7 +64,7 @@
 
     <!-- Dock (Small mobile only) -->
     <div class="fixed bottom-0 left-0 right-0 z-[10000] block sm:hidden">
-      <the-dock :pages="(pages || []).filter((page) => includes(page.menus, 'dock'))" />
+      <the-dock :pages="(pages || []).filter((page) => pageInMenu(page, 'dock'))" />
     </div>
 
     <!-- Mobile: backdrop blur (below sticky header, above page content) -->
@@ -80,7 +80,7 @@
     <Transition name="slk-sheet">
       <TheMenuSheet
         v-if="!isDesktop && hydrated && isDrawerOpen"
-        :pages="(pages || []).filter((page) => includes(page.menus, 'main'))"
+        :pages="(pages || []).filter((page) => pageInMenu(page, 'main'))"
         :nav-items="navigationConfig?.header_items || []"
       />
     </Transition>
@@ -90,27 +90,29 @@
   </div>
 </template>
 
-<script setup>
-import lodash from "lodash";
-import { ref, onMounted, onUnmounted, nextTick, watch } from "vue";
-import { useHeaderHeight, useHeaderSpacerHeight } from "~/composables/useHeaderHeight";
-const { includes } = lodash;
+<script setup lang="ts">
+import { SiteLayoutSchema } from "~/shared/contracts/navigation";
+import type { NuxtApp } from "#app";
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { useHeaderSpacerHeight } from "~/composables/useHeaderHeight";
+
 const { $locale } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
-const route = useRoute();
+
 const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();
 const hydrated = ref(false);
 // useState (not ref) so server and client share the same initial value → no hydration
 // mismatch. Default true = render the desktop header in SSR so it's in the HTML
 // immediately, eliminating the post-hydration nav-bar lag for desktop users.
 const isDesktop = useState("layout-isDesktop", () => true);
-const headerHeight = useHeaderHeight();
+
 const headerSpacerHeight = useHeaderSpacerHeight();
-const drawerToggle = ref(null);
-let cleanup = null;
+const drawerToggle = ref<HTMLInputElement | null>(null);
+let cleanup: (() => void) | null = null;
 
 // Close drawer when clicking outside
-const closeDrawerOnOutsideClick = (event) => {
+const closeDrawerOnOutsideClick = (event: MouseEvent) => {
+  if (!(event.target instanceof Node)) return;
   // Only close if drawer is open and click is not on drawer toggle button
   if (drawerToggle.value && drawerToggle.value.checked) {
     const drawerSide = document.querySelector(".drawer-side");
@@ -128,7 +130,7 @@ const closeDrawerOnOutsideClick = (event) => {
 };
 
 // Handle escape key
-const handleEscapeKey = (event) => {
+const handleEscapeKey = (event: KeyboardEvent) => {
   if (event.key === "Escape" && drawerToggle.value && drawerToggle.value.checked) {
     closeDrawer();
   }
@@ -149,10 +151,10 @@ onMounted(() => {
 
     // If desktop state changed, force layout recalculation
     if (wasDesktop !== isDesktop.value) {
-      nextTick(() => {
+      void nextTick(() => {
         window.dispatchEvent(new Event("resize"));
         // Force reflow
-        document.body.offsetHeight;
+        document.body.getBoundingClientRect();
       });
     }
   };
@@ -190,11 +192,18 @@ onUnmounted(() => {
 
 // getCachedData: serve from SSR payload on client-side navigations instead of
 // re-fetching Directus on every page change. These datasets change rarely.
-const cachedPayload = (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+const fetchLayout = () => $fetch("/api/public/site-layout");
+const pageInMenu = (page: Record<string, unknown>, menu: string) =>
+  Array.isArray(page.menus) && (page.menus as unknown[]).includes(menu);
+const cachedPayload = (key: string, nuxtApp: NuxtApp) => {
+  const cached: unknown = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+  const result = SiteLayoutSchema.safeParse(cached);
+  return result.success ? result.data : undefined;
+};
 
 const { data: layoutData } = await useAsyncData(
   "site-layout",
-  () => $fetch("/api/public/site-layout"),
+  fetchLayout,
   { getCachedData: cachedPayload, default: () => ({ pages: [], municipalities: [], navigationConfig: null }) },
 );
 
@@ -216,15 +225,13 @@ useHead({
     },
   ],
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
-  script: [
-    plausibleAnalyticsUrl && plausibleAnalyticsDomain
-      ? {
+  script: plausibleAnalyticsUrl && plausibleAnalyticsDomain
+      ? [{
           defer: true,
           "data-domain": plausibleAnalyticsDomain,
           src: plausibleAnalyticsUrl + "/js/script.js",
-        }
-      : {},
-  ],
+        }]
+      : [],
 });
 //
 </script>

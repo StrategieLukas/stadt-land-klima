@@ -1,9 +1,8 @@
-import type {
-  Logger,
-  Accountability,
-  Services,
-  GetSchema,
-} from '@directus/extensions-sdk';
+import type { Accountability, ApiExtensionContext } from '@directus/types';
+
+type GetSchema = ApiExtensionContext['getSchema'];
+type Logger = ApiExtensionContext['logger'];
+type Services = ApiExtensionContext['services'];
 
 // ---------------------------------------------------------------------------
 // Types

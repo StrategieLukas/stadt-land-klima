@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 import { createError } from "h3";
 
 /** Validate and project external CMS values. Never include failed records in errors. */

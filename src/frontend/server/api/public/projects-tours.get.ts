@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { ContentIdentitySchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
     filter: { status: { _eq: 'published' } },
     fields: ['id', 'slug', 'title', 'featured_on_projects'],
     limit: -1,
-  })))
+  })).then(cmsRows))
 
   if (!series.length) {
     return { series, links: [] }
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event) => {
     },
     fields: ['id', 'tour'],
     limit: -1,
-  })))
+  })).then(cmsRows))
 
   if (!stops.length) {
     return { series, links: [] }
@@ -39,7 +40,7 @@ export default defineEventHandler(async (event) => {
     filter: { stop: { id: { _in: stops.map((s) => s.id) } }, articles_id: { status: { _eq: 'published' } } },
     fields: ['stop', 'articles_id'],
     limit: -1,
-  })))
+  })).then(cmsRows))
 
   // Map stop -> tour
   const seriesByStop = Object.fromEntries(stops.map((s) => [s.id, s.tour]))

@@ -90,7 +90,7 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  text?: string
+  text?: string | undefined
 }>()
 
 const headingTag = computed(() => options.value.level || 'h2')

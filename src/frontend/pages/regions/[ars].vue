@@ -245,7 +245,7 @@ onMounted(async () => {
     if (areaData) {
       // If someone navigates here directly with a level 4+ ARS, redirect to /data/
       if ((areaData.level ?? 0) >= 4) {
-        await navigateTo(`/data/${route.params.ars}`, { replace: true });
+        await navigateTo(`/data/${ars}`, { replace: true });
         return;
       }
       area.value = areaData;

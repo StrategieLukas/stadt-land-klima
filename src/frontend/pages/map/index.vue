@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TheMap :municipalityScores="municipality_scores" :catalog-version="selectedCatalogVersion" />
+    <TheMap :municipality-scores="municipality_scores" :catalog-version="selectedCatalogVersion" />
   </div>
 </template>
 

@@ -122,8 +122,8 @@
         <div v-if="futureGroups.length">
           <div
             v-for="group in futureGroups"
-            :key="group.monthKey"
             :id="`section-${group.monthKey}`"
+            :key="group.monthKey"
             class="mb-10"
             :style="`scroll-margin-top: ${headerHeight + 16}px`"
           >
@@ -153,8 +153,8 @@
           </h2>
           <div
             v-for="group in pastGroups"
-            :key="group.monthKey"
             :id="`section-${group.monthKey}`"
+            :key="group.monthKey"
             class="mb-10"
             :style="`scroll-margin-top: ${headerHeight + 16}px`"
           >

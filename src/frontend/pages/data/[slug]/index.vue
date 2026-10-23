@@ -333,8 +333,8 @@
 <script setup lang="ts">
 import { parseGeoCenter } from "~/shared/contracts/geometry";
 import { asRecord } from "~/shared/visualization";
-import { CollectionSchema, CollectionsResponseSchema } from "~/shared/contracts/slz";
-import type { Collection, CollectionOverviewVisual } from "~/types/slz-api";
+import { CollectionsResponseSchema } from "~/shared/contracts/slz";
+import type { Collection } from "~/types/slz-api";
 import { AreaSchema, type Area } from "~/shared/contracts/search";
 import { Icon } from "@iconify/vue";
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
@@ -384,7 +384,7 @@ definePageMeta({
 
 // ── Route + config ───────────────────────────────────────────────────────────
 
-const { $t, $translateDynamic } = useNuxtApp();
+const { $translateDynamic } = useNuxtApp();
 const route = useRoute();
 const slug = computed(() => String(route.params.slug ?? ""));
 
@@ -430,14 +430,14 @@ const { data: pageData, pending: areaPending } = useAsyncData(
       municipalityImageCredits: muniResult?.[0]?.image_credits ?? null,
     };
   },
-  { watch: [slug], lazy: process.client },
+  { watch: [slug], lazy: import.meta.client },
 );
 
-if (process.server && pageData.value?.notFound) {
+if (import.meta.server && pageData.value?.notFound) {
   throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
 }
 
-if (process.server && pageData.value?.area && /^\d+$/.test(slug.value)) {
+if (import.meta.server && pageData.value?.area && /^\d+$/.test(slug.value)) {
   const resolved = pageData.value.area;
   await navigateTo(`/data/${areaToSlug(resolved.prefix ?? "", resolved.name)}`, { redirectCode: 301, replace: true });
 }
@@ -447,7 +447,7 @@ watch(pageData, (value) => {
     throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
   }
   if (value?.requestedSlug === slug.value && value?.area && /^\d+$/.test(slug.value)) {
-    navigateTo(`/data/${areaToSlug(value.area.prefix ?? "", value.area.name)}`, { replace: true });
+    void navigateTo(`/data/${areaToSlug(value.area.prefix ?? "", value.area.name)}`, { replace: true });
   }
 });
 
@@ -490,7 +490,7 @@ const nearbyAreasLoading = ref(false);
 let nearbyAreasRequestId = 0;
 
 async function loadNearbyAreasForCurrentArea() {
-  if (process.server) return;
+  if (import.meta.server) return;
 
   const requestId = ++nearbyAreasRequestId;
   const requestSlug = slug.value;
@@ -542,7 +542,7 @@ async function loadNearbyAreasForCurrentArea() {
 watch(
   [areaReady, () => resolvedArea.value?.ars, slug],
   () => {
-    loadNearbyAreasForCurrentArea();
+    void loadNearbyAreasForCurrentArea();
   },
   { immediate: true },
 );
@@ -619,7 +619,7 @@ async function loadCollectionsForCurrentArea() {
 watch(
   [areaReady, usesOverviewLayout, () => area.value?.ars, slug],
   () => {
-    loadCollectionsForCurrentArea();
+    void loadCollectionsForCurrentArea();
   },
   { immediate: true },
 );
@@ -710,13 +710,7 @@ watch(isAreaLoading, (loading) => {
   }
 });
 
-function scrollToExplore() {
-  const current = exploreSection.value;
-  const el = current && "$el" in current ? current.$el : current;
-  if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY - productScrollMarginTop.value;
-  window.scrollTo({ top, behavior: "smooth" });
-}
+
 
 function normalizeAssetUrl(url: unknown) {
   if (!url || typeof url !== "string") return "";

@@ -23,7 +23,9 @@
     "build": "directus-extension build",
     "dev": "directus-extension build -w --no-minify",
     "link": "directus-extension link",
-    "validate": "directus-extension validate"
+    "validate": "directus-extension validate",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prebuild": "npm run typecheck"
   },
   "devDependencies": {
     "@directus/extensions-sdk": "18.0.6",
@@ -32,7 +34,8 @@
     "@types/node": "^22.20.5",
     "esbuild": "^0.28.2",
     "html-to-text": "^10.0.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@types/html-to-text": "^9.0.4"
   },
   "overrides": {
     "esbuild": "^0.28.2",

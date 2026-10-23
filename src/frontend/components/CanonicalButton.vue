@@ -40,14 +40,16 @@ import { computed, useAttrs } from 'vue'
 defineOptions({ inheritAttrs: false })
 
 const props = defineProps<{
-  disabled?: boolean
+  onClick?: ((event: MouseEvent) => void) | undefined
+  disabled?: boolean | undefined
   label: string
-  href?: string
-  iconSlug?: string
-  color?: string
-  textColor?: 'auto' | 'white' | 'black'
-  iconSize?: 'sm' | 'lg'
-  external?: boolean
+  href?: string | undefined
+  title?: string | undefined
+  iconSlug?: string | undefined
+  color?: string | undefined
+  textColor?: 'auto' | 'white' | 'black' | undefined
+  iconSize?: 'sm' | 'lg' | undefined
+  external?: boolean | undefined
 }>()
 
 const attrs = useAttrs()
@@ -119,6 +121,8 @@ const textClass = computed(() => {
 
 const linkAttrs = computed(() => {
   const base: Record<string, unknown> = { ...attrs }
+  if (props.onClick) base.onClick = props.onClick
+  if (props.title !== undefined) base.title = props.title
   if (props.disabled !== undefined) base.disabled = props.disabled
   if (props.href) {
     base.href = props.href

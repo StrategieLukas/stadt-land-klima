@@ -76,13 +76,13 @@
             <div class="relative h-44 overflow-hidden bg-stats-light">
               <SmartImg
                 v-if="imageId(tool.image)"
-                :assetId="imageId(tool.image)"
-                :isRaster="imageIsRaster(tool.image)"
+                :asset-id="imageId(tool.image)"
+                :is-raster="imageIsRaster(tool.image)"
                 :alt="$t('tools.image_alt', { ':title': tool.title })"
                 :width="640"
                 :height="280"
                 fit="cover"
-                imgClass="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                img-class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               <div
                 v-else

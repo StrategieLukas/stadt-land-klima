@@ -27,11 +27,11 @@ import { computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
-    logo?: string | { id?: string | null } | null;
-    fallback?: "full" | "flower" | "wahlcheck" | "none";
-    alt?: string;
-    logoClass?: string;
-    fallbackClass?: string;
+    logo?: string | { id?: string | null | undefined } | null | undefined;
+    fallback?: "full" | "flower" | "wahlcheck" | "none" | undefined;
+    alt?: string | undefined;
+    logoClass?: string | undefined;
+    fallbackClass?: string | undefined;
   }>(),
   {
     logo: null,

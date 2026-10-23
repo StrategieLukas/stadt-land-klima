@@ -45,7 +45,7 @@ export default defineNuxtPlugin(() => {
 
   const searchThroughAdministrativeAreasByName = async (
     name_slice: string,
-    options: { isReasonableForMunicipalRating?: boolean },
+    options: { isReasonableForMunicipalRating?: boolean | undefined },
   ) => {
     try {
       const result: { data?: unknown } = await apolloClient.query({

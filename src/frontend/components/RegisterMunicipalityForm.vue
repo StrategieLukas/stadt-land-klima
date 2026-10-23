@@ -277,16 +277,18 @@
 </template>
 
 <script setup lang="ts">
+import { RegistrationRequestSchema } from "~/shared/contracts/submissions";
+import type { NewsletterRequest } from "~/shared/contracts/submissions";
 import { captchaEventData, requestErrorData, requestErrorMessage  } from '~/shared/requestError';
 
 import { z } from 'zod';
 const props = defineProps<{
   municipalityName: string;
   ars: string;
-  population?: number | null;
-  state?: string | null;
-  geolocation?: import('geojson').Point | null;
-  canChange?: boolean;
+  population?: number | null | undefined;
+  state?: string | null | undefined;
+  geolocation?: import('geojson').Point | null | undefined;
+  canChange?: boolean | undefined;
 }>();
 
 const emit = defineEmits<{
@@ -409,7 +411,7 @@ onUnmounted(() => {
 async function submit() {
   captchaError.value = '';
 
-  const widgetEl = document.querySelector<HTMLElement & {value?: string}>('altcha-widget');
+  const widgetEl = document.querySelector<HTMLElement & {value?: string | undefined}>('altcha-widget');
   const payload = altchaPayload.value || widgetEl?.value;
   if (!payload) {
     captchaError.value = $t('captcha.required');
@@ -440,9 +442,9 @@ async function submit() {
   stepStatuses.email = 'loading';
 
   try {
-    const result = await $fetch<{ success: boolean; steps: { user: boolean; team: boolean; email: boolean } }>('/api/register-municipality', {
+    const result = await $fetch('/api/register-municipality', {
       method: 'POST',
-      body: submitData,
+      body: RegistrationRequestSchema.parse(submitData),
     });
     stepStatuses.user = result?.steps?.user !== false ? 'success' : 'error';
     await delay(400);
@@ -483,9 +485,9 @@ async function subscribeNewsletter() {
   }
   newsletterState.value = 'subscribing';
   try {
-    const result = await $fetch<{ success: boolean; alreadySubscribed: boolean }>('/api/newsletter-subscribe', {
+    const result = await $fetch('/api/newsletter-subscribe', {
       method: 'POST',
-      body: { email: newsletterEmail.value.trim(), name: [form.firstName, form.lastName].filter(Boolean).join(' ') || undefined },
+      body: { email: newsletterEmail.value.trim(), name: [form.firstName, form.lastName].filter(Boolean).join(' ') || undefined } satisfies NewsletterRequest,
     });
     newsletterAlreadySubscribed.value = result.alreadySubscribed;
     newsletterState.value = 'success';

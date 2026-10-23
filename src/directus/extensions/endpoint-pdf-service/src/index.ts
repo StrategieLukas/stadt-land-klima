@@ -4,7 +4,10 @@ import { promisify } from "util";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
 import { convert } from "html-to-text";
 import type { Request, Response, Router } from "express";
-import type { ItemsService, Schema } from "@directus/types";
+import type { ApiExtensionContext, SchemaOverview, AbstractService } from '@directus/types';
+
+type ItemsService = AbstractService;
+type Schema = SchemaOverview;
 
 const execFileAsync = promisify(execFile);
 

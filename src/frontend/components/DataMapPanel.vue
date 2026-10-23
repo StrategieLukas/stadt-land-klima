@@ -30,16 +30,16 @@
         <template v-for="nb in visibleNearby" :key="nb.ars">
           <LGeoJson
             v-if="parseGeo(nb.geo_area ?? nb.geoArea)"
-            :geojson="parseGeo(nb.geo_area ?? nb.geoArea) ?? undefined"
+            :geojson="parseGeo(nb.geo_area ?? nb.geoArea) ?? []"
             :options="nearbyOpts(nb)"
           />
         </template>
 
         <!-- Carve-out mask: dims everything outside this area -->
-        <LGeoJson v-if="maskGeoJson" :geojson="maskGeoJson" :options="maskOpts" />
+        <LGeoJson v-if="maskGeoJson" :geojson="maskGeoJson ?? []" :options="maskOpts" />
 
         <!-- Area boundary outline -->
-        <LGeoJson v-if="areaBoundary" :geojson="areaBoundary" :options="boundaryOpts" @ready="onBoundaryReady" />
+        <LGeoJson v-if="areaBoundary" :geojson="areaBoundary ?? []" :options="boundaryOpts" v-on="{ ready: onBoundaryReady }" />
 
         <!-- Data features: points -->
         <template v-if="layerType === 'points' && dataFeatures.length">
@@ -58,7 +58,7 @@
         <!-- Data features: polygon / choropleth -->
         <LGeoJson
           v-else-if="layerType !== 'points' && dataFeatureCollection"
-          :geojson="dataFeatureCollection"
+          :geojson="dataFeatureCollection ?? []"
           :options="featurePolyOpts"
         />
       </LMap>
@@ -117,6 +117,7 @@
 </template>
 
 <script setup lang="ts">
+// vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
 import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from 'leaflet';
 import { parseGeoData, type GeoData } from '~/shared/contracts/geometry';
 import type { PropType } from 'vue';
@@ -130,10 +131,10 @@ import { ref, computed, watch } from "vue";
 import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
-  areaBoundary: { type: Object as PropType<GeoData | null>, default: null },
-  nearbyAreas: { type: Array as PropType<Area[]>, default: () => [] },
+  areaBoundary: { type: Object as PropType<GeoData | null | undefined>, default: null },
+  nearbyAreas: { type: Array as PropType<Area[] | undefined>, default: () => [] },
   ars: { type: String, required: true },
-  activeCollection: { type: Object as PropType<Collection | null>, default: null },
+  activeCollection: { type: Object as PropType<Collection | null | undefined>, default: null },
   baseUrl: { type: String, required: true },
 });
 

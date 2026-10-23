@@ -1,14 +1,14 @@
 import { areaToSlug } from "~/composables/useAreaBySlug";
 type AreaSeed = {
-  prefix?: string;
-  name?: string;
-  ars?: string;
-  level?: number | null;
-  population?: number | string | null;
-  geo_center?: { lat: number; lon: number } | null;
-  geoCenter?: { lat: number; lon: number } | null;
-  is_reasonable_for_municipal_rating?: boolean;
-  isReasonableForMunicipalRating?: boolean;
+  prefix?: string | undefined;
+  name?: string | undefined;
+  ars?: string | undefined;
+  level?: number | null | undefined;
+  population?: number | string | null | undefined;
+  geo_center?: { lat: number; lon: number } | null | undefined;
+  geoCenter?: { lat: number; lon: number } | null | undefined;
+  is_reasonable_for_municipal_rating?: boolean | undefined;
+  isReasonableForMunicipalRating?: boolean | undefined;
 };
 type SeedArea = NonNullable<ReturnType<typeof normalizeSeedArea>>;
 export function useDataRouteFeedback() {

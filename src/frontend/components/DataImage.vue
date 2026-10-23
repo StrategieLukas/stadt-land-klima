@@ -31,7 +31,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ImagePayloadSchema } from "~/shared/contracts/slz";
+import { visualizationUrl } from "~/shared/visualizationSafety";
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useSlzLocale } from '~/composables/useSlzLocale'
 import type { RenderElement } from '~/types/slz-api'
 
@@ -50,6 +52,11 @@ const error    = ref(false)
 const titleText   = computed(() => t(props.element.title))
 const captionText = computed(() => t(props.element.description))
 
+const imageRequest = new AbortController();
+onBeforeUnmount(() => {
+  imageRequest.abort();
+  if (imageSrc.value?.startsWith('blob:')) URL.revokeObjectURL(imageSrc.value);
+});
 onMounted(async () => {
   const rawSrc = props.element.src_url
   if (!rawSrc) return
@@ -59,18 +66,20 @@ onMounted(async () => {
 
   loading.value = true
   try {
-    const res = await fetch(src)
+    const res = await fetch(visualizationUrl(src, window.location.origin), {signal: imageRequest.signal, credentials: "omit", redirect: "error"})
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
     const ct = res.headers.get('content-type') ?? ''
     if (ct.includes('application/json')) {
       // API returns { content_type, encoding, data } for binary image fields
-      const json = await res.json() as { content_type?: string; encoding?: string; data: string }
+      const json = ImagePayloadSchema.parse(await res.json())
+      if (imageRequest.signal.aborted) return
       const mime = json.content_type ?? 'image/png'
       imageSrc.value = `data:${mime};base64,${json.data}`
     } else if (ct.startsWith('image/')) {
       // Direct binary image response
       const blob = await res.blob()
+      if (imageRequest.signal.aborted) return
       imageSrc.value = URL.createObjectURL(blob)
     } else {
       // Fallback: treat src as a static URL

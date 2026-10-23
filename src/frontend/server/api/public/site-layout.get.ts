@@ -1,8 +1,11 @@
-import { readItems } from '@directus/sdk'
+import { SiteLayoutSchema } from "~/shared/contracts/navigation";
+import { parseCms } from "~/server/utils/parseCms";
+import { cmsRows, cmsRecord } from "~/server/utils/cmsValue";
+import { readItems, readSingleton } from '@directus/sdk'
 import { defineEventHandler, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
 
-type Row = Record<string, any>
+type Row = Record<string, unknown>
 
 function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
@@ -10,7 +13,6 @@ function pick(row: Row, fields: string[]): Row {
 
 const pageFields = ['id', 'slug', 'name', 'contents', 'sort_order']
 const municipalityNavFields = ['id', 'slug', 'name']
-const blockFields = ['id', 'bundle', 'props', 'sort_order', 'entity_type', 'entity_uuid']
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=300')
@@ -22,24 +24,23 @@ export default defineEventHandler(async (event) => {
       fields: pageFields,
       sort: ['sort_order'],
       limit: 100,
-    })),
+    })).then(cmsRows),
     // Municipalities: published, slug + name only
     client.request(readItems('municipalities', {
       filter: { status: { _eq: 'published' } },
       fields: municipalityNavFields,
       sort: ['name'],
       limit: 500,
-    })),
+    })).then(cmsRows),
     // Navigation config singleton
-    client.request(readItems('navigation_config', {
+    client.request(readSingleton('navigation_config', {
       fields: ['header_items', 'footer_columns'],
-      limit: 1,
-    })),
+    })).then(cmsRecord),
   ])
 
-  return {
+  return parseCms(SiteLayoutSchema, {
     pages: pages.map(p => pick(p, pageFields)),
     municipalities: municipalities.map(m => pick(m, municipalityNavFields)),
-    navigationConfig: navigationConfig[0] ? pick(navigationConfig[0], ['header_items', 'footer_columns']) : null,
-  }
+    navigationConfig: pick(navigationConfig, ['header_items', 'footer_columns']),
+  })
 })

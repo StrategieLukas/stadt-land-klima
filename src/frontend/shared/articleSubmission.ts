@@ -43,14 +43,38 @@ export type ArticleSubmissionErrorCode =
 
 export type ArticleSubmissionErrorData = {
   errorCode: ArticleSubmissionErrorCode;
-  field?: ArticleSubmissionTextField;
-  maxLength?: number;
-  maxSectors?: number;
-  maxSizeMb?: number;
+  field?: ArticleSubmissionTextField | undefined;
+  maxLength?: number | undefined;
+  maxSectors?: number | undefined;
+  maxSizeMb?: number | undefined;
 };
 
 export const ArticleSubmissionErrorSchema = z.object({
-  errorCode: z.enum(["captcha_failed", "email_invalid", "field_too_long", "image_format", "image_invalid", "image_required", "image_rights_required", "image_too_large", "invalid_submission", "required_fields", "save_failed", "sectors_invalid", "sectors_required", "sectors_too_many", "service_unavailable", "state_invalid", "submission_too_large", "url_invalid", "url_too_long"]),
-  field: z.enum(Object.keys(ARTICLE_SUBMISSION_LIMITS) as [ArticleSubmissionTextField, ...ArticleSubmissionTextField[]]).optional(),
-  maxLength: z.number().optional(), maxSectors: z.number().optional(), maxSizeMb: z.number().optional(),
+  errorCode: z.enum([
+    "captcha_failed",
+    "email_invalid",
+    "field_too_long",
+    "image_format",
+    "image_invalid",
+    "image_required",
+    "image_rights_required",
+    "image_too_large",
+    "invalid_submission",
+    "required_fields",
+    "save_failed",
+    "sectors_invalid",
+    "sectors_required",
+    "sectors_too_many",
+    "service_unavailable",
+    "state_invalid",
+    "submission_too_large",
+    "url_invalid",
+    "url_too_long",
+  ]),
+  field: z
+    .enum(Object.keys(ARTICLE_SUBMISSION_LIMITS) as [ArticleSubmissionTextField, ...ArticleSubmissionTextField[]])
+    .optional(),
+  maxLength: z.number().optional(),
+  maxSectors: z.number().optional(),
+  maxSizeMb: z.number().optional(),
 });

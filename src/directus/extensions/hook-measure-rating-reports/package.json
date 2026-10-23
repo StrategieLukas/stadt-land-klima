@@ -23,7 +23,9 @@
     "dev": "directus-extension build -w --no-minify",
     "link": "directus-extension link",
     "validate": "directus-extension validate",
-    "test": "tsx --test src/reportCsv.test.ts"
+    "test": "tsx --test src/reportCsv.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prebuild": "npm run typecheck"
   },
   "dependencies": {
     "csv-stringify": "^6.9.0"

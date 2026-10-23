@@ -8,6 +8,7 @@
         <CanonicalButton :label="$t('stats.view_ranking')" href="/municipalities" icon-slug="mdi:format-list-bulleted" color="orange" text-color="white" />
       </div>
     </header>
+    <p v-if="statsError" role="alert">{{ $t("generic.technical_error") }}</p>
 
     <section id="massnahmenstatistiken" class="mb-8">
       <!-- Filter panel — full width -->
@@ -103,9 +104,9 @@
             </svg>
             <div class="flex flex-wrap items-center gap-2">
               <FilterBadgeDropdown
+                v-model="filterState"
                 label="Alle Bundesländer"
                 :options="availableStates.map((s) => ({ label: s, value: s }))"
-                v-model="filterState"
                 width="min-w-[13rem]"
                 :dark="false"
               />
@@ -821,16 +822,20 @@ import type { SimulationNodeDatum, SimulationLinkDatum } from "d3-force";
 import type { Statistics } from "~/shared/contracts/municipality";
 import type { Sector } from "~/shared/domain";
 import { kMeans, statisticsDatum, pairwiseDominance, matrixValue } from "~/shared/statistics";
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { Chart, BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from "chart.js";
+import { getCatalogVersion } from "~/composables/getCatalogVersion";
+import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions";
+import sectorImages from "~/shared/sectorImages";
+import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";
 type Measure = Statistics["measures"][number];
-type MunicipalitySummary = {id: string; name: string; slug: string; score_total?: number | null};
+type MunicipalitySummary = {id: string; name: string; slug: string; score_total?: number | null | undefined};
 type SectorStats = {sectorKey: Sector; sectorName: string; measures: Record<string, Pick<Measure, "id" | "measure_id" | "name" | "slug"> & {ratings: Record<string, MunicipalitySummary[]>}>};
 type Selection = {type: null; sectorKey: null; measureId: null; label: string} | {type: "sector"; sectorKey: Sector; measureId: null; label: string} | {type: "measure"; sectorKey: Sector; measureId: string; label: string};
 type PanelFilter = {active: boolean; label: string; type: "measure-rating" | "sector-bin" | "global-bin" | null; measureId: string | null; ratingKey: string | null; sectorKey: Sector | null; binRange: [number, number] | null};
 type ClusterRow = {name: string; slug: string; x: number; y: number; scoreTotal: string; cluster: string};
 type ForceNode = SimulationNodeDatum & {id: string; rank: number; name: string; winRate: number};
 type ForceLink = SimulationLinkDatum<ForceNode> & {dominance: number; rate: number};
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
-import { Chart, BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from "chart.js";
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
@@ -871,10 +876,6 @@ function themedVegaSpec(spec: VisualizationSpec): VisualizationSpec {
 }
 
 const { $t } = useNuxtApp();
-import { getCatalogVersion } from "~/composables/getCatalogVersion";
-import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions";
-import sectorImages from "~/shared/sectorImages";
-import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";
 
 const route = useRoute();
 const router = useRouter();
@@ -883,15 +884,10 @@ const municipalityNameCollator = new Intl.Collator("de-DE", {
   sensitivity: "base",
 });
 
-function compareByScoreThenName(a: {score_total?: number | null; name?: string}, b: {score_total?: number | null; name?: string}) {
+function compareByScoreThenName(a: {score_total?: number | null | undefined; name?: string | undefined}, b: {score_total?: number | null | undefined; name?: string | undefined}) {
   const scoreDifference = (b.score_total ?? 0) - (a.score_total ?? 0);
   if (scoreDifference !== 0) return scoreDifference;
   return municipalityNameCollator.compare(a.name ?? "", b.name ?? "");
-}
-
-function scrollToSection(id: string) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 const selectedCatalogVersion = ref(await getCatalogVersion(route));
 const selectedCatalogVersionId = ref(selectedCatalogVersion.value.id);
@@ -986,7 +982,6 @@ let vegaViewDominanceForce: View | null = null;
 
 const kClusters = ref(4);
 const clusteringError = ref("");
-const activeSectorFilter = ref("all");
 const activeTab = ref("measures");
 
 // Sunburst selection state
@@ -1063,10 +1058,6 @@ function getRatingKeys() {
     : ["-1", "0", "0.25", "0.5", "0.75", "1"];
 }
 
-function getRatingLabel(rating: string) {
-  return ratingLabelsMap[rating] ?? rating;
-}
-
 const vegaColorScale = {
   domain: [-0.1, 0, 0.25, 0.5, 0.75, 1.0],
   range: ["#9CA3AF", "#D9000D", "#F27C00", "#FFD400", "#AFCA0B", "#1DA64A"],
@@ -1096,12 +1087,6 @@ function ratingToColor(r: number | null | undefined) {
 function ratingTextColor(r: number | null | undefined) {
   if (r == null || isNaN(r)) return "#000000";
   return Math.max(0, Math.min(1, r)) < 0.095 ? "#ffffff" : "#000000";
-}
-
-function meanSectorScore(sectorKey: Sector) {
-  const scores = filteredMunScores.value.map((ms) => parseNumber(ms[`score_${sectorKey}`])).filter((v) => !isNaN(v));
-  if (!scores.length) return null;
-  return scores.reduce((a, b) => a + b, 0) / scores.length;
 }
 
 // ── Computed ─────────────────────────────────────────────────────────────────
@@ -1288,12 +1273,6 @@ const meanMeasureRatings = computed(() => {
   return result;
 });
 
-const filteredSectorStats = computed(() => {
-  const ordered = sectorOrder.flatMap(k => {const sector = sectorStats.value.find(s => s.sectorKey === k); return sector ? [sector] : [];});
-  if (activeSectorFilter.value === "all") return ordered;
-  return ordered.filter((s) => s.sectorKey === activeSectorFilter.value);
-});
-
 // ── Data fetching ────────────────────────────────────────────────────────────
 async function fetchStatsForCatalog(catalogVersionId: string) {
   const catalog = catalogVersions.value.find(version => version.id === catalogVersionId);
@@ -1304,6 +1283,21 @@ async function fetchStatsForCatalog(catalogVersionId: string) {
 
 const statsData = ref<(Statistics & {municipalityScores: Statistics["scores"]}) | null>(null);
 const statsLoading = ref(true);
+const statsError = ref(false);
+let statsGeneration = 0;
+async function refreshStatistics(catalogId: string) {
+  const generation = ++statsGeneration;
+  statsLoading.value = true;
+  statsError.value = false;
+  try {
+    const result = await fetchStatsForCatalog(catalogId);
+    if (generation === statsGeneration) statsData.value = result;
+  } catch {
+    if (generation === statsGeneration) { statsData.value = null; statsError.value = true; }
+  } finally {
+    if (generation === statsGeneration) statsLoading.value = false;
+  }
+}
 
 // ── Sunburst (Vega-Lite two-layer arc) ───────────────────────────────────────
 async function renderSunburst() {
@@ -1465,9 +1459,9 @@ async function renderSunburst() {
         sunburstSelection.value = { type: "sector", sectorKey: d.sectorKey, measureId: null, label: d.name };
       }
       clearPanelMunFilter();
-      nextTick(() => {
-        renderSunburst();
-        renderDistPanel();
+      void nextTick(() => {
+        void renderSunburst();
+        void renderDistPanel();
       });
     });
   } catch (e) {
@@ -1478,9 +1472,9 @@ async function renderSunburst() {
 function clearSunburstSelection() {
   sunburstSelection.value = { type: null, sectorKey: null, measureId: null, label: "" };
   clearPanelMunFilter();
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 
@@ -1585,7 +1579,7 @@ async function renderDistPanel() {
         binRange: [bin0, bin1],
       };
       if (isSmall.value) mobileMeasuresTab.value = "list";
-      nextTick(() => renderDistPanel());
+      void nextTick(() => renderDistPanel());
     });
     return;
   }
@@ -1676,7 +1670,7 @@ async function renderDistPanel() {
         binRange: [bin0, bin1],
       };
       if (isSmall.value) mobileMeasuresTab.value = "list";
-      nextTick(() => renderDistPanel());
+      void nextTick(() => renderDistPanel());
     });
     return;
   }
@@ -1743,7 +1737,7 @@ async function renderDistPanel() {
         binRange: null,
       };
       if (isSmall.value) mobileMeasuresTab.value = "list";
-      nextTick(() => renderDistPanel());
+      void nextTick(() => renderDistPanel());
     });
   }
 }
@@ -1782,9 +1776,9 @@ function navigateSunburstSelection(dir: number) {
     sunburstSelection.value = { type: "measure", sectorKey: m.sector, measureId: m.id, label: m.name };
   }
   clearPanelMunFilter();
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 
@@ -1799,28 +1793,17 @@ function handleArrowKey(e: KeyboardEvent) {
     navigateSunburstSelection(1);
   }
 }
-
-// ── (legacy functions kept for possible reuse but no longer called directly) ──
-async function openSectorDistribution() {}
-async function openMeasureDistribution() {}
-async function renderDistributionChart() {}
-
-// ── (renderHistogram removed — distribution is now inline in the detail panel) ──
-
-function setSectorFilter(key: string) {
-  activeSectorFilter.value = key;
-}
 // ── Reactive re-render on filter change ──────────────────────────────────────
 watch([filterState, filterType], () => {
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 });
 
 // ── Re-render all active Vega charts when theme changes ───────────────────────
 watch(isDark, () => {
-  nextTick(() => {
+  void nextTick(() => {
     if (vegaViewSunburst) {
       vegaViewSunburst.finalize();
       vegaViewSunburst = null;
@@ -1841,8 +1824,8 @@ watch(isDark, () => {
       vegaViewDominanceHeatmap.finalize();
       vegaViewDominanceHeatmap = null;
     }
-    renderSunburst();
-    renderDistPanel();
+    void renderSunburst();
+    void renderDistPanel();
   });
 });
 
@@ -1852,8 +1835,8 @@ function switchToClusteringTab() {
 
 function switchToDominanceTab() {
   activeTab.value = "dominance";
-  nextTick(() => {
-    computeDominanceAndRender();
+  void nextTick(() => {
+    void computeDominanceAndRender();
   });
 }
 
@@ -2409,22 +2392,22 @@ watch(
 // Re-render when switching away from small mode
 watch(isSmall, (small) => {
   if (!small)
-    nextTick(() => {
-      renderSunburst();
-      renderDistPanel();
+    void nextTick(() => {
+      void renderSunburst();
+      void renderDistPanel();
     });
 });
 
 // Re-render sunburst when switching to diagram view (container was hidden when last render ran)
 watch(showListView, (listView) => {
-  if (!listView) nextTick(() => renderSunburst());
+  if (!listView) void nextTick(() => renderSunburst());
 });
 
 // On mobile, re-render the plot when switching to the 'plot' tab because the container was
 // hidden (display:none) when Vega last rendered, causing it to measure 0 width.
 watch(mobileMeasuresTab, (tab) => {
-  if (tab === "plot") nextTick(() => renderDistPanel());
-  if (tab === "selection") nextTick(() => renderSunburst());
+  if (tab === "plot") void nextTick(() => renderDistPanel());
+  if (tab === "selection") void nextTick(() => renderSunburst());
 });
 
 function onChooserSectorClick(sector: SectorStats) {
@@ -2436,9 +2419,9 @@ function onChooserSectorClick(sector: SectorStats) {
   if (isSmall.value) {
     mobileMeasuresTab.value = "plot";
   }
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 
@@ -2448,9 +2431,9 @@ function onChooserMeasureClick(measure: Pick<Measure, "id" | "name">, sectorKey:
   if (isSmall.value) {
     mobileMeasuresTab.value = "plot";
   }
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 
@@ -2460,16 +2443,16 @@ onMounted(async () => {
   window.addEventListener("resize", updateIsSmall);
   window.addEventListener("keydown", handleArrowKey);
 
-  statsData.value = await fetchStatsForCatalog(selectedCatalogVersion.value.id);
-  statsLoading.value = false;
+  await refreshStatistics(selectedCatalogVersion.value.id);
 
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 });
 
 onBeforeUnmount(() => {
+  statsGeneration++;
   window.removeEventListener("resize", updateIsSmall);
   window.removeEventListener("keydown", handleArrowKey);
   if (vegaViewSunburst) vegaViewSunburst.finalize();
@@ -2486,12 +2469,11 @@ async function onCatalogVersionChange(newId: string) {
   if (!newVersion) return;
   selectedCatalogVersionId.value = newId;
   selectedCatalogVersion.value = newVersion;
-  router.replace({ query: { ...route.query, v: newVersion.name } });
+  void router.replace({ query: { ...route.query, v: newVersion.name } });
   filterState.value = null;
   filterType.value = null;
-  statsLoading.value = true;
-  statsData.value = await fetchStatsForCatalog(newVersion.id);
-  statsLoading.value = false;
+  await refreshStatistics(newVersion.id);
+  if (selectedCatalogVersion.value.id !== newVersion.id) return;
   if (vegaViewSunburst) {
     vegaViewSunburst.finalize();
     vegaViewSunburst = null;
@@ -2515,9 +2497,9 @@ async function onCatalogVersionChange(newId: string) {
     sectorKey: null,
     binRange: null,
   };
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 </script>

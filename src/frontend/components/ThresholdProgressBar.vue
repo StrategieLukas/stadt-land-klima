@@ -77,12 +77,12 @@
 import { computed, ref, onMounted } from 'vue'
 
 const props = defineProps({
-  progress: { type: Number, default: 0 },
-  unit: String,
-  orangeThreshold: { type: Number, default: 0 },
-  yellowThreshold: { type: Number, default: 0 },
-  lightGreenThreshold: { type: Number, default: 0 },
-  darkGreenThreshold: { type: Number, default: 0 },
+  progress: { type: Number as PropType<number | undefined>, default: 0 },
+  unit: {type: String as PropType<string | undefined>},
+  orangeThreshold: { type: Number as PropType<number | undefined>, default: 0 },
+  yellowThreshold: { type: Number as PropType<number | undefined>, default: 0 },
+  lightGreenThreshold: { type: Number as PropType<number | undefined>, default: 0 },
+  darkGreenThreshold: { type: Number as PropType<number | undefined>, default: 0 },
 })
 
 // Determine max range for scaling

@@ -1,11 +1,11 @@
-<template lang="">
+<template>
   <div class="flex flex-col">
     <ul>
       <li
         v-for="municipalityScore in completeMunicipalityScores"
         :key="municipalityScore.id"
       >
-        <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${catalogVersion.name}`">
+        <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${catalogVersion?.name ?? ''}`">
           <item-ranking
             :municipality-score="municipalityScore"
             :is-ranking="true"
@@ -31,7 +31,7 @@ import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publish
 
 const props = defineProps({
   municipalityScores: {
-    type: Array as PropType<MunicipalityScore[]>,
+    type: Array as PropType<MunicipalityScore[] | undefined>,
     default: () => [],
   },
   catalogVersion: { type: null as unknown as PropType<Catalog | null>,

@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import { checkedMapStyle, visualizationUrl } from "~/shared/visualizationSafety";
 import { asRecord } from '~/shared/visualization';
 import { parseGeoData } from '~/shared/contracts/geometry';
 import { Icon } from "@iconify/vue";
@@ -68,14 +69,14 @@ const CARTO_BASEMAP_ATTRIBUTION =
 
 const props = defineProps<{
   element: RenderElement;
-  ars?: string | null;
-  exportAreaName?: string;
-  exportArs?: string;
-  exportTitle?: string;
-  exportSubtitle?: string;
-  exportCollectionName?: string;
-  exportUpdatedAt?: string;
-  exportAttribution?: string;
+  ars?: string | null | undefined;
+  exportAreaName?: string | undefined;
+  exportArs?: string | undefined;
+  exportTitle?: string | undefined;
+  exportSubtitle?: string | undefined;
+  exportCollectionName?: string | undefined;
+  exportUpdatedAt?: string | undefined;
+  exportAttribution?: string | undefined;
 }>();
 
 const containerRef = ref<HTMLElement | null>(null);
@@ -135,8 +136,8 @@ async function renderMap() {
     map = new maplibregl.Map({
       container: containerRef.value,
       // MapLibre validates the complete style; component transformations retain opaque expression fields.
-      style: buildStyle(spec.value) as import('maplibre-gl').StyleSpecification,
-      transformRequest: (url: string) => ({ url: cartoBasemapProxyUrl(url) }),
+      style: checkedMapStyle(buildStyle(spec.value)),
+      transformRequest: (url: string) => ({ url: visualizationUrl(cartoBasemapProxyUrl(url), window.location.origin), credentials: "same-origin" }),
       attributionControl: {},
       cooperativeGestures: false,
       canvasContextAttributes: { preserveDrawingBuffer: true },
@@ -628,7 +629,7 @@ async function featureDataForBounds() {
   featureBoundsAbortController = new AbortController();
 
   try {
-    const response = await fetch(data, { signal: featureBoundsAbortController.signal });
+    const response = await fetch(visualizationUrl(data, window.location.origin), { signal: featureBoundsAbortController.signal, credentials: "omit", redirect: "error" });
     return await response.json() as unknown;
   } catch (err: unknown) {
     if ((err instanceof Error ? err.name : undefined) !== "AbortError") console.warn("[MapLibreRenderElement] feature bounds fetch error:", err);
@@ -1076,9 +1077,9 @@ function appendAreaParam(url: string, ars: string) {
 }
 
 function resolveUrl(url: string) {
-  if (/^https?:\/\//i.test(url)) return url;
+  if (/^https?:\/\//i.test(url)) return visualizationUrl(url, typeof window === "undefined" ? undefined : window.location.origin);
   if (typeof window === "undefined") return url;
-  return new URL(url, window.location.origin).toString();
+  return new URL(visualizationUrl(url, window.location.origin), window.location.origin).toString();
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement) {

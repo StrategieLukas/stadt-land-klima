@@ -12,8 +12,8 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-  text?: string;
-  description?: string;
+  text?: string | undefined;
+  description?: string | undefined;
 }>();
 
 const isEditing = import.meta.blokkliEditing

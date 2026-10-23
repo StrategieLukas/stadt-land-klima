@@ -147,15 +147,14 @@ import { routeSlug } from "~/shared/routeValues";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { berlinDayNumber, pinColor, relationId, visitHasEnded } from "~/shared/tour";
 import { isVideoMedia, orderedMedia } from "~/shared/tourMedia";
-import { STOP_FIELDS, TOUR_FIELDS, publicStopFilter, tourStopHref } from "~/shared/successProjectTour";
+import { tourStopHref } from "~/shared/successProjectTour";
 import type { SuccessProjectTour, SuccessProjectTourStop } from "~/shared/successProjectTour";
 import type { TourMedia } from "~/shared/tourMedia";
-import type { TourPoint } from "~/shared/tour";
 import { isRaster } from "~/shared/utils";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 
-type Project = { id: number; slug: string; title: string; profile_stage?: string | null };
+type Project = { id: number; slug: string; title: string; profile_stage?: string | null | undefined };
 type Stop = SuccessProjectTourStop;
 type Series = SuccessProjectTour;
 
@@ -304,7 +303,7 @@ function scrollStopStrip(index: number) {
   });
 }
 
-watch(activeStop, (index) => { nextTick(() => scrollStopStrip(index)); });
+watch(activeStop, (index) => { void nextTick(() => { scrollStopStrip(index); }); });
 
 function selectStop(index: number) {
   const stop = stops.value[index];
@@ -349,7 +348,7 @@ function syncStopWithScroll() {
   const waypoints = Array.from(track.children) as HTMLElement[];
   let index = 0;
   for (let position = 0; position < waypoints.length; position += 1) {
-    if (waypoints[position]?.getBoundingClientRect().top! <= activationY) index = position;
+    if ((waypoints[position]?.getBoundingClientRect().top ?? Infinity) <= activationY) index = position;
     else break;
   }
   if (!hasEnteredMap) {
@@ -412,7 +411,7 @@ onMounted(() => {
   const linkedIndex = stops.value.findIndex((stop) => window.location.hash === `#stop-${stop.slug}`);
   if (linkedIndex >= 0) activeStop.value = linkedIndex;
   isHydrated.value = true;
-  nextTick(() => {
+  void nextTick(() => {
     scrollStopStrip(activeStop.value);
     if (linkedIndex >= 0) selectStop(linkedIndex);
     else onJourneyScroll();

@@ -134,13 +134,13 @@ try {
 
 const props = defineProps({
   basePath: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: '',
   },
   // 'ars'  (default) → navigates to `${basePath}/${area.ars}` (used by /stats pages)
   // 'slug' → navigates to `/municipalities/${slug}` for rated areas (used by hero search)
   linkMode: {
-    type: String as PropType<"ars" | "slug">,
+    type: String as PropType<"ars" | "slug" | undefined>,
     default: 'ars',
   },
   // Controls whether the "reasonable municipalities to rate" filter is applied:
@@ -148,14 +148,14 @@ const props = defineProps({
   // 'exclude' → always use all-areas mode, hide toggle
   // 'switch'  → show toggle so user can switch (default)
   reasonableMunipsToRate: {
-    type: String as PropType<"include" | "exclude" | "switch">,
+    type: String as PropType<"include" | "exclude" | "switch" | undefined>,
     default: 'switch',
   },
   // Optional callback: (area) => route | null
   // When provided, called on selection. Return a route string/object to navigate,
   // or null/undefined to skip navigation (caller handles side effects in the callback).
   routeBuilder: {
-    type: Function as PropType<AreaRouteBuilder | null>,
+    type: Function as PropType<AreaRouteBuilder | null | undefined>,
     default: null,
   },
 })

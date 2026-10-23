@@ -2,7 +2,7 @@ import type { DefineComponent, ObjectDirective } from "vue";
 declare module "vue" {
   // Accordion deep links intentionally use named HTMLElements and getElementsByName.
   interface HTMLAttributes {
-    name?: string;
+    name?: string | undefined;
     [attribute: `data-${string}`]: unknown;
   }
   interface ComponentCustomProps {
@@ -15,15 +15,15 @@ declare module "vue" {
   }
   interface GlobalComponents {
     "altcha-widget": DefineComponent<{
-      challenge?: string;
-      challengeurl?: string;
-      auto?: string;
-      hidefooter?: boolean;
-      hidelogo?: boolean;
-      floating?: boolean;
-      name?: string;
-      language?: string;
-      onStatechange?: (event: Event) => void;
+      challenge?: string | undefined;
+      challengeurl?: string | undefined;
+      auto?: string | undefined;
+      hidefooter?: boolean | undefined;
+      hidelogo?: boolean | undefined;
+      floating?: boolean | undefined;
+      name?: string | undefined;
+      language?: string | undefined;
+      onStatechange?: ((event: Event) => void) | undefined;
     }>;
   }
 }

@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Not found" });
   }
 
-  const body: unknown = await readRequestBody<unknown>(event, 65536);
+  const body: unknown = await readRequestBody(event, 65536);
   const parsed = CandidateAnswersRequestSchema.safeParse(body);
   if (!parsed.success) {
     throw createError({ statusCode: 400, statusMessage: "Invalid request body" });

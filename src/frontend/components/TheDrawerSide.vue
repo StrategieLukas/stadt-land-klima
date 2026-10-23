@@ -281,8 +281,8 @@ const navLabel = (item: NavigationItem, field: "label" | "name" | "title" | "des
 const navDescription = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "description");
 
 const props = defineProps({
-  pages: { type: Array as PropType<NavigationPage[]>, default: () => [] },
-  navItems: { type: Array as PropType<NavigationItem[]>, default: () => [] },
+  pages: { type: Array as PropType<NavigationPage[] | undefined>, default: () => [] },
+  navItems: { type: Array as PropType<NavigationItem[] | undefined>, default: () => [] },
 });
 
 const safeNavItems = computed(() => (Array.isArray(props.navItems) ? props.navItems : []));

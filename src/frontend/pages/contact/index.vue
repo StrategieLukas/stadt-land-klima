@@ -108,7 +108,6 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import type { FeedbackRequest } from "~/shared/contracts/submissions"
 import { FeedbackRequestSchema } from "~/shared/contracts/submissions"
 import { routeText } from "~/shared/routeValues"
 import { captchaEventData, captchaWidgetValue, requestErrorMessage } from "~/shared/requestError"

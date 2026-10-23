@@ -15,8 +15,8 @@ import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
 
 const props = withDefaults(defineProps<{
-  content?: string | null;
-  appearance?: "box" | "italic";
+  content?: string | null | undefined;
+  appearance?: "box" | "italic" | undefined;
 }>(), {
   appearance: "box",
 });

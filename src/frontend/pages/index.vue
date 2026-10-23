@@ -38,7 +38,7 @@ const { isAuthenticated, initialize } = useAuth();
 useBlockHashNavigation()
 const canEdit = ref(false)
 onMounted(() => {
-  initialize()
+  void initialize()
   watchEffect(() => { canEdit.value = isAuthenticated.value })
 })
 

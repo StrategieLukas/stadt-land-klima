@@ -1,4 +1,4 @@
-<template lang="">
+<template>
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
       <div class="relative flex h-96 w-full items-center justify-center cursor-pointer">

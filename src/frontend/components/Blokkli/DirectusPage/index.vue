@@ -21,7 +21,7 @@ const { uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  pageSlug?: string
+  pageSlug?: string | undefined
 }>()
 
 
@@ -32,7 +32,7 @@ const { data: pageHtml } = await useAsyncData<string>(
   async () => {
     if (!props.pageSlug) return ''
     try {
-      const result = await $fetch<{ page: { contents: string | null } }>(`/api/public/pages/${encodeURIComponent(props.pageSlug)}`)
+      const result = await $fetch(`/api/public/pages/${encodeURIComponent(props.pageSlug)}`)
       return result.page.contents || ''
     } catch {
       return ''

@@ -86,15 +86,15 @@ const props = defineProps({
     required: true,
   },
   areaBounds: {
-    type: Object as PropType<GeoJsonObject | null>,
+    type: Object as PropType<GeoJsonObject | null | undefined>,
     default: null,
   },
   height: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "h-64",
   },
   showLegend: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: true,
   },
 });

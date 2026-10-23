@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { EventSeriesSchema, EventSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
@@ -6,7 +7,7 @@ import { defineEventHandler, getRouterParam, createError, setResponseHeader } fr
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
 
 const seriesFields = ['id', 'slug', 'title', 'introduction', 'format', 'cover_image', 'cover_image_credits', 'brand_logo', 'closing_reflection']
-const eventInSeriesFields = ['id', 'slug', 'title', 'start_date', 'end_date', 'location', 'event_type', 'image']
+
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
     filter: { slug: { _eq: slug }, status: { _eq: 'published' } },
     fields: seriesFields,
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!series || series.length === 0) {
     throw createError({ statusCode: 404, statusMessage: 'Event series not found' })
@@ -33,7 +34,7 @@ export default defineEventHandler(async (event) => {
     filter: {series: {_eq: row.id}, status: {_eq: 'published'}},
     fields: ['id', 'slug', 'title', 'description', 'start_date', 'end_date', 'date_only', 'location', 'event_type', 'event_category', 'image', 'image_credits'],
     sort: ['start_date'], limit: 1001,
-  }));
+  })).then(cmsRows);
   if (events.length > 1000) throw createError({statusCode: 502, statusMessage: 'Event limit exceeded'});
   return {series: row, events: parseCms(z.array(EventSchema), events)};
 })

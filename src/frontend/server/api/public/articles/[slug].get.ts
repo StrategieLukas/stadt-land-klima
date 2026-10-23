@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { ProjectDetailSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
       { measures: [{ measures_id: ['id', 'measure_id', 'name', 'slug'] }] },
     ],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   if (!articles || articles.length === 0) {
     throw createError({ statusCode: 404, statusMessage: 'Article not found' })

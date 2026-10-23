@@ -10,13 +10,16 @@
   },
   "scripts": {
     "build": "directus-extension build",
-    "dev": "directus-extension build -w --no-minify"
+    "dev": "directus-extension build -w --no-minify",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prebuild": "npm run typecheck"
   },
   "devDependencies": {
     "@directus/extensions-sdk": "18.0.6",
     "@types/express": "^4.17.25",
     "esbuild": "^0.28.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@directus/types": "^18.0.0"
   },
   "overrides": {
     "esbuild": "^0.28.2",

@@ -130,8 +130,8 @@
                   :key="'strip-' + member.id"
                   type="button"
                   class="flex flex-col items-center gap-1 cursor-pointer group focus:outline-none"
-                  @click="scrollToMember(member.id, activeTeam.color)"
                   :title="memberFullName(member)"
+                  @click="scrollToMember(member.id, activeTeam.color)"
                 >
                   <div
                     class="w-10 h-10 rounded-full overflow-hidden border-2 group-hover:scale-110 transition-transform"
@@ -139,11 +139,11 @@
                   >
                     <SmartImg
                       v-if="member.avatar"
-                      :assetId="member.avatar"
-                      :isRaster="true"
+                      :asset-id="member.avatar"
+                      :is-raster="true"
                       :width="40"
                       :height="40"
-                      imgClass="w-full h-full object-cover"
+                      img-class="w-full h-full object-cover"
                     />
                     <div
                       v-else
@@ -189,8 +189,8 @@
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
           <div
             v-for="member in filteredMembers"
-            :key="'all-active-' + member.id"
             :id="'member-' + member.id"
+            :key="'all-active-' + member.id"
           class="flex flex-col bg-[var(--slk-surface)] rounded-xl overflow-hidden shadow-sm border-2"
             :style="{ borderColor: activeTeam.color }"
             style="transition: box-shadow 0.1s;"
@@ -199,19 +199,19 @@
               <template v-if="member.avatar">
                 <!-- Blurred fill layer keeps the container looking full at any aspect ratio -->
                 <SmartImg
-                  :assetId="member.avatar"
-                  :isRaster="true"
+                  :asset-id="member.avatar"
+                  :is-raster="true"
                   :width="320"
                   :height="320"
-                  imgClass="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
+                  img-class="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
                 />
                 <!-- Main image: contain so the face is never cropped -->
                 <SmartImg
-                  :assetId="member.avatar"
-                  :isRaster="true"
+                  :asset-id="member.avatar"
+                  :is-raster="true"
                   :width="320"
                   :height="320"
-                  imgClass="absolute inset-0 w-full h-full object-contain"
+                  img-class="absolute inset-0 w-full h-full object-contain"
                 />
               </template>
               <div
@@ -235,27 +235,27 @@
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div
           v-for="member in otherMembers"
-          :key="'all-other-' + member.id"
           :id="'member-' + member.id"
+          :key="'all-other-' + member.id"
           class="flex flex-col bg-[var(--slk-surface)] rounded-xl border border-[var(--slk-border)] shadow-sm overflow-hidden"
         >
           <div class="relative aspect-square bg-[var(--slk-surface-subdued)] overflow-hidden flex-shrink-0">
             <template v-if="member.avatar">
               <!-- Blurred fill layer -->
               <SmartImg
-                :assetId="member.avatar"
-                :isRaster="true"
+                :asset-id="member.avatar"
+                :is-raster="true"
                 :width="320"
                 :height="320"
-                imgClass="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
+                img-class="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
               />
               <!-- Main image: contain so the face is never cropped -->
               <SmartImg
-                :assetId="member.avatar"
-                :isRaster="true"
+                :asset-id="member.avatar"
+                :is-raster="true"
                 :width="320"
                 :height="320"
-                imgClass="absolute inset-0 w-full h-full object-contain"
+                img-class="absolute inset-0 w-full h-full object-contain"
               />
             </template>
             <div
@@ -336,7 +336,7 @@ function handleHash(hash: string) {
   if (hash.startsWith('#team-')) {
     const teamId = hash.slice('#team-'.length)
     activeTeamId.value = teamId
-    nextTick(() => {
+    void nextTick(() => {
       document.getElementById('team-detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   } else if (hash.startsWith('#member-')) {
@@ -419,13 +419,13 @@ onUnmounted(() => {
 // should scroll freely).
 const panelStyle = computed(() =>
   isLg.value && svgHeight.value > 0
-    ? { maxHeight: svgHeight.value + 'px' }
+    ? { maxHeight: `${svgHeight.value}px` }
     : {}
 )
 
 const placeholderStyle = computed(() =>
   isLg.value && svgHeight.value > 0
-    ? { minHeight: svgHeight.value + 'px' }
+    ? { minHeight: `${svgHeight.value}px` }
     : { minHeight: '220px' }
 )
 
@@ -469,9 +469,9 @@ function scrollToMember(id: string, color: string) {
   el.style.setProperty('--highlight-color-soft', blendHex(color ?? '#16bae7', 0.35))
   el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   el.classList.remove('member-highlight')
-  void el.offsetWidth
+  el.getBoundingClientRect()
   el.classList.add('member-highlight')
-  el.addEventListener('animationend', () => el.classList.remove('member-highlight'), { once: true })
+  el.addEventListener('animationend', () => { el.classList.remove('member-highlight'); }, { once: true })
 }
 </script>
 

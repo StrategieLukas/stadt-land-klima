@@ -1,3 +1,4 @@
+import { cmsRecord, cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { ComparisonRatingSchema } from "~/shared/contracts/municipality";
 import { parseCms } from "~/server/utils/parseCms";
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
       fields: ["id", "catalog_version"],
       limit: 1,
     }),
-  );
+  ).then(cmsRows);
   const measure = measures[0];
   if (!measure) throw createError({ statusCode: 404, statusMessage: "Measure not found" });
   const municipalityFields = [
@@ -48,15 +49,15 @@ export default defineEventHandler(async (event) => {
       ],
       limit: 10001,
     }),
-  );
+  ).then(cmsRows);
   if (scores.length > 10000) throw createError({ statusCode: 502, statusMessage: "Comparison limit exceeded" });
   const municipalities = new Map(
     scores
-      .filter((score) => score.municipality?.localteam_id)
+      .filter((score) => cmsRecord(score.municipality ?? {}).localteam_id)
       .map((score) => [
-        score.municipality.localteam_id,
+        cmsRecord(score.municipality).localteam_id,
         {
-          ...score.municipality,
+          ...cmsRecord(score.municipality),
           scores: [
             {
               catalog_version: score.catalog_version,
@@ -79,7 +80,7 @@ export default defineEventHandler(async (event) => {
           fields: ["rating", "applicable", "localteam_id"],
           limit: 10001,
         }),
-      )
+      ).then(cmsRows)
     : [];
   if (ratings.length > 10000) throw createError({ statusCode: 502, statusMessage: "Comparison limit exceeded" });
   setResponseHeader(event, "Cache-Control", "public, max-age=60");
@@ -91,7 +92,7 @@ export default defineEventHandler(async (event) => {
         applicable: row.applicable,
         localteam_id: {
           id: row.localteam_id,
-          municipality_name: municipality?.name,
+          municipality_name: municipality ? cmsRecord(municipality).name : null,
           municipality_id: [municipality],
         },
       };

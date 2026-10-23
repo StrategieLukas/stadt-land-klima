@@ -310,23 +310,23 @@ const { backHref, backLabel } = useReferrer("/projects", $t("navigation.return_t
 const localZeroLogoId = "85624177-21f4-43c7-9b13-b53087ba2401";
 
 const props = defineProps({
-  title: String,
-  subtitle: String,
-  municipality_name: String,
-  municipality_slug: String,
-  state: String,
-  author: String,
+  title: {type: String as PropType<string | undefined>},
+  subtitle: {type: String as PropType<string | undefined>},
+  municipality_name: {type: String as PropType<string | undefined>},
+  municipality_slug: {type: String as PropType<string | undefined>},
+  state: {type: String as PropType<string | undefined>},
+  author: {type: String as PropType<string | undefined>},
   date: [String, Date] as PropType<string | Date | null>,
-  image_id: String,
-  image_is_raster: Boolean,
-  image_credits: String,
-  abstract: String,
-  article_text: String,
+  image_id: {type: String as PropType<string | undefined>},
+  image_is_raster: {type: Boolean as PropType<boolean | undefined>},
+  image_credits: {type: String as PropType<string | undefined>},
+  abstract: {type: String as PropType<string | undefined>},
+  article_text: {type: String as PropType<string | undefined>},
   link: URL as PropType<URL | null>,
-  article_instagram: String,
-  article_linkedin: String,
-  organisation: Object as PropType<Organisation | null>, // can be null
-  measures: Array as PropType<Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null>, // can be null/empty
+  article_instagram: {type: String as PropType<string | undefined>},
+  article_linkedin: {type: String as PropType<string | undefined>},
+  organisation: Object as PropType<Organisation | null | undefined>, // can be null
+  measures: Array as PropType<Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null | undefined>, // can be null/empty
 });
 
 const articleHasSocialMedia = props.article_instagram || props.article_linkedin;

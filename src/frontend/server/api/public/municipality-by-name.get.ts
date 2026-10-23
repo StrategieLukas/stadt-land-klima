@@ -1,3 +1,4 @@
+import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { PublicScoreSchema } from "~/shared/contracts/search";
 import { parseCms } from "~/server/utils/parseCms";
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
       { scores: ['catalog_version', 'published', 'percentage_rated'] },
     ],
     limit: 1,
-  }))
+  })).then(cmsRows)
 
   const municipality = parseCms(z.array(z.object({slug: z.string().nullable(), ars: z.string().nullable(), scores: z.array(PublicScoreSchema)})), results)[0]
   if (!municipality) return { municipality: null }

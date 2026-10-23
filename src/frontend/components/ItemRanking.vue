@@ -1,4 +1,4 @@
-<template lang="">
+<template>
   <div
     class="relative mb-3 flex items-stretch gap-4 bg-opacity-10 py-5 pl-10 pr-4"
     :class="[isRanking ? 'shadow-list' : '', colorClass.bg]"
@@ -7,7 +7,7 @@
       <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
       <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black break-keep whitespace-nowrap">
-        {{ municipalityScore.rank > 0 ? municipalityScore.rank : "?" }}
+        {{ (municipalityScore.rank ?? 0) > 0 ? municipalityScore.rank : "?" }}
       </div>
 
     </div>
@@ -59,7 +59,7 @@ const props = defineProps({
     required: true,
   },
   isRanking: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     required: false,
     default: false,
   },

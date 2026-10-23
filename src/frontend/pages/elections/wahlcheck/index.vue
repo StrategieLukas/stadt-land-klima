@@ -37,7 +37,7 @@
       <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
         <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
-        <button @click="loadElections" class="btn btn-primary">{{ $t("generic.try_again") }}</button>
+        <button class="btn btn-primary" @click="loadElections">{{ $t("generic.try_again") }}</button>
       </div>
 
       <!-- No Public Elections -->
@@ -209,12 +209,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-
-const { $t, $locale } = useNuxtApp();
+import { ref, onMounted } from "vue";
 
 import type { z } from "zod";
 import type { PublicElectionListSchema } from "~/shared/contracts/elections";
+
+const { $t, $locale } = useNuxtApp();
 const publicElections = ref<z.output<typeof PublicElectionListSchema>[]>([]);
 const pending = ref(true);
 const error = ref(false);
@@ -251,7 +251,7 @@ async function loadElections() {
     }
 
     publicElections.value = elections;
-  } catch (err) {
+  } catch {
     error.value = true;
     errorMessage.value = $t("elections.loading_error.description");
   } finally {
@@ -261,16 +261,9 @@ async function loadElections() {
 
 // Load data on mount
 onMounted(() => {
-  loadElections();
+  void loadElections();
 });
 
-// Sort elections by date (newest first) or by candidate count
-const sortedElections = computed(() => {
-  return [...publicElections.value].sort((a, b) => {
-    // Sort by date_created descending (newest first)
-    return new Date(b.date_created).getTime() - new Date(a.date_created).getTime();
-  });
-});
 
 useHead({
   title: $t("elections.wahlcheck.title"),

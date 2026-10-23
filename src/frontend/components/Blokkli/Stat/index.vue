@@ -157,10 +157,10 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  value?: string
-  unit?: string
-  label?: string
-  description?: string
+  value?: string | undefined
+  unit?: string | undefined
+  label?: string | undefined
+  description?: string | undefined
 }>()
 
 const colorMap: Record<string, { bg: string; text: string; border: string; accent: string }> = {

@@ -1,9 +1,12 @@
+import { webcrypto } from "node:crypto";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
+import {createRequire} from 'node:module';
+const frontend = createRequire(new URL('../../../src/frontend/package.json', import.meta.url));
 
 type Block = { uuid: string; bundle: string; isVisible?: boolean; props?: Record<string, any>; options?: Record<string, any> };
 type Command = { operation: string; collection?: string; id?: string | number; data?: any; query?: any; path?: string; body?: string };
@@ -29,14 +32,20 @@ function loadModule(path: string, dependencies: Record<string, unknown>, globals
   return module.exports;
 }
 
-const persistence = loadModule('../../../src/frontend/shared/blokkliPersistence.ts', {});
+const domain = loadModule('../../../src/frontend/shared/domain.ts', {});
+const editorBlocks = loadModule('../../../src/frontend/shared/editorBlocks.ts', {}, {crypto: webcrypto});
+const editorContracts = loadModule('../../../src/frontend/shared/contracts/editor.ts', {zod: frontend('zod'), '../editorBlocks': editorBlocks});
+const requestErrors = loadModule('../../../src/frontend/shared/requestError.ts', {});
+const persistence = loadModule('../../../src/frontend/shared/blokkliPersistence.ts', {'./editorBlocks': editorBlocks});
 const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
 function createHarness(options: { blocks?: Block[]; authenticated?: boolean; permissions?: PermissionMap; draft?: Record<string, any> } = {}) {
   const authenticated = options.authenticated !== false;
-  const permissions = options.permissions ?? Object.fromEntries(['blocks', 'edit_states', 'library_items'].map((collection) => [
+  let permissions = options.permissions ?? Object.fromEntries(['blocks', 'edit_states', 'library_items'].map((collection) => [
     collection, Object.fromEntries(['create', 'read', 'update', 'delete'].map((action) => [action, { access: 'full' }])),
   ]));
+  const authState = {value: authenticated};
+  const currentUser = {value: authenticated ? {id: 'editor-id', first_name: 'Test', last_name: 'Editor'} : null};
   const requests: Command[] = [];
   const storage = new Map<string, string>();
   const pageData = { data: { value: [] as Block[] } };
@@ -75,12 +84,17 @@ function createHarness(options: { blocks?: Block[]; authenticated?: boolean; per
         : operation === 'createItem' ? { data: args[1] } : { id: args[1], data: args[2] }) },
   ]));
   const adapterModule = loadModule('../../../src/frontend/app/blokkli.editAdapter.ts', {
+    zod: frontend('zod'),
+    '~/shared/domain': domain,
+    '~/shared/editorBlocks': editorBlocks,
+    '~/shared/contracts/editor': editorContracts,
+    '~/shared/requestError': requestErrors,
     '#blokkli/editor/adapter': { defineBlokkliEditAdapter: (factory: unknown) => factory },
     '#blokkli/editor/events': { emitMessage() {} },
     '@directus/sdk': { ...sdk, customEndpoint: (command: Command) => ({ ...command, operation: 'custom' }) },
     '~/composables/useAuth': { useAuth: () => ({
-      isAuthenticated: { value: authenticated },
-      user: { value: authenticated ? { id: 'editor-id', first_name: 'Test', last_name: 'Editor' } : null },
+      isAuthenticated: authState,
+      user: currentUser,
       initialize: async () => {}, getAuthenticatedClient: () => client,
     }) },
     '~/stores/auth': { useAuthStore: () => ({ _accessToken: { value: 'test-session' } }) },
@@ -102,6 +116,11 @@ function createHarness(options: { blocks?: Block[]; authenticated?: boolean; per
   const adapter = adapterModule.default({ value: { entityType: 'pages', entityUuid: 'page-id', entityBundle: 'page', language: 'de' } });
   return {
     adapter, requests, storage, pageData,
+    setSession(id?: string, nextPermissions?: PermissionMap) {
+      authState.value = Boolean(id);
+      currentUser.value = id ? {id, first_name: 'Test', last_name: 'Editor'} : null;
+      if (nextPermissions) permissions = nextPermissions;
+    },
     liveBlocks: () => plain(liveBlocks), draft: () => plain(draft ?? null),
     failPublish: (status?: number) => { publishError = status ? { status } : undefined; },
     setLibraryItems: (items: Record<string, any>[]) => { libraryItems = items; },
@@ -245,4 +264,67 @@ test('V2 media and reusable libraries expose searchable paginated filters and re
   } }]);
   const nestedLibrary = await h.adapter.getLibraryItems({ page: 0, bundles: [], filters: {} });
   assert.equal(nestedLibrary.items[0].item.props.blocks[0].isVisible, true);
+});
+
+test('cyclic/invalid moves and duplicate IDs cannot discard a subtree or partially move multiple blocks', async () => {
+  const h = createHarness({blocks: [{uuid: 'outer', bundle: 'container', props: {blocks: [{uuid: 'inner', bundle: 'container', props: {blocks: [{uuid: 'heading', bundle: 'heading', props: {text: 'Keep'}}]}}]}}, {uuid: 'other', bundle: 'text', props: {content: 'Other'}}]});
+  const state = await h.adapter.loadState();
+  const before = plain(state.blocks);
+  for (const host of [{uuid: 'inner', fieldName: 'blocks'}, {uuid: 'outer', fieldName: 'blocks'}, {uuid: 'inner', fieldName: 'not-a-field'}, {uuid: 'other', fieldName: 'blocks'}]) {
+    const result = await h.adapter.moveBlock({item: {block: {uuid: 'outer', bundle: 'container'}}, host: {type: 'block', ...host}, afterUuid: null});
+    assert.equal(result.success, false); assert.deepEqual(plain(state.blocks), before);
+  }
+  const multiple = await h.adapter.moveMultipleBlocks({uuids: ['other', 'missing'], host: {type: 'block', uuid: 'inner', fieldName: 'blocks'}, afterUuid: null});
+  assert.equal(multiple.success, false); assert.deepEqual(plain(state.blocks), before);
+  assert.equal((await h.adapter.addNewBlock({bundle: 'text', blockUuid: 'other', host: {type: 'entity', uuid: 'page-id'}, afterUuid: null})).success, false);
+  assert.deepEqual(plain(state.blocks), before);
+});
+
+test('malformed stored drafts and history are rejected before recovery or persistence', async () => {
+  for (const data of [{draft_blocks: [{uuid: 'bad', bundle: 'heading', props: {text: []}}], mutations: []}, {draft_blocks: [], mutations: ['bad']}, {draft_blocks: [], mutations: [], current_index: 10}]) {
+    const h = createHarness({draft: {id: 1, owner: 'editor-id', current_index: -1, ...data}});
+    await assert.rejects(h.adapter.loadState(), /Invalid recoverable editor draft/);
+    assert.equal(h.requests.filter(command => command.operation === 'updateItem' || command.operation === 'deleteItem').length, 0);
+  }
+  const local = createHarness();
+  const key = 'slk:blokkli-draft:pages:page-id';
+  const saved = JSON.stringify({ownerId: 'editor-id', blocks: [{uuid: 'bad', bundle: 'heading', props: {text: {}}}]});
+  local.storage.set(key, saved);
+  await assert.rejects(local.adapter.loadState(), /Invalid recoverable editor draft/);
+  assert.equal(local.storage.get(key), saved);
+});
+
+test('field and option events validate values before modifying live editor state', async () => {
+  const h = createHarness({blocks: [{uuid: 'heading', bundle: 'heading', props: {text: 'Keep'}}]});
+  const state = await h.adapter.loadState();
+  const before = plain(state.blocks);
+  assert.throws(() => h.adapter.updateFieldValue({uuid: 'heading', fieldName: 'text', fieldValue: {bad: true}}));
+  assert.throws(() => h.adapter.updateOptions([{uuid: 'heading', key: 'color', value: 'blue'}, {uuid: 'heading', key: '__proto__', value: {polluted: true}}]));
+  assert.deepEqual(plain(state.blocks), before);
+});
+
+test('editor permission caches are isolated between authenticated identities and logout', async () => {
+  const h = createHarness();
+  assert.ok((await h.adapter.getUserPermissions()).includes('use_blokkli'));
+  h.setSession('another-editor', {blocks: {read: {access: 'full'}}});
+  assert.deepEqual(plain(await h.adapter.getUserPermissions()), []);
+  assert.equal(h.requests.filter(command => command.path === '/permissions/me').length, 2);
+  h.setSession();
+  assert.deepEqual(plain(await h.adapter.getUserPermissions()), []);
+  assert.equal(h.requests.filter(command => command.path === '/permissions/me').length, 2);
+});
+
+
+test('every registered bundle has checked defaults and unsupported additions leave state intact', async () => {
+  const h = createHarness();
+  const state = await h.adapter.loadState();
+  for (const bundle of Object.keys(editorBlocks.BLOCK_DEFINITIONS)) {
+    const result = await h.adapter.addNewBlock({bundle, blockUuid: `default-${bundle}`, host: {type: 'entity', uuid: 'page-id'}, afterUuid: null});
+    assert.equal(result.success, true, bundle);
+  }
+  assert.doesNotThrow(() => editorBlocks.parseEditorBlocks(plain(state.blocks)));
+  const before = plain(state.blocks);
+  const result = await h.adapter.addNewBlock({bundle: 'unsupported', blockUuid: 'bad', host: {type: 'entity', uuid: 'page-id'}, afterUuid: null});
+  assert.equal(result.success, false);
+  assert.deepEqual(plain(state.blocks), before);
 });

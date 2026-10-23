@@ -208,7 +208,7 @@ onMounted(async () => {
     } else {
       await load(collectionSlug.value, data);
     }
-  } catch (_) {
+  } catch {
     renderError.value = true;
   } finally {
     pageLoading.value = false;
@@ -222,7 +222,7 @@ onMounted(async () => {
         params: { area: area.value.ars },
       }));
       collectionSummary.value = s;
-    } catch (_) {}
+    } catch { /* Attribution is optional when the source is unavailable. */ }
   }
 
   initStepObserver();
@@ -254,7 +254,7 @@ function initStepObserver() {
     { rootMargin: "-20% 0px -60% 0px", threshold: 0 },
   );
 
-  stepEls.forEach((el) => stepObserver!.observe(el));
+  stepEls.forEach((el) => { stepObserver!.observe(el); });
 }
 
 function scrollToStep(index: number) {

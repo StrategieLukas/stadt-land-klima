@@ -28,7 +28,7 @@ import { useSlzLocale } from '~/composables/useSlzLocale'
 const _props = defineProps<{
   steps: ResolvedStep[]
   activeIndex: number
-  top?: number
+  top?: number | undefined
 }>()
 
 const emit = defineEmits<{ (e: 'scroll-to', index: number): void }>()

@@ -1,4 +1,5 @@
-import { queryText, queryIds } from "~/server/utils/publicQuery";
+import { cmsRows } from "~/server/utils/cmsValue";
+import { queryText } from "~/server/utils/publicQuery";
 import { z } from "zod";
 import { TourStopSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
@@ -37,7 +38,7 @@ export default defineEventHandler(async (event) => {
     },
     fields: [...STOP_FIELDS],
     limit: -1,
-  }))
+  })).then(cmsRows)
 
   return { stops: parseCms(z.array(TourStopSchema), stops) }
 })

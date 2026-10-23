@@ -94,7 +94,8 @@ if (!slug) throw createError({statusCode: 404, statusMessage: "Not found"});
     `municipality-by-name-${article.value!.municipality_name}`,
     async () => {
       if (!article.value!.municipality_name) return { municipality: null };
-      return $fetch('/api/public/municipality-by-name', { query: { name: article.value!.municipality_name } });
+      const result = await $fetch('/api/public/municipality-by-name', { query: { name: article.value!.municipality_name } });
+      return result;
     },
     { watch: [article] }
   );

@@ -80,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+import { GenericFormRequestSchema } from "~/shared/contracts/submissions";
 import { displayScalar } from '~/shared/visualization';
 import { captchaEventData } from '~/shared/requestError';
 
@@ -97,10 +98,10 @@ type SubmittedFieldDefinition = {
 const FIELD_TYPES = new Set<SubmittedFieldType>(["text", "email", "textarea", "select", "checkbox"]);
 
 const props = defineProps<{
-  title?: string;
-  description?: string;
-  successMessage?: string;
-  fields?: FieldListItem[];
+  title?: string | undefined;
+  description?: string | undefined;
+  successMessage?: string | undefined;
+  fields?: FieldListItem[] | undefined;
 }>();
 
 const { $t, $locale } = useNuxtApp();
@@ -165,7 +166,7 @@ const { options, uuid } = defineBlokkli({
 });
 
 const formRef = ref<HTMLFormElement | null>(null);
-const altchaRef = ref<(HTMLElement & { value?: string }) | null>(null);
+const altchaRef = ref<(HTMLElement & { value?: string | undefined }) | null>(null);
 const altchaPayload = ref("");
 const captchaError = ref("");
 const submitError = ref("");
@@ -294,7 +295,7 @@ async function submitForm() {
   try {
     await $fetch("/api/submit-form-response", {
       method: "POST",
-      body: {
+      body: GenericFormRequestSchema.parse({
         formKey: formKey.value,
         formTitle: props.title?.trim() || $t("form_block.default_title"),
         pagePath: route.fullPath,
@@ -303,7 +304,7 @@ async function submitForm() {
         fields: fieldDefinitions.value,
         values: collectValues(new FormData(formRef.value)),
         altcha: payload,
-      },
+      }),
     });
     submissionState.value = "success";
   } catch (err) {

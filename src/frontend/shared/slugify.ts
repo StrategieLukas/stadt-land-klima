@@ -2,7 +2,6 @@ import slugify from "slugify";
 
 const slugifyConfig = {
   replacement: "-",
-  remove: undefined,
   lower: true,
   strict: true,
   locale: "de",

@@ -1,3 +1,4 @@
+import { queryText, queryLimit } from "~/server/utils/publicQuery";
 import { z } from "zod";
 import { AreaSchema } from "~/shared/contracts/search";
 import { parseCms } from "~/server/utils/parseCms";
@@ -10,13 +11,14 @@ import { parseCms } from "~/server/utils/parseCms";
  */
 
 export default defineEventHandler(async (event) => {
-  const sp       = new URLSearchParams((event.path ?? '').split('?')[1] ?? '')
-  const ars      = sp.get('ars')       ?? ''
-  const radiusKm = sp.get('radius_km') ?? '40'
-  const levels   = sp.get('levels')    ?? '4,5,6'
-  const limit    = sp.get('limit')     ?? '50'
-
-  if (!ars.trim()) return { areas: [] }
+  const query = getQuery(event)
+  const ars = queryText(query.ars, 12)
+  if (ars && !/^\d+$/.test(ars)) throw createError({statusCode: 400, statusMessage: 'Invalid ARS'})
+  const radiusKm = String(queryLimit(query.radius_km, 40, 1000))
+  const limit = String(queryLimit(query.limit, 50, 500))
+  const levels = queryText(query.levels, 20) ?? '4,5,6'
+  if (!/^[1-6](,[1-6]){0,5}$/.test(levels)) throw createError({statusCode: 400, statusMessage: 'Invalid levels'})
+  if (!ars) return { areas: [] }
 
   try {
     return parseCms(z.object({areas: z.array(AreaSchema)}), await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/nearby/`, {

@@ -1,38 +1,30 @@
-export default defineEventHandler(async (event) => {
-  const searchParams = getRequestSearchParams(event)
-  const q = searchParams.get('q') ?? ''
-  const limit = searchParams.get('limit') ?? '12'
-  const types = searchParams.get('types')
-
-  if (!q || q.trim().length < 2) return { hits: [] }
-
-  const filter = types
-    ? `type IN [${types.split(',').map(t => `"${t.trim()}"`).join(', ')}]`
-    : undefined
-
+import { z } from "zod";
+import sanitizeHtml from "sanitize-html";
+import { queryText, queryLimit } from "../utils/publicQuery";
+import { ContentResponseSchema } from "~/shared/contracts/search";
+import { parseCms } from "../utils/parseCms";
+const contentTypes = ['block', 'page', 'event', 'article', 'measure', 'static_page', 'news_item', 'member', 'team'] as const;
+const indexedHit = z.object({id: z.union([z.string(), z.number()]), type: z.enum(contentTypes), title: z.string(), url: z.string().regex(/^\/(?!\/)/), meta: z.string().nullable().optional(), text: z.string().optional(), _formatted: z.object({title: z.string().optional(), text: z.string().optional()}).optional()});
+const highlight = (value: string) => sanitizeHtml(value, {allowedTags: ['mark'], allowedAttributes: {}});
+export default defineEventHandler(async event => {
+  const query = getQuery(event);
+  const q = queryText(query.q, 200);
+  const limit = queryLimit(query.limit, 12, 30);
+  const suppliedTypes = queryText(query.types, 200)?.split(',').map(type => type.trim());
+  const selected = suppliedTypes ? z.array(z.enum(contentTypes)).min(1).max(contentTypes.length).safeParse(suppliedTypes) : undefined;
+  if (selected && !selected.success) throw createError({statusCode: 400, statusMessage: 'Invalid search types'});
+  if (!q || q.trim().length < 2) return {hits: []};
+  const filter = selected?.success ? `type IN [${selected.data.map(type => JSON.stringify(type)).join(', ')}]` : undefined;
   try {
-    const index = getMeilisearch().index('site_content')
-    const result = await index.search(q.trim(), {
-      limit: Math.min(parseInt(limit) || 12, 30),
-      filter,
-      attributesToHighlight: ['text', 'title'],
-      highlightPreTag: '<mark>',
-      highlightPostTag: '</mark>',
-      attributesToRetrieve: ['id', 'type', 'title', 'url', 'meta', 'text'],
-    })
-
-    return {
-      hits: result.hits.map(h => ({
-        id: h.id,
-        type: h.type,
-        title: (h as any)._formatted?.title ?? h.title,
-        excerpt: ((h as any)._formatted?.text ?? h.text ?? '').slice(0, 200),
-        url: h.url,
-        meta: h.meta ?? null,
-      })),
-    }
-  } catch (e) {
-    console.error('[content-search] Meilisearch error:', e)
-    return { hits: [] }
+    const result = await getMeilisearch().index('site_content').search(q.trim(), {
+      limit, ...(filter ? { filter } : {}), attributesToHighlight: ['text', 'title'], highlightPreTag: '<mark>', highlightPostTag: '</mark>', attributesToRetrieve: ['id', 'type', 'title', 'url', 'meta', 'text'],
+    });
+    const hits = parseCms(z.array(indexedHit), result.hits);
+    return ContentResponseSchema.parse({hits: hits.map(hit => ({id: hit.id, type: hit.type,
+      title: highlight(hit._formatted?.title ?? hit.title), excerpt: highlight((hit._formatted?.text ?? hit.text ?? '').slice(0, 200)), url: hit.url, meta: hit.meta ?? null,
+    }))});
+  } catch {
+    console.warn('[content-search] Search unavailable');
+    return {hits: []};
   }
-})
+});

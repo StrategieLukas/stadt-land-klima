@@ -1,4 +1,4 @@
-import type { FilterHandler, HookExtensionContext } from '@directus/extensions-sdk';
+import type { RegisterFunctions, HookExtensionContext, SchemaOverview } from '@directus/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -10,15 +10,6 @@ interface AgreementVersion {
 interface DirectusRole {
   id: string;
   name: string;
-}
-
-interface ItemsServiceInstance {
-  readByQuery(options: Record<string, unknown>): Promise<Record<string, unknown>[]>;
-  readOne(id: string | number, options?: Record<string, unknown>): Promise<Record<string, unknown>>;
-}
-
-interface ItemsServiceConstructor {
-  new (collection: string, options: { accountability: null; schema: unknown }): ItemsServiceInstance;
 }
 
 // ─── Error ────────────────────────────────────────────────────────────────────
@@ -63,31 +54,31 @@ const EXEMPT_ROLE_NAMES = ['Administrator', 'Frontend', 'Frontend-Public', 'Fron
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export default (
-  { filter }: { filter: FilterHandler },
+  { filter }: Pick<RegisterFunctions, 'filter'>,
   { services }: HookExtensionContext
 ) => {
-  const { ItemsService } = services as unknown as { ItemsService: ItemsServiceConstructor };
+  const { ItemsService } = services;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  async function getIgnoredRoleIds(schema: unknown): Promise<Set<string>> {
-    const rolesService = new ItemsService('directus_roles', {
+  async function getIgnoredRoleIds(schema: SchemaOverview): Promise<Set<string>> {
+    const rolesService = new ItemsService<DirectusRole>('directus_roles', {
       accountability: null,
       schema,
     });
 
     const roles = (await rolesService.readByQuery({
       fields: ['id'],
-      filter: { name: { _in: EXEMPT_ROLE_NAMES } },
+      filter: { name: { _in: [...EXEMPT_ROLE_NAMES] } },
     })) as DirectusRole[];
 
     return new Set(roles.map((r) => r.id));
   }
 
   async function getRequiredVersionIds(
-    schema: unknown
+    schema: SchemaOverview
   ): Promise<{ agbId: string; dataProtectionId: string } | null> {
-    const versionsService = new ItemsService('agreement_versions', {
+    const versionsService = new ItemsService<AgreementVersion>('agreement_versions', {
       accountability: null,
       schema,
     });
@@ -106,7 +97,7 @@ export default (
 
   async function userHasAcceptedRequiredAgreements(
     userId: string | number,
-    schema: unknown
+    schema: SchemaOverview
   ): Promise<boolean> {
     const versionIds = await getRequiredVersionIds(schema);
 
@@ -132,7 +123,7 @@ export default (
 
   async function isUserRoleExempt(
     userId: string | number,
-    schema: unknown
+    schema: SchemaOverview
   ): Promise<boolean> {
     const [ignoredRoleIds, usersService] = await Promise.all([
       getIgnoredRoleIds(schema),
@@ -163,7 +154,7 @@ export default (
 
       const { accountability, schema } = context as {
         accountability: { user?: string | number; role?: string } | null;
-        schema: unknown;
+        schema: SchemaOverview;
       };
 
       const userId = accountability?.user;

@@ -43,8 +43,8 @@ import { computed } from 'vue'
 const props = defineProps<{
   thresholds: Record<string, number>
   value: number | null
-  unit?: string
-  isPercentage?: boolean
+  unit?: string | undefined
+  isPercentage?: boolean | undefined
 }>()
 
 const ZONE_COLORS: Record<string, string> = {

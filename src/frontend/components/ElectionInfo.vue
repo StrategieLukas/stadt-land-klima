@@ -136,7 +136,7 @@ import type { Catalog } from '~/shared/contracts/search';
       required: true,
     },
     usingFallbackCatalog: {
-      type: Boolean,
+      type: Boolean as PropType<boolean | undefined>,
       default: false,
     },
     currentCatalogVersion: {

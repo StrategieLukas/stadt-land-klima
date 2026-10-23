@@ -39,7 +39,7 @@
             v-else-if="iconSlug"
             :icon="iconSlug"
             class="hex-icon"
-            ariaHidden="true"
+            :ariaHidden="true"
           />
           <div v-else-if="!imageUrl" class="hex-icon-placeholder" />
           <span
@@ -109,8 +109,8 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  label?: string
-  imageId?: string
+  label?: string | undefined
+  imageId?: string | undefined
 }>()
 
 const config = useRuntimeConfig()

@@ -180,19 +180,19 @@ const props = defineProps({
     required: true
   },
   election: {
-    type: Object as PropType<Election | null>,
+    type: Object as PropType<Election | null | undefined>,
     default: null
   },
   localteam: {
-    type: Object as PropType<{ name?: string; municipality_name?: string } | null>,
+    type: Object as PropType<{ name?: string | undefined; municipality_name?: string | undefined } | null | undefined>,
     default: null
   },
   userAnswers: {
-    type: Object as PropType<UserAnswers>,
+    type: Object as PropType<UserAnswers | undefined>,
     default: () => ({})
   },
   initialQuestionIndex: {
-    type: Number,
+    type: Number as PropType<number | undefined>,
     default: 0
   }
 })

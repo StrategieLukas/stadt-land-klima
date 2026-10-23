@@ -163,7 +163,7 @@ const props = defineProps({
     required: true
   },
   election: {
-    type: Object as PropType<Election | null>,
+    type: Object as PropType<Election | null | undefined>,
     default: null
   }
 })

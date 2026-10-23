@@ -43,7 +43,7 @@ const { options, uuid } = defineBlokkli({
 })
 
 const props = defineProps<{
-  hexagons?: FieldListItem[]
+  hexagons?: FieldListItem[] | undefined
 }>()
 
 /**
