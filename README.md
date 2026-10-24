@@ -296,17 +296,56 @@ Production rotation remains a deliberate operator action after the access split 
 # From the repository root; select the appropriate Compose files on your host.
 docker compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
   -e PUBLIC_URL=https://www.stadt-land-klima.de directus \
-  node /directus/cli/tasks/retireCredentials.ts plan /directus/.tmp/credential-retirement.json
+  node /directus/cli/tasks/retireCredentials.ts plan /directus/.tmp/credential-retirement.json \
+    --policy /directus/cli/credential-rotation.yaml
 
 # Copy the plan and .links.json to a private off-container backup, review both,
 # coordinate replacement invitations, and pause credential-issuing writers first.
 docker compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
   -e PUBLIC_URL=https://www.stadt-land-klima.de directus \
-  node /directus/cli/tasks/retireCredentials.ts apply /directus/.tmp/credential-retirement.json
+  node /directus/cli/tasks/retireCredentials.ts apply /directus/.tmp/credential-retirement.json \
+    --policy /directus/cli/credential-rotation.yaml
 ```
 
-The plan is mode 0600 and contains new bearer credentials; do not commit, publish or attach it to logs. Applying checks the instance and full credential inventory before writing, rotates candidate UUIDs/64-character municipality preview credentials, suspends only legacy Frontend-role accounts and clears the CMS cache. Re-running the same plan resumes a partial failure. It does not change Frontend-Server/Public accounts or send email. Coordinate fresh candidate invitations and search reindexing separately.
+Review [credential-rotation.yaml](src/directus/cli/credential-rotation.yaml) first. It contains references and decisions, never secret values. Its defaults revoke the legacy Frontend identity, leave candidate links at `review`, and retain low-sensitivity municipality preview links. `review` and `retain` skip execution. Set `candidate_links.action` or `municipality_previews.action` to `rotate` only when replacement links are intended. Other credential families are manual operator decisions; their `rotation_interval_days`, `last_rotated_on`, `next_review_on` and owner fields are planning metadata, not scheduled automation. Leave unknown production dates null; do not record rotation until it actually happens.
+
+Both commands require `--policy`. Plans are version 2, bound to the selected families, instance, website and selected credential inventory. Changing the selected scope before apply rejects the plan before writes; old version 1 plans must be regenerated. Unselected credential collections are not read or modified. Retiring the legacy account before deploying the access split can break the currently deployed website.
+
+The plan is mode 0600 and may contain new bearer credentials; do not commit, publish or attach it to logs. Applying suspends only selected legacy Frontend-role accounts and rotates only selected candidate/preview families, then clears the CMS cache when credentials were in scope. Re-running the same plan resumes a partial failure. It does not change Frontend-Server/Public accounts, rotate external provider/environment secrets or send email. Coordinate any replacement candidate invitations and search reindexing separately.
 
 ### Frontend node-forge backport
 
 The current registry has no fixed node-forge release for CVE-2026-85393. Frontend `npm ci` applies a source-hash-verified backport; the build/typecheck gate runs `npm run security:check` and refuses an unpatched or unexpectedly modified installation. If lifecycle scripts were intentionally disabled, run `node scripts/patch-node-forge.mts` from `src/frontend` before building. Do not edit dependency files manually or spoof a version to silence audit: raw npm audit still reports seven high graph entries. Track upstream replacement and evidence in [the hardening follow-up](SECURITY_HARDENING.md#frontend-audit-backport-and-formatting-follow-up).
+
+### Security branch deployment
+
+Use [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for the ordered server procedure and [SECURITY_DECISIONS.md](SECURITY_DECISIONS.md) for the origin-risk explanation, Directus options, credential inventory and node-forge replacement paths. `start_production.sh --import` imports before starting the frontend; `--prepare-only` leaves the frontend stopped for setup. The updater uses the ordered import automatically. The maintenance service is an nginx fallback, not a general traffic gate. Directus can remain reachable during operator setup.
+
+`provisionServiceUsers.ts` resolves all three roles/users before writes, creates missing Frontend-Server/Public/Preview identities and reuses strong existing tokens. It refuses conflicting or disabled accounts instead of silently assigning new roles or rotating tokens. Redirect output to a private mode-0600 file. Set the private server and preview-verifier tokens in `src/frontend/.env`; the public-asset identity currently has no frontend consumer. The example environment no longer advertises the retired browser token.
+
+### Database application-role cutover
+
+The commands use `slk_compose` and the private `slk_private` directory defined in step 1 of [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md). Keep the same operator shell.
+
+Rehearse this on a restored staging copy, including the real schema import and normal backup/restore. The tool has an isolated spatial/DDL regression test; that does not prove every production extension's requirements.
+
+```bash
+./bin/harden_database_role.sh production plan "$slk_private/database-role.json" slk_app
+# Review this private plan locally. It contains the generated password.
+"${slk_compose[@]}" stop frontend directus
+./bin/harden_database_role.sh production apply "$slk_private/database-role.json"
+```
+
+Keep PostgreSQL running and close other SQL clients. Plan performs no database writes. Apply rejects other connections, existing target roles and inventory/instance drift; role creation and ownership changes are transactional. It supports the reviewed public-schema layout, leaves extension/bootstrap/database ownership alone, removes public schema CREATE from PUBLIC, and gives the new non-superuser ownership of application objects for normal imports/migrations. It is not a split between separate runtime and schema-migration identities.
+
+Copy the two values from `database-role.json.env` into **`src/directus/.env`**. Keep **`docker/db/.env`** as the separate bootstrap operator. Changing those bootstrap environment values does not rotate the actual PostgreSQL account. If its old password was shared/exposed, rotate it separately: open `"${slk_compose[@]}" exec db sh -ec 'exec psql -U "$POSTGRES_USER" -d postgres'`, run `\password`, then `\q`, and privately update `docker/db/.env` to match. Do not put passwords in shell command arguments/history. Restart Directus and rerun the import using the new app login:
+
+```bash
+./bin/start_production.sh --import --prepare-only
+```
+
+Do not rerun apply after success; it intentionally refuses to overwrite an existing role. Keep the plan/snippet private for controlled recovery. An unexpected schema/owner is a stop-and-review condition, not a reason to grant SUPERUSER back to the application.
+
+The tool uses the existing Directus DB configuration to connect as the bootstrap superuser. It is an explicit operational role/ownership migration, not a replacement for YAML schema/permission imports. It accepts only a new role, binds the plan to the PostgreSQL cluster/database/operator/catalog inventory, refuses active clients and custom mixed-owner/non-public application layouts, and preserves PostGIS extension members. Empty extension-support schemas are retained. The app owns its tables/types/routines and can perform migrations but cannot create databases/roles, replicate or bypass row security. A separate runtime-versus-migrator identity is not implemented. Check custom SQL audit systems separately: the tool disables ordinary statement/duration logging for its password statement, but cannot control external audit capture.
+
+`npm --prefix src/directus/cli run test:database-role` runs a disposable PostgreSQL/PostGIS container and checks read-only planning, instance/schema drift, active-client rejection, atomic rollback, generated/serial IDs, spatial data, app DDL and denied cluster administration. It also verifies the bootstrap can still dump the database. It is opt-in and takes a few seconds locally. The normal CLI suite covers deployment ordering and backup/restore operator/overlay selection. Full existing-data Directus startup/import and backup restoration on the target remain staging acceptance.

@@ -515,26 +515,58 @@ test("role attachment synchronization persists exact policies and never updates 
   assert.equal(requests.filter((call) => call.path.startsWith("/users")).length, 0);
 });
 
-test("service-user provisioning uses supported SDK requests and strong tokens only for uniquely resolved roles", async () => {
+test("service-user provisioning covers all three roles and reuses existing tokens on repeat runs", async () => {
+  const users: Record<string, unknown>[] = [];
   reset((call) => {
     if (call.method === "GET" && call.path === "/roles") {
       const filter = RecordSchema.parse(JSON.parse(call.url.searchParams.get("filter") ?? "{}"));
       const name = RecordSchema.parse(filter.name)._eq;
-      assert.ok(name === "Frontend-Server" || name === "Frontend-Public");
+      assert.ok(["Frontend-Server", "Frontend-Public", "Frontend-Preview"].includes(String(name)));
       return { data: [{ id: `role-${name}` }] };
     }
     assert.equal(call.path, "/users");
+    if (call.method === "GET") {
+      const filter = RecordSchema.parse(JSON.parse(call.url.searchParams.get("filter") ?? "{}"));
+      return { data: users.filter((user) => user.email === RecordSchema.parse(filter.email)._eq) };
+    }
     assert.equal(call.method, "POST");
     assert.match(String(call.body.token), /^[a-f0-9]{64}$/);
-    assert.ok(["role-Frontend-Server", "role-Frontend-Public"].includes(String(call.body.role)));
-    return { data: { id: "fixture-user" } };
+    assert.ok(
+      ["role-Frontend-Server", "role-Frontend-Public", "role-Frontend-Preview"].includes(String(call.body.role)),
+    );
+    const user = { id: `fixture-user-${users.length}`, ...call.body };
+    users.push(user);
+    return { data: user };
   });
   const result = await provisionServiceUsers(url, "fixture-token");
-  assert.equal(Object.keys(result).length, 2);
-  assert.equal(requests.filter((call) => call.path === "/users").length, 2);
+  assert.equal(Object.keys(result).length, 3);
+  assert.equal(requests.filter((call) => call.path === "/users" && call.method === "POST").length, 3);
+  assert.deepEqual(await provisionServiceUsers(url, "fixture-token"), result);
+  assert.equal(requests.filter((call) => call.method !== "GET").length, 3, "second run must make no writes");
   reset(() => ({ data: [{ id: "ambiguous-one" }, { id: "ambiguous-two" }] }));
   await assert.rejects(provisionServiceUsers(url, "fixture-token"), /not uniquely found/);
   assert.equal(requests.filter((call) => call.method !== "GET").length, 0);
+});
+
+test("service-user provisioning rejects conflicting, disabled or weak existing identities before any writes", async () => {
+  for (const override of [{ role: "administrator" }, { status: "suspended" }, { token: "weak" }]) {
+    reset((call) => {
+      if (call.path === "/roles") {
+        const filter = RecordSchema.parse(JSON.parse(call.url.searchParams.get("filter") ?? "{}"));
+        return { data: [{ id: `role-${RecordSchema.parse(filter.name)._eq}` }] };
+      }
+      assert.equal(call.method, "GET");
+      const filter = RecordSchema.parse(JSON.parse(call.url.searchParams.get("filter") ?? "{}"));
+      return {
+        data:
+          RecordSchema.parse(filter.email)._eq === "frontend-preview@stadt-land-klima.local"
+            ? [{ id: "existing", role: "role-Frontend-Preview", status: "active", token: "a".repeat(64), ...override }]
+            : [],
+      };
+    });
+    await assert.rejects(provisionServiceUsers(url, "fixture-token"), /review it explicitly/);
+    assert.equal(requests.filter((call) => call.method !== "GET").length, 0);
+  }
 });
 
 test("checked-in administrative YAML matches the maintained import contracts", () => {

@@ -25,7 +25,8 @@
     "test:unit": "tsx --test tasks/*.test.ts",
     "build": "npm run typecheck",
     "test:gates": "tsx --test scripts/*.test.ts",
-    "test:integration": "tsx --test integration/*.test.ts"
+    "test:integration": "tsx --test integration/*.test.ts",
+    "test:database-role": "SLK_DATABASE_ROLE_TEST=1 tsx --test integration/databaseRole.test.ts"
   },
   "type": "module",
   "devDependencies": {

@@ -1,9 +1,19 @@
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 import { z } from "zod";
 import assert from "node:assert/strict";
-import { planRetirement, applyRetirement, replacementLinks, type RetirementRequest } from "./retireCredentials.ts";
+import {
+  planRetirement,
+  applyRetirement,
+  replacementLinks,
+  type RetirementRequest,
+  retirementScopeFromPolicy,
+  readRetirementScope,
+} from "./retireCredentials.ts";
+const allScope = { legacyFrontend: true, candidates: true, previews: true };
 function fixture() {
   const candidates = [{ id: 1, access_token: "previous-candidate" }];
   const municipalities = [{ id: "city", preview_token: "previous-preview", slug: "test-city" }];
@@ -38,7 +48,7 @@ function fixture() {
 }
 test("retirement planning makes no writes, isolates the legacy role and prepares private fragment invitations", async () => {
   const f = fixture();
-  const plan = await planRetirement(f.request, "https://cms.example.org", "https://example.org/");
+  const plan = await planRetirement(f.request, "https://cms.example.org", "https://example.org/", allScope);
   assert.deepEqual(f.writes, []);
   assert.equal(plan.credentials.length, 3);
   assert.doesNotMatch(JSON.stringify(plan), /previous-candidate|previous-preview|old-shared/);
@@ -52,12 +62,12 @@ test("retirement planning makes no writes, isolates the legacy role and prepares
     "Replacement must fit the real UUID column",
   );
   assert.equal(plan.credentials.find((row) => row.collection === "municipalities")!.replacement!.length, 64);
-  const result = await applyRetirement(f.request, plan, "https://cms.example.org", "https://example.org");
+  const result = await applyRetirement(f.request, plan, "https://cms.example.org", "https://example.org", allScope);
   assert.equal(result.updated, 3);
   assert.equal(f.users[0]!.status, "suspended");
   assert.equal(f.users[0]!.token, null);
   assert.equal(
-    (await applyRetirement(f.request, plan, "https://cms.example.org", "https://example.org")).alreadyApplied,
+    (await applyRetirement(f.request, plan, "https://cms.example.org", "https://example.org", allScope)).alreadyApplied,
     3,
   );
   assert.ok(!f.writes.some((path) => /server|public/.test(path)));
@@ -65,7 +75,7 @@ test("retirement planning makes no writes, isolates the legacy role and prepares
 test("retirement validates all preconditions before mutation and rejects instance, role, inventory and token drift", async () => {
   for (const drift of ["token", "role", "inventory", "instance", "website"]) {
     const f = fixture();
-    const plan = await planRetirement(f.request, "https://cms.example.org", "https://example.org");
+    const plan = await planRetirement(f.request, "https://cms.example.org", "https://example.org", allScope);
     if (drift === "token") f.users[0]!.token = "changed";
     if (drift === "role") f.users[0]!.role = "server";
     if (drift === "inventory") f.candidates.push({ id: 2, access_token: "new" });
@@ -75,6 +85,7 @@ test("retirement validates all preconditions before mutation and rejects instanc
         plan,
         drift === "instance" ? "https://other.example.org" : "https://cms.example.org",
         drift === "website" ? "https://other.example.org" : "https://example.org",
+        allScope,
       ),
     );
     assert.deepEqual(f.writes, [], drift);
@@ -82,7 +93,7 @@ test("retirement validates all preconditions before mutation and rejects instanc
 });
 test("retirement can resume after a partial upstream failure without rotating completed credentials again", async () => {
   const f = fixture();
-  const plan = await planRetirement(f.request, "http://cms", "https://example.org");
+  const plan = await planRetirement(f.request, "http://cms", "https://example.org", allScope);
   let writes = 0;
   await assert.rejects(
     applyRetirement(
@@ -93,11 +104,118 @@ test("retirement can resume after a partial upstream failure without rotating co
       plan,
       "http://cms",
       "https://example.org",
+      allScope,
     ),
   );
   const token = f.candidates[0]!.access_token;
-  const result = await applyRetirement(f.request, plan, "http://cms", "https://example.org");
+  const result = await applyRetirement(f.request, plan, "http://cms", "https://example.org", allScope);
   assert.equal(result.alreadyApplied, 1);
   assert.equal(result.updated, 2);
   assert.equal(f.candidates[0]!.access_token, token);
+});
+
+test("operator policy keeps low-sensitivity previews and unselected candidates untouched", async () => {
+  const scope = readRetirementScope(fileURLToPath(new URL("../credential-rotation.yaml", import.meta.url)));
+  assert.deepEqual(scope, { legacyFrontend: true, candidates: false, previews: false });
+  const f = fixture();
+  const reads: string[] = [];
+  const request: RetirementRequest = (path, method, body) => {
+    if (!method || method === "GET") reads.push(path);
+    return f.request(path, method, body);
+  };
+  const plan = await planRetirement(request, "https://cms", "https://website", scope);
+  assert.deepEqual(
+    plan.credentials.map((row) => row.collection),
+    ["users"],
+  );
+  assert.ok(
+    reads.every((path) => !path.startsWith("/items/")),
+    "Do not retrieve unselected bearer tokens",
+  );
+  f.candidates.push({ id: 2, access_token: "new-unselected-candidate" });
+  f.municipalities[0]!.preview_token = "independently-changed-preview";
+  await applyRetirement(request, plan, "https://cms", "https://website", scope);
+  assert.equal(f.candidates[0]!.access_token, "previous-candidate");
+  assert.equal(f.municipalities[0]!.preview_token, "independently-changed-preview");
+  assert.equal(f.users[0]!.status, "suspended");
+});
+
+test("scope changes, legacy plans and malformed policy cannot authorize writes", async () => {
+  const f = fixture();
+  const plan = await planRetirement(f.request, "https://cms", "https://website", allScope);
+  await assert.rejects(
+    applyRetirement(f.request, plan, "https://cms", "https://website", { ...allScope, previews: false }),
+    /policy changed/,
+  );
+  await assert.rejects(
+    applyRetirement(f.request, { ...plan, version: 1 }, "https://cms", "https://website", allScope),
+    /Legacy retirement/,
+  );
+  assert.deepEqual(f.writes, []);
+  const example = parse(readFileSync(new URL("../credential-rotation.yaml", import.meta.url), "utf8"));
+  assert.throws(
+    () =>
+      retirementScopeFromPolicy({
+        ...example,
+        credentials: {
+          ...example.credentials,
+          candidate_links: { ...example.credentials.candidate_links, action: "revoke" },
+        },
+      }),
+    /Unsupported/,
+  );
+  assert.throws(() =>
+    retirementScopeFromPolicy({
+      ...example,
+      credentials: {
+        ...example.credentials,
+        municipality_previews: { ...example.credentials.municipality_previews, action: "rotatte" },
+      },
+    }),
+  );
+  assert.throws(() => retirementScopeFromPolicy({ ...example, credentials: {} }), /Missing/);
+});
+
+test("an empty selection performs no inventory reads or cache writes", async () => {
+  const request: RetirementRequest = async () => {
+    throw Error("No request expected");
+  };
+  const scope = { legacyFrontend: false, candidates: false, previews: false };
+  const plan = await planRetirement(request, "https://cms", "https://website", scope);
+  assert.deepEqual(await applyRetirement(request, plan, "https://cms", "https://website", scope), {
+    updated: 0,
+    alreadyApplied: 0,
+  });
+});
+
+test("candidate-only selection does not depend on legacy roles or retrieve preview credentials", async () => {
+  const f = fixture();
+  const request: RetirementRequest = (path, method, body) => {
+    assert.ok(!path.startsWith("/roles") && !path.startsWith("/users") && !path.startsWith("/items/municipalities"));
+    return f.request(path, method, body);
+  };
+  const scope = { legacyFrontend: false, candidates: true, previews: false };
+  const plan = await planRetirement(request, "https://cms", "https://website", scope);
+  assert.deepEqual(
+    plan.credentials.map((row) => row.collection),
+    ["candidate"],
+  );
+  await applyRetirement(request, plan, "https://cms", "https://website", scope);
+  assert.notEqual(f.candidates[0]!.access_token, "previous-candidate");
+  assert.equal(f.users[0]!.status, "active");
+  assert.equal(f.municipalities[0]!.preview_token, "previous-preview");
+});
+
+test("the executable refuses implicit bulk planning without an explicit policy", () => {
+  const result = spawnSync(
+    process.execPath,
+    ["--import", "tsx", fileURLToPath(new URL("./retireCredentials.ts", import.meta.url)), "plan", "unused-plan.json"],
+    {
+      cwd: fileURLToPath(new URL("../", import.meta.url)),
+      encoding: "utf8",
+      timeout: 10000,
+    },
+  );
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Usage:.*--policy/);
 });
