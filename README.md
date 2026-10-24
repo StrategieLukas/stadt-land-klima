@@ -160,7 +160,7 @@ Verify a frontend production build as well as `curl http://localhost:8080`.
 
 The PostgreSQL/PostGIS and Meilisearch server upgrades require explicit,
 data-preserving migrations; do not change their image tags over existing data
-directories. Nuxt 4 and Blökkli 2 are implemented. Tailwind **4.3.3** and DaisyUI **5.7.50** now use the Vite integration and custom themes; see [migration and target acceptance](REMAINING_TODOS.md#tailwind-4-and-daisyui-5-migration).
+directories. Nuxt 4 and Blökkli 2 are implemented. Tailwind **4.3.3** and DaisyUI **5.7.50** now use the Vite integration and custom themes; see [migration and target acceptance](REMAINING_TODOS.md#choices-and-later-enhancements).
 
 ## Authenticated registration mail flows
 
@@ -200,7 +200,7 @@ that also verifies registration delivery and activation-link content.
   configuration, and then runs `directus database migrate:latest` inside the
   Directus container. Use `development` instead of `production` for the local
   development stack.
-- For Docker/PDF permission errors, check the container UID/GID and grant access only to required upload/temp/output directories. Do not use recursive or world-writable `chmod 777`; review host ownership before changing permissions. See [host hardening follow-up](REMAINING_TODOS.md#host-database-and-secret-hardening).
+- For Docker/PDF permission errors, check the container UID/GID and grant access only to required upload/temp/output directories. Do not use recursive or world-writable `chmod 777`; review host ownership before changing permissions. See [host hardening follow-up](REMAINING_TODOS.md#required-deployment-acceptance).
 - `./bin/update_production.sh` backs up the database by default. Use `--no-backup` when the database is unavailable and the update must proceed without that export.
 - Migrate ratings from one version to another using ./directus-cli migrate <old> <new>. Avoid using this when the "new" version is already in use, as it overwrites all ratings that do not need re-evaluation.
 
@@ -307,11 +307,11 @@ docker compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
     --policy /directus/cli/credential-rotation.yaml
 ```
 
-Review [credential-rotation.yaml](src/directus/cli/credential-rotation.yaml) first. It contains references and decisions, never secret values. Its defaults revoke the legacy Frontend identity, leave candidate links at `review`, and retain low-sensitivity municipality preview links. `review` and `retain` skip execution. Set `candidate_links.action` or `municipality_previews.action` to `rotate` only when replacement links are intended. Other credential families are manual operator decisions; their `rotation_interval_days`, `last_rotated_on`, `next_review_on` and owner fields are planning metadata, not scheduled automation. Leave unknown production dates null; do not record rotation until it actually happens.
+Review [credential-rotation.yaml](src/directus/cli/credential-rotation.yaml) first. It contains references and decisions, never secret values. Its selected policy revokes the legacy Frontend identity and explicitly retains both candidate access tokens and low-sensitivity municipality preview links, per the owner decisions. `review` and `retain` skip execution. A later change of either family to `rotate` requires a new owner decision and coordinated replacement links. Other credential families are manual operator decisions; their `rotation_interval_days`, `last_rotated_on`, `next_review_on` and owner fields are planning metadata, not scheduled automation. Leave unknown production dates null; do not record rotation until it actually happens.
 
 Both commands require `--policy`. Plans are version 2, bound to the selected families, instance, website and selected credential inventory. Changing the selected scope before apply rejects the plan before writes; old version 1 plans must be regenerated. Unselected credential collections are not read or modified. Retiring the legacy account before deploying the access split can break the currently deployed website.
 
-The plan is mode 0600 and may contain new bearer credentials; do not commit, publish or attach it to logs. Applying suspends only selected legacy Frontend-role accounts and rotates only selected candidate/preview families, then clears the CMS cache when credentials were in scope. Re-running the same plan resumes a partial failure. It does not change Frontend-Server/Public accounts, rotate external provider/environment secrets or send email. Coordinate any replacement candidate invitations and search reindexing separately.
+The plan is mode 0600 and may contain new bearer credentials; do not commit, publish or attach it to logs. Applying suspends only selected legacy Frontend-role accounts and rotates only selected candidate/preview families, then clears the CMS cache when credentials were in scope. Re-running the same plan resumes a partial failure. It does not change Frontend-Server/Public accounts, rotate external provider/environment secrets or send email. No replacement candidate invitations are required by the selected policy. Verify search reconciliation separately.
 
 ### Frontend node-forge backport
 
@@ -357,3 +357,9 @@ The frontend uses Tailwind 4.3.3 with `@tailwindcss/vite` and DaisyUI 5.7.50. Th
 Use `npm ci` independently on each local machine and in the server container. Native compiler packages are optional platform dependencies; never use `--omit=optional` or copy `node_modules` across operating systems. The browser floor is Safari 16.4+, Chrome 111+ and Firefox 128+; native macOS/Windows execution still requires target acceptance. A CSS-only deployment needs a frontend rebuild/recreation, with templates/configuration/manifests/lockfile deployed together; it needs no Directus upgrade/import.
 
 `npm --prefix bin/test_suite run test:styles -- http://localhost:8080` is the explicit light/dark desktop/mobile style/interaction gate. Select another installed engine with `TEST_STYLE_BROWSER=firefox` or `webkit`. The default unit suite separately compiles the real stylesheet and checks dynamic rating classes, theme IDs, optional bindings and persisted editor variants. See [test-suite instructions](bin/test_suite/README.md) for production HTTPS and engine setup.
+
+## Security release verification
+
+The pinned Directus 11.17.4 image applies exact-source guards and locked dependency replacements. Rebuild it when the security layer changes. `npm --prefix bin/test_suite run test:security:image` exercises the actual image without application database writes; `audit:directus-image` preserves raw advisory output, while `audit:directus-image:reviewed` additionally requires exact current dispositions, configuration controls and passing vendor regressions. The review expires on 2026-11-24; new advisories or an expired review fail the reviewed gate. CI archives raw image reports.
+
+`.github/workflows/quality.yml` runs PR quality/extension/image gates. The manually triggered deployed acceptance workflow uses read-only public/CSP/style checks and requires a real search result. Keep the explicit full writable HTTPS suite on isolated fixtures. Follow [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for credentials, database roles, proxy configuration and actual target acceptance; [REMAINING_TODOS.md](REMAINING_TODOS.md) separates those actions from optional later improvements.

@@ -574,7 +574,21 @@ async function completePublicWahlcheck(
       "Public Wahlcheck must load every candidate answer, including datasets above the Directus page limit",
     );
 
-    for (const question of questions) {
+    // Batch-created questions can share a timestamp; the public DTO defines the displayed order.
+    const displayedQuestions = wahlcheckDataPayload.questions as Question[];
+    const expectedQuestionIds = new Set(questions.map((question) => question.id));
+    assert(Array.isArray(displayedQuestions), "Public Wahlcheck must return its displayed question list");
+    assertEqual(displayedQuestions.length, questions.length, "Every expected question must be displayed");
+    assertEqual(
+      new Set(displayedQuestions.map((question) => question.id)).size,
+      questions.length,
+      "Displayed questions must not repeat",
+    );
+    assert(
+      displayedQuestions.every((question) => expectedQuestionIds.has(question.id)),
+      "Displayed question identities must match this election",
+    );
+    for (const question of displayedQuestions) {
       const radio = page.locator(`input[name="question-${question.id}"]`).first();
       await radio.waitFor({ state: "visible", timeout: 30_000 });
       await radio.click({ force: true });

@@ -1,5 +1,4 @@
-import { chromium } from "playwright";
-import { waitForHydration } from "./lib/browser.js";
+import { launchBrowser, waitForHydration } from "./lib/browser.js";
 import { assert } from "./lib/assert.js";
 
 /** Anonymous public smoke: no CMS login, env file, fixtures, or write requests. */
@@ -10,7 +9,7 @@ assert(
 );
 const base = target.origin;
 const started = performance.now();
-const browser = await chromium.launch();
+const browser = await launchBrowser(true);
 const context = await browser.newContext({ locale: "de-DE", serviceWorkers: "block" });
 const failures: string[] = [];
 let blockedWrites = 0;
@@ -22,6 +21,13 @@ await context.route("**/*", async (route) => {
 });
 
 try {
+  const searchResponse = await fetch(`${base}/api/content-search?q=Kontakt&types=static_page`);
+  assert(searchResponse.status === 200, `Public search must be ready, got ${searchResponse.status}`);
+  const search = await searchResponse.json();
+  assert(
+    Array.isArray(search.hits) && search.hits.some((hit: { url: string }) => hit.url === "/contact"),
+    "Public search must return the known contact page, not an empty fallback",
+  );
   // Bounded concurrency keeps a staging sanity check inexpensive.
   const paths = ["/", "/measures", "/map", "/stats", "/jobs", "/tools", "/organisation", "/news"];
   let index = 0;

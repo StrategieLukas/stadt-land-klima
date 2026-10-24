@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import pg from "pg";
 import { parse } from "yaml";
 import { z } from "zod";
+import { checkDatabaseRole } from "../security/startupChecks.js";
 import { applyDatabaseRole, planDatabaseRole } from "../tasks/hardenDatabaseRole.ts";
 
 const execute = promisify(execFile);
@@ -163,6 +164,44 @@ test(
           await assert.rejects(app.query("CREATE ROLE escalation SUPERUSER"), /permission denied/);
           await assert.rejects(app.query("SELECT * FROM pg_authid"), /permission denied/);
           await assert.rejects(app.query("DROP EXTENSION postgis"), /must be owner/);
+          await client.query("ALTER DATABASE slk_role_test OWNER TO slk_app");
+          try {
+            const failures: string[] = [];
+            await checkDatabaseRole(app, failures);
+            assert.ok(
+              failures.some((failure) => failure.endsWith(": pg_database_owner")),
+              "the runtime identity must not silently become the database owner",
+            );
+          } finally {
+            await client.query("ALTER DATABASE slk_role_test OWNER TO postgres");
+          }
+          const cleanFailures: string[] = [];
+          await checkDatabaseRole(app, cleanFailures);
+          assert.deepEqual(cleanFailures, []);
+          await client.query(
+            "CREATE ROLE privileged_parent; GRANT pg_read_server_files TO privileged_parent; GRANT privileged_parent TO slk_app",
+          );
+          try {
+            const failures: string[] = [];
+            await checkDatabaseRole(app, failures);
+            assert.ok(
+              failures.some((failure) => failure.endsWith(": pg_read_server_files")),
+              "nested server-file access must block production startup",
+            );
+          } finally {
+            await client.query("REVOKE privileged_parent FROM slk_app; DROP ROLE privileged_parent");
+          }
+          await client.query("CREATE ROLE privileged_creator CREATEROLE; GRANT privileged_creator TO slk_app");
+          try {
+            const failures: string[] = [];
+            await checkDatabaseRole(app, failures);
+            assert.ok(
+              failures.some((failure) => failure.endsWith(": privileged_creator")),
+              "membership of a role with elevated attributes must be rejected",
+            );
+          } finally {
+            await client.query("REVOKE privileged_creator FROM slk_app; DROP ROLE privileged_creator");
+          }
         } finally {
           await app.end();
         }

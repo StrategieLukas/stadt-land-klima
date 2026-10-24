@@ -53,7 +53,7 @@
 ## Directus Specific
 
 - [ ] YAML files are alphabetically sorted
-- [ ] Permission changes are in both public.yaml and frontend.yaml
+- [ ] Website permissions are minimal, checked into `src/directus/policies/Frontend-Server.yaml` and exposed through scoped Nuxt DTOs; never change public-role permissions
 - [ ] import-all.sh was run after schema changes
 - [ ] Extensions use CSS theme variables, not hardcoded colors
 
@@ -78,5 +78,5 @@
 - [ ] All TODO comments are addressed or converted to issues
 - [ ] No commented-out code left in
 - [ ] No debug console.log statements
-- [ ] Changes are committed with descriptive messages
+- [ ] The owner has reviewed the diff and explicitly authorized any commit; agents do not commit automatically
 - [ ] PR description explains the changes clearly

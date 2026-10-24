@@ -1,6 +1,6 @@
 # Security branch deployment checklist
 
-**2026-10-24. Run on staging first, then production.** The code stays on Directus **11.17.4**. This is a deployment procedure, not a claim that the remaining Directus advisories are resolved. Finish or explicitly accept the release gates in [REMAINING_TODOS.md](REMAINING_TODOS.md) before exposing the release.
+**2026-10-24. Run on staging first, then production.** The code stays on Directus **11.17.4**. The repository fixes and exact current advisory dispositions are recorded in [SECURITY_HARDENING.md](SECURITY_HARDENING.md#security-closure-review--2026-10-24). This procedure establishes actual target acceptance; local verification does not establish production deployment. Complete the operator gates in [REMAINING_TODOS.md](REMAINING_TODOS.md) before exposing the release.
 
 ## 1. Back up and select the reviewed release
 
@@ -51,7 +51,7 @@ Copy `DIRECTUS_FRONTEND_SERVER_TOKEN` and `DIRECTUS_PREVIEW_TOKEN` from that pri
 | **Use a unique strong `ALTCHA_SECRET`**                                                   | At least 32 random characters; replace any example, shared or exposed value before starting the frontend. Generate privately with `openssl rand -hex 32`. Empty editor/candidate session secrets derive from it; changing it invalidates those sessions. Independent `EDITOR_SESSION_SECRET` / `CANDIDATE_SESSION_SECRET`, when set, must be strong too. |
 | **Database application login**                                                            | If Directus still uses a superuser, perform the staged role cutover below; it generates a fresh app password and preserves the bootstrap operator.                                                                                                                                                                                                       |
 | **Known/example/exposed admin, signing, database, SMTP, Meilisearch or provider secrets** | Replace affected credentials in the real service, then every consuming `.env`/instance, and verify delivery/access. Editing `ADMIN_PASSWORD` or `POSTGRES_PASSWORD` alone does not change persisted accounts. No private production values were inspected, so there is no evidence that every family needs a blanket rotation.                           |
-| Candidate invitations                                                                     | Review actual exposure; opt into rotation only with replacement invitations coordinated. Default policy skips them.                                                                                                                                                                                                                                      |
+| Candidate invitations                                                                     | **Retain existing `candidate.access_token` values and invitation links**, per the owner decision. No candidate rotation or replacement invitations are required for this deployment.                                                                                                                                                                     |
 | Municipality preview links                                                                | Retain by default, per your decision. The private preview-verifier service token is a separate credential.                                                                                                                                                                                                                                               |
 
 The [complete 28-family inventory](SECURITY_DECISIONS.md#credential-inventory-and-rotation-policy--2026-10-24) and [editable policy](src/directus/cli/credential-rotation.yaml) record owners, selections and review/rotation dates without storing values. Provider/administrator/signing-secret rotations remain manual. Do not blindly change `SECRET`: test session invalidation and recovery of any stored encrypted values on a restored staging database first.
@@ -67,7 +67,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Verify only the intended public listeners are reachable. Production frontend/CMS should be loopback-only on 9000/9001; PostgreSQL, Redis and Meilisearch must not be reachable externally. Check host RAM against the configured container limits. Do not enable the old optional `SLK_STARTUP_SECURITY_CHECKS` whitelist blindly; it still needs alignment with the newer service roles. A separate CMS hostname is an explicit follow-up decision, not required by these commands; its URL/cookie/CORS/old-session changes must be deployed together.
+Verify only the intended public listeners are reachable. Production frontend/CMS should be loopback-only on 9000/9001; PostgreSQL, Redis and Meilisearch must not be reachable externally. Check host RAM against the configured container limits. The optional `SLK_STARTUP_SECURITY_CHECKS` now recognizes the current service/editorial roles and rejects missing secrets and elevated production DB role flags. It also detects database ownership and privileged role memberships through nested groups; preserving a non-secret legacy `KEY` is allowed. Enable it only after the database-role cutover and private configuration are in place. A separate CMS hostname is an explicit follow-up decision, not required by these commands; its URL/cookie/CORS/old-session changes must be deployed together.
 
 ## 5. Start and verify the new website
 
@@ -84,7 +84,7 @@ Use the staging hostname for the staging run. Verify public content/search/media
 
 Privately identify which actual Directus user owned the previously browser-exposed token. If it was an administrator or another role, rotate/revoke that underlying credential and all aliases explicitly: the retirement tool only suspends users of the legacy Frontend role. Do not assume a role name proves every exposed token has been retired.
 
-Review `src/directus/cli/credential-rotation.yaml` first: default selection revokes only the legacy Frontend identity; preview links remain unchanged and candidates require an explicit rotation choice.
+Review `src/directus/cli/credential-rotation.yaml` first: selection revokes only the legacy Frontend identity; candidate access tokens and municipality preview links are explicitly retained.
 
 ```bash
 "${slk_compose[@]}" exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
@@ -95,7 +95,7 @@ Review `src/directus/cli/credential-rotation.yaml` first: default selection revo
 "${slk_compose[@]}" cp directus:/directus/.tmp/credential-retirement.json.links.json "$slk_private/"
 ```
 
-Review both private files and back them up off-container. Coordinate any selected candidate replacements; the tool sends no mail. Pause credential-issuing writers, then apply **the same reviewed plan and unchanged policy selection**:
+Review both private files and back them up off-container. The current policy does not replace candidate invitations; the tool sends no mail. Pause credential-issuing writers, then apply **the same reviewed plan and unchanged policy selection**:
 
 ```bash
 "${slk_compose[@]}" exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
@@ -108,4 +108,17 @@ Confirm the old identity is suspended/token cleared and the new website still wo
 
 ## 7. Finish acceptance
 
-Rebuild existing search data from published content with the reviewed indexing procedure and verify draft/private/obsolete documents disappear; no bulk reindex command is provided by this change. Purge only identified stale application/CDN caches. Do not `FLUSHALL` Redis: it holds sessions and abuse controls. Review historical URL-bearing logs, observe errors/rate limits/CSP and record the deployment revision, credential actions and restore/smoke results. Search reindex tooling, remaining pinned-Directus findings, optional startup-check alignment and any CMS-origin migration remain tracked work; do not mark the full hardening release complete merely because the containers start.
+Frontend startup now reconciles all existing search documents against published content, with complete pagination and successful-task checks. Verify the `[reindex] Reconciled public search` log and `/api/content-search?q=klima` before accepting search. Initial/failed reconciliation keeps search closed; live publication/member checks additionally protect every response. Restart the frontend to request a fresh reconciliation when required. Purge only identified stale application/CDN caches. Do not `FLUSHALL` Redis: it holds sessions and abuse controls. Review historical URL-bearing logs, observe errors/rate limits/CSP and record the deployment revision, credential actions and restore/smoke results. The pinned-image findings have exact dated dispositions and tested backports; preserve the required cache/TUS/WebSocket/MCP and outbound-network controls. CMS-origin separation remains an optional coordinated enhancement. Record actual target acceptance rather than inferring it from running containers.
+
+## Verify the rebuilt vendor layer before cutover
+
+After building the reviewed image, run its offline regression gate without starting another CMS process or exposing ports:
+
+```bash
+"${slk_compose[@]}" run --rm --no-deps --entrypoint node directus \
+  /opt/slk-directus-runtime-security/test-runtime.ts
+```
+
+This checks actual resolved vendor code/libraries; it does not mutate the application database or send external mail. Keep the CI image-advisory artifact with release evidence. The source-reviewed image disposition expires on 2026-11-24 and must be reassessed then. Raw frontend/image audit output is preserved even for locally patched versions.
+
+For prebuilt frontend output, supply the real runtime `NUXT_MEILISEARCH_MASTER_KEY` (or build with the correct shared `MEILI_MASTER_KEY`) and `NUXT_MEILISEARCH_URL` where the target differs. Remove or correct stale competing `MEILISEARCH_MASTER_KEY` values. Verify a real `/contact` hit from `/api/content-search?q=Kontakt&types=static_page`; HTTP 200 with an empty fallback is not evidence of working search. The maintained production startup builds inside the configured container environment; the standalone prebuilt-output test harness must set Nuxt runtime overrides explicitly.

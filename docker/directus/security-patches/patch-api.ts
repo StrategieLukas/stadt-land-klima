@@ -1,4 +1,5 @@
 /** Narrow, source-verified hardening of the pinned 11.17.4 image. No version upgrade. */
+import { authorizationPatches } from "./authorization-patches.ts";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -59,12 +60,26 @@ export function patchDirectusApi(root: string) {
     ],
   ] as const;
   // Verify every original before changing any file. Unexpected vendor bytes fail the build.
-  const checked = definitions.map(([file, digest, marker, replacement]) => {
+  const allDefinitions = [
+    ...definitions.map(([file, sha256, marker, replacement]) => ({
+      file,
+      sha256,
+      replacements: [[marker, replacement]] as [string, string][],
+    })),
+    ...authorizationPatches,
+  ];
+  const checked = allDefinitions.map(({ file, sha256: digest, replacements }) => {
     const path = join(root, file),
       source = readFileSync(path, "utf8");
-    if (createHash("sha256").update(source).digest("hex") !== digest || source.split(marker).length !== 2)
+    if (
+      createHash("sha256").update(source).digest("hex") !== digest ||
+      replacements.some(([marker]) => source.split(marker).length !== 2)
+    )
       throw new Error(`Unreviewed Directus source: ${file}`);
-    return { path, source: source.replace(marker, replacement) };
+    return {
+      path,
+      source: replacements.reduce((result, [marker, replacement]) => result.replace(marker, replacement), source),
+    };
   });
   for (const { path, source } of checked) writeFileSync(path, source);
 }
@@ -74,5 +89,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   if (!version || typeof version !== "object" || !("version" in version) || version.version !== "11.17.4")
     throw new Error("Expected Directus 11.17.4");
   patchDirectusApi(dirname(require.resolve("@directus/api/package.json")));
-  console.info("Applied verified Directus 11.17.4 deep/geometry/asset guards.");
+  console.info(
+    "Applied verified Directus 11.17.4 deep/geometry/asset/authorization/settings/mail/SSRF guards; AI routes enabled with IP deny-list hardening.",
+  );
 }

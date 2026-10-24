@@ -19,7 +19,8 @@ COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
 COPY security-patches /opt/slk-directus-runtime-security
 RUN npm ci --prefix /opt/slk-directus-runtime-security --ignore-scripts --no-audit --no-fund \
     && node /opt/slk-directus-runtime-security/patch-undici.ts \
-    && node /opt/slk-directus-runtime-security/patch-api.ts
+    && node /opt/slk-directus-runtime-security/patch-api.ts \
+    && node /opt/slk-directus-runtime-security/patch-dependencies.ts
 
 # install typst
 RUN wget https://github.com/typst/typst/releases/download/v0.15.1/typst-x86_64-unknown-linux-musl.tar.xz \

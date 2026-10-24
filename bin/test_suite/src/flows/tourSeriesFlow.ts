@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import type { Browser } from "playwright";
 import { assert, assertIncludes, assertNotIncludes } from "../lib/assert.js";
-import { newContext } from "../lib/browser.js";
+import { newContext, waitForHydration } from "../lib/browser.js";
 import { openBlokkliField, saveBlokkliField } from "../lib/blokkli.js";
 import { DirectusClient } from "../lib/directus.js";
 import type { TestFixture } from "../lib/fixture.js";
@@ -645,6 +645,9 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           "Published retrospective report should appear exactly once in the feed",
         );
         await page.goto(`${config.frontendUrl}/projects/tours/${slug}`, { waitUntil: "domcontentloaded" });
+        await waitForHydration(page);
+        // The page initially selects the next unfinished visit; inspect the first story explicitly.
+        await page.locator(".tour-explorer__nav a").first().click();
         await page.locator(".tour-collage").first().waitFor();
         await page.waitForLoadState("networkidle").catch(() => undefined);
         assertIncludes(

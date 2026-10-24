@@ -14,7 +14,8 @@
       "#blokkli/editor/types/state": [
         "../../src/frontend/node_modules/@blokkli/editor/dist/runtime/editor/types/state.d.ts"
       ]
-    }
+    },
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts", "../lib/*.ts", "../../docker/directus/security-patches/*.ts"]
 }

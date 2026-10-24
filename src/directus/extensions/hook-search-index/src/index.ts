@@ -148,7 +148,7 @@ interface Page {
 function buildPageDoc(page: Page): SearchDoc | null {
   if (page.status !== "published" || !page.contents) return null;
   return {
-    id: `page:${page.slug}`,
+    id: `page_${page.slug}`,
     type: "page",
     title: page.name || page.slug,
     text: stripHtml(page.contents),
@@ -168,7 +168,7 @@ interface Event {
 function buildEventDoc(event: Event): SearchDoc | null {
   if (event.status !== "published") return null;
   return {
-    id: `event:${event.slug}`,
+    id: `event_${event.slug}`,
     type: "event",
     title: event.title || "",
     text: stripHtml(event.description || ""),
@@ -192,7 +192,7 @@ function buildArticleDoc(article: Article): SearchDoc | null {
     .filter(Boolean)
     .join(" ");
   return {
-    id: `article:${article.slug}`,
+    id: `article_${article.slug}`,
     type: "article",
     title: article.title || "",
     text,
@@ -225,7 +225,7 @@ function buildMeasureDoc(measure: Measure): SearchDoc {
     .filter(Boolean)
     .join(" ");
   return {
-    id: `measure:${measure.slug}`,
+    id: `measure_${measure.slug}`,
     type: "measure",
     title: measure.name || "",
     text,
@@ -342,7 +342,7 @@ export default (
       if (collection === "blocks") await remove(`block_${row.uuid}`);
       else {
         const prefix = { pages: "page", events: "event", articles: "article", measures: "measure" }[collection];
-        await remove(`${prefix}:${row.slug}`);
+        await remove(`${prefix}_${row.slug}`);
         if (collection === "pages") await removeBlocksForPage(row as Page, database);
       }
     }
@@ -511,13 +511,13 @@ export default (
         if (!rows[0]) continue;
         const page = rows[0] as Page;
         if (page.status !== "published") {
-          await remove(`page:${page.slug}`);
+          await remove(`page_${page.slug}`);
           // Remove child blocks when page is unpublished
           await removeBlocksForPage(page, database);
         } else {
           const doc = buildPageDoc(page);
           if (doc) await upsert(doc);
-          else await remove(`page:${page.slug}`);
+          else await remove(`page_${page.slug}`);
           const blocks = await database("blocks")
             .where("entity_type", "pages")
             .where("field_name", "content")
@@ -542,13 +542,13 @@ export default (
       try {
         const rows = await database("pages").where("id", key).select("slug").limit(1);
         const slug = rows[0]?.slug ?? key;
-        await remove(`page:${slug}`);
+        await remove(`page_${slug}`);
         // Remove child blocks when page is deleted
         if (rows[0]?.slug) {
           await removeBlocksForPage(rows[0] as Page, database);
         }
       } catch {
-        await remove(`page:${key}`);
+        await remove(`page_${key}`);
       }
     }
   });
@@ -572,7 +572,7 @@ export default (
         if (!rows[0]) continue;
         const event = rows[0] as Event;
         if (event.status !== "published") {
-          await remove(`event:${event.slug}`);
+          await remove(`event_${event.slug}`);
         } else {
           const doc = buildEventDoc(event);
           if (doc) await upsert(doc);
@@ -589,9 +589,9 @@ export default (
       try {
         const rows = await database("events").where("id", key).select("slug").limit(1);
         const slug = rows[0]?.slug ?? key;
-        await remove(`event:${slug}`);
+        await remove(`event_${slug}`);
       } catch {
-        await remove(`event:${key}`);
+        await remove(`event_${key}`);
       }
     }
   });
@@ -615,7 +615,7 @@ export default (
         if (!rows[0]) continue;
         const article = rows[0] as Article;
         if (article.status !== "published") {
-          await remove(`article:${article.slug}`);
+          await remove(`article_${article.slug}`);
         } else {
           const doc = buildArticleDoc(article);
           if (doc) await upsert(doc);
@@ -632,9 +632,9 @@ export default (
       try {
         const rows = await database("articles").where("id", key).select("slug").limit(1);
         const slug = rows[0]?.slug ?? key;
-        await remove(`article:${slug}`);
+        await remove(`article_${slug}`);
       } catch {
-        await remove(`article:${key}`);
+        await remove(`article_${key}`);
       }
     }
   });
@@ -666,9 +666,9 @@ export default (
       try {
         const rows = await database("measures").where("id", key).select("slug").limit(1);
         const slug = rows[0]?.slug ?? key;
-        await remove(`measure:${slug}`);
+        await remove(`measure_${slug}`);
       } catch {
-        await remove(`measure:${key}`);
+        await remove(`measure_${key}`);
       }
     }
   });

@@ -30,32 +30,9 @@ alter table "<table>" alter column "id" drop not null — column "id" is in a pr
 
 ### Adding / changing permissions
 
-The frontend makes client-side requests with a static Bearer token (the **frontend** role). Server-side / unauthenticated requests use the **public** role.
-DO NOT EVER change the public.yaml permissions. Anything shown on the website is read with the frontend.yaml permissions.
-Edit the relevant files in `src/directus/roles/`:
+The frontend reads public website data through Nuxt `/api/public/*` routes. Server-side CMS requests use the **private Frontend-Server identity** (`src/directus/policies/Frontend-Server.yaml`); never serialize that credential into public runtime configuration or use it in browser SDK code. `Frontend-Public` is the minimal asset identity, and `Frontend-Preview` is an isolated server-only preview verifier. Editor requests use personal authorization behind opaque HttpOnly website sessions.
 
-- `frontend.yaml` — client-side requests that include the frontend Bearer token
-
-**Template — add to the `permissions:` list in both files:**
-
-```yaml
-- collection: <collection_name>
-  action: read
-  permissions: {} # no row-level filter = all rows
-  validation: {}
-  presets: null
-  fields:
-    - "*"
-```
-
-Then run `import-all.sh`. Verify with:
-
-```sql
-SELECT r.name, p.action, p.fields
-FROM directus_permissions p
-LEFT JOIN directus_roles r ON p.role = r.id
-WHERE p.collection = '<collection_name>';
-```
+**Never change `src/directus/roles/public.yaml` or public-role permissions.** For a new website collection, add the minimum fields and publication/ownership filters to the private service policy, expose an explicit checked DTO in a Nuxt route, then run `import-all.sh`. Inspect existing routes before adding access; do not blindly grant `*` fields. The legacy Frontend identity exists for coordinated retirement, not new browser integration.
 
 ### Custom interface extensions
 
@@ -92,11 +69,10 @@ Extensions use **Directus CSS theme variables** (not hardcoded hex) so they rend
 
 ## Frontend data fetching
 
-- `$directus.request($readItems('collection', { ... }))` — list
-- `$directus.request($readSingleton('collection'))` — singleton (e.g. `navigation_config`)
-- Both plugins expose `$directus`, `$readItem`, `$readItems`, `$readSingleton`, `$locale`, `$t`
-
-If a `$readSingleton` / `$readItems` call returns empty data or a 403 error, the **first thing to check** is permissions: add the collection to both `public.yaml` and `frontend.yaml`, then run `import-all.sh`.
+- Browser components use the checked Nuxt API routes, for example `useFetch('/api/public/...')` or `$fetch('/api/public/...')`.
+- Server routes use `createDirectusServerClient()` / `createTypedDirectusServerClient()` and the Directus SDK, followed by checked response schemas and explicit public DTOs.
+- `src/frontend/plugins/directus.client.ts` exposes translations/locale, not a browser CMS client or bearer token. The server plugin handles server-only data.
+- On empty data/403, inspect the server endpoint contract, the private service policy and publication/ownership filters. Apply YAML changes through the importer. Never add public permissions as a shortcut.
 
 ---
 
@@ -146,7 +122,7 @@ DO NOT update Directus beyond 11.17.4
 ## Key rules before implementing
 
 1. See src/frontend/tailwind.config.js for common colors and "Styleguide mobil"
-2. See src/frontend/plugins/directus.client.js for the client config
+2. See src/frontend/plugins/directus.client.ts for the client config
 3. Check any existing page for how directus requests are done properly in this version
 4. Use DaisyUI components for new designs where possible
 5. For notes on deployment and config, you can see README.md

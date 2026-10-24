@@ -338,9 +338,20 @@ test("JSON project dates render correctly and malformed dates never render Inval
 test("search rejects filter injection before transport and strips HTML except highlight marks", async () => {
   let options: Row = {};
   let calls = 0;
+  const readiness = { ready: true };
+  const liveVisibility = load("server/utils/searchVisibility.ts", {
+    "@directus/sdk": { readItems: (collection: string, query: Row) => ({ collection, query }) },
+    "./extractContent": frontend("./server/utils/extractContent.ts"),
+  });
   const route = load(
     "server/api/content-search.get.ts",
-    {},
+    {
+      "../utils/searchVisibility": liveVisibility,
+      "../utils/searchReconciliation": { searchReadiness: readiness },
+      "../utils/directusServerClient": {
+        createDirectusServerClient: () => ({ request: async () => [{ slug: "example", status: "published" }] }),
+      },
+    },
     {
       getMeilisearch: () => ({
         index: () => ({
@@ -350,7 +361,7 @@ test("search rejects filter injection before transport and strips HTML except hi
             return {
               hits: [
                 {
-                  id: "id",
+                  id: "article_example",
                   type: "article",
                   title: "Title",
                   url: "/projects/example",
@@ -378,6 +389,9 @@ test("search rejects filter injection before transport and strips HTML except hi
   assert.equal(options.filter, 'type IN ["article", "page"]');
   assert.equal(result.hits[0].title, "<mark>Safe</mark>");
   assert.equal(result.hits[0].excerpt, "Text");
+  readiness.ready = false;
+  await assert.rejects(() => route({ query: { q: "test" } }), { statusCode: 503 });
+  assert.equal(calls, 1);
 });
 
 test("news detail enforces publication and projects private metadata", async () => {

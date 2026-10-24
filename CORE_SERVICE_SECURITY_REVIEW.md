@@ -187,7 +187,7 @@ working local database.
 
 ## Unresolved Directus application advisories
 
-**Current instruction: keep Directus at 11.17.4.** The earlier statement that this cap was lifted is superseded. The October 22 assessment found no newer published 11.x patch; this paragraph is not a new registry check. Updating Node, PostgreSQL, Redis or Alpine does not fix Directus application code vulnerabilities. Subsequent exact-source deep/geometry/transform guards and disabled entry points are recorded in [completed hardening](SECURITY_HARDENING.md#runtime-and-pinned-directus-safeguards); remaining vendor risks are in [remaining work](REMAINING_TODOS.md#pinned-directus-and-vendor-findings).
+**Current instruction: keep Directus at 11.17.4.** The earlier statement that this cap was lifted is superseded. The October 22 assessment found no newer published 11.x patch; this paragraph is not a new registry check. Updating Node, PostgreSQL, Redis or Alpine does not fix Directus application code vulnerabilities. Subsequent exact-source deep/geometry/transform guards and disabled entry points are recorded in [completed hardening](SECURITY_HARDENING.md#runtime-and-pinned-directus-safeguards); remaining vendor risks are in [remaining work](REMAINING_TODOS.md#explicit-upstream-patch-maintenance).
 In particular, upstream lists an unauthenticated persistent denial of service in
 the `deep` query parser for versions below 12.2.0. Permission restrictions do not
 prevent that middleware from being reached. No destructive exploit was run.

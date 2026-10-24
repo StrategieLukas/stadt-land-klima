@@ -382,12 +382,12 @@ test("search cleanup removes UUID and legacy-slug children before deletion and e
     { env: {}, logger: { error: assert.fail, warn() {} }, emitter: { onAction() {} } },
   );
   for (const fn of actions.get("items.update")!) await fn({ collection: "pages", keys: [page.id] }, { database });
-  assert.ok(removed.includes("page:example"));
+  assert.ok(removed.includes("page_example"));
   assert.ok(removed.includes("block_block-uuid"));
   assert.ok(removed.includes("block_legacy-block"));
   removed.length = 0;
   await filters.get("items.delete")!([page.id], { collection: "pages" }, { database });
-  assert.ok(removed.includes("page:example"));
+  assert.ok(removed.includes("page_example"));
   assert.ok(removed.includes("block_block-uuid"));
   assert.ok(removed.includes("block_legacy-block"));
   removed.length = 0;

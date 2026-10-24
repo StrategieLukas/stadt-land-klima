@@ -787,6 +787,11 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       assertNotIncludes(await cloud.innerText(), hidden, "Word cloud excludes incomplete and unpublished scores");
       assert(errors.length === 0, `Public client navigation must not throw: ${errors.join("; ")}`);
       assert(browserCmsReads.length === 0, "Public widgets must use scoped APIs rather than browser Directus reads");
+      const search = await json("/api/content-search?q=Kontakt&types=static_page");
+      assert(
+        Array.isArray(search.hits) && search.hits.some((hit: { url: string }) => hit.url === "/contact"),
+        "Search must return a known published result; HTTP 200 with an empty fallback is not healthy",
+      );
       const feed = await json("/api/public/news");
       assert(
         feed.news.some((row: { title: string }) => row.title === newsTitle),

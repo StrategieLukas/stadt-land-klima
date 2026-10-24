@@ -2,6 +2,9 @@
 // with parameters: model (your model name), caller (your organization), mission (your analysis goal).
 // Example: /api/ai-register?model=Claude+3.5&caller=Anthropic&mission=Windpower+Statistics+Munich
 // The registration page then provides tailored information about the Stadt.Land.Klima platform and its services.
+import { publicSearchHits } from "../utils/searchVisibility";
+import { createDirectusServerClient } from "../utils/directusServerClient";
+import { searchReadiness } from "../utils/searchReconciliation";
 import { z } from "zod";
 import sanitizeHtml from "sanitize-html";
 import { queryText, queryLimit } from "../utils/publicQuery";
@@ -48,6 +51,7 @@ export default defineEventHandler(async (event) => {
   const filter = selected?.success
     ? `type IN [${selected.data.map((type) => JSON.stringify(type)).join(", ")}]`
     : undefined;
+  if (!searchReadiness.ready) throw createError({ statusCode: 503, statusMessage: "Search reconciliation pending" });
   try {
     const result = await getMeilisearch()
       .index("site_content")
@@ -59,7 +63,7 @@ export default defineEventHandler(async (event) => {
         highlightPostTag: "</mark>",
         attributesToRetrieve: ["id", "type", "title", "url", "meta", "text"],
       });
-    const hits = parseCms(z.array(indexedHit), result.hits);
+    const hits = await publicSearchHits(createDirectusServerClient(), parseCms(z.array(indexedHit), result.hits));
     return ContentResponseSchema.parse({
       hits: hits.map((hit) => ({
         id: hit.id,

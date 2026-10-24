@@ -1,6 +1,6 @@
 import process from "node:process";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import dotenv from "dotenv";
 import pg from "pg";
 
@@ -35,13 +35,13 @@ const defaultValuePatterns: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /^secret$/i, reason: "uses the example secret" },
   { pattern: /^password$/i, reason: "uses a placeholder password" },
   { pattern: /^change-me/i, reason: "uses a change-me placeholder" },
+  { pattern: /^replace-with-/i, reason: "uses a replace-with placeholder" },
   { pattern: /^access_token_of_admin_user$/i, reason: "uses the example static token" },
   { pattern: /^your-.+-here$/i, reason: "uses an example API key placeholder" },
   { pattern: /check-my-dms/i, reason: "uses a local placeholder secret note" },
 ];
 
 const envChecks: Array<{ name: string; required: boolean }> = [
-  { name: "KEY", required: true },
   { name: "SECRET", required: true },
   { name: "DB_PASSWORD", required: true },
   { name: "CLI_DIRECTUS_STATIC_TOKEN", required: false },
@@ -150,14 +150,14 @@ const sensitiveCollections = [
 ];
 
 const sensitiveAccessWhitelist: Record<string, string[]> = {
-  "answers:create": ["Frontend"],
-  "answers:delete": ["Frontend"],
-  "answers:read": ["Frontend", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
-  "answers:update": ["Frontend"],
+  "answers:create": ["Frontend", "Frontend-Server"],
+  "answers:delete": ["Frontend", "Frontend-Server"],
+  "answers:read": ["Frontend", "Frontend-Server", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
+  "answers:update": ["Frontend", "Frontend-Server"],
   "candidate:create": ["LokalteamMitglied", "WahlcheckAdmin"],
   "candidate:delete": ["LokalteamMitglied", "WahlcheckAdmin"],
-  "candidate:read": ["Frontend", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
-  "candidate:update": ["Frontend", "LokalteamMitglied", "WahlcheckAdmin"],
+  "candidate:read": ["Frontend", "Frontend-Server", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
+  "candidate:update": ["Frontend", "Frontend-Server", "LokalteamMitglied", "WahlcheckAdmin"],
   "directus_dashboards:create": ["Planungsteam"],
   "directus_dashboards:delete": ["Planungsteam"],
   "directus_dashboards:read": ["Maßnahmenteam", "Massnahmenteam", "Planungsteam"],
@@ -167,10 +167,11 @@ const sensitiveAccessWhitelist: Record<string, string[]> = {
   "directus_panels:delete": ["Planungsteam"],
   "directus_panels:read": ["Planungsteam"],
   "directus_panels:update": ["Planungsteam"],
-  "directus_roles:read": ["Planungsteam"],
+  "directus_roles:read": ["Planungsteam", "ErfolgsprojekteRedaktion"],
   "directus_shares:read": ["Planungsteam"],
   "directus_users:read": [
     "Frontend",
+    "Frontend-Server",
     "LokalteamMitglied",
     "Maßnahmenteam",
     "Massnahmenteam",
@@ -183,13 +184,14 @@ const sensitiveAccessWhitelist: Record<string, string[]> = {
   "editors:update": ["LokalteamAdmin", "LokalteamMitglied"],
   "elections:create": ["LokalteamMitglied", "WahlcheckAdmin"],
   "elections:delete": ["LokalteamMitglied"],
-  "elections:read": ["Frontend", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
-  "elections:update": ["LokalteamMitglied", "WahlcheckAdmin"],
-  "feedback:create": ["Frontend"],
+  "elections:read": ["Frontend", "Frontend-Server", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
+  "elections:update": ["LokalteamMitglied", "WahlcheckAdmin", "Frontend-Server"],
+  "feedback:create": ["Frontend", "Frontend-Server"],
   "feedback:read": ["Planungsteam"],
   "feedback:update": ["Planungsteam"],
   "localteams:read": [
     "Frontend",
+    "Frontend-Server",
     "LokalteamMitglied",
     "Maßnahmenteam",
     "Massnahmenteam",
@@ -199,7 +201,7 @@ const sensitiveAccessWhitelist: Record<string, string[]> = {
   "localteams:update": ["LokalteamMitglied"],
   "questions:create": ["LokalteamMitglied", "WahlcheckAdmin"],
   "questions:delete": ["LokalteamMitglied", "WahlcheckAdmin"],
-  "questions:read": ["Frontend", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
+  "questions:read": ["Frontend", "Frontend-Server", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
   "questions:update": ["LokalteamMitglied", "WahlcheckAdmin"],
   "user_consent:create": ["LokalteamMitglied", "Maßnahmenteam", "Massnahmenteam", "MinimalUser", "WahlcheckAdmin"],
   "user_consent:read": [
@@ -216,21 +218,22 @@ function cleanEnvValue(value: string): string {
   return value.trim().replace(/^['"]|['"]$/g, "");
 }
 
-function checkEnvironment(failures: string[], warnings: string[]): Set<string> {
+export function checkEnvironment(env: NodeJS.ProcessEnv, failures: string[]): Set<string> {
   const missingRequiredKeys = new Set<string>();
 
   for (const check of envChecks) {
-    const rawValue = process.env[check.name];
+    const rawValue = env[check.name];
     const value = rawValue === undefined ? "" : cleanEnvValue(rawValue);
 
     if (!value) {
       if (check.required) {
-        warnings.push(`${check.name} is missing; configure it for production Directus startup`);
+        failures.push(`${check.name} is missing; configure it before enabling startup checks`);
         missingRequiredKeys.add(check.name);
       }
       continue;
     }
 
+    if (check.name === "SECRET" && value.length < 32) failures.push(`${check.name} must have at least 32 characters`);
     const defaultMatch = defaultValuePatterns.find(({ pattern }) => pattern.test(value));
     if (defaultMatch) {
       failures.push(`${check.name} ${defaultMatch.reason}`);
@@ -332,7 +335,7 @@ function containsCurrentUserFilter(value: unknown): boolean {
   return false;
 }
 
-function isAllowedPublicPermission(row: PermissionRow): boolean {
+export function isAllowedPublicPermission(row: PermissionRow): boolean {
   if (row.collection === "directus_files" && row.action === "read") {
     return jsonEquals(row.permissions, publicFileFilter) && fieldsAreSubset(row.fields, publicFileFields);
   }
@@ -350,6 +353,68 @@ function isAllowedPublicPermission(row: PermissionRow): boolean {
   }
 
   return false;
+}
+
+export function isAllowedSensitiveAccessor(collection: string, action: string, accessor: string): boolean {
+  return (sensitiveAccessWhitelist[`${collection}:${action}`] ?? []).includes(accessor);
+}
+
+type DatabaseRoleState = {
+  rolsuper: boolean;
+  rolcreaterole: boolean;
+  rolcreatedb: boolean;
+  rolreplication: boolean;
+  rolbypassrls: boolean;
+  privileged_memberships?: string[];
+};
+
+export function databaseRoleFailures(role: DatabaseRoleState): string[] {
+  const flags = ["rolsuper", "rolcreaterole", "rolcreatedb", "rolreplication", "rolbypassrls"] as const;
+  return [
+    ...flags.filter((flag) => role[flag]).map((flag) => `Database application role has forbidden privilege: ${flag}`),
+    ...(role.privileged_memberships ?? []).map(
+      (name) => `Database application role belongs to privileged role: ${name}`,
+    ),
+  ];
+}
+
+/** Role attributes alone miss file/program access and privileges gained through nested groups. */
+export async function checkDatabaseRole(
+  pool: Pick<InstanceType<typeof Pool>, "query">,
+  failures: string[],
+): Promise<void> {
+  const result = await pool.query<DatabaseRoleState>(
+    `
+    SELECT app.rolsuper, app.rolcreaterole, app.rolcreatedb, app.rolreplication, app.rolbypassrls,
+      ARRAY(
+        SELECT inherited.rolname::text
+        FROM pg_roles inherited
+        WHERE inherited.oid <> app.oid
+          AND (inherited.rolsuper OR inherited.rolcreaterole OR inherited.rolcreatedb
+            OR inherited.rolreplication OR inherited.rolbypassrls
+            OR inherited.rolname = ANY($1::name[]))
+          AND pg_has_role(current_user, inherited.oid, 'MEMBER')
+        ORDER BY inherited.rolname
+      ) AS privileged_memberships
+    FROM pg_roles app WHERE app.rolname = current_user
+  `,
+    [
+      [
+        "pg_execute_server_program",
+        "pg_read_server_files",
+        "pg_write_server_files",
+        "pg_read_all_data",
+        "pg_write_all_data",
+        "pg_signal_backend",
+        "pg_checkpoint",
+        "pg_create_subscription",
+        "pg_maintain",
+        "pg_database_owner",
+      ],
+    ],
+  );
+  if (!result.rows[0]) failures.push("Cannot verify database application role");
+  else failures.push(...databaseRoleFailures(result.rows[0]));
 }
 
 function describePermission(row: PermissionRow): string {
@@ -419,7 +484,7 @@ async function checkSensitiveAccess(pool: InstanceType<typeof Pool>, failures: s
     const key = `${row.collection}:${row.action}`;
     const allowedAccessors = sensitiveAccessWhitelist[key] ?? [];
 
-    if (!allowedAccessors.includes(row.accessor_name)) {
+    if (!isAllowedSensitiveAccessor(row.collection, row.action, row.accessor_name)) {
       const allowed = allowedAccessors.length ? allowedAccessors.join(", ") : "no roles";
       failures.push(
         `${row.accessor_name} has non-whitelisted sensitive access ${describePermission(row)}; allowed: ${allowed}`,
@@ -440,13 +505,16 @@ async function main(): Promise<void> {
   let missingRequiredKeys = new Set<string>();
 
   if (!skipEnvironmentChecks) {
-    missingRequiredKeys = checkEnvironment(failures, warnings);
+    missingRequiredKeys = checkEnvironment(process.env, failures);
   }
 
   const missingDatabaseKeys = ["DB_PASSWORD"].filter((key) => missingRequiredKeys.has(key));
   if (failures.length === 0 && !skipDatabaseChecks && missingDatabaseKeys.length === 0) {
     const pool = createPool();
     try {
+      if (process.env.SLK_ENV === "production") {
+        await checkDatabaseRole(pool, failures);
+      }
       await checkPublicPermissions(pool, failures);
       await checkSensitiveAccess(pool, failures);
     } finally {
@@ -476,8 +544,9 @@ async function main(): Promise<void> {
   console.info("Custom SLK-Directus startup security checks passed.");
 }
 
-main().catch((error: unknown) => {
-  console.error("Custom SLK-Directus startup security checks failed unexpectedly:");
-  console.error(error);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href)
+  main().catch((error: unknown) => {
+    console.error("Custom SLK-Directus startup security checks failed unexpectedly:");
+    console.error(error);
+    process.exit(1);
+  });

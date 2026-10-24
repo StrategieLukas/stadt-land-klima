@@ -114,7 +114,7 @@ test("retirement can resume after a partial upstream failure without rotating co
   assert.equal(f.candidates[0]!.access_token, token);
 });
 
-test("operator policy keeps low-sensitivity previews and unselected candidates untouched", async () => {
+test("owner policy retains candidate access tokens and municipality previews while retiring the shared identity", async () => {
   const scope = readRetirementScope(fileURLToPath(new URL("../credential-rotation.yaml", import.meta.url)));
   assert.deepEqual(scope, { legacyFrontend: true, candidates: false, previews: false });
   const f = fixture();
