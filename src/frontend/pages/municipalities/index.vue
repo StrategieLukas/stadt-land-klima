@@ -31,7 +31,7 @@
           text-color="white"
         />
       </div>
-      <p class="text-gray-400 mt-4 text-xs">
+      <p class="mt-4 text-xs text-gray-400">
         <ClientOnly>{{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}</ClientOnly>
       </p>
     </header>
@@ -44,15 +44,15 @@
         style="border-color: #339737"
         @click="openCalMobile"
       >
-        <img :src="onboardingAvatarUrl" alt="Otto" class="h-10 w-10 flex-shrink-0 rounded-full object-cover" />
+        <img :src="onboardingAvatarUrl" alt="Otto" class="h-10 w-10 shrink-0 rounded-full object-cover" />
         <div class="min-w-0 flex-1">
-          <h2 class="font-heading text-sm font-bold leading-tight" style="color: #339737">
+          <h2 class="font-heading text-sm leading-tight font-bold" style="color: #339737">
             {{ $t("municipalities.cta.onboarding.title") }}
           </h2>
-          <p class="text-gray-500 mt-0.5 line-clamp-1 text-xs">{{ $t("municipalities.cta.onboarding.description") }}</p>
+          <p class="mt-0.5 line-clamp-1 text-xs text-gray-500">{{ $t("municipalities.cta.onboarding.description") }}</p>
         </div>
         <span
-          class="flex-shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold text-white"
+          class="shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold text-white"
           style="background-color: #339737"
         >
           {{ $t("municipalities.cta.onboarding.action") }}
@@ -64,10 +64,7 @@
         class="flex flex-row items-center gap-3 border-2 bg-white p-3 shadow-md"
         style="border-color: #afca0b"
       >
-        <div
-          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full"
-          style="background-color: #afca0b"
-        >
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style="background-color: #afca0b">
           <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
             <path
               stroke-linecap="round"
@@ -77,13 +74,13 @@
           </svg>
         </div>
         <div class="min-w-0 flex-1">
-          <h2 class="font-heading text-sm font-bold leading-tight" style="color: #afca0b">
+          <h2 class="font-heading text-sm leading-tight font-bold" style="color: #afca0b">
             {{ $t("localteam.create_now") }}
           </h2>
-          <p class="text-gray-500 mt-0.5 line-clamp-1 text-xs">{{ $t("municipalities.cta.localteam.description") }}</p>
+          <p class="mt-0.5 line-clamp-1 text-xs text-gray-500">{{ $t("municipalities.cta.localteam.description") }}</p>
         </div>
         <span
-          class="flex-shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold text-white"
+          class="shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold text-white"
           style="background-color: #afca0b"
         >
           {{ $t("municipalities.cta.missing.action") }}
@@ -95,10 +92,7 @@
         class="flex flex-row items-center gap-3 border-2 bg-white p-3 shadow-md"
         style="border-color: #006e94"
       >
-        <div
-          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full"
-          style="background-color: #006e94"
-        >
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style="background-color: #006e94">
           <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
             <path
               stroke-linecap="round"
@@ -108,13 +102,13 @@
           </svg>
         </div>
         <div class="min-w-0 flex-1">
-          <h2 class="font-heading text-sm font-bold leading-tight" style="color: #006e94">
+          <h2 class="font-heading text-sm leading-tight font-bold" style="color: #006e94">
             {{ $t("stats.measures.title") }}
           </h2>
-          <p class="text-gray-500 mt-0.5 line-clamp-1 text-xs">{{ $t("municipalities.cta.dashboard.description") }}</p>
+          <p class="mt-0.5 line-clamp-1 text-xs text-gray-500">{{ $t("municipalities.cta.dashboard.description") }}</p>
         </div>
         <span
-          class="flex-shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold text-white"
+          class="shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold text-white"
           style="background-color: #006e94"
         >
           {{ $t("municipalities.cta.dashboard.action") }}
@@ -130,7 +124,7 @@
         @click="filterOpen = !filterOpen"
       >
         <span class="flex items-center gap-2">
-          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -140,12 +134,12 @@
           <span>{{ $t("generic.filter_and_view") }}</span>
           <span
             v-if="activeFilterCount > 0"
-            class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
+            class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs leading-none font-bold"
             >{{ activeFilterCount }}</span
           >
         </span>
         <svg
-          class="h-4 w-4 flex-shrink-0 transition-transform duration-200"
+          class="h-4 w-4 shrink-0 transition-transform duration-200"
           :class="filterOpen ? 'rotate-180' : ''"
           fill="none"
           viewBox="0 0 24 24"
@@ -157,13 +151,13 @@
       </button>
 
       <!-- Filter rows (always visible at xs+, collapsible below xs) -->
-      <div v-show="filterOpen" class="xs:!block">
+      <div v-show="filterOpen" class="xs:block!">
         <!-- Row 1: View toggle + vertical divider + Catalog version -->
         <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-1.5">
           <!-- View toggle group: icon + buttons stay together -->
           <div class="flex items-center gap-2">
             <svg
-              class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
+              class="slk-filter-panel-icon h-4 w-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -182,7 +176,7 @@
                 @click="router.replace({ query: { ...route.query, view: undefined } })"
               >
                 <svg
-                  class="h-3.5 w-3.5 flex-shrink-0"
+                  class="h-3.5 w-3.5 shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -198,7 +192,7 @@
                 @click="router.replace({ query: { ...route.query, view: 'map' } })"
               >
                 <svg
-                  class="h-3.5 w-3.5 flex-shrink-0"
+                  class="h-3.5 w-3.5 shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -221,7 +215,7 @@
           <!-- Catalog version group: icon + buttons stay together -->
           <div class="flex items-center gap-2">
             <svg
-              class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
+              class="slk-filter-panel-icon h-4 w-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -255,7 +249,7 @@
         <!-- Row 2: Municipality type filter -->
         <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-2 py-1.5">
           <svg
-            class="slk-filter-panel-icon mt-1 h-4 w-4 flex-shrink-0"
+            class="slk-filter-panel-icon mt-1 h-4 w-4 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -273,7 +267,7 @@
               :class="{ 'slk-filter-pill--active': selected === 'all' }"
               @click="selected = 'all'"
             >
-              <div class="flex flex-shrink-0 gap-0">
+              <div class="flex shrink-0 gap-0">
                 <img
                   class="h-4 w-4"
                   :src="selected === 'all' ? minorCitySelected : minorCityNotSelected"
@@ -281,7 +275,7 @@
                 />
                 <img class="h-4 w-4" :src="selected === 'all' ? majorCitySelected : majorCityNotSelected" />
               </div>
-              <span class="whitespace-nowrap font-bold">{{ $t("municipalities.all") }}</span>
+              <span class="font-bold whitespace-nowrap">{{ $t("municipalities.all") }}</span>
             </button>
             <button
               class="slk-filter-pill"
@@ -289,11 +283,11 @@
               @click="selected = 'major_city'"
             >
               <img
-                class="h-4 w-4 flex-shrink-0"
+                class="h-4 w-4 shrink-0"
                 :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected"
                 :alt="$t('municipalities.major_city.plural')"
               />
-              <span class="whitespace-nowrap font-bold">{{ $t("municipalities.major_city.plural") }}</span>
+              <span class="font-bold whitespace-nowrap">{{ $t("municipalities.major_city.plural") }}</span>
             </button>
             <button
               class="slk-filter-pill"
@@ -301,16 +295,16 @@
               @click="selected = 'minor_city'"
             >
               <img
-                class="h-4 w-4 flex-shrink-0"
+                class="h-4 w-4 shrink-0"
                 :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected"
                 :alt="$t('municipalities.minor_city.plural')"
               />
-              <span class="whitespace-nowrap font-bold">{{ $t("municipalities.minor_city.plural") }}</span>
+              <span class="font-bold whitespace-nowrap">{{ $t("municipalities.minor_city.plural") }}</span>
             </button>
-            <span v-if="selected === 'major_city'" class="text-gray-500 text-xs italic">{{
+            <span v-if="selected === 'major_city'" class="text-xs text-gray-500 italic">{{
               $t("municipalities.major_city.threshold")
             }}</span>
-            <span v-else-if="selected === 'minor_city'" class="text-gray-500 text-xs italic">{{
+            <span v-else-if="selected === 'minor_city'" class="text-xs text-gray-500 italic">{{
               $t("municipalities.minor_city.threshold")
             }}</span>
           </div>
@@ -343,7 +337,7 @@
       <!-- Left Column: Municipality Ranking (2/3 width) -->
       <div ref="rankingColumn" class="lg:col-span-2">
         <!-- Conditional Content -->
-        <div class="w-full max-w-screen-xl">
+        <div class="w-full max-w-(--breakpoint-xl)">
           <TheMap
             v-if="isMapView"
             :municipality-scores="filteredMunicipalityScores"
@@ -372,7 +366,7 @@
             <div class="flex h-36 flex-col border-2 bg-white p-4 shadow-xl" style="border-color: #afca0b">
               <div class="flex min-h-0 flex-1 items-center gap-3">
                 <div
-                  class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full"
+                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
                   style="background-color: #afca0b"
                 >
                   <svg
@@ -390,10 +384,10 @@
                   </svg>
                 </div>
                 <div class="min-w-0">
-                  <h2 class="font-heading text-base font-bold leading-tight" style="color: #afca0b">
+                  <h2 class="font-heading text-base leading-tight font-bold" style="color: #afca0b">
                     {{ $t("localteam.create_now") }}
                   </h2>
-                  <p class="text-gray-500 mt-0.5 line-clamp-2 text-xs">
+                  <p class="mt-0.5 line-clamp-2 text-xs text-gray-500">
                     {{ $t("municipalities.cta.localteam.description") }}
                   </p>
                 </div>
@@ -411,7 +405,7 @@
             <div class="flex h-36 flex-col border-2 bg-white p-4 shadow-xl" style="border-color: #006e94">
               <div class="flex min-h-0 flex-1 items-center gap-3">
                 <div
-                  class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full"
+                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
                   style="background-color: #006e94"
                 >
                   <svg
@@ -429,10 +423,10 @@
                   </svg>
                 </div>
                 <div class="min-w-0">
-                  <h2 class="font-heading text-base font-bold leading-tight" style="color: #006e94">
+                  <h2 class="font-heading text-base leading-tight font-bold" style="color: #006e94">
                     {{ $t("stats.measures.title") }}
                   </h2>
-                  <p class="text-gray-500 mt-0.5 line-clamp-2 text-xs">
+                  <p class="mt-0.5 line-clamp-2 text-xs text-gray-500">
                     {{ $t("municipalities.cta.dashboard.description") }}
                   </p>
                 </div>
@@ -466,18 +460,18 @@
     </div>
 
     <!-- CTA: Start a new municipality assessment -->
-    <div class="mb-4 mt-12 flex flex-col items-center gap-6 rounded-sm bg-rating-3-light p-8 shadow-list sm:flex-row">
-      <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto flex-shrink-0 opacity-80" />
+    <div class="mt-12 mb-4 flex flex-col items-center gap-6 rounded-xs bg-rating-3-light p-8 shadow-list sm:flex-row">
+      <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto shrink-0 opacity-80" />
       <div class="flex-1 text-center sm:text-left">
         <h2 class="mb-2 font-heading text-h2 font-bold text-green">
           {{ $t("municipalities.cta.missing.title") }}
         </h2>
-        <p class="text-gray-600 mb-4 text-sm">
+        <p class="mb-4 text-sm text-gray-600">
           {{ $t("municipalities.cta.missing.body") }}
         </p>
         <NuxtLink
           to="/register_localteam"
-          class="inline-block rounded-md bg-green px-6 py-2.5 font-semibold text-white transition-colors hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2"
+          class="inline-block rounded-md bg-green px-6 py-2.5 font-semibold text-white transition-colors hover:opacity-90 focus:ring-2 focus:ring-green focus:ring-offset-2 focus:outline-hidden"
         >
           {{ $t("municipalities.cta.missing.action") }}
         </NuxtLink>
@@ -489,15 +483,15 @@
       <transition name="mun-cal-fade">
         <div
           v-if="showCalMobile"
-          class="fixed inset-0 z-[10001] flex items-center justify-center bg-black/60 p-4"
+          class="fixed inset-0 z-10001 flex items-center justify-center bg-black/60 p-4"
           @click.self="closeCalMobile"
         >
           <div
             class="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl"
           >
-            <div class="flex flex-shrink-0 justify-end p-2">
+            <div class="flex shrink-0 justify-end p-2">
               <button
-                class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                class="text-2xl leading-none text-gray-500 hover:text-gray-700"
                 :aria-label="$t('generic.close')"
                 @click="closeCalMobile"
               >

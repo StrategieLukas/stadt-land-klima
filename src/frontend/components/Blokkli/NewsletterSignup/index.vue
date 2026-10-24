@@ -26,7 +26,7 @@
               v-model="selectedIds"
               type="checkbox"
               :value="list.id"
-              class="border-gray-300 rounded text-green focus:ring-green"
+              class="rounded-sm border-gray-300 text-green focus:ring-green"
             />
             <span class="text-sm">{{ list.name }}</span>
           </label>
@@ -38,7 +38,7 @@
           class="flex items-center justify-center gap-2 text-sm font-medium"
           :class="successClass"
         >
-          <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path
               fill-rule="evenodd"
               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -55,7 +55,7 @@
             type="email"
             autocomplete="email"
             :placeholder="$t('newsletter.email.placeholder')"
-            class="border-gray-300 text-gray-900 placeholder-gray-400 min-w-0 flex-1 rounded-md border px-4 py-2.5 text-sm transition-colors focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+            class="min-w-0 flex-1 rounded-md border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
             @keydown.enter.prevent="subscribe"
           />
           <CanonicalButton
@@ -63,12 +63,12 @@
             icon-slug="icon_newsletter_click"
             :color="newsletterButtonColor"
             :disabled="subscribeState === 'subscribing'"
-            class="w-full flex-shrink-0 sm:w-auto"
+            class="w-full shrink-0 sm:w-auto"
             @click="subscribe"
           />
         </div>
 
-        <p v-if="subscribeError" class="text-red-500 mt-2 text-xs">{{ subscribeError }}</p>
+        <p v-if="subscribeError" class="mt-2 text-xs text-red-500">{{ subscribeError }}</p>
         <p class="mt-2 text-xs" :class="hintClass">{{ $t("newsletter.no_spam_hint") }}</p>
       </div>
     </div>

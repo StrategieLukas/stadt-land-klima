@@ -17,10 +17,10 @@
         {{ $t("election_info.usage_hint") }}
       </p>
 
-      <div v-if="usingFallbackCatalog" class="alert alert-warning mt-6">
+      <div v-if="usingFallbackCatalog" class="mt-6 alert alert-warning">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5 flex-shrink-0"
+          class="h-5 w-5 shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -42,7 +42,7 @@
 
       <div class="mt-6 flex justify-center">
         <button
-          class="btn btn-primary rounded-lg px-6 py-3 font-semibold text-white transition-transform hover:scale-105"
+          class="btn rounded-lg px-6 py-3 font-semibold text-white transition-transform btn-primary hover:scale-105"
           @click="fetchPDF()"
         >
           <svg
@@ -76,7 +76,7 @@
           <div class="flex-1">
             <h3 class="flex items-center gap-3 text-xl font-bold text-stats-dark">
               <span
-                class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-stats-dark text-sm font-bold text-white"
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stats-dark text-sm font-bold text-white"
               >
                 {{ index + 1 }}
               </span>
@@ -124,7 +124,7 @@
         <div class="mt-4 flex justify-end border-t border-solid-gray-10 pt-4">
           <NuxtLink
             :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`"
-            class="btn btn-outline btn-secondary btn-sm gap-2 text-stats-dark hover:bg-solid-light-green-10"
+            class="btn gap-2 btn-outline text-stats-dark btn-secondary btn-sm hover:bg-solid-light-green-10"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -144,7 +144,7 @@
     <!-- Bottom PDF Button -->
     <div class="mt-8 flex justify-center py-4">
       <button
-        class="btn btn-primary rounded-lg px-6 py-3 font-semibold text-white transition-transform hover:scale-105"
+        class="btn rounded-lg px-6 py-3 font-semibold text-white transition-transform btn-primary hover:scale-105"
         @click="fetchPDF()"
       >
         <svg

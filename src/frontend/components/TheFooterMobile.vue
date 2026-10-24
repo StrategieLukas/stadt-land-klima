@@ -1,7 +1,7 @@
 <template>
   <!-- Social Media & Onboarding Section -->
-  <div class="bg-gray-100 w-full">
-    <div class="mx-auto max-w-screen-xl py-8 text-center">
+  <div class="w-full bg-gray-100">
+    <div class="mx-auto max-w-(--breakpoint-xl) py-8 text-center">
       <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
         <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
       </NuxtLink>
@@ -36,13 +36,13 @@
 
   <!-- Main Footer -->
   <footer
-    class="footer-vertical footer relative isolate overflow-hidden bg-olive-green p-6 pb-[84px] text-white sm:pb-6"
+    class="relative isolate footer footer-vertical overflow-hidden bg-olive-green p-6 pb-[84px] text-white sm:pb-6"
   >
     <img
       src="~/assets/images/Stadt-Land-Klima-Blume.svg"
       alt=""
       aria-hidden="true"
-      class="pointer-events-none absolute left-1/2 top-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 select-none opacity-[0.08] brightness-0 invert"
+      class="pointer-events-none absolute top-1/2 left-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.08] brightness-0 invert select-none"
     />
 
     <!-- Newsletter Signup -->
@@ -50,7 +50,7 @@
       <h3 class="mb-0.5 text-base font-bold">Newsletter</h3>
       <p class="mb-3 text-sm text-rating-4-very-light">{{ $t("newsletter.footer.description") }}</p>
       <div v-if="newsletterState === 'success'" class="flex items-center gap-2 text-sm font-medium">
-        <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path
             fill-rule="evenodd"
             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -65,30 +65,30 @@
           type="email"
           autocomplete="email"
           :placeholder="$t('newsletter.email.placeholder')"
-          class="placeholder-gray-600 w-full min-w-0 rounded-md px-3 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-white"
+          class="w-full min-w-0 rounded-md px-3 py-2 text-sm text-black placeholder-gray-600 focus:ring-2 focus:ring-white focus:outline-hidden"
           @keydown.enter.prevent="subscribeNewsletter"
         />
         <CanonicalButton
           :label="newsletterState === 'subscribing' ? '\u2026' : $t('newsletter.subscribe')"
           icon-slug="icon_newsletter_click"
           color="green"
-          class="w-full flex-shrink-0"
+          class="w-full shrink-0"
           :disabled="newsletterState === 'subscribing'"
           @click="subscribeNewsletter"
         />
       </div>
-      <p v-if="newsletterError" class="text-red-300 mt-1 text-xs">{{ newsletterError }}</p>
+      <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
     </div>
 
     <!-- Navigation Links: footer_columns -->
-    <div v-if="footerColumnsData.length > 0" class="relative z-10 mb-8 !block w-full">
+    <div v-if="footerColumnsData.length > 0" class="relative z-10 mb-8 block! w-full">
       <div class="grid grid-cols-1 gap-4 xs:grid-cols-2 xs:gap-6">
         <nav v-for="col in footerColumnsData" :key="col.id" class="flex flex-col gap-2">
           <h6 class="footer-title mb-2 text-sm font-bold text-white opacity-100">
             {{ navTitle(col) }}
           </h6>
           <template v-for="link in col.links" :key="link.id">
-            <NuxtLink v-if="link.link_type === 'page'" :to="'/' + link.page_slug" class="link-hover link text-sm">{{
+            <NuxtLink v-if="link.link_type === 'page'" :to="'/' + link.page_slug" class="link text-sm link-hover">{{
               navLabel(link)
             }}</NuxtLink>
             <a
@@ -96,7 +96,7 @@
               :href="link.external_url ?? undefined"
               :target="link.open_new_tab ? '_blank' : undefined"
               rel="noopener noreferrer"
-              class="link-hover link text-sm"
+              class="link text-sm link-hover"
               >{{ navLabel(link) }}</a
             >
           </template>
@@ -111,7 +111,7 @@
 
     <!-- Bottom Section: Logo, Buttons, Copyright -->
     <div class="relative z-10 flex w-full flex-col gap-6">
-      <div class="flex w-full flex-col items-center gap-4 pb-4 pt-2">
+      <div class="flex w-full flex-col items-center gap-4 pt-2 pb-4">
         <!-- Logo -->
         <NuxtLink to="/" class="flex justify-center">
           <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-16 w-auto dark:hidden" :alt="$t('logo.alt')" />

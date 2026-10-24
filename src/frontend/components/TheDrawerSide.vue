@@ -1,11 +1,11 @@
 <template>
-  <nav class="drawer drawer-side z-40">
+  <nav class="drawer-side z-40">
     <label for="page-drawer" class="drawer-overlay" @click="closeDrawer"></label>
     <div class="flex min-h-full w-80 flex-col overflow-y-auto bg-white text-left font-semibold">
       <!-- Search bar -->
-      <div class="border-gray-100 border-b px-4 py-3">
+      <div class="border-b border-gray-100 px-4 py-3">
         <button
-          class="bg-gray-50 text-gray-400 hover:bg-gray-100 flex h-10 w-full items-center gap-2 rounded-lg px-3 text-sm transition-colors"
+          class="flex h-10 w-full items-center gap-2 rounded-lg bg-gray-50 px-3 text-sm text-gray-400 transition-colors hover:bg-gray-100"
           :aria-label="$t('generic.search')"
           @click="
             openSearch();
@@ -14,7 +14,7 @@
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 flex-shrink-0"
+            class="h-4 w-4 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -31,12 +31,12 @@
       </div>
 
       <!-- Nav items from navigation_config -->
-      <ul v-if="safeNavItems.length > 0" class="flex-1 pb-6 pt-2">
+      <ul v-if="safeNavItems.length > 0" class="flex-1 pt-2 pb-6">
         <li v-for="item in safeNavItems" :key="item.id">
           <!-- Item with children: split row — label navigates, chevron expands -->
           <template v-if="hasChildren(item)">
             <div
-              class="border-gray-100 hover:bg-gray-50 flex w-full items-center justify-between border-b transition-colors"
+              class="flex w-full items-center justify-between border-b border-gray-100 transition-colors hover:bg-gray-50"
               :class="{ 'bg-solid-light-green-10': anyChildActive(item) }"
             >
               <!-- Label: navigates if the item has a link -->
@@ -53,7 +53,7 @@
                 <img
                   v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
                   :src="imageUrlMap[item.image_id ?? '']"
-                  class="h-4 w-auto flex-shrink-0 object-contain"
+                  class="h-4 w-auto shrink-0 object-contain"
                   alt=""
                 />
                 <span>{{ navLabel(item) }}</span>
@@ -64,29 +64,29 @@
                 :href="item.external_url ?? undefined"
                 :target="item.open_new_tab ? '_blank' : '_self'"
                 rel="noopener noreferrer"
-                class="text-gray-800 flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold"
+                class="flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800"
                 @click="closeDrawer"
               >
                 <img
                   v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
                   :src="imageUrlMap[item.image_id ?? '']"
-                  class="h-4 w-auto flex-shrink-0 object-contain"
+                  class="h-4 w-auto shrink-0 object-contain"
                   alt=""
                 />
                 <span>{{ navLabel(item) }}</span>
               </component>
-              <span v-else class="text-gray-800 flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold">
+              <span v-else class="flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800">
                 <img
                   v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
                   :src="imageUrlMap[item.image_id ?? '']"
-                  class="h-4 w-auto flex-shrink-0 object-contain"
+                  class="h-4 w-auto shrink-0 object-contain"
                   alt=""
                 />
                 {{ navLabel(item) }}
               </span>
               <!-- Chevron: toggles accordion only -->
               <button
-                class="text-gray-400 hover:text-gray-600 flex h-full w-12 flex-shrink-0 items-center justify-center py-3 transition-colors"
+                class="flex h-full w-12 shrink-0 items-center justify-center py-3 text-gray-400 transition-colors hover:text-gray-600"
                 :aria-label="expandedId === item.id ? $t('generic.collapse') : $t('generic.expand')"
                 @click="toggleExpanded(item.id)"
               >
@@ -112,7 +112,7 @@
               @leave="accordionLeave"
               @after-leave="accordionAfterLeave"
             >
-              <div v-if="expandedId === item.id" class="border-gray-100 border-b">
+              <div v-if="expandedId === item.id" class="border-b border-gray-100">
                 <!-- Image children: 2-column grid -->
                 <div v-if="hasImageChildren(item)" class="grid grid-cols-2 gap-2 px-4 py-3">
                   <component
@@ -129,10 +129,10 @@
                   >
                     <img :src="imageUrlMap[child.image_id ?? '']" class="h-full w-full object-cover" alt="" />
                     <div
-                      class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4"
+                      class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-2 pt-4 pb-1.5"
                     >
                       <div
-                        class="text-xs font-semibold leading-snug text-white"
+                        class="text-xs leading-snug font-semibold text-white"
                         style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
                       >
                         {{ navLabel(child) }}
@@ -143,7 +143,7 @@
 
                 <!-- Text-only children -->
                 <template v-for="(child, index) in childrenWithoutImages(item)" :key="child.id">
-                  <div v-if="index > 0" class="border-gray-100 ml-7 border-t"></div>
+                  <div v-if="index > 0" class="ml-7 border-t border-gray-100"></div>
                   <component
                     :is="child.link_type === 'page' ? NuxtLink : 'a'"
                     :to="child.link_type === 'page' ? resolveHref(child) : undefined"
@@ -157,11 +157,11 @@
                     }"
                     @click="closeDrawer"
                   >
-                    <span class="flex items-center gap-1.5 font-semibold leading-snug">
+                    <span class="flex items-center gap-1.5 leading-snug font-semibold">
                       <svg
                         v-if="child.link_type === 'external'"
                         xmlns="http://www.w3.org/2000/svg"
-                        class="text-gray-500 h-3 w-3 flex-shrink-0"
+                        class="h-3 w-3 shrink-0 text-gray-500"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -175,7 +175,7 @@
                       </svg>
                       {{ navLabel(child) }}
                     </span>
-                    <span v-if="child.description" class="text-gray-400 mt-0.5 text-xs font-normal leading-snug">{{
+                    <span v-if="child.description" class="mt-0.5 text-xs leading-snug font-normal text-gray-400">{{
                       navDescription(child)
                     }}</span>
                   </component>
@@ -192,7 +192,7 @@
             :href="item.link_type === 'external' ? item.external_url : undefined"
             :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
             :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
-            class="border-gray-100 flex w-full items-center gap-2 border-b px-5 py-3 text-sm font-semibold transition-colors"
+            class="flex w-full items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold transition-colors"
             :class="{
               'bg-solid-light-green-10 text-olive-green': item.link_type === 'page' && isActive(item),
               'text-gray-800 hover:bg-gray-50': !(item.link_type === 'page' && isActive(item)),
@@ -202,13 +202,13 @@
             <img
               v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
               :src="imageUrlMap[item.image_id ?? '']"
-              class="h-4 w-auto flex-shrink-0 object-contain"
+              class="h-4 w-auto shrink-0 object-contain"
               alt=""
             />
             <svg
               v-if="item.link_type === 'external'"
               xmlns="http://www.w3.org/2000/svg"
-              class="text-gray-500 h-3.5 w-3.5 flex-shrink-0"
+              class="h-3.5 w-3.5 shrink-0 text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -226,12 +226,12 @@
           <!-- Label-only (no link, no children) -->
           <span
             v-else
-            class="text-gray-400 border-gray-100 flex w-full items-center gap-2 border-b px-5 py-3 text-sm font-semibold"
+            class="flex w-full items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-400"
           >
             <img
               v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
               :src="imageUrlMap[item.image_id ?? '']"
-              class="h-4 w-auto flex-shrink-0 object-contain"
+              class="h-4 w-auto shrink-0 object-contain"
               alt=""
             />
             {{ navLabel(item) }}
@@ -244,7 +244,7 @@
         <li v-for="page in pages" :key="page.id">
           <NuxtLink
             :to="'/' + page.slug"
-            class="text-gray-800 border-gray-100 hover:bg-gray-50 flex items-center gap-2 border-b px-5 py-3 text-sm font-semibold transition-colors"
+            class="flex items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50"
             @click="closeDrawer"
           >
             <span>→</span> {{ navLabel(page, "name") }}
@@ -253,7 +253,7 @@
       </ul>
 
       <!-- Bottom: Login + Donate -->
-      <div class="border-gray-100 flex gap-3 border-t px-4 pb-40 pt-5">
+      <div class="flex gap-3 border-t border-gray-100 px-4 pt-5 pb-40">
         <LoginButton class="flex-1" @click="closeDrawer" />
         <DonateButton class="flex-1" @click="closeDrawer" />
       </div>

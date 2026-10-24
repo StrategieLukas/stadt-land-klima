@@ -160,7 +160,7 @@ Verify a frontend production build as well as `curl http://localhost:8080`.
 
 The PostgreSQL/PostGIS and Meilisearch server upgrades require explicit,
 data-preserving migrations; do not change their image tags over existing data
-directories. Nuxt 4 and Blökkli 2 are implemented. Tailwind **3.4.19** and DaisyUI **4.12.24** remain installed; a Tailwind 4/DaisyUI 5 theme/component migration is an optional follow-up described in [remaining decisions](REMAINING_TODOS.md#dependency-and-platform-decisions).
+directories. Nuxt 4 and Blökkli 2 are implemented. Tailwind **4.3.3** and DaisyUI **5.7.50** now use the Vite integration and custom themes; see [migration and target acceptance](REMAINING_TODOS.md#tailwind-4-and-daisyui-5-migration).
 
 ## Authenticated registration mail flows
 
@@ -349,3 +349,11 @@ Do not rerun apply after success; it intentionally refuses to overwrite an exist
 The tool uses the existing Directus DB configuration to connect as the bootstrap superuser. It is an explicit operational role/ownership migration, not a replacement for YAML schema/permission imports. It accepts only a new role, binds the plan to the PostgreSQL cluster/database/operator/catalog inventory, refuses active clients and custom mixed-owner/non-public application layouts, and preserves PostGIS extension members. Empty extension-support schemas are retained. The app owns its tables/types/routines and can perform migrations but cannot create databases/roles, replicate or bypass row security. A separate runtime-versus-migrator identity is not implemented. Check custom SQL audit systems separately: the tool disables ordinary statement/duration logging for its password statement, but cannot control external audit capture.
 
 `npm --prefix src/directus/cli run test:database-role` runs a disposable PostgreSQL/PostGIS container and checks read-only planning, instance/schema drift, active-client rejection, atomic rollback, generated/serial IDs, spatial data, app DDL and denied cluster administration. It also verifies the bootstrap can still dump the database. It is opt-in and takes a few seconds locally. The normal CLI suite covers deployment ordering and backup/restore operator/overlay selection. Full existing-data Directus startup/import and backup restoration on the target remain staging acceptance.
+
+### Tailwind 4 / DaisyUI 5
+
+The frontend uses Tailwind 4.3.3 with `@tailwindcss/vite` and DaisyUI 5.7.50. The CSS entry `src/frontend/assets/css/main.css` owns plugins, custom themes, dark mode, source scanning and runtime rating sources. Shared colors/fonts/typography remain in `tailwind.config.js`, explicitly loaded via `@config`; there is no ignored JS safelist or second Tailwind PostCSS pipeline. Keep brand green `#AFCA0B`, distinct `ff-green`, and the persisted theme IDs unchanged.
+
+Use `npm ci` independently on each local machine and in the server container. Native compiler packages are optional platform dependencies; never use `--omit=optional` or copy `node_modules` across operating systems. The browser floor is Safari 16.4+, Chrome 111+ and Firefox 128+; native macOS/Windows execution still requires target acceptance. A CSS-only deployment needs a frontend rebuild/recreation, with templates/configuration/manifests/lockfile deployed together; it needs no Directus upgrade/import.
+
+`npm --prefix bin/test_suite run test:styles -- http://localhost:8080` is the explicit light/dark desktop/mobile style/interaction gate. Select another installed engine with `TEST_STYLE_BROWSER=firefox` or `webkit`. The default unit suite separately compiles the real stylesheet and checks dynamic rating classes, theme IDs, optional bindings and persisted editor variants. See [test-suite instructions](bin/test_suite/README.md) for production HTTPS and engine setup.

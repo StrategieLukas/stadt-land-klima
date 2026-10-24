@@ -2,28 +2,28 @@
   <div :id="'block-' + uuid" class="blokkli-block-vega-chart">
     <!-- Edit mode: show editable JSON fields -->
     <div v-if="isEditing" class="space-y-3">
-      <div class="text-gray-500 text-xs font-semibold uppercase tracking-wide">Vega-Lite Spec</div>
+      <div class="text-xs font-semibold tracking-wide text-gray-500 uppercase">Vega-Lite Spec</div>
       <pre
         v-blokkli-editable:spec
-        class="bg-gray-50 border-gray-200 max-h-[24rem] min-h-[8rem] overflow-auto whitespace-pre-wrap rounded border p-3 font-mono text-xs"
+        class="max-h-96 min-h-32 overflow-auto rounded-sm border border-gray-200 bg-gray-50 p-3 font-mono text-xs whitespace-pre-wrap"
         v-text="props.spec || defaultSpec"
       />
 
-      <div class="text-gray-500 text-xs font-semibold uppercase tracking-wide">Daten-Query (JSON)</div>
+      <div class="text-xs font-semibold tracking-wide text-gray-500 uppercase">Daten-Query (JSON)</div>
       <pre
         v-blokkli-editable:query
-        class="bg-gray-50 border-gray-200 max-h-[16rem] min-h-[4rem] overflow-auto whitespace-pre-wrap rounded border p-3 font-mono text-xs"
+        class="max-h-64 min-h-16 overflow-auto rounded-sm border border-gray-200 bg-gray-50 p-3 font-mono text-xs whitespace-pre-wrap"
         v-text="props.query || defaultQuery"
       />
 
-      <div v-if="errorMessage" class="text-red-600 bg-red-50 border-red-200 rounded border p-2 text-xs">
+      <div v-if="errorMessage" class="rounded-sm border border-red-200 bg-red-50 p-2 text-xs text-red-600">
         {{ errorMessage }}
       </div>
 
       <!-- Chart preview in edit mode -->
-      <div class="border-gray-200 mt-3 rounded border bg-white p-2">
+      <div class="mt-3 rounded-sm border border-gray-200 bg-white p-2">
         <div ref="editChartContainer" class="vega-chart-container" />
-        <div v-if="loading" class="text-gray-400 py-4 text-center text-xs">
+        <div v-if="loading" class="py-4 text-center text-xs text-gray-400">
           {{ $t("generic.loading") }}
         </div>
       </div>
@@ -31,9 +31,9 @@
       <!-- Debug data table (editor only) -->
       <div
         v-if="options.showTable && flatData && flatData.length"
-        class="border-gray-200 mt-4 overflow-x-auto rounded border"
+        class="mt-4 overflow-x-auto rounded-sm border border-gray-200"
       >
-        <div class="text-gray-500 bg-gray-50 border-gray-200 border-b px-3 py-1 text-xs">
+        <div class="border-b border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-500">
           {{ flatData.length }} Datensätze
         </div>
         <table class="min-w-full text-xs">
@@ -42,21 +42,21 @@
               <th
                 v-for="col in tableColumns"
                 :key="col"
-                class="text-gray-600 border-gray-200 border-b px-3 py-1.5 text-left font-medium"
+                class="border-b border-gray-200 px-3 py-1.5 text-left font-medium text-gray-600"
               >
                 {{ col }}
               </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, i) in flatData.slice(0, 50)" :key="i" class="border-gray-100 hover:bg-gray-50 border-b">
-              <td v-for="col in tableColumns" :key="col" class="text-gray-700 whitespace-nowrap px-3 py-1">
+            <tr v-for="(row, i) in flatData.slice(0, 50)" :key="i" class="border-b border-gray-100 hover:bg-gray-50">
+              <td v-for="col in tableColumns" :key="col" class="px-3 py-1 whitespace-nowrap text-gray-700">
                 {{ formatCell(row[col]) }}
               </td>
             </tr>
           </tbody>
         </table>
-        <div v-if="flatData.length > 50" class="text-gray-400 bg-gray-50 border-gray-200 border-t px-3 py-1 text-xs">
+        <div v-if="flatData.length > 50" class="border-t border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-400">
           … und {{ flatData.length - 50 }} weitere
         </div>
       </div>
@@ -65,10 +65,10 @@
     <!-- View mode: render Vega-Lite chart -->
     <div v-else>
       <div ref="chartContainer" class="vega-chart-container" />
-      <div v-if="errorMessage" class="text-red-600 mt-2 text-sm">
+      <div v-if="errorMessage" class="mt-2 text-sm text-red-600">
         {{ errorMessage }}
       </div>
-      <div v-if="loading" class="text-gray-400 py-8 text-center text-sm">
+      <div v-if="loading" class="py-8 text-center text-sm text-gray-400">
         {{ $t("generic.loading") }}
       </div>
     </div>

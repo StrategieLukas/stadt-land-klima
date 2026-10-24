@@ -23,10 +23,10 @@
             </NuxtLink>
           </div>
           <article class="prose max-w-none">
-            <time v-if="displayDate" class="not-prose text-gray-500 mb-1 block text-sm" :datetime="displayDate">{{
+            <time v-if="displayDate" class="not-prose mb-1 block text-sm text-gray-500" :datetime="displayDate">{{
               formatDate(displayDate)
             }}</time>
-            <p v-if="item.author" class="not-prose text-gray-600 mb-3 text-sm italic">
+            <p v-if="item.author" class="not-prose mb-3 text-sm text-gray-600 italic">
               {{ $t("article.author_date", { ":author": item.author, ":date": formatDate(displayDate) }) }}
             </p>
             <p v-else-if="displayDate && !item.author" class="not-prose mb-3" />
@@ -43,7 +43,7 @@
                 img-class="w-full h-auto block"
               />
             </div>
-            <p v-if="item.image_credits" class="not-prose text-gray-500 mb-4 text-center text-xs italic">
+            <p v-if="item.image_credits" class="not-prose mb-4 text-center text-xs text-gray-500 italic">
               {{ item.image_credits }}
             </p>
 
@@ -71,7 +71,7 @@
                   v-for="project in reportProjects"
                   :key="project.id"
                   :to="`/projects/${project.slug}`"
-                  class="btn btn-outline btn-sm border-stats-dark text-stats-dark"
+                  class="btn border-stats-dark btn-outline text-stats-dark btn-sm"
                 >
                   {{ project.title }}
                 </NuxtLink>
@@ -80,9 +80,9 @@
           </article>
 
           <!-- Metadata edit panel (visible to authenticated editors only) -->
-          <div v-if="canEdit" class="not-prose border-gray-200 mt-8 border-t pt-6">
+          <div v-if="canEdit" class="not-prose mt-8 border-t border-gray-200 pt-6">
             <div class="mb-4 flex items-center justify-between">
-              <h2 class="text-gray-500 text-sm font-semibold uppercase tracking-wide">
+              <h2 class="text-sm font-semibold tracking-wide text-gray-500 uppercase">
                 {{ $t("news.editor.metadata") }}
               </h2>
               <button
@@ -96,53 +96,53 @@
 
             <form
               v-if="editOpen"
-              class="border-gray-100 flex flex-col gap-4 rounded-lg border bg-[#f5fafb] p-5"
+              class="flex flex-col gap-4 rounded-lg border border-gray-100 bg-[#f5fafb] p-5"
               @submit.prevent="saveMetadata"
             >
               <div>
-                <label class="text-gray-600 mb-1 block text-xs font-semibold">{{
+                <label class="mb-1 block text-xs font-semibold text-gray-600">{{
                   $t("news.editor.title_required")
                 }}</label>
                 <input
                   v-model="editForm.title"
                   type="text"
                   required
-                  class="border-gray-300 w-full rounded border px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-none"
+                  class="w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-hidden"
                 />
               </div>
               <div>
-                <label class="text-gray-600 mb-1 block text-xs font-semibold">{{ $t("news.editor.teaser") }}</label>
+                <label class="mb-1 block text-xs font-semibold text-gray-600">{{ $t("news.editor.teaser") }}</label>
                 <textarea
                   v-model="editForm.teaser"
                   rows="3"
-                  class="border-gray-300 w-full rounded border px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-none"
+                  class="w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-hidden"
                 />
               </div>
               <div>
-                <label class="text-gray-600 mb-1 block text-xs font-semibold">{{ $t("news.editor.author") }}</label>
+                <label class="mb-1 block text-xs font-semibold text-gray-600">{{ $t("news.editor.author") }}</label>
                 <input
                   v-model="editForm.author"
                   type="text"
                   :placeholder="$t('news.editor.author_placeholder')"
-                  class="border-gray-300 w-full rounded border px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-none"
+                  class="w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-hidden"
                 />
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="text-gray-600 mb-1 block text-xs font-semibold">{{
+                  <label class="mb-1 block text-xs font-semibold text-gray-600">{{
                     $t("news.editor.published_at")
                   }}</label>
                   <input
                     v-model="editForm.date_published"
                     type="datetime-local"
-                    class="border-gray-300 w-full rounded border px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-none"
+                    class="w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-hidden"
                   />
                 </div>
                 <div>
-                  <label class="text-gray-600 mb-1 block text-xs font-semibold">{{ $t("news.editor.status") }}</label>
+                  <label class="mb-1 block text-xs font-semibold text-gray-600">{{ $t("news.editor.status") }}</label>
                   <select
                     v-model="editForm.status"
-                    class="border-gray-300 w-full rounded border px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-none"
+                    class="w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-[#16BAE7] focus:outline-hidden"
                   >
                     <option value="draft">{{ $t("status.draft") }}</option>
                     <option value="published">{{ $t("status.published") }}</option>
@@ -151,14 +151,14 @@
                 </div>
               </div>
               <div>
-                <label class="text-gray-600 mb-1 block text-xs font-semibold">{{ $t("news.editor.image_id") }}</label>
+                <label class="mb-1 block text-xs font-semibold text-gray-600">{{ $t("news.editor.image_id") }}</label>
                 <input
                   v-model="editForm.image"
                   type="text"
                   :placeholder="$t('news.editor.image_id_placeholder')"
-                  class="border-gray-300 w-full rounded border px-3 py-2 font-mono text-sm focus:border-[#16BAE7] focus:outline-none"
+                  class="w-full rounded-sm border border-gray-300 px-3 py-2 font-mono text-sm focus:border-[#16BAE7] focus:outline-hidden"
                 />
-                <p class="text-gray-400 mt-1 text-xs">
+                <p class="mt-1 text-xs text-gray-400">
                   {{ $t("news.editor.image_id_hint_prefix") }}
                   <a :href="`${directusUrl}/admin/files`" target="_blank" class="underline">{{
                     $t("news.editor.directus_file_manager")
@@ -170,12 +170,12 @@
                 <button
                   type="submit"
                   :disabled="saving"
-                  class="rounded bg-[#006e94] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#005a7a] disabled:opacity-50"
+                  class="rounded-sm bg-[#006e94] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#005a7a] disabled:opacity-50"
                 >
                   {{ saving ? $t("generic.saving") : $t("generic.save") }}
                 </button>
-                <span v-if="saveSuccess" class="text-green-600 text-sm font-medium">✓ {{ $t("generic.saved") }}</span>
-                <span v-if="saveError" class="text-red-600 text-sm">{{ saveError }}</span>
+                <span v-if="saveSuccess" class="text-sm font-medium text-green-600">✓ {{ $t("generic.saved") }}</span>
+                <span v-if="saveError" class="text-sm text-red-600">{{ saveError }}</span>
               </div>
             </form>
           </div>

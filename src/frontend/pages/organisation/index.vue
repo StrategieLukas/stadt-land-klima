@@ -8,12 +8,12 @@
     </header>
 
     <h2 class="mb-2 font-heading text-3xl font-bold text-gray">{{ $t("organisation.teams.title") }}</h2>
-    <p class="mb-8 text-sm italic text-gray">{{ $t("organisation.teams.bubble_hint") }}</p>
+    <p class="mb-8 text-sm text-gray italic">{{ $t("organisation.teams.bubble_hint") }}</p>
 
     <div class="flex flex-col items-start gap-8 lg:flex-row">
       <!-- ── Bubble chart ─────────────────────────────────────────────────────── -->
       <!-- Widths use scoped CSS (not Tailwind arbitrary values) so they survive prod builds -->
-      <div ref="svgWrapperRef" class="org-svg-wrapper flex-shrink-0">
+      <div ref="svgWrapperRef" class="org-svg-wrapper shrink-0">
         <svg
           viewBox="140 5 620 555"
           class="w-full select-none"
@@ -97,10 +97,7 @@
       <div class="org-detail-panel" :class="svgHeight > 0 ? 'lg:overflow-y-auto' : ''" :style="panelStyle">
         <template v-if="activeTeam">
           <!-- Popover card -->
-          <div
-            id="team-detail-panel"
-            class="mb-6 overflow-hidden rounded-lg border border-[var(--slk-border)] shadow-md"
-          >
+          <div id="team-detail-panel" class="mb-6 overflow-hidden rounded-lg border border-(--slk-border) shadow-md">
             <!-- Header -->
             <div
               class="px-4 py-3"
@@ -117,20 +114,20 @@
             </div>
 
             <!-- Task list -->
-            <div class="bg-[var(--slk-surface)] px-4 py-3">
-              <ul class="list-inside list-disc space-y-1 text-sm leading-relaxed text-[var(--slk-text)]">
+            <div class="bg-(--slk-surface) px-4 py-3">
+              <ul class="list-inside list-disc space-y-1 text-sm leading-relaxed text-(--slk-text)">
                 <li v-for="task in activeTeam.tasks" :key="task">{{ task }}</li>
               </ul>
             </div>
 
             <!-- Members footer: small clickable avatars (replaces name strip) -->
-            <div class="border-t border-[var(--slk-border)] px-4 py-3">
+            <div class="border-t border-(--slk-border) px-4 py-3">
               <div v-if="filteredMembers.length" class="flex flex-wrap gap-3">
                 <button
                   v-for="member in filteredMembers"
                   :key="'strip-' + member.id"
                   type="button"
-                  class="group flex cursor-pointer flex-col items-center gap-1 focus:outline-none"
+                  class="group flex cursor-pointer flex-col items-center gap-1 focus:outline-hidden"
                   :title="memberFullName(member)"
                   @click="scrollToMember(member.id, activeTeam.color)"
                 >
@@ -156,13 +153,12 @@
                       }}</span>
                     </div>
                   </div>
-                  <span
-                    class="max-w-[48px] truncate text-center text-[10px] leading-tight text-[var(--slk-text-muted)]"
-                    >{{ member.first_name }}</span
-                  >
+                  <span class="max-w-[48px] truncate text-center text-[10px] leading-tight text-(--slk-text-muted)">{{
+                    member.first_name
+                  }}</span>
                 </button>
               </div>
-              <p v-else class="text-sm italic text-[var(--slk-text-subtle)]">{{ $t("organisation.no_members") }}</p>
+              <p v-else class="text-sm text-(--slk-text-subtle) italic">{{ $t("organisation.no_members") }}</p>
             </div>
           </div>
         </template>
@@ -170,7 +166,7 @@
         <!-- No-selection placeholder — min-height matches SVG height to keep page height stable -->
         <div
           v-else
-          class="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[var(--slk-border)] text-center text-[var(--slk-text-muted)]"
+          class="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-(--slk-border) text-center text-(--slk-text-muted)"
           :style="placeholderStyle"
         >
           <svg class="h-10 w-10 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -197,11 +193,11 @@
             v-for="member in filteredMembers"
             :id="'member-' + member.id"
             :key="'all-active-' + member.id"
-            class="flex flex-col overflow-hidden rounded-xl border-2 bg-[var(--slk-surface)] shadow-sm"
+            class="flex flex-col overflow-hidden rounded-xl border-2 bg-(--slk-surface) shadow-xs"
             :style="{ borderColor: activeTeam.color }"
             style="transition: box-shadow 0.1s"
           >
-            <div class="relative aspect-square flex-shrink-0 overflow-hidden bg-[var(--slk-surface-subdued)]">
+            <div class="relative aspect-square shrink-0 overflow-hidden bg-(--slk-surface-subdued)">
               <template v-if="member.avatar">
                 <!-- Blurred fill layer keeps the container looking full at any aspect ratio -->
                 <SmartImg
@@ -231,18 +227,18 @@
               </div>
             </div>
             <div class="flex flex-1 flex-col gap-2 p-4">
-              <p class="font-bold leading-snug text-[var(--slk-text-strong)]">
+              <p class="leading-snug font-bold text-(--slk-text-strong)">
                 {{ member.first_name }} {{ member.last_name }}
               </p>
               <div
                 v-if="member.bio"
-                class="prose prose-sm max-w-none text-sm text-[var(--slk-text-muted)]"
+                class="prose prose-sm max-w-none text-sm text-(--slk-text-muted)"
                 v-html="sanitizeHtml(member.bio)"
               />
             </div>
           </div>
         </div>
-        <hr class="mb-6 border-[var(--slk-border)]" />
+        <hr class="mb-6 border-(--slk-border)" />
       </template>
 
       <!-- All other members (alphabetically by last name) -->
@@ -251,9 +247,9 @@
           v-for="member in otherMembers"
           :id="'member-' + member.id"
           :key="'all-other-' + member.id"
-          class="flex flex-col overflow-hidden rounded-xl border border-[var(--slk-border)] bg-[var(--slk-surface)] shadow-sm"
+          class="flex flex-col overflow-hidden rounded-xl border border-(--slk-border) bg-(--slk-surface) shadow-xs"
         >
-          <div class="relative aspect-square flex-shrink-0 overflow-hidden bg-[var(--slk-surface-subdued)]">
+          <div class="relative aspect-square shrink-0 overflow-hidden bg-(--slk-surface-subdued)">
             <template v-if="member.avatar">
               <!-- Blurred fill layer -->
               <SmartImg
@@ -283,12 +279,12 @@
             </div>
           </div>
           <div class="flex flex-1 flex-col gap-2 p-4">
-            <p class="font-bold leading-snug text-[var(--slk-text-strong)]">
+            <p class="leading-snug font-bold text-(--slk-text-strong)">
               {{ member.first_name }} {{ member.last_name }}
             </p>
             <div
               v-if="member.bio"
-              class="prose prose-sm max-w-none text-sm text-[var(--slk-text-muted)]"
+              class="prose prose-sm max-w-none text-sm text-(--slk-text-muted)"
               v-html="sanitizeHtml(member.bio)"
             />
           </div>

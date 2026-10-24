@@ -7,7 +7,7 @@
 
     <!-- Mobile sticky scroll nav -->
     <nav
-      class="border-gray-100 sticky z-10 -mx-4 mb-6 border-b bg-white px-4 backdrop-blur-sm xl:hidden"
+      class="sticky z-10 -mx-4 mb-6 border-b border-gray-100 bg-white px-4 backdrop-blur-xs xl:hidden"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
@@ -20,7 +20,7 @@
           v-if="currentEvents.length"
           href="#section-momentan"
           :class="[
-            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
+            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
             activeSection === 'section-momentan'
               ? 'bg-orange-100 text-orange-700'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
@@ -32,7 +32,7 @@
           :key="group.monthKey"
           :href="`#section-${group.monthKey}`"
           :class="[
-            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
+            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
             activeSection === `section-${group.monthKey}`
               ? 'bg-solid-stats-dark-10 font-semibold text-[#006e94]'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
@@ -44,9 +44,9 @@
           :key="group.monthKey"
           :href="`#section-${group.monthKey}`"
           :class="[
-            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
+            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
             activeSection === `section-${group.monthKey}`
-              ? 'bg-gray-200 text-gray-700 font-semibold'
+              ? 'bg-gray-200 font-semibold text-gray-700'
               : 'bg-gray-100 text-gray-400 hover:bg-gray-200',
           ]"
           >{{ group.label }}</a
@@ -56,17 +56,17 @@
 
     <div class="flex items-start gap-8">
       <!-- Left sticky sidebar (desktop only) -->
-      <nav class="sticky hidden w-44 flex-shrink-0 self-start text-sm xl:block" :style="`top: ${headerHeight + 12}px`">
-        <p class="text-gray-400 mb-3 text-xs font-bold uppercase tracking-widest">{{ $t("news.sections") }}</p>
+      <nav class="sticky hidden w-44 shrink-0 self-start text-sm xl:block" :style="`top: ${headerHeight + 12}px`">
+        <p class="mb-3 text-xs font-bold tracking-widest text-gray-400 uppercase">{{ $t("news.sections") }}</p>
         <ul class="space-y-1">
           <li v-if="currentEvents.length">
             <a
               href="#section-momentan"
               :class="[
-                'block truncate rounded px-2 py-1 transition-colors',
+                'block truncate rounded-sm px-2 py-1 transition-colors',
                 activeSection === 'section-momentan'
-                  ? 'text-orange-600 bg-orange-50 font-semibold'
-                  : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
+                  ? 'bg-orange-50 font-semibold text-orange-600'
+                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
               ]"
               >{{ $t("events.section.current") }}</a
             >
@@ -75,10 +75,10 @@
             <a
               :href="`#section-${group.monthKey}`"
               :class="[
-                'block truncate rounded px-2 py-1 transition-colors',
+                'block truncate rounded-sm px-2 py-1 transition-colors',
                 activeSection === `section-${group.monthKey}`
                   ? 'bg-solid-stats-dark-05 font-semibold text-[#006e94]'
-                  : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
+                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
               ]"
               >{{ group.label }}</a
             >
@@ -87,10 +87,10 @@
             <a
               :href="`#section-${group.monthKey}`"
               :class="[
-                'block truncate rounded px-2 py-1 transition-colors',
+                'block truncate rounded-sm px-2 py-1 transition-colors',
                 activeSection === `section-${group.monthKey}`
-                  ? 'text-gray-600 bg-gray-100 font-semibold'
-                  : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
+                  ? 'bg-gray-100 font-semibold text-gray-600'
+                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
               ]"
               >{{ group.label }}</a
             >
@@ -108,9 +108,9 @@
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
           <h2
-            class="text-orange-600 border-orange-200 mb-4 flex items-center border-b pb-2 text-base font-semibold uppercase tracking-wide"
+            class="mb-4 flex items-center border-b border-orange-200 pb-2 text-base font-semibold tracking-wide text-orange-600 uppercase"
           >
-            <span class="bg-orange-500 inline-block h-2 w-2 animate-pulse rounded-full"></span>
+            <span class="inline-block h-2 w-2 animate-pulse rounded-full bg-orange-500"></span>
             {{ $t("events.section.current") }}
           </h2>
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -128,7 +128,7 @@
             :style="`scroll-margin-top: ${headerHeight + 16}px`"
           >
             <h2
-              class="text-gray-500 border-gray-200 mb-4 border-b pb-2 text-base font-semibold uppercase tracking-wide"
+              class="mb-4 border-b border-gray-200 pb-2 text-base font-semibold tracking-wide text-gray-500 uppercase"
             >
               {{ group.label }}
             </h2>
@@ -137,7 +137,7 @@
             </div>
           </div>
         </div>
-        <div v-else-if="!currentEvents.length" class="text-gray-500 mb-8 italic">
+        <div v-else-if="!currentEvents.length" class="mb-8 text-gray-500 italic">
           {{ $t("events.no_upcoming") }}
         </div>
 
@@ -148,7 +148,7 @@
           class="mt-10"
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
-          <h2 class="text-gray-400 border-gray-100 mb-6 border-b pb-2 text-base font-semibold uppercase tracking-wide">
+          <h2 class="mb-6 border-b border-gray-100 pb-2 text-base font-semibold tracking-wide text-gray-400 uppercase">
             {{ $t("events.past") }}
           </h2>
           <div
@@ -158,7 +158,7 @@
             class="mb-10"
             :style="`scroll-margin-top: ${headerHeight + 16}px`"
           >
-            <h2 class="text-gray-400 border-gray-100 mb-4 border-b pb-2 text-sm font-semibold uppercase tracking-wide">
+            <h2 class="mb-4 border-b border-gray-100 pb-2 text-sm font-semibold tracking-wide text-gray-400 uppercase">
               {{ group.label }}
             </h2>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

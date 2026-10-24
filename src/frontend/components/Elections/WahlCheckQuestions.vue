@@ -33,9 +33,7 @@
 
     <!-- Single Question Display with Carousel-like Swipe Animation -->
     <div v-if="currentQuestion" class="space-y-6">
-      <div
-        class="relative grid min-h-[320px] grid-cols-1 grid-rows-1 overflow-hidden [&>*]:col-start-1 [&>*]:row-start-1"
-      >
+      <div class="relative grid min-h-[320px] grid-cols-1 grid-rows-1 overflow-hidden *:col-start-1 *:row-start-1">
         <Transition :name="transitionDirection">
           <div
             :key="currentQuestion.id"
@@ -43,22 +41,22 @@
           >
             <div class="mb-4 flex items-start gap-3 sm:gap-4">
               <span
-                class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-stats-dark text-base font-bold text-white sm:h-10 sm:w-10 sm:text-lg"
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stats-dark text-base font-bold text-white sm:h-10 sm:w-10 sm:text-lg"
               >
                 {{ currentQuestionIndex + 1 }}
               </span>
               <div class="min-w-0 flex-1">
-                <h3 class="hyphens-auto break-words text-lg font-semibold leading-tight text-black sm:text-xl">
+                <h3 class="text-lg leading-tight font-semibold wrap-break-word hyphens-auto text-black sm:text-xl">
                   {{ currentQuestion.title }}
                 </h3>
                 <ElectionsQuestionBackgroundInfo
                   :content="currentQuestion.background_information"
                   appearance="italic"
-                  class="mt-2 hyphens-auto break-words"
+                  class="mt-2 wrap-break-word hyphens-auto"
                 />
                 <p
                   v-if="currentQuestion.thesis"
-                  class="mt-4 hyphens-auto break-words rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-3 text-base text-gray sm:p-4 sm:text-lg"
+                  class="mt-4 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-3 text-base wrap-break-word hyphens-auto text-gray sm:p-4 sm:text-lg"
                 >
                   {{ currentQuestion.thesis }}
                 </p>
@@ -73,7 +71,7 @@
               >
                 <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
                   <label
-                    class="option-btn relative flex cursor-pointer items-center justify-center rounded-full p-1 transition-transform focus-within:outline-none"
+                    class="option-btn relative flex cursor-pointer items-center justify-center rounded-full p-1 transition-transform focus-within:outline-hidden"
                     :class="{ 'sparkle-active': sparklingOption === option.value }"
                     :style="{ '--sparkle-rgb': option.sparkleRgb }"
                   >
@@ -86,7 +84,7 @@
                       @click="selectOption(currentQuestion.id, option.value)"
                     />
                     <div
-                      class="flex h-8 w-8 cursor-pointer select-none items-center justify-center rounded-full border-2 transition-all sm:h-10 sm:w-10"
+                      class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 transition-all select-none sm:h-10 sm:w-10"
                       :class="getOptionCircleClass(currentQuestion.id, option.value)"
                     >
                       <span
@@ -99,7 +97,7 @@
                 </div>
               </div>
               <div
-                class="grid gap-1 text-center text-[9px] font-medium uppercase tracking-wider text-mid-gray xs:text-[10px] sm:text-xs"
+                class="grid gap-1 text-center text-[9px] font-medium tracking-wider text-mid-gray uppercase xs:text-[10px] sm:text-xs"
                 :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
               >
                 <div v-for="option in ratingOptions" :key="option.value" class="leading-tight">
@@ -109,12 +107,12 @@
             </div>
 
             <!-- Skip Option -->
-            <div class="ml-0 mt-4 sm:ml-12 md:ml-14">
+            <div class="mt-4 ml-0 sm:ml-12 md:ml-14">
               <label class="flex w-fit cursor-pointer items-center gap-2 text-sm text-mid-gray">
                 <input
                   type="checkbox"
                   :checked="!!skippedQuestions[currentQuestion.id]"
-                  class="checkbox checkbox-sm border-solid-gray-30"
+                  class="checkbox border-solid-gray-30 checkbox-sm"
                   @change="handleSkipChange(currentQuestion.id, $event)"
                 />
                 <span>{{ $t("elections.wahlcheck.questions.skip") }}</span>
@@ -140,7 +138,7 @@
           <button
             type="button"
             :disabled="currentQuestionIndex === 0"
-            class="btn btn-outline btn-secondary flex-1 rounded-full px-4 py-2 font-semibold sm:flex-initial sm:px-6"
+            class="btn flex-1 rounded-full btn-outline px-4 py-2 font-semibold btn-secondary sm:flex-initial sm:px-6"
             :class="{ 'cursor-not-allowed opacity-50': currentQuestionIndex === 0 }"
             @click="handlePrevQuestion"
           >
@@ -149,7 +147,7 @@
           <button
             type="button"
             :disabled="!canProceedToNext"
-            class="btn btn-primary flex-1 whitespace-nowrap rounded-full px-4 py-2 font-semibold text-white sm:flex-initial sm:px-8"
+            class="btn flex-1 rounded-full px-4 py-2 font-semibold whitespace-nowrap text-white btn-primary sm:flex-initial sm:px-8"
             :class="{ 'cursor-not-allowed opacity-50': !canProceedToNext }"
             @click="handleNextQuestion"
           >

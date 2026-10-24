@@ -163,8 +163,8 @@ const alignmentClass = computed(() => {
 const bgClass = computed(() => {
   const map: Record<string, string> = {
     none: "",
-    white: "bg-white shadow-sm",
-    light: "bg-mild-white shadow-sm",
+    white: "bg-white shadow-xs",
+    light: "bg-mild-white shadow-xs",
   };
   return map[options.value.background] || "";
 });

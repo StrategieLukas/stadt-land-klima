@@ -3,7 +3,7 @@
     :to="to"
     class="group card block overflow-hidden rounded-none bg-white shadow-xl transition-shadow duration-200 hover:shadow-2xl"
   >
-    <div class="bg-gray-200 relative flex h-40 items-center justify-center">
+    <div class="relative flex h-40 items-center justify-center bg-gray-200">
       <SmartImg
         v-if="image_id"
         :asset-id="image_id"
@@ -21,7 +21,7 @@
       <!-- Sector badge top-left -->
       <div
         v-if="sector"
-        class="absolute left-2 top-2 flex items-center gap-1 rounded bg-white/80 px-2 py-0.5 text-xs font-bold text-gray backdrop-blur-sm"
+        class="absolute top-2 left-2 flex items-center gap-1 rounded-sm bg-white/80 px-2 py-0.5 text-xs font-bold text-gray backdrop-blur-xs"
       >
         <img :src="sectorImages[sector]" class="h-4 w-4 opacity-60" alt="" />
         {{ $t(`measure_sectors.${sector}.title`) }}
@@ -37,10 +37,10 @@
 
     <div class="p-4">
       <div class="mb-2 flex flex-wrap items-center gap-2">
-        <span class="flex-shrink-0 rounded bg-gray px-2 py-0.5 font-mono text-xs text-white">{{ measure_id }}</span>
+        <span class="shrink-0 rounded-sm bg-gray px-2 py-0.5 font-mono text-xs text-white">{{ measure_id }}</span>
       </div>
-      <h2 class="mb-2 font-heading text-sm font-bold leading-snug text-gray">{{ name }}</h2>
-      <p v-if="description" class="text-gray-500 line-clamp-3 text-xs">{{ description }}</p>
+      <h2 class="mb-2 font-heading text-sm leading-snug font-bold text-gray">{{ name }}</h2>
+      <p v-if="description" class="line-clamp-3 text-xs text-gray-500">{{ description }}</p>
     </div>
   </NuxtLink>
 </template>

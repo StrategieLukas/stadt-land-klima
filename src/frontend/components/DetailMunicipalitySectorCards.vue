@@ -3,7 +3,7 @@
     v-for="(sectorRatings, sector) in ratingsBySector"
     :key="sector"
     :name="`sector-${sector}`"
-    class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+    class="collapse-plus collapse mb-4 rounded-xs p-2 px-0 shadow-list md:px-2"
   >
     <input v-model="openSectors[sector]" type="checkbox" name="sectors-accordion" autocomplete="off" />
     <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
@@ -37,8 +37,8 @@
           :key="`rating-image-${rating}`"
           class="flex h-14 w-16 flex-col items-center sm:w-auto"
         >
-          <img :src="ratingIcons[rating ?? 'null']" class="top-0 h-[calc(1.25rem*1.595)] w-5 shrink-0" />
-          <div class="break-words text-xs leading-tight sm:text-sm">
+          <img :src="ratingIcons[rating ?? 'null']" class="top-0 h-[1.99375rem] w-5 shrink-0" />
+          <div class="text-xs leading-tight wrap-break-word sm:text-sm">
             {{ $t(rating === null ? "measure_rating.not_applicable_caption" : `measure_rating.${rating}_caption`) }}
           </div>
         </li>
@@ -46,8 +46,8 @@
       <ul class="mb-8">
         <li v-for="item in sectorRatings" :key="item.id">
           <div
-            class="slk-measure-row collapse collapse-plus rounded-none"
-            :class="isUnrated(item) ? 'border-gray-300 border-b border-dashed' : 'border-b-2 border-slate-300'"
+            class="slk-measure-row collapse-plus collapse rounded-none"
+            :class="isUnrated(item) ? 'border-b border-dashed border-gray-300' : 'border-b-2 border-slate-300'"
             :name="`measure-${item.measure.measure_id}`"
           >
             <input
@@ -76,7 +76,7 @@
               </div>
 
               <h3
-                :class="['font-heading text-h3 font-medium', isUnrated(item) ? 'italic text-mid-gray' : 'text-black']"
+                :class="['font-heading text-h3 font-medium', isUnrated(item) ? 'text-mid-gray italic' : 'text-black']"
               >
                 {{ item.measure.name }}
               </h3>

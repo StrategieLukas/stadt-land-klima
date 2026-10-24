@@ -19,7 +19,7 @@
     <!-- Code + Info -->
     <div class="w-60 text-center">
       <p v-if="code">{{ code }}</p>
-      <button class="btn btn-ghost btn-sm pointer-events-none">
+      <button class="btn pointer-events-none btn-ghost btn-sm">
         Info
         <span v-if="expanded">▲</span>
         <span v-else>▼</span>
@@ -47,7 +47,7 @@
         <div
           v-for="dataSource in dataSources"
           :key="dataSource.id"
-          class="border-gray-200 rounded-lg border bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+          class="rounded-lg border border-gray-200 bg-white p-4 shadow-xs transition-shadow hover:shadow-md"
         >
           <!-- Date Badge -->
           <div v-if="dataSource.effectiveDt" class="mb-3 flex items-start justify-between">
@@ -64,7 +64,7 @@
               <tbody>
                 <!-- License -->
                 <tr v-if="dataSource.license">
-                  <td class="text-gray-600 w-32 font-semibold uppercase tracking-wide">License</td>
+                  <td class="w-32 font-semibold tracking-wide text-gray-600 uppercase">License</td>
                   <td>
                     <div class="flex flex-wrap items-center gap-2">
                       <a
@@ -72,7 +72,7 @@
                         :href="dataSource.license.url"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="bg-green-100 text-green-800 hover:bg-green-200 inline-flex items-center rounded-full py-1 text-sm font-medium transition-colors"
+                        class="inline-flex items-center rounded-full bg-green-100 py-1 text-sm font-medium text-green-800 transition-colors hover:bg-green-200"
                       >
                         {{ dataSource.license.name }}
                         <svg class="ml-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
@@ -85,12 +85,12 @@
                       </a>
                       <span
                         v-else
-                        class="bg-gray-100 text-gray-800 inline-flex items-center rounded-full py-1 text-sm font-medium"
+                        class="inline-flex items-center rounded-full bg-gray-100 py-1 text-sm font-medium text-gray-800"
                       >
                         {{ dataSource.license.name }}
                       </span>
                     </div>
-                    <p v-if="dataSource.license.text" class="text-gray-600 mt-1 text-sm">
+                    <p v-if="dataSource.license.text" class="mt-1 text-sm text-gray-600">
                       {{ dataSource.license.text }}
                     </p>
                   </td>
@@ -98,22 +98,22 @@
 
                 <!-- Attribution -->
                 <tr v-if="dataSource.attribution">
-                  <td class="text-gray-600 w-32 font-semibold uppercase tracking-wide">Attribution</td>
-                  <td class="text-gray-700 text-sm">{{ dataSource.attribution }}</td>
+                  <td class="w-32 font-semibold tracking-wide text-gray-600 uppercase">Attribution</td>
+                  <td class="text-sm text-gray-700">{{ dataSource.attribution }}</td>
                 </tr>
 
                 <!-- Attribution URL -->
                 <tr v-if="dataSource.attributionUrl">
-                  <td class="text-gray-600 w-32 font-semibold uppercase tracking-wide">Source</td>
+                  <td class="w-32 font-semibold tracking-wide text-gray-600 uppercase">Source</td>
                   <td>
                     <a
                       :href="dataSource.attributionUrl"
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="inline-flex items-center break-all text-sm text-primary underline hover:text-solid-light-green-70"
+                      class="inline-flex items-center text-sm break-all text-primary underline hover:text-solid-light-green-70"
                     >
                       {{ dataSource.attributionUrl }}
-                      <svg class="ml-1 h-3 w-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <svg class="ml-1 h-3 w-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fill-rule="evenodd"
                           d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
@@ -133,7 +133,7 @@
     <!-- Histogram Section -->
     <div v-if="histogramConfig">
       <p class="font-bold">{{ $t("stats.labels.distribution") }}</p>
-      <div class="bg-gray-50 mt-2 rounded-lg p-4">
+      <div class="mt-2 rounded-lg bg-gray-50 p-4">
         <!-- Use simple histogram if precomputed data is available -->
         <DataHistogram
           v-if="hasPrecomputedHistogram"
@@ -181,11 +181,11 @@
               ✕
             </button>
           </div>
-          <p class="text-gray-600 mb-2 text-sm">
+          <p class="mb-2 text-sm text-gray-600">
             {{ selectedBinData.count }} {{ $t("stats.histogram.municipalities") }}
           </p>
           <div class="max-h-60 overflow-y-auto border">
-            <table class="table table-zebra table-pin-rows table-xs">
+            <table class="table table-pin-rows table-zebra table-xs">
               <thead>
                 <tr>
                   <th class="pr-1 text-right">{{ $t("administrative_areas.prefix") }}</th>
@@ -203,7 +203,7 @@
               </thead>
               <tbody>
                 <tr v-for="area in sortedAreas" :key="area.ars" class="hover">
-                  <td class="text-gray-600 pr-1 text-right">{{ area.prefix }}</td>
+                  <td class="pr-1 text-right text-gray-600">{{ area.prefix }}</td>
                   <td class="pl-1">
                     <NuxtLink
                       :to="`/data/${area.ars}`"
@@ -225,7 +225,7 @@
     <!-- Map Section -->
     <div v-if="mapEnabled && ars && dataProductType">
       <p class="font-bold">{{ $t("stats.labels.map") }}</p>
-      <div class="bg-gray-50 mt-2 rounded-lg p-4">
+      <div class="mt-2 rounded-lg bg-gray-50 p-4">
         <DataProductMap :ars="ars" :data-product-type="dataProductType" :area-bounds="areaBounds" height="h-96" />
       </div>
     </div>

@@ -28,7 +28,7 @@
         <!-- Answered Question: Full tile clickable for double weighting -->
         <div
           v-if="userAnswers[question.id] !== undefined"
-          class="flex cursor-pointer select-none items-center justify-between gap-3 rounded-lg border border-solid-gray-10 bg-white p-3 shadow-sm transition-all hover:border-solid-gray-40 hover:shadow-md sm:gap-4 sm:p-4"
+          class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-solid-gray-10 bg-white p-3 shadow-xs transition-all select-none hover:border-solid-gray-40 hover:shadow-md sm:gap-4 sm:p-4"
           :class="{
             'border-orange/40 bg-solid-orange-10/20 ring-2 ring-orange': doubleWeightedQuestions.has(question.id),
           }"
@@ -41,21 +41,21 @@
           <!-- Question Number and Title -->
           <div class="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
             <span
-              class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-stats-dark text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm"
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stats-dark text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm"
             >
               {{ index + 1 }}
             </span>
             <div class="min-w-0 flex-1">
-              <h3 class="hyphens-auto break-words text-sm font-semibold leading-snug text-black sm:text-base">
+              <h3 class="text-sm leading-snug font-semibold wrap-break-word hyphens-auto text-black sm:text-base">
                 {{ question.title }}
               </h3>
             </div>
           </div>
 
           <!-- Indicators column: Answer score circle + 2x badge -->
-          <div class="flex flex-shrink-0 items-center gap-2 sm:gap-3">
+          <div class="flex shrink-0 items-center gap-2 sm:gap-3">
             <!-- User's Answer - Color circle indicator -->
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <div
                 class="h-7 w-7 rounded-full shadow-md sm:h-8 sm:w-8"
                 :class="getRatingColor(userAnswers[question.id])"
@@ -64,10 +64,10 @@
             </div>
 
             <!-- Double Weight Toggle Checkbox (empty when unchecked, orange 2x circle when checked) -->
-            <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center">
+            <div class="flex h-6 w-6 shrink-0 items-center justify-center">
               <input
                 type="checkbox"
-                class="weight-toggle-checkbox checkbox-primary checkbox"
+                class="weight-toggle-checkbox checkbox checkbox-primary"
                 :checked="doubleWeightedQuestions.has(question.id)"
                 :aria-label="$t('elections.wahlcheck.results.double_weighted')"
                 :title="$t('elections.wahlcheck.results.double_weighted')"
@@ -80,36 +80,36 @@
         <!-- Skipped Question: Non-clickable tile -->
         <div
           v-else
-          class="flex items-center justify-between gap-3 rounded-lg border border-solid-gray-10 bg-white p-3 opacity-60 shadow-sm sm:gap-4 sm:p-4"
+          class="flex items-center justify-between gap-3 rounded-lg border border-solid-gray-10 bg-white p-3 opacity-60 shadow-xs sm:gap-4 sm:p-4"
         >
           <div class="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
             <span
-              class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-stats-dark text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm"
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stats-dark text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm"
             >
               {{ index + 1 }}
             </span>
             <div class="min-w-0 flex-1">
-              <h3 class="hyphens-auto break-words text-sm font-semibold leading-snug text-black sm:text-base">
+              <h3 class="text-sm leading-snug font-semibold wrap-break-word hyphens-auto text-black sm:text-base">
                 {{ question.title }}
               </h3>
             </div>
           </div>
 
-          <div class="flex flex-shrink-0 items-center gap-2 sm:gap-3">
+          <div class="flex shrink-0 items-center gap-2 sm:gap-3">
             <div
-              class="h-7 w-7 flex-shrink-0 rounded-full bg-solid-gray-20 shadow-md sm:h-8 sm:w-8"
+              class="h-7 w-7 shrink-0 rounded-full bg-solid-gray-20 shadow-md sm:h-8 sm:w-8"
               :title="$t('elections.wahlcheck.questions.skip')"
             ></div>
-            <div class="h-6 w-6 flex-shrink-0"></div>
+            <div class="h-6 w-6 shrink-0"></div>
           </div>
         </div>
       </template>
     </div>
 
     <!-- Warning if all questions are skipped -->
-    <div v-if="answeredCount === 0" class="text-orange-700 rounded-xl border border-orange bg-solid-orange-10 p-4">
+    <div v-if="answeredCount === 0" class="rounded-xl border border-orange bg-solid-orange-10 p-4 text-orange-700">
       <p class="flex items-center gap-2 font-bold">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
           <path
             fill-rule="evenodd"
             d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -145,14 +145,14 @@
       <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
         <button
           type="button"
-          class="btn btn-outline btn-secondary flex-1 rounded-full px-4 py-2 font-semibold sm:flex-initial sm:px-6"
+          class="btn flex-1 rounded-full btn-outline px-4 py-2 font-semibold btn-secondary sm:flex-initial sm:px-6"
           @click="$emit('prev')"
         >
           {{ $t("generic.back") }}
         </button>
         <button
           type="button"
-          class="btn btn-primary flex-1 whitespace-nowrap rounded-full px-4 py-2 font-semibold text-white sm:flex-initial sm:px-8"
+          class="btn flex-1 rounded-full px-4 py-2 font-semibold whitespace-nowrap text-white btn-primary sm:flex-initial sm:px-8"
           @click="$emit('next')"
         >
           {{ $t("elections.wahlcheck.summary.show_results") }}

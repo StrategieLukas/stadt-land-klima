@@ -24,7 +24,7 @@
     <div v-if="hasJobs" class="space-y-12">
       <section v-if="employmentJobs.length" id="festanstellung">
         <h2
-          class="mb-4 border-b border-solid-light-green-40 pb-2 text-base font-semibold uppercase tracking-wide text-olive-green"
+          class="mb-4 border-b border-solid-light-green-40 pb-2 text-base font-semibold tracking-wide text-olive-green uppercase"
         >
           {{ $t("jobs.heading.employment") }}
         </h2>
@@ -41,7 +41,7 @@
 
       <section v-if="internshipStudentJobs.length" id="praktika-werkstudi">
         <h2
-          class="mb-4 border-b border-stats-light pb-2 text-base font-semibold uppercase tracking-wide text-stats-dark"
+          class="mb-4 border-b border-stats-light pb-2 text-base font-semibold tracking-wide text-stats-dark uppercase"
         >
           {{ $t("jobs.heading.internship_student") }}
         </h2>
@@ -58,7 +58,7 @@
 
       <section v-if="volunteerJobs.length" id="ehrenamt">
         <h2
-          class="mb-4 border-b border-rating-3-light pb-2 text-base font-semibold uppercase tracking-wide text-olive-green"
+          class="mb-4 border-b border-rating-3-light pb-2 text-base font-semibold tracking-wide text-olive-green uppercase"
         >
           {{ $t("jobs.heading.volunteer") }}
         </h2>
@@ -74,7 +74,7 @@
       </section>
     </div>
 
-    <div v-else class="border-gray-100 text-gray-500 rounded-lg border bg-white p-6 shadow-sm">
+    <div v-else class="rounded-lg border border-gray-100 bg-white p-6 text-gray-500 shadow-xs">
       {{ $t("jobs.empty") }}
     </div>
   </div>

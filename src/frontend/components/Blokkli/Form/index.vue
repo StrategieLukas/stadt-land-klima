@@ -11,7 +11,7 @@
         <p
           v-if="props.description || isEditing"
           v-blokkli-editable:description
-          class="text-gray-500 mt-2"
+          class="mt-2 text-gray-500"
           v-text="props.description"
         />
       </div>
@@ -29,13 +29,13 @@
           class="grid grid-cols-1 gap-4 sm:grid-cols-12"
         />
 
-        <p v-if="fieldDefinitions.length === 0" class="text-gray-500 text-sm">
+        <p v-if="fieldDefinitions.length === 0" class="text-sm text-gray-500">
           {{ $t("form_block.empty_fields") }}
         </p>
 
         <div v-if="!isEditing" class="space-y-2">
           <!-- Math challenge -->
-          <label class="text-gray-700 block text-sm font-medium">
+          <label class="block text-sm font-medium text-gray-700">
             {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }}
             <span class="text-red-500">*</span>
           </label>
@@ -44,12 +44,12 @@
             type="text"
             inputmode="numeric"
             pattern="[0-9]+"
-            class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
           />
-          <p v-if="mathChallengeError" class="text-red-500 text-xs">{{ mathChallengeError }}</p>
+          <p v-if="mathChallengeError" class="text-xs text-red-500">{{ mathChallengeError }}</p>
 
           <!-- Altcha CAPTCHA -->
-          <label class="text-gray-700 block text-sm font-medium">
+          <label class="block text-sm font-medium text-gray-700">
             {{ $t("captcha.title") }} <span class="text-red-500">*</span>
           </label>
           <ClientOnly>
@@ -61,18 +61,18 @@
               style="--altcha-border-radius: 6px; --altcha-color-border: #d1d5db; width: 100%"
             />
             <template #fallback>
-              <div class="border-gray-200 bg-gray-50 flex h-16 items-center justify-center rounded-md border">
-                <span class="text-gray-400 text-xs">{{ $t("captcha.loading") }}</span>
+              <div class="flex h-16 items-center justify-center rounded-md border border-gray-200 bg-gray-50">
+                <span class="text-xs text-gray-400">{{ $t("captcha.loading") }}</span>
               </div>
             </template>
           </ClientOnly>
-          <p v-if="captchaError" class="text-red-500 text-xs">{{ captchaError }}</p>
+          <p v-if="captchaError" class="text-xs text-red-500">{{ captchaError }}</p>
         </div>
 
-        <p v-if="submitError" class="text-red-600 text-sm">{{ submitError }}</p>
+        <p v-if="submitError" class="text-sm text-red-600">{{ submitError }}</p>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-gray-400 text-xs">{{ $t("generic.privacy.disclaimer") }}</p>
+          <p class="text-xs text-gray-400">{{ $t("generic.privacy.disclaimer") }}</p>
           <button
             type="submit"
             class="btn bg-green px-6 font-semibold text-white hover:bg-green hover:opacity-90"
@@ -86,7 +86,7 @@
         <p
           v-if="isEditing"
           v-blokkli-editable:successMessage
-          class="text-gray-400 min-h-4 text-xs"
+          class="min-h-4 text-xs text-gray-400"
           v-text="props.successMessage"
         />
       </form>

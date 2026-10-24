@@ -3,13 +3,15 @@
   <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
     <!-- Input + label -->
     <form class="relative min-w-0 flex-1 overflow-visible" @submit.prevent>
-      <div class="form-control w-full">
-        <label for="admin-search-input" class="label">{{ translatedLabel }}</label>
+      <div class="flex w-full flex-col">
+        <label for="admin-search-input" class="flex items-center justify-between px-1 py-2">{{
+          translatedLabel
+        }}</label>
         <input
           id="admin-search-input"
           ref="inputRef"
           v-model="q"
-          class="input input-bordered w-full border-stats-dark bg-white pr-12 text-base focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
+          class="input w-full border-stats-dark bg-white pr-12 text-base focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
           name="q"
           type="text"
           autocomplete="off"
@@ -33,7 +35,7 @@
             dropdownPosition.show
           "
           ref="dropdown"
-          class="slk-area-search-dropdown border-gray-200 fixed z-[99999] max-h-60 overflow-y-auto rounded-md border bg-white font-sans shadow-lg"
+          class="slk-area-search-dropdown fixed z-99999 max-h-60 overflow-y-auto rounded-md border border-gray-200 bg-white font-sans shadow-lg"
           :style="{
             top: dropdownPosition.top + 'px',
             left: dropdownPosition.left + 'px',
@@ -41,14 +43,14 @@
           }"
         >
           <div v-if="isLoading">
-            <div class="text-gray-500 px-4 py-3 text-sm italic">
+            <div class="px-4 py-3 text-sm text-gray-500 italic">
               {{ $t("generic.loading") }}
             </div>
           </div>
 
           <!-- No results message -->
           <div v-else-if="searchFocused && q.trim() && !isLoading && !visibleSuggestions.length" class="px-4 py-3">
-            <div class="text-gray-500 text-sm italic">
+            <div class="text-sm text-gray-500 italic">
               {{ $t("administrative_areas.search.no_results") }}
             </div>
           </div>
@@ -58,7 +60,7 @@
             <div
               v-for="(suggestion, index) in visibleSuggestions"
               :key="suggestion.ars"
-              class="slk-area-search-result border-gray-100 cursor-pointer border-b px-3 py-3 last:border-b-0 sm:px-4"
+              class="slk-area-search-result cursor-pointer border-b border-gray-100 px-3 py-3 last:border-b-0 sm:px-4"
               :class="{
                 'slk-area-search-result--focused': index === focusedIndex,
                 'cursor-default opacity-60': !props.routeBuilder && !suggestion.url,
@@ -76,18 +78,18 @@
             >
               <div class="flex items-start justify-between gap-2 sm:items-center">
                 <div class="min-w-0 flex-1">
-                  <div class="text-gray-500 truncate text-xs font-medium uppercase">
+                  <div class="truncate text-xs font-medium text-gray-500 uppercase">
                     {{ suggestion.prefix }}
                   </div>
-                  <div class="text-gray-900 break-words text-sm font-semibold sm:text-base">
+                  <div class="text-sm font-semibold wrap-break-word text-gray-900 sm:text-base">
                     {{ suggestion.name }}
                   </div>
                 </div>
-                <div class="flex flex-shrink-0 flex-col items-end space-y-1">
+                <div class="flex shrink-0 flex-col items-end space-y-1">
                   <!-- Published: score -->
                   <div v-if="suggestion.ctaType === 'complete'" class="flex flex-col gap-1 sm:flex-row sm:gap-2">
                     <span
-                      class="inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap text-white"
                       :class="`bg-${suggestion.scoreTotalColorClass}`"
                     >
                       {{ suggestion.scoreDisplay }}
@@ -96,14 +98,14 @@
                   <!-- Localteam active, rating in progress -->
                   <div
                     v-else-if="suggestion.ctaType === 'in-progress'"
-                    class="inline-flex items-center whitespace-nowrap rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800"
+                    class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-yellow-800"
                   >
                     {{ $t("rating.in_progress") }}
                   </div>
                   <!-- No localteam yet -->
                   <div
                     v-else
-                    class="bg-gray-100 text-gray-800 inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium"
+                    class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-gray-800"
                   >
                     {{ $t("administrative_areas.not_rated_yet") }}
                   </div>
@@ -119,10 +121,10 @@
     <div
       v-if="showFilterToggle"
       ref="radioGroup"
-      class="slk-area-search-tabs flex w-full flex-shrink-0 flex-row overflow-hidden rounded border text-xs font-semibold sm:w-auto sm:flex-col sm:self-end"
+      class="slk-area-search-tabs flex w-full shrink-0 flex-row overflow-hidden rounded-sm border text-xs font-semibold sm:w-auto sm:flex-col sm:self-end"
     >
       <button
-        class="slk-area-search-tab flex-1 border-r px-3 py-2 leading-tight transition-colors sm:flex-none sm:border-b sm:border-r-0"
+        class="slk-area-search-tab flex-1 border-r px-3 py-2 leading-tight transition-colors sm:flex-none sm:border-r-0 sm:border-b"
         :class="{ 'slk-area-search-tab--active': filterType === 'reasonable' }"
         @click="
           filterType = 'reasonable';

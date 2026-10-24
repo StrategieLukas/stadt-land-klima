@@ -1,18 +1,18 @@
 <template>
-  <div class="bg-gray-100 overflow-hidden rounded-lg">
+  <div class="overflow-hidden rounded-lg bg-gray-100">
     <div v-if="loading" class="flex items-center justify-center" style="min-height: 200px">
       <SlkFlowerSpinner :size="28" />
     </div>
-    <div v-else-if="error" class="text-gray-400 flex items-center justify-center text-xs" style="min-height: 200px">
+    <div v-else-if="error" class="flex items-center justify-center text-xs text-gray-400" style="min-height: 200px">
       Bild konnte nicht geladen werden.
     </div>
     <template v-else-if="imageSrc">
       <img :src="imageSrc" :alt="titleText" class="block h-auto w-full object-cover" />
-      <p v-if="captionText" class="text-gray-500 px-3 py-2 text-xs italic">
+      <p v-if="captionText" class="px-3 py-2 text-xs text-gray-500 italic">
         {{ captionText }}
       </p>
     </template>
-    <div v-else class="text-gray-400 flex items-center justify-center text-sm" style="min-height: 200px">
+    <div v-else class="flex items-center justify-center text-sm text-gray-400" style="min-height: 200px">
       Kein Bild verfügbar.
     </div>
   </div>

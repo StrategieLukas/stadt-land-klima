@@ -1,8 +1,21 @@
 import { chromium, type Browser, type BrowserContext, type BrowserContextOptions, type Page } from "playwright";
+import { createHash, X509Certificate } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { assert, assertIncludes, assertNotIncludes } from "./assert.js";
 
+/** Trust only the explicitly selected local test certificate, including speculative
+ * stylesheet requests that Chromium's per-context ignoreHTTPSErrors can miss.
+ */
+export function chromiumCertificateArguments(certificateFile?: string): string[] {
+  if (!certificateFile) return [];
+  const certificate = new X509Certificate(readFileSync(certificateFile));
+  const publicKey = certificate.publicKey.export({ format: "der", type: "spki" });
+  const pin = createHash("sha256").update(publicKey).digest("base64");
+  return [`--ignore-certificate-errors-spki-list=${pin}`];
+}
+
 export async function launchBrowser(headless: boolean): Promise<Browser> {
-  return chromium.launch({ headless });
+  return chromium.launch({ headless, args: chromiumCertificateArguments(process.env.TEST_HTTPS_CERT) });
 }
 
 export async function newContext(browser: Browser, options: BrowserContextOptions = {}): Promise<BrowserContext> {

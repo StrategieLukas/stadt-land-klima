@@ -22,9 +22,9 @@
          Split into two CSS-driven divs so the correct height is applied even
          pre-hydration, when isDesktop JS defaults to true on every device. -->
     <!-- Mobile (<sm): always 64px via CSS only -->
-    <div class="h-16 flex-shrink-0 sm:hidden"></div>
+    <div class="h-16 shrink-0 sm:hidden"></div>
     <!-- Desktop (≥sm): JS-driven height, hidden on mobile via CSS -->
-    <div class="hidden flex-shrink-0 sm:block" :style="`height: ${headerSpacerHeight}px`"></div>
+    <div class="hidden shrink-0 sm:block" :style="`height: ${headerSpacerHeight}px`"></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
     <div class="drawer flex-1">
@@ -37,7 +37,7 @@
       >
         <!-- Main Content -->
         <main class="flex min-w-0 grow flex-col bg-mild-white px-2">
-          <div class="mx-auto flex w-full min-w-0 max-w-screen-xl flex-col">
+          <div class="mx-auto flex w-full max-w-(--breakpoint-xl) min-w-0 flex-col">
             <slot />
           </div>
         </main>
@@ -62,12 +62,12 @@
         v-if="isDesktop"
         :pages="(pages || []).filter((page) => pageInMenu(page, 'main'))"
         :nav-items="navigationConfig?.header_items || []"
-        class="z-[9999]"
+        class="z-9999"
       />
     </div>
 
     <!-- Dock (Small mobile only) -->
-    <div class="fixed bottom-0 left-0 right-0 z-[10000] block sm:hidden">
+    <div class="fixed right-0 bottom-0 left-0 z-10000 block sm:hidden">
       <the-dock :pages="(pages || []).filter((page) => pageInMenu(page, 'dock'))" />
     </div>
 
@@ -75,7 +75,7 @@
     <Transition name="slk-fade">
       <div
         v-if="!isDesktop && hydrated && isDrawerOpen"
-        class="slk-modal-backdrop fixed inset-0 z-[49] bg-black/20 backdrop-blur-sm sm:hidden"
+        class="slk-modal-backdrop fixed inset-0 z-49 bg-black/20 backdrop-blur-xs sm:hidden"
         @click="closeDrawer"
       />
     </Transition>
@@ -268,7 +268,7 @@ main {
 
 main > div {
   width: 100%;
-  max-width: 1280px; /* max-w-screen-xl */
+  max-width: 1280px; /* max-w-(--breakpoint-xl) */
   margin: 0 auto;
   box-sizing: border-box;
 }

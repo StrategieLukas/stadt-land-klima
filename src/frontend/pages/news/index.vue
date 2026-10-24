@@ -20,7 +20,7 @@
       <button
         type="button"
         :class="[
-          'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-bold transition-colors',
+          'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors',
           activeFilter === null
             ? 'border-[#374151] bg-[#374151] text-white'
             : 'border-[#e5e7eb] bg-[#e5e7eb] text-[#374151] hover:bg-[#d1d5db]',
@@ -34,8 +34,8 @@
         :key="f.value"
         type="button"
         :class="[
-          'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-bold transition-colors',
-          activeFilter === f.value ? f.activeClass : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white',
+          'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors',
+          activeFilter === f.value ? f.activeClass : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400',
         ]"
         @click="activeFilter = f.value"
       >
@@ -46,7 +46,7 @@
     <!-- Sidebar + feed layout -->
     <!-- Mobile sticky scroll nav -->
     <nav
-      class="border-gray-100 sticky z-10 -mx-4 mb-6 border-b bg-white/90 px-4 backdrop-blur-sm xl:hidden"
+      class="sticky z-10 -mx-4 mb-6 border-b border-gray-100 bg-white/90 px-4 backdrop-blur-xs xl:hidden"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
@@ -59,7 +59,7 @@
           v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')"
           href="#section-zukunftig"
           :class="[
-            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
+            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
             activeSection === 'section-zukunftig'
               ? 'bg-[#1da64a]/10 font-semibold text-[#1da64a]'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
@@ -71,7 +71,7 @@
           :key="group.monthKey"
           :href="`#section-${group.monthKey}`"
           :class="[
-            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
+            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
             activeSection === `section-${group.monthKey}`
               ? 'bg-[#006e94]/10 font-semibold text-[#006e94]'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
@@ -83,17 +83,17 @@
 
     <div class="flex items-start gap-8">
       <!-- Left sticky nav (desktop only) -->
-      <nav class="sticky hidden w-44 flex-shrink-0 self-start text-sm xl:block" :style="`top: ${headerHeight + 12}px`">
-        <p class="text-gray-400 mb-3 text-xs font-bold uppercase tracking-widest">Abschnitte</p>
+      <nav class="sticky hidden w-44 shrink-0 self-start text-sm xl:block" :style="`top: ${headerHeight + 12}px`">
+        <p class="mb-3 text-xs font-bold tracking-widest text-gray-400 uppercase">Abschnitte</p>
         <ul class="space-y-1">
           <li v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')">
             <a
               href="#section-zukunftig"
               :class="[
-                'block truncate rounded px-2 py-1 transition-colors',
+                'block truncate rounded-sm px-2 py-1 transition-colors',
                 activeSection === 'section-zukunftig'
                   ? 'bg-[#1da64a]/5 font-semibold text-[#1da64a]'
-                  : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
+                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
               ]"
               >Zukünftig</a
             >
@@ -102,10 +102,10 @@
             <a
               :href="`#section-${group.monthKey}`"
               :class="[
-                'block truncate rounded px-2 py-1 transition-colors',
+                'block truncate rounded-sm px-2 py-1 transition-colors',
                 activeSection === `section-${group.monthKey}`
                   ? 'bg-[#006e94]/5 font-semibold text-[#006e94]'
-                  : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
+                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
               ]"
               >{{ group.label }}</a
             >
@@ -122,8 +122,8 @@
           class="mb-10"
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
-          <div class="border-gray-200 mb-4 flex items-center justify-between border-b pb-2">
-            <h2 class="text-gray-500 text-base font-semibold uppercase tracking-wide">Zukünftig</h2>
+          <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-2">
+            <h2 class="text-base font-semibold tracking-wide text-gray-500 uppercase">Zukünftig</h2>
             <NuxtLink
               to="/events"
               class="flex shrink-0 items-center gap-1 text-sm font-medium text-[#1da64a] hover:underline"
@@ -139,13 +139,13 @@
               v-for="ev in upcomingEvents"
               :key="ev.id"
               :to="`/events/${ev.slug}`"
-              class="border-gray-100 group flex cursor-pointer flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-150 hover:border-[#16BAE7]/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16BAE7]"
+              class="group flex cursor-pointer flex-col overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xs transition-all duration-150 hover:border-[#16BAE7]/60 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-hidden"
             >
               <!-- Thumbnail -->
-              <div class="bg-gray-50 relative h-40 flex-shrink-0 overflow-hidden">
+              <div class="relative h-40 shrink-0 overflow-hidden bg-gray-50">
                 <div
                   v-if="!ev.image"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30"
+                  class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30"
                 >
                   <svg
                     class="h-16 w-16 text-[#1da64a] opacity-30"
@@ -170,7 +170,7 @@
                   fit="cover"
                   img-class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <span class="absolute left-2 top-2 rounded-full bg-[#1da64a] px-2 py-0.5 text-xs font-bold text-white"
+                <span class="absolute top-2 left-2 rounded-full bg-[#1da64a] px-2 py-0.5 text-xs font-bold text-white"
                   >Veranstaltung</span
                 >
                 <!-- Image credits overlay on hover -->
@@ -185,14 +185,14 @@
               <!-- Card body -->
               <div class="flex flex-1 flex-col gap-1 p-4">
                 <h3
-                  class="text-gray-900 line-clamp-2 font-bold leading-snug transition-colors group-hover:text-[#006e94]"
+                  class="line-clamp-2 leading-snug font-bold text-gray-900 transition-colors group-hover:text-[#006e94]"
                 >
                   {{ ev.title }}
                 </h3>
                 <div class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span
                     v-if="ev.event_type"
-                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#1da64a] dark:bg-[var(--slk-green)] dark:text-[var(--slk-text-strong)]"
+                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold tracking-wide text-[#1da64a] uppercase dark:bg-(--slk-green) dark:text-(--slk-text-strong)"
                   >
                     {{
                       { conference: "Konferenz", workshop: "Workshop", webinar: "Webinar", other: "Sonstiges" }[
@@ -200,9 +200,9 @@
                       ] ?? ev.event_type
                     }}
                   </span>
-                  <span class="text-gray-500 flex items-center gap-1 text-xs">
+                  <span class="flex items-center gap-1 text-xs text-gray-500">
                     <svg
-                      class="h-3.5 w-3.5 flex-shrink-0"
+                      class="h-3.5 w-3.5 shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -216,9 +216,9 @@
                     </svg>
                     {{ formatDateRange(ev.start_date, ev.end_date) }}
                   </span>
-                  <span v-if="ev.location" class="text-gray-500 flex items-center gap-1 text-xs">
+                  <span v-if="ev.location" class="flex items-center gap-1 text-xs text-gray-500">
                     <svg
-                      class="h-3.5 w-3.5 flex-shrink-0"
+                      class="h-3.5 w-3.5 shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -256,7 +256,7 @@
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
           <!-- Month heading -->
-          <h2 class="text-gray-500 border-gray-200 mb-4 border-b pb-2 text-base font-semibold uppercase tracking-wide">
+          <h2 class="mb-4 border-b border-gray-200 pb-2 text-base font-semibold tracking-wide text-gray-500 uppercase">
             {{ group.label }}
           </h2>
 
@@ -268,22 +268,22 @@
               :to="item.href || undefined"
               :class="
                 item.href
-                  ? 'border-gray-100 group flex cursor-pointer flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-150 hover:border-[#16BAE7]/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16BAE7]'
-                  : 'bg-gray-50 border-gray-200 flex flex-col overflow-hidden rounded-lg border border-dashed opacity-80'
+                  ? 'group flex cursor-pointer flex-col overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xs transition-all duration-150 hover:border-[#16BAE7]/60 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-hidden'
+                  : 'flex flex-col overflow-hidden rounded-lg border border-dashed border-gray-200 bg-gray-50 opacity-80'
               "
             >
               <!-- Thumbnail -->
               <div
                 :class="
                   item.href
-                    ? 'bg-gray-50 relative h-40 flex-shrink-0 overflow-hidden'
-                    : 'bg-gray-100 relative flex h-40 flex-shrink-0 items-center justify-center'
+                    ? 'relative h-40 shrink-0 overflow-hidden bg-gray-50'
+                    : 'relative flex h-40 shrink-0 items-center justify-center bg-gray-100'
                 "
               >
                 <!-- Catalog: gray gradient with all sector icons -->
                 <div
                   v-if="item.type === 'catalog'"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#6b7280]/25 via-[#6b7280]/10 to-[#6b7280]/35"
+                  class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[#6b7280]/25 via-[#6b7280]/10 to-[#6b7280]/35"
                 >
                   <div class="grid grid-cols-3 gap-3 px-6">
                     <img
@@ -298,7 +298,7 @@
                 <!-- Event: green gradient with calendar icon -->
                 <div
                   v-else-if="item.type === 'event' && !item.imageId"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30"
+                  class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30"
                 >
                   <svg
                     class="h-16 w-16 text-[#1da64a] opacity-30"
@@ -327,28 +327,28 @@
                 <!-- News: teal gradient + info icon -->
                 <div
                   v-else-if="item.type === 'news'"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-teal-100 via-teal-50 to-teal-200"
+                  class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-teal-100 via-teal-50 to-teal-200"
                 >
                   <img src="~/assets/icons/icon_info.svg" alt="" class="h-16 w-16 opacity-20" />
                 </div>
                 <!-- Project: blue gradient + klimachecker icon -->
                 <div
                   v-else-if="item.type === 'project'"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#006e94]/20 via-[#006e94]/10 to-[#006e94]/30"
+                  class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[#006e94]/20 via-[#006e94]/10 to-[#006e94]/30"
                 >
                   <img src="~/assets/icons/icon_klimachecker.svg" alt="" class="h-16 w-16 opacity-20" />
                 </div>
                 <!-- Municipality: yellow-green gradient + location icon -->
                 <div
                   v-else-if="item.type === 'municipality'"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#afca0b]/20 via-[#afca0b]/10 to-[#afca0b]/30"
+                  class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[#afca0b]/20 via-[#afca0b]/10 to-[#afca0b]/30"
                 >
                   <img src="~/assets/icons/icon_location_green_marker.svg" alt="" class="h-16 w-16 opacity-20" />
                 </div>
                 <span v-else class="text-4xl opacity-20">{{ typeEmoji(item.type) }}</span>
                 <span
                   :class="[
-                    'absolute left-2 top-2 rounded-full px-2 py-0.5 text-xs font-bold',
+                    'absolute top-2 left-2 rounded-full px-2 py-0.5 text-xs font-bold',
                     typeBadgeClass(item.type),
                   ]"
                 >
@@ -366,7 +366,7 @@
                 <span
                   v-if="item.status && item.status !== 'published'"
                   :class="[
-                    'absolute right-2 top-2 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide',
+                    'absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs font-bold tracking-wide uppercase',
                     item.status === 'draft' ? 'bg-[#fbbf24] text-[#78350f]' : 'bg-[#9ca3af] text-white',
                   ]"
                   >{{ item.status === "draft" ? "Entwurf" : "Archiviert" }}</span
@@ -383,8 +383,8 @@
                 <h3
                   :class="
                     item.href
-                      ? 'text-gray-900 line-clamp-2 font-bold leading-snug transition-colors group-hover:text-[#006e94]'
-                      : 'text-gray-700 line-clamp-2 font-bold leading-snug'
+                      ? 'line-clamp-2 leading-snug font-bold text-gray-900 transition-colors group-hover:text-[#006e94]'
+                      : 'line-clamp-2 leading-snug font-bold text-gray-700'
                   "
                 >
                   {{ item.title }}
@@ -393,7 +393,7 @@
                 <div v-if="item.type === 'event'" class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span
                     v-if="item.eventType"
-                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#1da64a] dark:bg-[var(--slk-green)] dark:text-[var(--slk-text-strong)]"
+                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold tracking-wide text-[#1da64a] uppercase dark:bg-(--slk-green) dark:text-(--slk-text-strong)"
                   >
                     {{
                       { conference: "Konferenz", workshop: "Workshop", webinar: "Webinar", other: "Sonstiges" }[
@@ -401,9 +401,9 @@
                       ] ?? item.eventType
                     }}
                   </span>
-                  <span class="text-gray-500 flex items-center gap-1 text-xs">
+                  <span class="flex items-center gap-1 text-xs text-gray-500">
                     <svg
-                      class="h-3.5 w-3.5 flex-shrink-0"
+                      class="h-3.5 w-3.5 shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -417,9 +417,9 @@
                     </svg>
                     {{ formatDateRange(item.date, item.endDate) }}
                   </span>
-                  <span v-if="item.location" class="text-gray-500 flex items-center gap-1 text-xs">
+                  <span v-if="item.location" class="flex items-center gap-1 text-xs text-gray-500">
                     <svg
-                      class="h-3.5 w-3.5 flex-shrink-0"
+                      class="h-3.5 w-3.5 shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -437,12 +437,12 @@
                 </div>
                 <p
                   v-if="item.teaser"
-                  :class="item.href ? 'text-gray-500 line-clamp-3 text-sm' : 'text-gray-400 line-clamp-3 text-sm'"
+                  :class="item.href ? 'line-clamp-3 text-sm text-gray-500' : 'line-clamp-3 text-sm text-gray-400'"
                 >
                   {{ item.teaser }}
                 </p>
                 <div class="mt-auto flex items-center justify-between pt-2">
-                  <time v-if="item.type !== 'event'" class="text-gray-400 text-xs" :datetime="item.date ?? undefined">{{
+                  <time v-if="item.type !== 'event'" class="text-xs text-gray-400" :datetime="item.date ?? undefined">{{
                     formatDate(item.date)
                   }}</time>
                   <span v-else />

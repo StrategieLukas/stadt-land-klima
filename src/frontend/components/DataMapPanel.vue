@@ -9,7 +9,7 @@
     - Big number + legend strip below the map
 -->
 <template>
-  <div class="bg-gray-50 flex h-full flex-col">
+  <div class="flex h-full flex-col bg-gray-50">
     <!-- ── Map ──────────────────────────────────────────────────────────── -->
     <div class="relative min-h-0 flex-1">
       <LMap
@@ -72,7 +72,7 @@
       <Transition name="fade">
         <div
           v-if="loadingFeatures"
-          class="pointer-events-none absolute inset-0 z-[1000] flex items-center justify-center bg-white/50 backdrop-blur-[1px]"
+          class="pointer-events-none absolute inset-0 z-1000 flex items-center justify-center bg-white/50 backdrop-blur-[1px]"
         >
           <SlkFlowerSpinner :size="32" />
         </div>
@@ -80,43 +80,43 @@
     </div>
 
     <!-- ── Stats strip ───────────────────────────────────────────────── -->
-    <div class="border-gray-200 flex-none border-t bg-white">
+    <div class="flex-none border-t border-gray-200 bg-white">
       <!-- Active collection stats -->
-      <div v-if="activeCollection" class="divide-gray-100 flex items-stretch gap-0 divide-x">
+      <div v-if="activeCollection" class="flex items-stretch gap-0 divide-x divide-gray-100">
         <!-- Big number -->
         <div class="flex min-w-[140px] flex-col justify-center px-6 py-4">
           <div
-            class="text-5xl font-black tabular-nums leading-none transition-colors duration-500"
+            class="text-5xl leading-none font-black tabular-nums transition-colors duration-500"
             :style="bigNumColor ? `color:${bigNumColor}` : 'color:#006e94'"
           >
             {{ formattedBigNum }}
           </div>
-          <div class="text-gray-400 mt-1 max-w-[130px] text-[11px] leading-tight">{{ bigNumLabel }}</div>
+          <div class="mt-1 max-w-[130px] text-[11px] leading-tight text-gray-400">{{ bigNumLabel }}</div>
         </div>
 
         <!-- Collection info + feature count -->
         <div class="flex min-w-0 flex-1 flex-col justify-center gap-1 px-5 py-4">
-          <div class="text-gray-900 line-clamp-2 text-sm font-semibold leading-snug">
+          <div class="line-clamp-2 text-sm leading-snug font-semibold text-gray-900">
             {{ activeCollection.title?.["de-DE"] }}
           </div>
-          <div v-if="loadingFeatures" class="text-gray-400 animate-pulse text-xs">Daten werden geladen…</div>
-          <div v-else-if="dataFeatures.length" class="text-gray-400 text-xs">
+          <div v-if="loadingFeatures" class="animate-pulse text-xs text-gray-400">Daten werden geladen…</div>
+          <div v-else-if="dataFeatures.length" class="text-xs text-gray-400">
             {{ dataFeatures.length.toLocaleString("de-DE") }} Objekte im Gebiet
           </div>
-          <div v-else class="text-gray-400 text-xs">Keine Daten verfügbar</div>
+          <div v-else class="text-xs text-gray-400">Keine Daten verfügbar</div>
         </div>
 
         <!-- Threshold legend (when thresholds are defined) -->
         <div v-if="hasThresholds" class="hidden flex-col justify-center gap-1.5 px-5 py-4 lg:flex">
           <div v-for="leg in legendItems" :key="leg.label" class="flex items-center gap-2">
             <span class="h-2.5 w-2.5 flex-none rounded-full" :style="`background:${leg.color}`" />
-            <span class="text-gray-500 whitespace-nowrap text-[11px]">{{ leg.label }}</span>
+            <span class="text-[11px] whitespace-nowrap text-gray-500">{{ leg.label }}</span>
           </div>
         </div>
       </div>
 
       <!-- Placeholder (no active collection yet) -->
-      <div v-else class="text-gray-400 px-6 py-4 text-sm italic">Scrollen Sie, um Klimadaten zu erkunden</div>
+      <div v-else class="px-6 py-4 text-sm text-gray-400 italic">Scrollen Sie, um Klimadaten zu erkunden</div>
     </div>
   </div>
 </template>

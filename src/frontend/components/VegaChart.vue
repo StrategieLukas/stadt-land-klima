@@ -6,11 +6,11 @@
   >
     <div
       v-if="nativeZoomEnabled && canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
+      class="pointer-events-none absolute right-2 bottom-2 z-20 flex items-center gap-1 rounded-full border border-gray-300 bg-white/95 p-1 opacity-0 shadow-md transition-opacity group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         type="button"
-        class="btn btn-ghost btn-xs h-7 min-h-0 px-2 text-[11px]"
+        class="btn h-7 min-h-0 btn-ghost px-2 text-[11px] btn-xs"
         title="Zoom zurücksetzen"
         aria-label="Zoom zurücksetzen"
         @click.stop="resetNativeZoom"
@@ -21,11 +21,11 @@
     </div>
     <div
       v-if="canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
+      class="pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border border-gray-300 bg-white/95 p-1 opacity-0 shadow-md transition-opacity group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         type="button"
-        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
         title="Daten herunterladen"
         aria-label="Daten herunterladen"
         @click.stop="downloadData"
@@ -34,7 +34,7 @@
       </button>
       <button
         type="button"
-        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
         title="Diagramm als PNG herunterladen"
         aria-label="Diagramm als PNG herunterladen"
         @click.stop="downloadPng"
@@ -44,7 +44,7 @@
       <button
         v-if="resolvedDataApiUrl"
         type="button"
-        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
         title="API-Aufruf kopieren"
         aria-label="API-Aufruf kopieren"
         @click.stop="copyApiCall"
@@ -57,7 +57,7 @@
     </div>
     <div
       v-if="renderError"
-      class="text-gray-400 absolute inset-0 flex items-center justify-center text-xs dark:text-slate-400"
+      class="absolute inset-0 flex items-center justify-center text-xs text-gray-400 dark:text-slate-400"
     >
       Diagramm konnte nicht geladen werden.
     </div>

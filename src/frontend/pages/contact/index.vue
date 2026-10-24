@@ -4,7 +4,7 @@
       <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("feedback.nav_label") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("contact.hero.description") }}</p>
     </header>
-    <div class="mx-auto w-full max-w-xl rounded bg-white p-6 shadow">
+    <div class="mx-auto w-full max-w-xl rounded-sm bg-white p-6 shadow-sm">
       <h2 class="mb-4 font-heading text-2xl font-bold text-gray">{{ $t("feedback.give") }}</h2>
 
       <!-- Success state -->
@@ -19,13 +19,13 @@
         <!-- Title -->
         <div class="mb-4">
           <label class="mb-1 block font-semibold">{{ $t("feedback.form.title") }}*</label>
-          <input v-model="form.title" type="text" class="w-full rounded border p-2" required />
+          <input v-model="form.title" type="text" class="w-full rounded-sm border p-2" required />
         </div>
 
         <!-- Type -->
         <div class="mb-4">
           <label class="mb-1 block font-semibold">{{ $t("feedback.form.type") }}*</label>
-          <select v-model="form.type" class="w-full rounded border p-2" required>
+          <select v-model="form.type" class="w-full rounded-sm border p-2" required>
             <option disabled value="">{{ $t("generic.form.please_select") }}</option>
             <option value="legal">{{ $t("feedback.type.legal") }}</option>
             <option value="bug">{{ $t("feedback.type.bug") }}</option>
@@ -39,24 +39,30 @@
         <!-- Content -->
         <div class="mb-4">
           <label class="mb-1 block font-semibold">{{ $t("feedback.form.content") }}*</label>
-          <textarea v-model="form.content" class="w-full rounded border p-2" rows="4" required></textarea>
+          <textarea v-model="form.content" class="w-full rounded-sm border p-2" rows="4" required></textarea>
         </div>
 
         <!-- Name -->
         <div class="mb-4">
           <label class="mb-1 block font-semibold">{{ $t("feedback.form.sender.name") }}*</label>
-          <input v-model="form.name" type="text" autocomplete="name" class="w-full rounded border p-2" required />
+          <input v-model="form.name" type="text" autocomplete="name" class="w-full rounded-sm border p-2" required />
         </div>
 
         <!-- Contact -->
         <div class="mb-4">
           <label class="mb-1 block font-semibold">{{ $t("feedback.form.sender.contact") }}*</label>
-          <input v-model="form.contact" type="email" autocomplete="email" class="w-full rounded border p-2" required />
+          <input
+            v-model="form.contact"
+            type="email"
+            autocomplete="email"
+            class="w-full rounded-sm border p-2"
+            required
+          />
         </div>
 
         <!-- Copy to sender -->
         <label class="mb-4 flex items-start gap-3 text-sm">
-          <input v-model="form.sendCopy" type="checkbox" class="border-gray-300 checkbox checkbox-sm mt-0.5" />
+          <input v-model="form.sendCopy" type="checkbox" class="checkbox mt-0.5 border-gray-300 checkbox-sm" />
           <span>{{ $t("feedback.form.send_copy") }}</span>
         </label>
 
@@ -70,10 +76,10 @@
             type="text"
             inputmode="numeric"
             pattern="[0-9]+"
-            class="w-full rounded border p-2"
+            class="w-full rounded-sm border p-2"
             required
           />
-          <p v-if="mathChallengeError" class="text-red-500 mt-1 text-xs">{{ mathChallengeError }}</p>
+          <p v-if="mathChallengeError" class="mt-1 text-xs text-red-500">{{ mathChallengeError }}</p>
         </div>
 
         <!-- Altcha CAPTCHA -->
@@ -81,7 +87,7 @@
           <ClientOnly>
             <div
               v-if="runtimeConfig.public.captchaDevBypass"
-              class="flex h-14 items-center justify-center rounded border border-yellow-200 bg-yellow-50"
+              class="flex h-14 items-center justify-center rounded-sm border border-yellow-200 bg-yellow-50"
             >
               <span class="text-xs text-yellow-600">Dev-Modus: Sicherheitsabfrage übersprungen</span>
             </div>
@@ -94,22 +100,22 @@
               style="--altcha-border-radius: 4px; width: 100%"
             />
             <template #fallback>
-              <div class="bg-gray-50 border-gray-200 flex h-14 items-center justify-center rounded border">
-                <span class="text-gray-400 text-xs">{{ $t("captcha.loading") }}</span>
+              <div class="flex h-14 items-center justify-center rounded-sm border border-gray-200 bg-gray-50">
+                <span class="text-xs text-gray-400">{{ $t("captcha.loading") }}</span>
               </div>
             </template>
           </ClientOnly>
-          <p v-if="captchaError" class="text-red-500 mt-1 text-xs">{{ captchaError }}</p>
+          <p v-if="captchaError" class="mt-1 text-xs text-red-500">{{ captchaError }}</p>
         </div>
 
         <!-- Error Message -->
-        <p v-if="errorMessage" class="text-red-600 mb-3 text-sm">{{ errorMessage }}</p>
+        <p v-if="errorMessage" class="mb-3 text-sm text-red-600">{{ errorMessage }}</p>
 
         <!-- Submit Button -->
         <button
           type="submit"
           :disabled="loading"
-          class="w-full rounded bg-[#AFCA0B] py-2 font-bold text-white hover:bg-green disabled:cursor-not-allowed disabled:opacity-50"
+          class="w-full rounded-sm bg-[#AFCA0B] py-2 font-bold text-white hover:bg-green disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span v-if="loading">{{ $t("feedback.form.submit.loading") }}</span>
           <span v-else>{{ $t("feedback.form.submit") }}</span>

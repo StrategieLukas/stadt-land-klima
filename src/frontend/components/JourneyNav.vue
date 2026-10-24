@@ -1,12 +1,12 @@
 <template>
   <nav
-    class="border-gray-100 no-scrollbar sticky z-30 -mx-4 flex items-center gap-2 overflow-x-auto border-b bg-white/90 px-4 py-2 backdrop-blur-sm"
+    class="no-scrollbar sticky z-30 -mx-4 flex items-center gap-2 overflow-x-auto border-b border-gray-100 bg-white/90 px-4 py-2 backdrop-blur-xs"
     :style="`top: ${top}px`"
   >
     <button
       v-for="(step, i) in steps"
       :key="step.index"
-      class="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+      class="flex flex-none items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors"
       :class="activeIndex === step.index ? 'bg-[#006e94] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'"
       @click="scrollToStep(step.index)"
     >

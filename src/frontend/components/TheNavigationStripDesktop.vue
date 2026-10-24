@@ -1,9 +1,9 @@
 <template>
   <nav
     ref="navRef"
-    class="bg-gray-50 border-gray-200 border-t dark:border-[var(--slk-border)] dark:bg-[var(--slk-surface-subdued)]"
+    class="border-t border-gray-200 bg-gray-50 dark:border-(--slk-border) dark:bg-(--slk-surface-subdued)"
   >
-    <ul class="mx-auto flex w-full max-w-screen-xl flex-wrap items-stretch justify-center px-2">
+    <ul class="mx-auto flex w-full max-w-(--breakpoint-xl) flex-wrap items-stretch justify-center px-2">
       <li
         v-for="item in safeItems"
         :key="item.id"
@@ -19,7 +19,7 @@
           :href="item.link_type === 'external' ? item.external_url : undefined"
           :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
           :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
-          class="nav-item nav-px text-gray-600 flex items-center text-sm font-semibold dark:text-[var(--slk-text)]"
+          class="nav-item nav-px flex items-center text-sm font-semibold text-gray-600 dark:text-(--slk-text)"
           :class="{ 'nav-item--active': item.link_type === 'page' && isActive(item) }"
           @click="closeMenu"
         >
@@ -29,7 +29,7 @@
         <!-- Text-only label (no link, no children) -->
         <span
           v-else-if="!hasChildren(item) && item.link_type === 'none'"
-          class="nav-px text-gray-400 flex items-center text-sm font-semibold dark:text-[var(--slk-text-subtle)]"
+          class="nav-px flex items-center text-sm font-semibold text-gray-400 dark:text-(--slk-text-subtle)"
         >
           <span>{{ navLabel(item) }}</span>
         </span>
@@ -46,7 +46,7 @@
             :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'button'"
             :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
             :type="!(item.link_type === 'page' && item.page_slug) ? 'button' : undefined"
-            class="nav-pl text-gray-600 group-hover/trigger:text-gray-900 flex cursor-pointer items-center pr-1 text-sm font-semibold dark:text-[var(--slk-text)] dark:group-hover/trigger:text-[var(--slk-text-strong)]"
+            class="nav-pl flex cursor-pointer items-center pr-1 text-sm font-semibold text-gray-600 group-hover/trigger:text-gray-900 dark:text-(--slk-text) dark:group-hover/trigger:text-(--slk-text-strong)"
             @click="item.link_type === 'page' && item.page_slug ? closeMenu() : toggleMenu(item.id)"
           >
             <span>{{ navLabel(item) }}</span>
@@ -54,13 +54,13 @@
           <!-- Chevron button: toggles dropdown on click/touch -->
           <button
             type="button"
-            class="nav-pr text-gray-600 flex cursor-pointer items-center pl-1 group-hover/trigger:text-olive-green dark:text-[var(--slk-text)] dark:group-hover/trigger:text-[var(--slk-olive-green)]"
+            class="nav-pr flex cursor-pointer items-center pl-1 text-gray-600 group-hover/trigger:text-olive-green dark:text-(--slk-text) dark:group-hover/trigger:text-(--slk-olive-green)"
             :aria-expanded="openMenuId === item.id"
             :aria-label="$t('navigation.submenu_for', { ':label': navLabel(item) })"
             @click.stop="toggleMenu(item.id)"
           >
             <svg
-              class="h-3 w-3 flex-shrink-0 opacity-60"
+              class="h-3 w-3 shrink-0 opacity-60"
               viewBox="0 0 12 8"
               fill="none"
               stroke="currentColor"
@@ -75,7 +75,7 @@
         <div
           v-if="hasChildren(item)"
           v-show="openMenuId === item.id"
-          class="border-gray-200 absolute left-0 top-full z-[10001] overflow-hidden rounded-b-xl border border-t-2 border-t-light-green bg-white shadow-lg dark:border-[var(--slk-border)] dark:bg-[var(--slk-surface)] dark:shadow-[0_8px_24px_var(--slk-shadow-color)]"
+          class="absolute top-full left-0 z-10001 overflow-hidden rounded-b-xl border border-t-2 border-gray-200 border-t-light-green bg-white shadow-lg dark:border-(--slk-border) dark:bg-(--slk-surface) dark:shadow-[0_8px_24px_var(--slk-shadow-color)]"
           @mouseenter="handleMenuEnter(item.id)"
           @mouseleave="handleMenuLeave()"
         >
@@ -99,17 +99,17 @@
                   alt=""
                 />
                 <div
-                  class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2.5 pb-2 pt-8"
+                  class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-2.5 pt-8 pb-2"
                 >
                   <div
-                    class="text-xs font-semibold leading-snug text-white"
+                    class="text-xs leading-snug font-semibold text-white"
                     style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
                   >
                     {{ navLabel(child) }}
                   </div>
                   <div
                     v-if="child.description"
-                    class="mt-0.5 text-[10px] font-normal leading-snug text-white"
+                    class="mt-0.5 text-[10px] leading-snug font-normal text-white"
                     style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
                   >
                     {{ navDescription(child) }}
@@ -122,7 +122,7 @@
             <div
               v-if="childrenWithoutImages(item).length > 0"
               class="flex min-w-[200px] flex-col"
-              :class="{ 'border-gray-100 border-l dark:border-[var(--slk-border)]': hasImageChildren(item) }"
+              :class="{ 'border-l border-gray-100 dark:border-(--slk-border)': hasImageChildren(item) }"
             >
               <component
                 :is="child.link_type === 'page' ? NuxtLink : 'a'"
@@ -132,11 +132,11 @@
                 :href="child.link_type === 'external' ? child.external_url : undefined"
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
-                class="border-gray-50 flex items-start border-b px-4 py-3 text-sm font-semibold transition-colors last:border-b-0 dark:border-[var(--slk-border)]"
+                class="flex items-start border-b border-gray-50 px-4 py-3 text-sm font-semibold transition-colors last:border-b-0 dark:border-(--slk-border)"
                 :class="{
-                  'bg-solid-light-green-20 text-olive-green dark:bg-[var(--slk-green-tint)] dark:text-[var(--slk-olive-green)]':
+                  'bg-solid-light-green-20 text-olive-green dark:bg-(--slk-green-tint) dark:text-(--slk-olive-green)':
                     child.link_type === 'page' && isActive(child),
-                  'text-gray-700 hover:text-gray-900 hover:bg-solid-light-green-10 dark:text-[var(--slk-text-muted)] dark:hover:bg-[var(--slk-surface-muted)] dark:hover:text-[var(--slk-text-strong)]':
+                  'text-gray-700 hover:bg-solid-light-green-10 hover:text-gray-900 dark:text-(--slk-text-muted) dark:hover:bg-(--slk-surface-muted) dark:hover:text-(--slk-text-strong)':
                     !(child.link_type === 'page' && isActive(child)),
                 }"
                 @click="closeMenu"
@@ -146,7 +146,7 @@
                     <svg
                       v-if="child.link_type === 'external'"
                       xmlns="http://www.w3.org/2000/svg"
-                      class="text-gray-500 h-3 w-3 flex-shrink-0 dark:text-[var(--slk-text-muted)]"
+                      class="h-3 w-3 shrink-0 text-gray-500 dark:text-(--slk-text-muted)"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -160,7 +160,7 @@
                     </svg>
                     {{ navLabel(child) }}
                   </div>
-                  <div v-if="child.description" class="mt-0.5 text-xs font-normal leading-snug opacity-60">
+                  <div v-if="child.description" class="mt-0.5 text-xs leading-snug font-normal opacity-60">
                     {{ navDescription(child) }}
                   </div>
                 </div>

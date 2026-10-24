@@ -2,7 +2,7 @@
   <component
     :is="href ? 'a' : 'button'"
     v-bind="linkAttrs"
-    class="canonical-button inline-flex items-stretch overflow-hidden whitespace-nowrap rounded-md text-sm font-bold no-underline shadow-sm ring-1 ring-inset ring-white/20"
+    class="canonical-button inline-flex items-stretch overflow-hidden rounded-md text-sm font-bold whitespace-nowrap no-underline shadow-xs ring-1 ring-white/20 ring-inset"
     :class="[textClass, { 'canonical-button--auto-text': !textColor || textColor === 'auto' }]"
     :style="{ '--btn-color': colorHex }"
   >
@@ -12,8 +12,8 @@
       class="canonical-button__icon"
       :class="
         iconSize === 'lg'
-          ? 'flex w-12 flex-shrink-0 items-center justify-center self-stretch border-r-2 [&>svg]:h-7 [&>svg]:w-7'
-          : 'flex w-9 flex-shrink-0 items-center justify-center self-stretch border-r-2 [&>svg]:h-5 [&>svg]:w-5'
+          ? 'flex w-12 shrink-0 items-center justify-center self-stretch border-r-2 [&>svg]:h-7 [&>svg]:w-7'
+          : 'flex w-9 shrink-0 items-center justify-center self-stretch border-r-2 [&>svg]:h-5 [&>svg]:w-5'
       "
     >
       <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
@@ -33,14 +33,14 @@
       class="canonical-button__icon"
       :class="
         iconSize === 'lg'
-          ? 'flex w-12 flex-shrink-0 items-center justify-center self-stretch border-r-2'
-          : 'flex w-9 flex-shrink-0 items-center justify-center self-stretch border-r-2'
+          ? 'flex w-12 shrink-0 items-center justify-center self-stretch border-r-2'
+          : 'flex w-9 shrink-0 items-center justify-center self-stretch border-r-2'
       "
     >
       <Icon :icon="iconifySlug" :class="iconSize === 'lg' ? 'h-7 w-7' : 'h-5 w-5'" />
     </span>
     <!-- Label -->
-    <span class="flex flex-1 items-center justify-center" :class="hasIcon ? 'py-2 pl-3 pr-4' : 'px-4 py-2'">{{
+    <span class="flex flex-1 items-center justify-center" :class="hasIcon ? 'py-2 pr-4 pl-3' : 'px-4 py-2'">{{
       label
     }}</span>
   </component>

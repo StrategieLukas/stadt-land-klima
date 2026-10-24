@@ -168,3 +168,18 @@ CLI regressions run through `npm run test:cli` and are included in `test:unit`. 
 Security follow-up: `securityHardening.test.ts` is part of the fast unit gate and covers actual sanitizer, quota, math, form, session, search, PDF, mail-escape and core guard/cutover implementations. `TEST_REDIS_URL=redis://<local-redis>:6379 npm run test:security:redis` separately checks the real Lua window with 100 parallel requests across two clients and removes only its unique test key. Do not point it at production. `npm run audit:dependencies -- /private/report/directory` audits all maintained npm lockfiles, writes JSON reports and exits 1 for high/critical findings or 2 for registry/tool failures. The weekly GitHub workflow deliberately fails on known findings and requires no deployment secrets.
 
 `npm run test:security:nginx` starts a disposable loopback-only nginx with stub upstreams and a temporary self-signed certificate, exercises the real checked-in host config, and removes the container/certificate afterward. Docker plus OpenSSL are required. It tests opaque query rejection, normal bracket queries, WebSocket disabling, trusted peer headers and security/private-referrer headers; it sends no exploit to Directus. This integration test stays outside the default browser suite.
+
+### Styles and browser engines
+
+`npm run test:styles -- http://localhost:8080` is an explicit read-only CSS/interaction gate (separate from the fast default). It checks desktop/mobile light/dark themes, viewport centering, no overflow, card padding, shared CanonicalButton corners and navigation open/close. It aborts non-GET/HEAD requests. `src/cssMigration.test.ts` and the editor-variant SSR case in `src/phase5.test.ts` run in the fast unit gate.
+
+Install engines and their platform requirements using Playwright's supported instructions, then select an engine:
+
+```bash
+TEST_STYLE_BROWSER=firefox npm run test:styles -- http://localhost:8080
+TEST_STYLE_BROWSER=webkit npm run test:styles -- http://localhost:8080
+```
+
+For a local production TLS proxy, use its URL and trust only its temporary certificate in Node HTTP test clients with `NODE_EXTRA_CA_CERTS=/private/test.crt`. Do not disable TLS verification. For Chromium's speculative stylesheet requests, also set `TEST_HTTPS_CERT=/private/test.crt`: the harness pins that certificate's public key, with no blanket certificate-error flag. The public unit fixture contains no private key. Native OS/browser acceptance is distinct from running an engine inside Linux. Production nonce/CSP checks remain `npm run test:security:csp -- <https-origin>`; the full writable profile is for disposable local/staging data, never production.
+
+The style gate waits for Nuxt's build metadata response before forcing another full navigation. This prevents WebKit from reporting an intentionally aborted metadata fetch as an application error; runtime errors are still asserted rather than filtered away.

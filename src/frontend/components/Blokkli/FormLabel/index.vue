@@ -4,7 +4,7 @@
     <span
       v-if="props.description || isEditing"
       v-blokkli-editable:description
-      class="text-gray-500 mt-1 block text-xs font-normal"
+      class="mt-1 block text-xs font-normal text-gray-500"
       v-text="props.description"
     />
   </span>

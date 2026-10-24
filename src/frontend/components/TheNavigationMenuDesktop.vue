@@ -1,13 +1,13 @@
 <template>
   <nav ref="navRef">
     <!-- Connected pill bar — real items are always rectangular; rounding lives in the end-caps only -->
-    <ul class="bg-gray-50 border-gray-200 flex h-9 items-stretch rounded-full border">
+    <ul class="flex h-9 items-stretch rounded-full border border-gray-200 bg-gray-50">
       <!-- Left rounded end-cap: carries the l-full rounding, divider on right -->
-      <li class="border-gray-200 w-3 flex-shrink-0 rounded-l-full border-r"></li>
+      <li class="w-3 shrink-0 rounded-l-full border-r border-gray-200"></li>
       <li
         v-for="item in safeItems"
         :key="item.id"
-        class="border-gray-200 relative flex items-stretch border-r"
+        class="relative flex items-stretch border-r border-gray-200"
         @mouseenter="hasChildren(item) && handleMenuEnter(item.id)"
         @mouseleave="hasChildren(item) && handleMenuLeave()"
       >
@@ -19,11 +19,11 @@
           :href="item.link_type === 'external' ? item.external_url : undefined"
           :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
           :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
-          class="flex items-center gap-1.5 whitespace-nowrap px-3 text-sm font-semibold transition-colors"
+          class="flex items-center gap-1.5 px-3 text-sm font-semibold whitespace-nowrap transition-colors"
           :title="item.label ?? undefined"
           :class="{
             'bg-olive-green text-white': item.link_type === 'page' && isActive(item),
-            'text-gray-600 hover:text-gray-900 hover:bg-solid-light-green-10': !(
+            'text-gray-600 hover:bg-solid-light-green-10 hover:text-gray-900': !(
               item.link_type === 'page' && isActive(item)
             ),
           }"
@@ -39,7 +39,7 @@
             <svg
               v-if="item.link_type === 'external'"
               xmlns="http://www.w3.org/2000/svg"
-              class="text-gray-500 h-3 w-3 flex-shrink-0"
+              class="h-3 w-3 shrink-0 text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -59,7 +59,7 @@
         <!-- Text-only label (no link, no children) -->
         <span
           v-else-if="!hasChildren(item) && item.link_type === 'none'"
-          class="text-gray-500 flex items-center gap-1.5 whitespace-nowrap px-3 text-sm font-semibold"
+          class="flex items-center gap-1.5 px-3 text-sm font-semibold whitespace-nowrap text-gray-500"
           :title="item.label ?? undefined"
         >
           <img
@@ -87,7 +87,7 @@
             :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'button'"
             :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
             :type="!(item.link_type === 'page' && item.page_slug) ? 'button' : undefined"
-            class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap pl-3 pr-1 text-sm font-semibold transition-colors"
+            class="flex cursor-pointer items-center gap-1.5 pr-1 pl-3 text-sm font-semibold whitespace-nowrap transition-colors"
             :title="item.label ?? undefined"
             :class="{
               'text-white': anyChildActive(item),
@@ -107,7 +107,7 @@
           <!-- Chevron button: toggles dropdown on click/touch -->
           <button
             type="button"
-            class="flex cursor-pointer items-center pl-0.5 pr-3 transition-colors"
+            class="flex cursor-pointer items-center pr-3 pl-0.5 transition-colors"
             :class="{
               'text-white hover:text-white': anyChildActive(item),
               'text-gray-600 group-hover/trigger:text-gray-900': !anyChildActive(item),
@@ -126,7 +126,7 @@
         <div
           v-if="hasChildren(item)"
           v-show="openMenuId === item.id"
-          class="absolute left-0 top-full z-50 rounded-b-xl border-t-2 border-t-light-green bg-white shadow-xl"
+          class="absolute top-full left-0 z-50 rounded-b-xl border-t-2 border-t-light-green bg-white shadow-xl"
           @mouseenter="handleMenuEnter(item.id)"
           @mouseleave="handleMenuLeave()"
         >
@@ -154,17 +154,17 @@
                 />
                 <!-- Label overlay -->
                 <div
-                  class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2.5 pb-2 pt-8"
+                  class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-2.5 pt-8 pb-2"
                 >
                   <div
-                    class="text-xs font-semibold leading-snug text-white"
+                    class="text-xs leading-snug font-semibold text-white"
                     style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
                   >
                     {{ child.label }}
                   </div>
                   <div
                     v-if="child.description"
-                    class="mt-0.5 text-[10px] font-normal leading-snug text-white"
+                    class="mt-0.5 text-[10px] leading-snug font-normal text-white"
                     style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
                   >
                     {{ child.description }}
@@ -177,7 +177,7 @@
             <div
               v-if="childrenWithoutImages(item).length > 0"
               class="flex min-w-[200px] flex-col"
-              :class="{ 'border-gray-100 border-l': hasImageChildren(item) }"
+              :class="{ 'border-l border-gray-100': hasImageChildren(item) }"
             >
               <component
                 :is="child.link_type === 'page' ? NuxtLink : 'a'"
@@ -187,10 +187,10 @@
                 :href="child.link_type === 'external' ? child.external_url : undefined"
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
-                class="border-gray-50 flex items-start border-b px-4 py-3 text-sm font-semibold transition-colors last:border-b-0"
+                class="flex items-start border-b border-gray-50 px-4 py-3 text-sm font-semibold transition-colors last:border-b-0"
                 :class="{
                   'bg-solid-light-green-20 text-olive-green': child.link_type === 'page' && isActive(child),
-                  'text-gray-600 hover:text-gray-900 hover:bg-solid-light-green-10': !(
+                  'text-gray-600 hover:bg-solid-light-green-10 hover:text-gray-900': !(
                     child.link_type === 'page' && isActive(child)
                   ),
                 }"
@@ -201,7 +201,7 @@
                     <svg
                       v-if="child.link_type === 'external'"
                       xmlns="http://www.w3.org/2000/svg"
-                      class="text-gray-500 h-3 w-3 flex-shrink-0"
+                      class="h-3 w-3 shrink-0 text-gray-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -215,7 +215,7 @@
                     </svg>
                     {{ child.label }}
                   </div>
-                  <div v-if="child.description" class="mt-0.5 text-xs font-normal leading-snug opacity-60">
+                  <div v-if="child.description" class="mt-0.5 text-xs leading-snug font-normal opacity-60">
                     {{ child.description }}
                   </div>
                 </div>
@@ -225,7 +225,7 @@
         </div>
       </li>
       <!-- Right rounded end-cap -->
-      <li class="w-3 flex-shrink-0 rounded-r-full"></li>
+      <li class="w-3 shrink-0 rounded-r-full"></li>
     </ul>
   </nav>
 </template>

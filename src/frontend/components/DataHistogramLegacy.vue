@@ -3,7 +3,7 @@
     <!-- Loading state -->
     <div v-if="loading" class="flex items-center justify-center gap-2 py-8">
       <SlkFlowerSpinner :size="24" />
-      <span class="text-gray-600 text-sm">{{ $t("generic.loading") }}...</span>
+      <span class="text-sm text-gray-600">{{ $t("generic.loading") }}...</span>
     </div>
 
     <!-- Chart -->
@@ -12,7 +12,7 @@
     </div>
 
     <!-- No data message -->
-    <div v-else class="text-gray-500 py-8 text-center text-sm">
+    <div v-else class="py-8 text-center text-sm text-gray-500">
       {{ $t("stats.histogram.no_data") }}
     </div>
 
@@ -20,11 +20,11 @@
     <dialog ref="modalRef" class="modal">
       <div class="modal-box w-fit max-w-4xl">
         <form method="dialog">
-          <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
+          <button class="btn absolute top-2 right-2 btn-circle btn-ghost btn-sm">✕</button>
         </form>
         <h3 class="mb-4 text-lg font-bold">{{ $t("stats.histogram.municipalities_in_range") }}</h3>
         <div class="overflow-x-auto">
-          <table class="table table-xs w-full">
+          <table class="table w-full table-xs">
             <thead>
               <tr>
                 <th>{{ $t("administrative_areas.prefix") }}</th>
@@ -38,7 +38,7 @@
                 <td class="text-right">{{ municipality.prefix }}</td>
                 <td class="text-left font-medium">{{ municipality.name }}</td>
                 <td>
-                  <span class="badge badge-neutral font-mono text-sm">{{ formatValue(municipality.value) }}</span>
+                  <span class="badge font-mono text-sm badge-neutral">{{ formatValue(municipality.value) }}</span>
                 </td>
                 <td>
                   <NuxtLink :to="`/data/${municipality.ars}`" class="btn btn-primary btn-xs">

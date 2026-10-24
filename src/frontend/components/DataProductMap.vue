@@ -1,13 +1,13 @@
 <template>
-  <div class="bg-gray-100 relative z-10 w-full overflow-hidden rounded-lg">
+  <div class="relative z-10 w-full overflow-hidden rounded-lg bg-gray-100">
     <div v-if="loading" class="flex h-64 items-center justify-center gap-2">
       <SlkFlowerSpinner :size="32" />
       <span class="text-gray-600">{{ $t("generic.loading") }}</span>
     </div>
 
-    <div v-else-if="error" class="text-red-600 bg-red-50 flex h-64 items-center justify-center">
+    <div v-else-if="error" class="flex h-64 items-center justify-center bg-red-50 text-red-600">
       <div class="text-center">
-        <svg class="text-red-400 mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -19,9 +19,9 @@
       </div>
     </div>
 
-    <div v-else-if="!mapData" class="text-gray-500 flex h-64 items-center justify-center">
+    <div v-else-if="!mapData" class="flex h-64 items-center justify-center text-gray-500">
       <div class="text-center">
-        <svg class="text-gray-400 mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <div v-else :class="props.height" class="bg-gray-50 w-full overflow-hidden rounded-lg">
+    <div v-else :class="props.height" class="w-full overflow-hidden rounded-lg bg-gray-50">
       <LMap ref="map" :zoom="zoom" :center="center" :options="mapOptions" class="h-full w-full" @ready="onMapReady">
         <LTileLayer :key="tileUrl" :url="tileUrl" :attribution="attribution" :subdomains="subdomains" :max-zoom="20" />
 
@@ -52,7 +52,7 @@
     <!-- Legend -->
     <div
       v-if="mapData && showLegend"
-      class="absolute bottom-4 left-4 z-[1000] max-w-xs rounded-lg bg-white bg-opacity-90 p-3 shadow-md"
+      class="absolute bottom-4 left-4 z-1000 max-w-xs rounded-lg bg-white/90 p-3 shadow-md"
     >
       <h4 class="mb-2 text-sm font-semibold">{{ $t("stats.map.legend") }}</h4>
       <div v-for="layer in mapData.layers" :key="layer.name" class="mb-1 flex items-center text-xs">

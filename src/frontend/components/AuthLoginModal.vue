@@ -3,7 +3,7 @@
     <Transition name="modal">
       <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans" @click.self="close">
         <!-- Backdrop -->
-        <div class="slk-modal-backdrop absolute inset-0 bg-black bg-opacity-50" />
+        <div class="slk-modal-backdrop absolute inset-0 bg-black/50" />
 
         <!-- Modal Content -->
         <div
@@ -14,7 +14,7 @@
         >
           <!-- Close Button -->
           <button
-            class="text-gray-400 hover:text-gray-600 absolute right-4 top-4 transition-colors"
+            class="absolute top-4 right-4 text-gray-400 transition-colors hover:text-gray-600"
             :aria-label="$t('generic.close')"
             @click="close"
           >
@@ -25,7 +25,7 @@
 
           <!-- Header -->
           <div class="mb-6">
-            <h2 id="login-modal-title" class="text-gray-900 text-2xl font-bold">
+            <h2 id="login-modal-title" class="text-2xl font-bold text-gray-900">
               {{ $t("generic.log_in") }}
             </h2>
           </div>
@@ -34,7 +34,7 @@
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <!-- Email Field -->
             <div>
-              <label for="login-email" class="text-gray-700 mb-1 block text-sm font-medium">
+              <label for="login-email" class="mb-1 block text-sm font-medium text-gray-700">
                 {{ $t("auth.email") }}
               </label>
               <input
@@ -44,14 +44,14 @@
                 required
                 autocomplete="email"
                 :disabled="isLoading"
-                class="border-gray-300 disabled:bg-gray-100 w-full rounded-md border px-3 py-2 text-base shadow-sm focus:border-orange focus:outline-none focus:ring-2 focus:ring-orange disabled:cursor-not-allowed"
+                class="w-full rounded-md border border-gray-300 px-3 py-2 text-base shadow-xs focus:border-orange focus:ring-2 focus:ring-orange focus:outline-hidden disabled:cursor-not-allowed disabled:bg-gray-100"
                 placeholder="name@example.com"
               />
             </div>
 
             <!-- Password Field -->
             <div>
-              <label for="login-password" class="text-gray-700 mb-1 block text-sm font-medium">
+              <label for="login-password" class="mb-1 block text-sm font-medium text-gray-700">
                 {{ $t("auth.password") }}
               </label>
               <div class="relative">
@@ -62,12 +62,12 @@
                   required
                   autocomplete="current-password"
                   :disabled="isLoading"
-                  class="border-gray-300 disabled:bg-gray-100 w-full rounded-md border px-3 py-2 pr-10 text-base shadow-sm focus:border-orange focus:outline-none focus:ring-2 focus:ring-orange disabled:cursor-not-allowed"
+                  class="w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-base shadow-xs focus:border-orange focus:ring-2 focus:ring-orange focus:outline-hidden disabled:cursor-not-allowed disabled:bg-gray-100"
                   :placeholder="$t('auth.password.placeholder')"
                 />
                 <button
                   type="button"
-                  class="text-gray-400 hover:text-gray-600 absolute inset-y-0 right-0 flex items-center pr-3"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
                   :aria-label="showPassword ? $t('auth.password.hide') : $t('auth.password.show')"
                   @click="showPassword = !showPassword"
                 >
@@ -98,9 +98,9 @@
             </div>
 
             <!-- Error Message -->
-            <div v-if="errorMessage" class="bg-red-50 border-red-200 rounded-md border p-3">
-              <p class="text-red-600 flex items-center text-sm">
-                <svg class="mr-2 h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div v-if="errorMessage" class="rounded-md border border-red-200 bg-red-50 p-3">
+              <p class="flex items-center text-sm text-red-600">
+                <svg class="mr-2 h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fill-rule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -115,7 +115,7 @@
             <button
               type="submit"
               :disabled="isLoading || !isFormValid"
-              class="hover:bg-orange-dark disabled:bg-gray-300 w-full rounded-md bg-orange px-4 py-2.5 font-semibold text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange focus:ring-offset-2 disabled:cursor-not-allowed"
+              class="hover:bg-orange-dark w-full rounded-md bg-orange px-4 py-2.5 font-semibold text-white transition-colors focus:ring-2 focus:ring-orange focus:ring-offset-2 focus:outline-hidden disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               <span v-if="isLoading" class="flex items-center justify-center gap-1.5">
                 <SlkFlowerSpinner :size="16" color="#fbfbfb" />

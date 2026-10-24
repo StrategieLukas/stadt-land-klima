@@ -2,7 +2,7 @@
   <div class="border-t-2 border-light-blue py-6">
     <h2 class="mb-4 font-heading text-h3 font-bold text-gray">Bewertung durch Kommunen</h2>
 
-    <div v-if="!ratings || ratings.length === 0" class="text-gray-400 text-sm italic">
+    <div v-if="!ratings || ratings.length === 0" class="text-sm text-gray-400 italic">
       Noch keine veröffentlichten Bewertungen für diese Maßnahme vorhanden.
     </div>
 
@@ -11,25 +11,25 @@
         <template v-for="group in ratingGroups" :key="group.key">
           <!-- Bar row -->
           <button
-            class="flex w-full items-center gap-3 rounded px-2 py-1.5 text-left transition-colors"
-            :class="group.count > 0 ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-default opacity-40'"
+            class="flex w-full items-center gap-3 rounded-sm px-2 py-1.5 text-left transition-colors"
+            :class="group.count > 0 ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default opacity-40'"
             :disabled="group.count === 0"
             @click="group.count > 0 ? toggleGroup(group.key) : undefined"
           >
-            <span class="flex w-44 flex-shrink-0 items-center gap-2">
-              <span class="h-3 w-3 flex-shrink-0 rounded-full" :style="{ background: group.color }" />
-              <span class="text-gray-700 truncate text-xs font-semibold">{{ group.label }}</span>
+            <span class="flex w-44 shrink-0 items-center gap-2">
+              <span class="h-3 w-3 shrink-0 rounded-full" :style="{ background: group.color }" />
+              <span class="truncate text-xs font-semibold text-gray-700">{{ group.label }}</span>
             </span>
-            <span class="bg-gray-100 h-5 flex-1 overflow-hidden rounded">
+            <span class="h-5 flex-1 overflow-hidden rounded-sm bg-gray-100">
               <span
-                class="block h-full rounded transition-all duration-500"
+                class="block h-full rounded-sm transition-all duration-500"
                 :style="{ width: `${(group.count / total) * 100}%`, background: group.color }"
               />
             </span>
-            <span class="text-gray-700 w-8 flex-shrink-0 text-right text-xs font-bold">{{ group.count }}</span>
+            <span class="w-8 shrink-0 text-right text-xs font-bold text-gray-700">{{ group.count }}</span>
             <svg
               v-if="group.count > 0"
-              class="text-gray-400 h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200"
+              class="h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform duration-200"
               :class="{ 'rotate-180': openKey === group.key }"
               fill="none"
               viewBox="0 0 24 24"
@@ -38,7 +38,7 @@
             >
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
-            <span v-else class="w-3.5 flex-shrink-0" />
+            <span v-else class="w-3.5 shrink-0" />
           </button>
 
           <!-- Expanded municipality list -->
@@ -61,7 +61,7 @@
         </template>
       </div>
 
-      <p class="text-gray-400 mt-3 text-xs">
+      <p class="mt-3 text-xs text-gray-400">
         {{ total }} Kommune{{ total !== 1 ? "n haben" : " hat" }} diese Maßnahme bewertet.
       </p>
     </div>

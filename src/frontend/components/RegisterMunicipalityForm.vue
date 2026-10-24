@@ -2,17 +2,17 @@
   <!-- Processing + Durchstarten (merged) -->
   <div
     v-if="formState === 'processing' || formState === 'success'"
-    class="overflow-hidden rounded-sm bg-white shadow-list"
+    class="overflow-hidden rounded-xs bg-white shadow-list"
   >
     <!-- Header: green tint once done, neutral while processing -->
     <div
-      class="flex items-center gap-4 border-b px-4 pb-5 pt-7 transition-colors duration-500 sm:px-8"
+      class="flex items-center gap-4 border-b px-4 pt-7 pb-5 transition-colors duration-500 sm:px-8"
       :class="
         processingDone && !processingError ? 'border-solid-green-20 bg-rating-3-light' : 'border-gray-100 bg-white'
       "
     >
       <div
-        class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-500"
+        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors duration-500"
         :class="processingDone && !processingError ? 'bg-green' : processingError ? 'bg-red-500' : 'bg-gray-100'"
       >
         <!-- Spinner while processing -->
@@ -34,7 +34,7 @@
       </div>
       <div>
         <h2
-          class="font-heading text-h3 font-bold leading-tight transition-colors duration-500"
+          class="font-heading text-h3 leading-tight font-bold transition-colors duration-500"
           :class="
             processingDone && !processingError ? 'text-green' : processingError ? 'text-red-600' : 'text-gray-500'
           "
@@ -47,16 +47,16 @@
                 : $t("localteam.register.processing")
           }}
         </h2>
-        <p class="text-gray-600 text-sm">
+        <p class="text-sm text-gray-600">
           {{ $t("localteam.for_municipality") }} <strong>{{ municipalityName }}</strong>
         </p>
       </div>
     </div>
 
     <!-- Flow step indicators -->
-    <div class="border-gray-100 space-y-3 border-b px-4 pb-4 pt-6 sm:px-8">
+    <div class="space-y-3 border-b border-gray-100 px-4 pt-6 pb-4 sm:px-8">
       <div v-for="step in stepInfos" :key="step.key" class="flex items-center gap-3">
-        <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center">
+        <div class="flex h-6 w-6 shrink-0 items-center justify-center">
           <SlkFlowerSpinner v-if="stepStatuses[step.key] === 'loading'" :size="20" />
           <div
             v-else-if="stepStatuses[step.key] === 'success'"
@@ -68,19 +68,19 @@
           </div>
           <div
             v-else-if="stepStatuses[step.key] === 'error'"
-            class="bg-red-500 flex h-5 w-5 items-center justify-center rounded-full"
+            class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500"
           >
             <svg class="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <div v-else class="border-gray-200 h-4 w-4 rounded-full border-2" />
+          <div v-else class="h-4 w-4 rounded-full border-2 border-gray-200" />
         </div>
         <p
           class="text-sm"
           :class="
             stepStatuses[step.key] === 'error'
-              ? 'text-red-600 font-medium'
+              ? 'font-medium text-red-600'
               : stepStatuses[step.key] === 'success'
                 ? 'text-gray-700'
                 : 'text-gray-400'
@@ -93,7 +93,7 @@
 
     <!-- Error: retry -->
     <div v-if="processingError" class="px-4 py-5 sm:px-8">
-      <p class="text-red-600 mb-3 text-sm">{{ processingError }}</p>
+      <p class="mb-3 text-sm text-red-600">{{ processingError }}</p>
       <button type="button" class="text-sm text-light-blue hover:underline" @click="resetToIdle">
         ← {{ $t("generic.try_again") }}
       </button>
@@ -104,7 +104,7 @@
       <div v-if="formState === 'success'" class="space-y-5 px-4 py-6 sm:px-8">
         <!-- Activation email -->
         <div class="flex gap-4">
-          <div class="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-50">
+          <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50">
             <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -115,10 +115,10 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-gray-800 mb-0.5 text-sm font-semibold">
+            <h3 class="mb-0.5 text-sm font-semibold text-gray-800">
               {{ $t("localteam.register.activation_email.title") }}
             </h3>
-            <p class="text-gray-500 text-sm">
+            <p class="text-sm text-gray-500">
               <span
                 v-html="sanitizeHtml($t('localteam.register.activation_email.body', { ':email': submittedEmail }))"
               ></span>
@@ -126,18 +126,18 @@
           </div>
         </div>
 
-        <div class="border-gray-100 border-t" />
+        <div class="border-t border-gray-100" />
 
         <!-- Onboarding -->
         <div class="flex gap-4">
-          <div class="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-solid-green-10">
+          <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-solid-green-10">
             <svg class="h-5 w-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
           <div>
-            <h3 class="text-gray-800 mb-0.5 text-sm font-semibold">{{ $t("localteam.register.onboarding.title") }}</h3>
-            <p class="text-gray-500 text-sm">
+            <h3 class="mb-0.5 text-sm font-semibold text-gray-800">{{ $t("localteam.register.onboarding.title") }}</h3>
+            <p class="text-sm text-gray-500">
               <span
                 v-html="sanitizeHtml($t('localteam.register.onboarding.body', { ':name': municipalityName }))"
               ></span>
@@ -145,11 +145,11 @@
           </div>
         </div>
 
-        <div class="border-gray-100 border-t" />
+        <div class="border-t border-gray-100" />
 
         <!-- Newsletter -->
         <div class="flex gap-4">
-          <div class="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-yellow-50">
+          <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-yellow-50">
             <svg class="h-5 w-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -160,12 +160,12 @@
             </svg>
           </div>
           <div class="flex-1">
-            <h3 class="text-gray-800 mb-0.5 text-sm font-semibold">Newsletter</h3>
-            <p class="text-gray-500 mb-3 text-sm">
+            <h3 class="mb-0.5 text-sm font-semibold text-gray-800">Newsletter</h3>
+            <p class="mb-3 text-sm text-gray-500">
               {{ $t("newsletter.register.description") }}
             </p>
             <div v-if="newsletterState === 'success'" class="flex items-center gap-2 text-sm font-medium text-green">
-              <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fill-rule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -182,7 +182,7 @@
                 type="email"
                 autocomplete="email"
                 :placeholder="$t('newsletter.email.placeholder')"
-                class="border-gray-300 min-w-0 flex-1 rounded-md border px-3 py-2 text-sm transition-colors focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+                class="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
                 @keydown.enter.prevent="subscribeNewsletter"
               />
               <CanonicalButton
@@ -194,8 +194,8 @@
                 @click="subscribeNewsletter"
               />
             </div>
-            <p v-if="newsletterError" class="text-red-500 mt-1 text-xs">{{ newsletterError }}</p>
-            <p class="text-gray-400 mt-1.5 text-xs">{{ $t("newsletter.no_spam_hint") }}</p>
+            <p v-if="newsletterError" class="mt-1 text-xs text-red-500">{{ newsletterError }}</p>
+            <p class="mt-1.5 text-xs text-gray-400">{{ $t("newsletter.no_spam_hint") }}</p>
           </div>
         </div>
       </div>
@@ -203,13 +203,13 @@
   </div>
 
   <!-- Registration form -->
-  <div v-else class="overflow-hidden rounded-sm bg-white shadow-list">
+  <div v-else class="overflow-hidden rounded-xs bg-white shadow-list">
     <!-- Form header -->
-    <div class="border-gray-100 border-b px-4 pb-5 pt-7 sm:px-8">
-      <h2 class="text-gray-800 mb-1 font-heading text-h3 font-bold">
+    <div class="border-b border-gray-100 px-4 pt-7 pb-5 sm:px-8">
+      <h2 class="mb-1 font-heading text-h3 font-bold text-gray-800">
         {{ $t("localteam.register.contact_details.title") }}
       </h2>
-      <p class="text-gray-500 text-sm">
+      <p class="text-sm text-gray-500">
         <span
           v-html="sanitizeHtml($t('localteam.register.contact_details.description', { ':name': municipalityName }))"
         ></span>
@@ -220,7 +220,7 @@
       <!-- Name -->
       <div class="grid grid-cols-1 gap-3 xs:grid-cols-2">
         <div>
-          <label for="reg-firstname" class="text-gray-700 mb-1 block text-sm font-medium">
+          <label for="reg-firstname" class="mb-1 block text-sm font-medium text-gray-700">
             {{ $t("auth.first_name") }} <span class="text-red-500">*</span>
           </label>
           <input
@@ -230,11 +230,11 @@
             required
             autocomplete="given-name"
             :placeholder="$t('auth.first_name.placeholder')"
-            class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
           />
         </div>
         <div>
-          <label for="reg-lastname" class="text-gray-700 mb-1 block text-sm font-medium">
+          <label for="reg-lastname" class="mb-1 block text-sm font-medium text-gray-700">
             {{ $t("auth.last_name") }} <span class="text-red-500">*</span>
           </label>
           <input
@@ -244,14 +244,14 @@
             required
             autocomplete="family-name"
             :placeholder="$t('auth.last_name.placeholder')"
-            class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
           />
         </div>
       </div>
 
       <!-- Email -->
       <div>
-        <label for="reg-email" class="text-gray-700 mb-1 block text-sm font-medium">
+        <label for="reg-email" class="mb-1 block text-sm font-medium text-gray-700">
           {{ $t("auth.email") }} <span class="text-red-500">*</span>
         </label>
         <input
@@ -261,16 +261,16 @@
           required
           autocomplete="email"
           :placeholder="$t('auth.email.placeholder')"
-          class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
         />
-        <p class="text-gray-400 mt-1 text-xs">{{ $t("localteam.register.email_hint") }}</p>
+        <p class="mt-1 text-xs text-gray-400">{{ $t("localteam.register.email_hint") }}</p>
       </div>
 
       <!-- Organisation -->
       <div>
-        <label for="reg-org" class="text-gray-700 mb-1 block text-sm font-medium">
+        <label for="reg-org" class="mb-1 block text-sm font-medium text-gray-700">
           {{ $t("auth.organisation_or_role") }}
-          <span class="text-gray-400 font-normal">({{ $t("generic.optional") }})</span>
+          <span class="font-normal text-gray-400">({{ $t("generic.optional") }})</span>
         </label>
         <input
           id="reg-org"
@@ -278,13 +278,13 @@
           type="text"
           autocomplete="organization"
           :placeholder="$t('auth.organisation_or_role.placeholder')"
-          class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
         />
       </div>
 
       <!-- Math challenge -->
       <div>
-        <label class="text-gray-700 mb-1 block text-sm font-medium">
+        <label class="mb-1 block text-sm font-medium text-gray-700">
           {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }}
           <span class="text-red-500">*</span>
         </label>
@@ -293,14 +293,14 @@
           type="text"
           inputmode="numeric"
           pattern="[0-9]+"
-          class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
         />
-        <p v-if="mathChallengeError" class="text-red-500 mt-1 text-xs">{{ mathChallengeError }}</p>
+        <p v-if="mathChallengeError" class="mt-1 text-xs text-red-500">{{ mathChallengeError }}</p>
       </div>
 
       <!-- Altcha CAPTCHA widget (open-source, self-hosted proof-of-work) -->
       <div>
-        <label class="text-gray-700 mb-2 block text-sm font-medium">
+        <label class="mb-2 block text-sm font-medium text-gray-700">
           {{ $t("captcha.title") }} <span class="text-red-500">*</span>
         </label>
         <ClientOnly>
@@ -319,12 +319,12 @@
             style="--altcha-border-radius: 6px; --altcha-color-border: #d1d5db; width: 100%"
           />
           <template #fallback>
-            <div class="bg-gray-50 border-gray-200 flex h-16 items-center justify-center rounded-md border">
-              <span class="text-gray-400 text-xs">{{ $t("captcha.loading") }}</span>
+            <div class="flex h-16 items-center justify-center rounded-md border border-gray-200 bg-gray-50">
+              <span class="text-xs text-gray-400">{{ $t("captcha.loading") }}</span>
             </div>
           </template>
         </ClientOnly>
-        <p v-if="captchaError" class="text-red-500 mt-1 text-xs">{{ captchaError }}</p>
+        <p v-if="captchaError" class="mt-1 text-xs text-red-500">{{ captchaError }}</p>
       </div>
 
       <!-- Actions -->
@@ -339,15 +339,15 @@
         </button>
         <button
           type="submit"
-          class="w-full rounded-md bg-green px-6 py-2.5 font-semibold text-white transition-colors hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 sm:ml-auto sm:w-auto"
+          class="w-full rounded-md bg-green px-6 py-2.5 font-semibold text-white transition-colors hover:opacity-90 focus:ring-2 focus:ring-green focus:ring-offset-2 focus:outline-hidden sm:ml-auto sm:w-auto"
         >
           {{ $t("localteam.register.submit") }} →
         </button>
       </div>
 
-      <p class="text-gray-400 pt-1 text-xs">
+      <p class="pt-1 text-xs text-gray-400">
         {{ $t("localteam.register.privacy_notice") }}
-        <NuxtLink to="/datenschutz" class="hover:text-gray-600 underline">{{ $t("privacy_policy.title") }}</NuxtLink
+        <NuxtLink to="/datenschutz" class="underline hover:text-gray-600">{{ $t("privacy_policy.title") }}</NuxtLink
         >.
       </p>
     </form>

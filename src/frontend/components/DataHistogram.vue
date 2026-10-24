@@ -3,7 +3,7 @@
     <!-- Loading state -->
     <div v-if="loading" class="flex items-center justify-center gap-2 py-8">
       <SlkFlowerSpinner :size="24" />
-      <span class="text-gray-600 text-sm">{{ $t("generic.loading") }}...</span>
+      <span class="text-sm text-gray-600">{{ $t("generic.loading") }}...</span>
     </div>
 
     <!-- Chart -->
@@ -21,28 +21,25 @@
         }"
       >
         <div class="flex flex-col items-center">
-          <div class="whitespace-nowrap rounded bg-blue-600 px-2 py-1 text-xs font-semibold text-white shadow-lg">
+          <div class="rounded-sm bg-blue-600 px-2 py-1 text-xs font-semibold whitespace-nowrap text-white shadow-lg">
             {{ municipalityName || $t("stats.your_municipality") }}
           </div>
           <div
-            class="h-0 w-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-blue-600"
+            class="h-0 w-0 border-t-8 border-r-4 border-l-4 border-t-blue-600 border-r-transparent border-l-transparent"
           ></div>
         </div>
       </div>
     </div>
 
     <!-- No data message -->
-    <div v-else class="text-gray-500 py-8 text-center text-sm">
+    <div v-else class="py-8 text-center text-sm text-gray-500">
       {{ $t("stats.histogram.no_data") }}
     </div>
 
     <!-- Loading bin data overlay -->
-    <div
-      v-if="loadingBinData"
-      class="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white bg-opacity-75"
-    >
+    <div v-if="loadingBinData" class="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/75">
       <SlkFlowerSpinner :size="24" />
-      <span class="text-gray-600 text-sm">{{ $t("generic.loading") }}...</span>
+      <span class="text-sm text-gray-600">{{ $t("generic.loading") }}...</span>
     </div>
   </div>
 </template>

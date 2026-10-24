@@ -1,26 +1,26 @@
 <template>
   <div
-    class="border-gray-200 flex min-h-[140px] flex-col justify-center gap-1 bg-white"
-    :class="flush ? 'rounded-none border-0 p-4 shadow-none' : 'rounded-lg border p-4 shadow-sm'"
+    class="flex min-h-[140px] flex-col justify-center gap-1 border-gray-200 bg-white"
+    :class="flush ? 'rounded-none border-0 p-4 shadow-none' : 'rounded-lg border p-4 shadow-xs'"
   >
     <template v-if="loading">
-      <div class="bg-gray-200 h-4 w-32 animate-pulse rounded" />
-      <div class="bg-gray-200 h-3 w-48 animate-pulse rounded" />
-      <div class="bg-gray-200 h-10 w-24 animate-pulse rounded" />
-      <div class="bg-gray-200 mt-1 h-3 w-16 animate-pulse rounded" />
+      <div class="h-4 w-32 animate-pulse rounded-sm bg-gray-200" />
+      <div class="h-3 w-48 animate-pulse rounded-sm bg-gray-200" />
+      <div class="h-10 w-24 animate-pulse rounded-sm bg-gray-200" />
+      <div class="mt-1 h-3 w-16 animate-pulse rounded-sm bg-gray-200" />
     </template>
     <template v-else>
-      <p v-if="titleText" class="text-gray-900 text-sm font-bold leading-snug">
+      <p v-if="titleText" class="text-sm leading-snug font-bold text-gray-900">
         {{ titleText }}
       </p>
-      <p v-if="descriptionText" class="text-gray-500 text-xs leading-relaxed">
+      <p v-if="descriptionText" class="text-xs leading-relaxed text-gray-500">
         {{ descriptionText }}
       </p>
       <div class="justify-content-end flex flex-row">
-        <div class="mt-1 text-4xl font-black tabular-nums leading-none" :style="{ color: kpiColor }">
+        <div class="mt-1 text-4xl leading-none font-black tabular-nums" :style="{ color: kpiColor }">
           {{ kpiDisplayValue }}
         </div>
-        <div v-if="unitText" class="text-gray-500 ml-2 mt-0.5 mt-5 text-xs">
+        <div v-if="unitText" class="mt-0.5 mt-5 ml-2 text-xs text-gray-500">
           {{ unitText }}<template v-if="element.population_normalized"> / 1 000 Einw.</template>
         </div>
       </div>

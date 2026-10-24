@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
 import { staticIconStyleHashes } from "./scripts/securityStyles.mts";
 
 const publicCmsOrigins = (() => {
@@ -195,12 +196,6 @@ export default defineNuxtConfig({
     "~/assets/css/vega-tooltip.css",
     "~/assets/css/main.css",
   ],
-  postcss: {
-    plugins: {
-      tailwindcss: {},
-      autoprefixer: {},
-    },
-  },
   routeRules: {
     "/api/**": { security: { enabled: false } },
     "/**": {
@@ -254,6 +249,7 @@ export default defineNuxtConfig({
       ],
     },
     plugins: [
+      tailwindcss(),
       {
         name: "blokkli-editing-files",
         enforce: "pre",

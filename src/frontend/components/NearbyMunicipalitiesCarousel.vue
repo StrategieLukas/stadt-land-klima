@@ -1,12 +1,12 @@
 <template>
   <div v-if="loaded && nearbyAreas.length === 0" />
 
-  <div v-else class="bg-gray-300 max-w-full overflow-hidden border-b border-t px-3 py-6 sm:px-4 lg:px-6">
+  <div v-else class="max-w-full overflow-hidden border-t border-b bg-gray-300 px-3 py-6 sm:px-4 lg:px-6">
     <div class="mb-4">
-      <h3 class="text-gray-800 mb-2 text-lg font-semibold">
+      <h3 class="mb-2 text-lg font-semibold text-gray-800">
         {{ $t("administrative_areas.nearby_alternatives") }}
       </h3>
-      <p class="text-gray-600 text-sm">
+      <p class="text-sm text-gray-600">
         {{ $t("administrative_areas.nearby_alternatives_description") }}
       </p>
     </div>
@@ -28,10 +28,10 @@
         <div
           v-for="area in nearbyAreas"
           :key="area.ars"
-          class="border-gray-200 flex w-64 max-w-full flex-none flex-col overflow-hidden rounded-lg border bg-white shadow-md transition-shadow hover:shadow-lg sm:w-72 lg:w-80"
+          class="flex w-64 max-w-full flex-none flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg sm:w-72 lg:w-80"
         >
           <!-- Mini map -->
-          <div class="from-green-100 relative flex h-32 items-center justify-center bg-gradient-to-br to-blue-100">
+          <div class="relative flex h-32 items-center justify-center bg-linear-to-br from-green-100 to-blue-100">
             <LMap
               :ref="
                 (el) => {
@@ -66,14 +66,14 @@
             <!-- Name row with score badge -->
             <div class="mb-3 flex items-start justify-between gap-2">
               <div class="min-w-0 flex-1">
-                <p class="text-gray-500 mb-1 text-xs font-semibold uppercase tracking-wide">
+                <p class="mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase">
                   {{ area.prefix }}
                 </p>
-                <h4 class="text-gray-900 break-words text-sm font-bold leading-tight">
+                <h4 class="text-sm leading-tight font-bold wrap-break-word text-gray-900">
                   {{ area.name }}
                 </h4>
               </div>
-              <div class="flex-shrink-0">
+              <div class="shrink-0">
                 <!-- Complete or published: show numeric score -->
                 <span
                   v-if="area.isComplete && area.scoreTotal != null"
@@ -92,7 +92,7 @@
                 <!-- No localteam -->
                 <span
                   v-else
-                  class="bg-gray-100 text-gray-400 inline-block rounded-full px-2 py-0.5 text-xs font-medium"
+                  class="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-400"
                 >
                   Nicht bewertet
                 </span>
@@ -106,7 +106,7 @@
                 :to="`/municipalities/${area.slug}?v=${catalogVersionName}`"
                 class="inline-flex items-center text-xs font-medium text-[#AFCA0B] hover:text-lime-700 sm:text-sm"
               >
-                <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="mr-1 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
                 <span>Bewertung anzeigen</span>
@@ -117,7 +117,7 @@
                 :to="`/contact?title=${encodeURIComponent('Lokalteam unterstützen in ' + area.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + area.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
                 class="inline-flex items-center text-xs font-medium text-green hover:opacity-80 sm:text-sm"
               >
-                <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="mr-1 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
                 <span>Lokalteam unterstützen</span>
@@ -128,7 +128,7 @@
                 :to="`/register_localteam?ars=${area.ars}&name=${encodeURIComponent(area.name)}`"
                 class="inline-flex items-center text-xs font-medium text-green hover:opacity-80 sm:text-sm"
               >
-                <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="mr-1 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
                 <span>Lokalteam gründen</span>
@@ -138,7 +138,7 @@
                 :to="`/data/${area.ars}`"
                 class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 sm:text-sm"
               >
-                <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="mr-1 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
                 <span>Statistiken anzeigen</span>

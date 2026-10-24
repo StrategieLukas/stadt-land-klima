@@ -1,20 +1,20 @@
 <template>
-  <article :id="`measure-${measure.measure_id}`" class="card card-compact mx-auto max-w-4xl shadow">
-    <div class="card-body">
+  <article :id="`measure-${measure.measure_id}`" class="card mx-auto max-w-4xl shadow-sm card-sm">
+    <div class="card-body text-sm">
       <div class="flex cursor-pointer items-center justify-between" @click="toggleExpanded">
         <div class="flex-1">
           <div class="flex flex-row items-center gap-3">
             <span class="mr-3 w-fit rounded-lg bg-gray px-2 py-1 font-mono text-base-100">{{
               measure.measure_id
             }}</span>
-            <h2 class="grow break-words font-heading text-h2 font-bold text-gray">
+            <h2 class="grow font-heading text-h2 font-bold wrap-break-word text-gray">
               {{ measure.name }}
             </h2>
           </div>
         </div>
-        <div class="ml-4 flex-shrink-0">
+        <div class="ml-4 shrink-0">
           <svg
-            :class="['text-gray-500 h-6 w-6 transition-transform duration-200', isExpanded ? 'rotate-180' : '']"
+            :class="['h-6 w-6 text-gray-500 transition-transform duration-200', isExpanded ? 'rotate-180' : '']"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -29,7 +29,7 @@
 
         <MeasureDescriptions :measure="measure" />
 
-        <p class="text-gray-600 pt-4 text-center text-sm">
+        <p class="pt-4 text-center text-sm text-gray-600">
           <ClientOnly>
             {{ $t("last_updated_at") + lastUpdatedAtStr }}
           </ClientOnly>

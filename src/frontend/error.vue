@@ -3,7 +3,7 @@
     <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
       <!-- Monstrous 404 number -->
       <div
-        class="w-full select-none overflow-hidden text-center font-black leading-none"
+        class="w-full overflow-hidden text-center leading-none font-black select-none"
         style="
           font-size: clamp(6rem, 40vw, 24rem);
           color: transparent;
@@ -15,13 +15,13 @@
       </div>
 
       <!-- Headline -->
-      <h1 class="text-gray-800 mt-6 text-3xl font-bold">
+      <h1 class="mt-6 text-3xl font-bold text-gray-800">
         <template v-if="is404">Seite nicht gefunden</template>
         <template v-else>Etwas ist schiefgelaufen</template>
       </h1>
 
       <!-- Description -->
-      <p class="text-gray-500 mt-3 max-w-md text-base leading-relaxed">
+      <p class="mt-3 max-w-md text-base leading-relaxed text-gray-500">
         <template v-if="is404"> Die gesuchte Seite existiert leider nicht oder wurde verschoben. </template>
         <template v-else> Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später noch einmal. </template>
       </p>
@@ -29,7 +29,7 @@
       <!-- Dev error message -->
       <p
         v-if="error?.message && isDev"
-        class="mt-3 max-w-lg break-all rounded bg-solid-red-05 px-3 py-2 text-left font-mono text-xs text-red"
+        class="mt-3 max-w-lg rounded bg-solid-red-05 px-3 py-2 text-left font-mono text-xs break-all text-red"
       >
         {{ error.message }}
       </p>
@@ -57,7 +57,7 @@
           Zur Startseite
         </NuxtLink>
         <button
-          class="border-gray-200 text-gray-600 hover:bg-gray-100 inline-flex h-11 items-center justify-center gap-2 rounded-full border-2 px-6 text-sm font-semibold transition-colors"
+          class="inline-flex h-11 items-center justify-center gap-2 rounded-full border-2 border-gray-200 px-6 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100"
           @click="handleError"
         >
           <svg

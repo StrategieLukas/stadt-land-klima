@@ -15,7 +15,7 @@
         <button
           type="button"
           class="cursor-pointer rounded-full px-4 py-2 text-xs font-semibold transition-all sm:text-sm"
-          :class="activeTab === 'personal' ? 'bg-primary text-white shadow-sm' : 'text-mid-gray hover:text-black'"
+          :class="activeTab === 'personal' ? 'bg-primary text-white shadow-xs' : 'text-mid-gray hover:text-black'"
           @click="activeTab = 'personal'"
         >
           {{ $t("elections.wahlcheck.results.share.tab_personal") }}
@@ -23,7 +23,7 @@
         <button
           type="button"
           class="cursor-pointer rounded-full px-4 py-2 text-xs font-semibold transition-all sm:text-sm"
-          :class="activeTab === 'official' ? 'bg-primary text-white shadow-sm' : 'text-mid-gray hover:text-black'"
+          :class="activeTab === 'official' ? 'bg-primary text-white shadow-xs' : 'text-mid-gray hover:text-black'"
           @click="activeTab = 'official'"
         >
           {{ $t("elections.wahlcheck.results.share.tab_official") }}
@@ -36,7 +36,7 @@
       <!-- Story Frame Preview -->
       <div class="flex flex-col items-center md:col-span-5">
         <div
-          class="group relative aspect-[9/16] w-full max-w-[270px] overflow-hidden rounded-2xl shadow-2xl ring-4 ring-stats-dark/10 transition-transform hover:scale-[1.01] sm:max-w-[290px]"
+          class="group relative aspect-9/16 w-full max-w-[270px] overflow-hidden rounded-2xl shadow-2xl ring-4 ring-stats-dark/10 transition-transform hover:scale-[1.01] sm:max-w-[290px]"
           :class="isDark ? 'bg-stats-dark' : 'bg-[#e8f4ec]'"
         >
           <!-- Dynamic generated sharepic preview (HTML/CSS Based -> No Canvas permission needed on load!) -->
@@ -44,24 +44,24 @@
             v-if="activeTab === 'personal'"
             ref="personalSharepicRef"
             data-testid="wahlcheck-personal-sharepic"
-            class="relative flex h-full w-full select-none flex-col overflow-hidden px-4 pb-32 pt-4"
+            class="relative flex h-full w-full flex-col overflow-hidden px-4 pt-4 pb-32 select-none"
             :class="
               isDark
-                ? 'bg-gradient-to-b from-[#0a2731] via-[#0e3a47] to-[#164c5d] text-white'
-                : 'bg-gradient-to-b from-[#ffffff] via-[#f1f8f4] to-[#dfeee4] text-stats-dark'
+                ? 'bg-linear-to-b from-[#0a2731] via-[#0e3a47] to-[#164c5d] text-white'
+                : 'bg-linear-to-b from-[#ffffff] via-[#f1f8f4] to-[#dfeee4] text-stats-dark'
             "
           >
             <!-- Background Glow Effects -->
             <div
-              class="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full blur-2xl"
+              class="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full blur-2xl"
               :class="isDark ? 'bg-ff-green/20' : 'bg-ff-green/15'"
             ></div>
             <div
-              class="pointer-events-none absolute -left-12 top-1/2 h-44 w-44 rounded-full blur-3xl"
+              class="pointer-events-none absolute top-1/2 -left-12 h-44 w-44 rounded-full blur-3xl"
               :class="isDark ? 'bg-stats-light/20' : 'bg-stats-light/35'"
             ></div>
             <div
-              class="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full blur-2xl"
+              class="pointer-events-none absolute -right-10 -bottom-10 h-40 w-40 rounded-full blur-2xl"
               :class="isDark ? 'bg-orange/15' : 'bg-orange/10'"
             ></div>
 
@@ -98,7 +98,7 @@
 
               <!-- Election Title -->
               <h4
-                class="line-clamp-2 text-sm font-extrabold leading-tight sm:text-base"
+                class="line-clamp-2 text-sm leading-tight font-extrabold sm:text-base"
                 :class="isDark ? 'text-white' : 'text-stats-dark'"
               >
                 {{ election?.descriptor || "Klimawahlcheck" }}
@@ -124,13 +124,13 @@
                 <div class="mb-1 flex items-center justify-between gap-1.5">
                   <div class="flex min-w-0 flex-1 items-center gap-1.5">
                     <span
-                      class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-stats-dark text-[10px] font-bold text-white"
+                      class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stats-dark text-[10px] font-bold text-white"
                     >
                       {{ idx + 1 }}
                     </span>
                     <span
                       v-if="!isPartyElection"
-                      class="truncate text-xs font-bold leading-tight"
+                      class="truncate text-xs leading-tight font-bold"
                       :class="isDark ? 'text-white' : 'text-black'"
                     >
                       {{ getCandidateName(result.candidateId) }}
@@ -139,11 +139,11 @@
                       v-if="getCandidateParty(result.candidateId)"
                       :party="getCandidateParty(result.candidateId)"
                       :state="null"
-                      class="max-w-[8rem] flex-shrink-0 truncate px-1.5 py-0 text-[9px]"
+                      class="max-w-32 shrink-0 truncate px-1.5 py-0 text-[9px]"
                     />
                   </div>
                   <!-- Percentage -->
-                  <span class="flex-shrink-0 text-xs font-extrabold text-ff-green">
+                  <span class="shrink-0 text-xs font-extrabold text-ff-green">
                     {{ result.percentage.toFixed(1) }}%
                   </span>
                 </div>
@@ -174,14 +174,14 @@
             <div data-testid="wahlcheck-sharepic-cta" class="absolute inset-x-4 bottom-20 z-10 pt-2 text-center">
               <div
                 v-if="isDark"
-                class="flex items-center justify-center gap-1 rounded-xl border border-white/20 bg-[#17212b] p-2 text-[11px] font-bold leading-tight text-white shadow-md"
+                class="flex items-center justify-center gap-1 rounded-xl border border-white/20 bg-[#17212b] p-2 text-[11px] leading-tight font-bold text-white shadow-md"
               >
                 <span>👉 {{ $t("elections.wahlcheck.results.share.cta_button") }}</span>
                 <span class="text-light-green underline">{{ sharepicCtaUrl }}</span>
               </div>
               <div
                 v-else
-                class="flex items-center justify-center gap-1 rounded-xl bg-stats-dark p-2 text-[11px] font-bold leading-tight text-white shadow-md"
+                class="flex items-center justify-center gap-1 rounded-xl bg-stats-dark p-2 text-[11px] leading-tight font-bold text-white shadow-md"
               >
                 <span>👉 {{ $t("elections.wahlcheck.results.share.cta_button") }}</span>
                 <span class="text-stats-light underline">{{ sharepicCtaUrl }}</span>
@@ -199,13 +199,13 @@
 
           <!-- Loading Placeholder -->
           <div v-else class="flex h-full w-full flex-col items-center justify-center p-4 text-center text-white/80">
-            <span class="loading loading-spinner loading-lg mb-3 text-primary"></span>
+            <span class="loading mb-3 loading-lg loading-spinner text-primary"></span>
             <span class="text-xs">Lade Sharepic...</span>
           </div>
 
           <!-- Story badge indicator -->
           <div
-            class="pointer-events-none absolute left-2.5 top-2.5 z-20 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-semibold text-white backdrop-blur-sm"
+            class="pointer-events-none absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-semibold text-white backdrop-blur-xs"
           >
             <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-ff-green"></span>
             <span>9:16 Story</span>
@@ -225,7 +225,7 @@
             v-if="toastMessage"
             class="flex items-center gap-2.5 rounded-xl border border-solid-ff-green-30 bg-solid-ff-green-10 p-3.5 text-xs font-medium text-stats-dark sm:text-sm"
           >
-            <svg class="h-5 w-5 flex-shrink-0 text-ff-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="h-5 w-5 shrink-0 text-ff-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
             <span>{{ toastMessage }}</span>
@@ -237,19 +237,19 @@
           <button
             type="button"
             :disabled="isGenerating"
-            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
             :aria-label="$t('elections.wahlcheck.results.share.button_insta')"
             :title="$t('elections.wahlcheck.results.share.button_insta')"
             @click="shareToStory"
           >
-            <span v-if="isGenerating" class="loading loading-spinner loading-xs"></span>
+            <span v-if="isGenerating" class="loading loading-xs loading-spinner"></span>
             <img v-else src="~/assets/icons/icon_instagram.svg" alt="" class="h-5 w-5" />
             <span>{{ $t("elections.wahlcheck.results.share.button_insta") }}</span>
           </button>
 
           <button
             type="button"
-            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
             :aria-label="$t('elections.wahlcheck.results.share.button_whatsapp')"
             :title="$t('elections.wahlcheck.results.share.button_whatsapp')"
             @click="shareToWhatsApp"
@@ -260,7 +260,7 @@
 
           <button
             type="button"
-            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
             :aria-label="$t('elections.wahlcheck.results.share.button_linkedin')"
             :title="$t('elections.wahlcheck.results.share.button_linkedin')"
             @click="shareToLinkedIn"
@@ -272,13 +272,13 @@
           <button
             type="button"
             :disabled="isGenerating"
-            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
             :aria-label="$t('elections.wahlcheck.results.share.button_tiktok')"
             :title="$t('elections.wahlcheck.results.share.button_tiktok')"
             @click="shareToTikTok"
           >
             <img v-if="!isGenerating" src="~/assets/icons/icon_tiktok.svg" alt="" class="h-5 w-5" />
-            <span v-else class="loading loading-spinner loading-xs"></span>
+            <span v-else class="loading loading-xs loading-spinner"></span>
             <span>{{ $t("elections.wahlcheck.results.share.button_tiktok") }}</span>
           </button>
         </div>
@@ -290,10 +290,10 @@
             type="button"
             data-testid="wahlcheck-sharepic-download"
             :disabled="isGenerating"
-            class="btn btn-outline btn-secondary flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold sm:text-sm"
+            class="btn flex items-center justify-center gap-2 rounded-xl btn-outline px-3 py-2.5 text-xs font-semibold btn-secondary sm:text-sm"
             @click="downloadActiveSharepic"
           >
-            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -307,20 +307,20 @@
           <!-- Copy Link Button -->
           <button
             type="button"
-            class="btn btn-outline flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors sm:text-sm"
+            class="btn flex items-center justify-center gap-2 rounded-xl btn-outline px-3 py-2.5 text-xs font-semibold transition-colors sm:text-sm"
             :class="linkCopied ? 'border-ff-green bg-solid-ff-green-10 text-ff-green' : 'btn-secondary'"
             @click="copyLink"
           >
             <svg
               v-if="linkCopied"
-              class="h-4 w-4 flex-shrink-0 text-ff-green"
+              class="h-4 w-4 shrink-0 text-ff-green"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            <svg v-else class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg v-else class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -341,7 +341,7 @@
           v-if="canUseWebShare"
           type="button"
           :disabled="isGenerating"
-          class="btn btn-ghost btn-sm flex items-center justify-center gap-2 font-semibold text-mid-gray hover:text-black"
+          class="btn flex items-center justify-center gap-2 btn-ghost font-semibold text-mid-gray btn-sm hover:text-black"
           @click="shareViaWebShare"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

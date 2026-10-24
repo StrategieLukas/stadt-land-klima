@@ -1,12 +1,12 @@
 <template>
   <header
     ref="headerEl"
-    class="slk-header-surface border-gray-200 fixed left-0 right-0 top-0 border-b transition-[box-shadow,background] duration-300 dark:border-[var(--slk-border)]"
-    :class="[scrolled || (isOpen && embeddedInput) ? 'shadow-lg' : '', isOpen && embeddedInput ? 'z-[10005]' : 'z-50']"
+    class="slk-header-surface fixed top-0 right-0 left-0 border-b border-gray-200 transition-[box-shadow,background] duration-300 dark:border-(--slk-border)"
+    :class="[scrolled || (isOpen && embeddedInput) ? 'shadow-lg' : '', isOpen && embeddedInput ? 'z-10005' : 'z-50']"
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
     <div
-      class="mx-auto grid w-full max-w-screen-xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 transition-[padding] duration-300 ease-in-out md:px-8 lg:px-4 xl:gap-6 xl:px-6 2xl:px-0"
+      class="mx-auto grid w-full max-w-(--breakpoint-xl) grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 transition-[padding] duration-300 ease-in-out md:px-8 lg:px-4 xl:gap-6 xl:px-6 2xl:px-0"
       :class="scrolled ? 'sm:py-1.5' : 'sm:py-3'"
     >
       <!-- Logo -->
@@ -20,7 +20,7 @@
         <!-- SVG logotype: shown on mobile (<sm, matches TheHeaderMobile) and large desktop (≥lg) -->
         <img
           src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-          class="block h-full w-auto dark:hidden sm:hidden lg:block"
+          class="block h-full w-auto sm:hidden lg:block dark:hidden"
           :alt="$t('logo.alt')"
         />
         <img
@@ -31,7 +31,7 @@
         <!-- Quad logo: only shown on sm–lg range where the header is narrow but ≥640px -->
         <img
           src="~/assets/images/Stadt-Land-Kima-Logo_quad.png"
-          class="hidden h-full w-auto dark:hidden sm:block lg:hidden"
+          class="hidden h-full w-auto sm:block lg:hidden dark:hidden"
           :alt="$t('logo.alt')"
         />
         <img
@@ -42,21 +42,21 @@
       </NuxtLink>
 
       <!-- Persistent Search Bar — always visible in the middle grid column. -->
-      <div class="w-full min-w-0 justify-self-center 2xl:max-w-[40rem]">
+      <div class="w-full min-w-0 justify-self-center 2xl:max-w-160">
         <div
           ref="searchBarRef"
-          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150 dark:bg-[var(--slk-surface-subdued)]"
+          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150 dark:bg-(--slk-surface-subdued)"
           :class="[
             scrolled ? 'h-10' : 'h-11',
             searchFocused
-              ? 'border-olive-green dark:border-[var(--slk-olive-green)]'
-              : 'border-gray-200 hover:border-gray-300 dark:border-[var(--slk-border)] dark:hover:border-[var(--slk-border-strong)]',
+              ? 'border-olive-green dark:border-(--slk-olive-green)'
+              : 'border-gray-200 hover:border-gray-300 dark:border-(--slk-border) dark:hover:border-(--slk-border-strong)',
           ]"
           @click="searchInputRef?.focus()"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 flex-shrink-0 transition-colors"
+            class="h-4 w-4 shrink-0 transition-colors"
             :class="searchFocused ? 'text-olive-green' : 'text-gray-400'"
             fill="none"
             viewBox="0 0 24 24"
@@ -72,7 +72,7 @@
           <input
             ref="searchInputRef"
             v-model="query"
-            class="text-gray-700 placeholder-gray-400 min-w-0 flex-1 bg-transparent text-sm outline-none dark:text-[var(--slk-text)] dark:placeholder-[var(--slk-text-subtle)]"
+            class="min-w-0 flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-hidden dark:text-(--slk-text) dark:placeholder-(--slk-text-subtle)"
             :placeholder="$t('search.header.placeholder')"
             @focus="onSearchFocus"
             @keydown.up.prevent="moveFocusEmbedded(-1)"
@@ -83,7 +83,7 @@
           <button
             v-if="query"
             type="button"
-            class="text-gray-300 hover:text-gray-500 flex-shrink-0 transition-colors"
+            class="shrink-0 text-gray-300 transition-colors hover:text-gray-500"
             :aria-label="$t('search.clear')"
             @click.stop="onClearSearch"
           >
@@ -100,9 +100,9 @@
           </button>
           <span
             v-if="!query && !searchFocused"
-            class="pointer-events-none hidden flex-shrink-0 items-center gap-0.5 md:inline-flex"
+            class="pointer-events-none hidden shrink-0 items-center gap-0.5 md:inline-flex"
           >
-            <kbd class="kbd kbd-xs">Ctrl</kbd><span class="text-gray-400 text-[10px]">+</span
+            <kbd class="kbd kbd-xs">Ctrl</kbd><span class="text-[10px] text-gray-400">+</span
             ><kbd class="kbd kbd-xs">K</kbd>
           </span>
         </div>
@@ -114,7 +114,7 @@
         <!-- Login: compact icon until 2xl, canonical button on wide desktop -->
         <a href="/backend" class="hidden sm:flex 2xl:hidden">
           <button
-            class="flex h-9 w-9 items-center justify-center rounded-md bg-light-green text-white shadow-sm transition-all hover:brightness-110"
+            class="flex h-9 w-9 items-center justify-center rounded-md bg-light-green text-white shadow-xs transition-all hover:brightness-110"
             :aria-label="$t('generic.log_in')"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.7 141.7" class="h-5 w-5" aria-hidden="true">
@@ -130,7 +130,7 @@
         </div>
         <a :href="DONATION_PAGE_PATH" class="hidden sm:flex 2xl:hidden" :aria-label="$t('donate.label')">
           <button
-            class="flex h-9 w-9 items-center justify-center rounded-md bg-orange text-white shadow-sm transition-all hover:brightness-110"
+            class="flex h-9 w-9 items-center justify-center rounded-md bg-orange text-white shadow-xs transition-all hover:brightness-110"
           >
             <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-5 w-5" aria-hidden="true" />
           </button>
@@ -155,7 +155,7 @@
     >
       <div
         ref="navStripInnerRef"
-        class="transition-[opacity] duration-300 ease-in-out"
+        class="transition-opacity duration-300 ease-in-out"
         :style="scrollNavVisible ? 'opacity: 1' : 'opacity: 0'"
       >
         <TheNavigationStripDesktop :items="navItems" />

@@ -22,7 +22,7 @@
         </article>
       </template>
     </BlokkliPageProvider>
-    <p v-else class="prose mx-auto w-full max-w-4xl self-center px-4 py-8">
+    <p v-else class="mx-auto prose w-full max-w-4xl self-center px-4 py-8">
       {{ $t("page_not_found") }}
     </p>
   </div>

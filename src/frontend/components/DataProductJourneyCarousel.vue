@@ -4,7 +4,7 @@
       <div class="flex items-center gap-2">
         <button
           type="button"
-          class="border-gray-200 btn btn-ghost btn-xs border bg-white"
+          class="btn border border-gray-200 bg-white btn-ghost btn-xs"
           @click="expanded = !expanded"
         >
           <Icon :icon="expanded ? 'mdi:arrow-collapse' : 'mdi:arrow-expand'" class="h-4 w-4" />
@@ -12,7 +12,7 @@
         </button>
         <div
           v-if="pages.length > 1"
-          class="border-gray-200 flex h-6 items-center gap-1 rounded-full border bg-white px-2 shadow-sm"
+          class="flex h-6 items-center gap-1 rounded-full border border-gray-200 bg-white px-2 shadow-xs"
           aria-label="Grafikgruppen"
         >
           <button
@@ -20,14 +20,14 @@
             :key="pageIndex"
             type="button"
             class="h-2 rounded-full transition-all"
-            :class="pageIndex === activePage ? 'w-5 bg-[#006e94]' : 'bg-gray-300 hover:bg-gray-400 w-2'"
+            :class="pageIndex === activePage ? 'w-5 bg-[#006e94]' : 'w-2 bg-gray-300 hover:bg-gray-400'"
             :aria-label="`Grafikgruppe ${pageIndex + 1}`"
             @click="goTo(pageIndex)"
           />
         </div>
         <button
           type="button"
-          class="border-gray-200 btn btn-ghost btn-xs border bg-white"
+          class="btn border border-gray-200 bg-white btn-ghost btn-xs"
           :disabled="activePage <= 0"
           aria-label="Vorherige Grafik"
           @click="goTo(activePage - 1)"
@@ -36,7 +36,7 @@
         </button>
         <button
           type="button"
-          class="border-gray-200 btn btn-ghost btn-xs border bg-white"
+          class="btn border border-gray-200 bg-white btn-ghost btn-xs"
           :disabled="activePage >= pages.length - 1"
           aria-label="Nächste Grafik"
           @click="goTo(activePage + 1)"
@@ -53,12 +53,12 @@
             <article
               v-for="item in page"
               :key="item.key"
-              class="border-gray-200 flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm"
+              class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs"
               :class="expanded ? 'h-[660px]' : 'h-[304px]'"
             >
-              <div class="border-gray-100 border-b px-4 py-2.5">
-                <p class="text-gray-900 text-sm font-bold leading-snug">{{ item.title }}</p>
-                <p v-if="item.description" class="text-gray-500 mt-1 line-clamp-2 text-xs leading-relaxed">
+              <div class="border-b border-gray-100 px-4 py-2.5">
+                <p class="text-sm leading-snug font-bold text-gray-900">{{ item.title }}</p>
+                <p v-if="item.description" class="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">
                   {{ item.description }}
                 </p>
               </div>
@@ -80,7 +80,7 @@
                 />
                 <div
                   v-else-if="item.maplibre"
-                  class="w-full overflow-hidden rounded"
+                  class="w-full overflow-hidden rounded-sm"
                   :class="expanded ? 'h-[568px]' : 'h-[220px]'"
                 >
                   <ClientOnly>
@@ -113,7 +113,7 @@
                 </div>
                 <div
                   v-else
-                  class="text-gray-400 bg-gray-50 flex min-h-[180px] items-center justify-center rounded text-xs"
+                  class="flex min-h-[180px] items-center justify-center rounded-sm bg-gray-50 text-xs text-gray-400"
                 >
                   Visualisierung für diesen Schritt noch nicht verfügbar.
                 </div>

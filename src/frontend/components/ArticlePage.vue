@@ -1,12 +1,12 @@
 <template>
   <!-- Mobile version -->
-  <div class="project-page mb-8 mt-4 block overflow-hidden rounded-md bg-[#E8F9FD] shadow-md lg:hidden">
+  <div class="project-page mt-4 mb-8 block overflow-hidden rounded-md bg-[#E8F9FD] shadow-md lg:hidden">
     <div class="p-6">
       <NuxtLink :to="backHref" class="text-sm text-blue-500">← {{ backLabel }}</NuxtLink>
 
       <!-- Title and Subtitle -->
       <h1 class="mb-1 text-2xl font-bold text-blue-500">{{ title }}</h1>
-      <h2 class="text-gray-500 mb-4 text-lg">{{ subtitle }}</h2>
+      <h2 class="mb-4 text-lg text-gray-500">{{ subtitle }}</h2>
 
       <!-- Social Media Icons -->
       <div class="my-2 flex">
@@ -36,7 +36,7 @@
       </div>
 
       <!-- Location, Author and Date -->
-      <p class="text-gray-600 mb-1 text-sm">
+      <p class="mb-1 text-sm text-gray-600">
         <NuxtLink
           v-if="municipality_slug"
           :to="`/municipalities/${municipality_slug}`"
@@ -45,7 +45,7 @@
         >
         <span v-else>{{ location }}</span>
       </p>
-      <p v-if="byline" class="text-gray-600 mb-1 text-sm">
+      <p v-if="byline" class="mb-1 text-sm text-gray-600">
         <i>{{ byline }}</i>
       </p>
 
@@ -62,7 +62,7 @@
         />
         <div
           v-if="organisation && organisation.logo"
-          class="clip-triangle absolute right-0 top-0 flex h-32 w-32 items-center justify-center bg-white"
+          class="clip-triangle absolute top-0 right-0 flex h-32 w-32 items-center justify-center bg-white"
         >
           <SmartImg
             :asset-id="getAssetId(organisation.logo)"
@@ -77,43 +77,43 @@
           />
           <img
             v-if="hasDarkOrganisationLogo(organisation.logo)"
-            class="absolute right-2 top-2 hidden h-14 w-14 object-cover dark:block"
+            class="absolute top-2 right-2 hidden h-14 w-14 object-cover dark:block"
             :src="getDarkOrganisationLogoUrl(organisation.logo)"
             :alt="organisation.name ?? ''"
             loading="lazy"
           />
         </div>
-        <p v-if="image_credits" class="text-gray-500 mt-1 text-center text-xs italic">{{ image_credits }}</p>
+        <p v-if="image_credits" class="mt-1 text-center text-xs text-gray-500 italic">{{ image_credits }}</p>
       </div>
 
       <!-- Abstract -->
-      <div v-if="abstract" class="text-gray-700 mb-4 font-semibold" v-html="sanitizeHtml(sanitizedAbstract)" />
+      <div v-if="abstract" class="mb-4 font-semibold text-gray-700" v-html="sanitizeHtml(sanitizedAbstract)" />
 
       <!-- Main Text -->
-      <div class="text-gray-700 mb-4">
+      <div class="mb-4 text-gray-700">
         <div v-html="sanitizeHtml(sanitizedArticleText)"></div>
       </div>
 
       <!-- Measures -->
       <div v-if="measures && measures.length" class="mt-4">
-        <p class="text-gray-700 mb-1 text-sm font-semibold">{{ $t("article.related_measures") }}</p>
+        <p class="mb-1 text-sm font-semibold text-gray-700">{{ $t("article.related_measures") }}</p>
         <div class="flex flex-wrap gap-2">
           <NuxtLink
             v-for="m in measures"
             :key="m.id"
             :to="`/measures/${m.slug || m.id}`"
-            class="slk-related-measure-link inline-block rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
+            class="slk-related-measure-link inline-block rounded-sm bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
             >{{ m.name ? `${m.name} (${m.measure_id})` : m.measure_id }}</NuxtLink
           >
         </div>
       </div>
 
       <!-- Organisation note -->
-      <p v-if="organisation" class="text-gray-600 mb-1 text-sm">
+      <p v-if="organisation" class="mb-1 text-sm text-gray-600">
         {{ $t("article.project_by", { ":organisation": organisation.name }) }}
       </p>
 
-      <p v-if="link" class="text-gray-600 mb-1 text-sm">
+      <p v-if="link" class="mb-1 text-sm text-gray-600">
         <strong>{{ $t("link") }}</strong>
         <a :href="link.href" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">{{
           link.hostname
@@ -137,12 +137,12 @@
   </div>
 
   <!-- Desktop version -->
-  <div class="project-page relative mb-8 mt-8 hidden rounded-lg bg-[#E8F9FD] p-8 shadow-lg lg:block">
+  <div class="project-page relative mt-8 mb-8 hidden rounded-lg bg-[#E8F9FD] p-8 shadow-lg lg:block">
     <NuxtLink :to="backHref" class="text-sm text-blue-500">← {{ backLabel }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div
       v-if="organisation && organisation.logo"
-      class="clip-triangle absolute right-0 top-0 flex h-32 w-32 items-center justify-center bg-white"
+      class="clip-triangle absolute top-0 right-0 flex h-32 w-32 items-center justify-center bg-white"
     >
       <SmartImg
         :asset-id="getAssetId(organisation.logo)"
@@ -155,7 +155,7 @@
       />
       <img
         v-if="hasDarkOrganisationLogo(organisation.logo)"
-        class="absolute right-2 top-2 hidden h-14 w-14 object-cover dark:block"
+        class="absolute top-2 right-2 hidden h-14 w-14 object-cover dark:block"
         :src="getDarkOrganisationLogoUrl(organisation.logo)"
         :alt="organisation.name ?? ''"
         loading="lazy"
@@ -164,10 +164,10 @@
 
     <div class="prose grid max-w-none grid-cols-3 gap-6">
       <!-- Sidebar -->
-      <div class="text-gray-700 flex flex-col space-y-4 rounded-lg bg-white p-6 text-sm shadow-md">
+      <div class="flex flex-col space-y-4 rounded-lg bg-white p-6 text-sm text-gray-700 shadow-md">
         <!-- Image and Credits -->
         <div>
-          <div class="bg-gray-200 flex h-48 w-full items-center justify-center rounded-lg">
+          <div class="flex h-48 w-full items-center justify-center rounded-lg bg-gray-200">
             <span v-if="!image_id" class="text-gray-500">{{ $t("generic.loading") }}</span>
             <SmartImg
               v-if="image_id"
@@ -178,10 +178,10 @@
               img-class="w-full h-full object-cover rounded-lg"
             />
           </div>
-          <p v-if="image_credits" class="text-gray-500 text-center text-xs italic">{{ image_credits }}</p>
+          <p v-if="image_credits" class="text-center text-xs text-gray-500 italic">{{ image_credits }}</p>
         </div>
 
-        <p v-if="municipality_name" class="border-gray-300 flex justify-between border-b pb-2">
+        <p v-if="municipality_name" class="flex justify-between border-b border-gray-300 pb-2">
           <strong>{{ $t("municipality") }}</strong>
           <NuxtLink
             v-if="municipality_slug"
@@ -191,7 +191,7 @@
           >
           <span v-else class="text-right">{{ municipality_name }}</span>
         </p>
-        <p v-if="state" class="border-gray-300 flex justify-between border-b pb-2">
+        <p v-if="state" class="flex justify-between border-b border-gray-300 pb-2">
           <strong>{{ $t("state") }}</strong>
           <span class="text-right">{{ state }}</span>
         </p>
@@ -199,7 +199,7 @@
           <strong>{{ $t("date") }}</strong>
           <span class="text-right">{{ formatProjectDate(date, $locale) }}</span>
         </p> -->
-        <p v-if="organisation" class="border-gray-300 flex justify-between border-b pb-2">
+        <p v-if="organisation" class="flex justify-between border-b border-gray-300 pb-2">
           <strong>{{ $t("organisation") }}</strong>
           <span class="text-right">
             <a
@@ -211,25 +211,25 @@
             >
           </span>
         </p>
-        <p v-if="author" class="border-gray-300 flex justify-between border-b pb-2">
+        <p v-if="author" class="flex justify-between border-b border-gray-300 pb-2">
           <strong>{{ $t("author") }}</strong>
           <span class="text-right">{{ author }}</span>
         </p>
         <!-- Measures -->
-        <div v-if="measures && measures.length" class="border-gray-300 border-b pb-2">
+        <div v-if="measures && measures.length" class="border-b border-gray-300 pb-2">
           <strong class="mb-1 block">{{ $t("article.related_measures") }}</strong>
           <div class="flex flex-wrap justify-end gap-1">
             <NuxtLink
               v-for="m in measures"
               :key="m.id"
               :to="`/measures/${m.slug || m.id}`"
-              class="slk-related-measure-link inline-block rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
+              class="slk-related-measure-link inline-block rounded-sm bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
               >{{ m.name }} ({{ m.measure_id }})</NuxtLink
             >
           </div>
         </div>
 
-        <p v-if="link" class="border-gray-300 flex justify-between border-b pb-2">
+        <p v-if="link" class="flex justify-between border-b border-gray-300 pb-2">
           <strong>{{ $t("link") }}</strong>
           <a :href="link.href" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">{{
             link.hostname
@@ -272,9 +272,9 @@
       <!-- Main Content -->
       <div class="col-span-2 flex flex-col">
         <h1 class="mb-2 pr-10 text-3xl font-bold text-blue-600">{{ title }}</h1>
-        <p v-if="subtitle" class="text-gray-500 mb-6 text-lg">{{ subtitle }}</p>
+        <p v-if="subtitle" class="mb-6 text-lg text-gray-500">{{ subtitle }}</p>
 
-        <div class="text-gray-700 flex-grow leading-relaxed">
+        <div class="grow leading-relaxed text-gray-700">
           <div v-if="abstract" class="prose mb-8 max-w-none" v-html="sanitizeHtml(sanitizedAbstract)" />
           <div v-html="sanitizeHtml(sanitizedArticleText)"></div>
         </div>

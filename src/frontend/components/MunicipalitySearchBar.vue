@@ -1,14 +1,16 @@
 <template>
   <!-- Search Bar and map toggle-->
-  <div class="z-[9999] flex items-end space-x-4">
+  <div class="z-9999 flex items-end space-x-4">
     <!-- Search Bar -->
     <form class="relative overflow-visible" @submit.prevent>
-      <div class="form-control">
-        <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
+      <div class="flex flex-col">
+        <label for="search-input" class="flex items-center justify-between px-1 py-2">{{
+          $t("municipalities_search.label")
+        }}</label>
         <input
           id="search-input"
           v-model="q"
-          class="input input-bordered input-primary w-64 max-w-full rounded-full bg-white pr-12 sm:w-96"
+          class="input w-64 max-w-full rounded-full bg-white pr-12 input-primary sm:w-96"
           name="q"
           type="text"
           autocomplete="off"
@@ -23,14 +25,14 @@
       <div
         v-if="visibleSuggestions.length && searchFocused"
         ref="dropdown"
-        class="absolute left-0 right-0 top-24 z-50 w-full"
+        class="absolute top-24 right-0 left-0 z-50 w-full"
       >
-        <ul class="menu dropdown-content w-full rounded-box bg-base-100 p-2 shadow">
+        <ul class="menu dropdown-content w-full rounded-box bg-base-100 p-2 shadow-sm">
           <NuxtLink
             v-for="(suggestion, index) in visibleSuggestions"
             :key="index"
             :to="suggestion.url"
-            class="block w-full cursor-pointer rounded p-2 hover:bg-solid-light-green-20"
+            class="block w-full cursor-pointer rounded-sm p-2 hover:bg-solid-light-green-20"
             @click="handleSuggestionClick"
           >
             {{ suggestion.label }}
@@ -43,7 +45,7 @@
     <button
       :class="{ invisible: route.path !== '/municipalities' }"
       :aria-hidden="route.path !== '/municipalities'"
-      class="hover:bg-gray-100 flex h-12 w-12 items-center justify-center rounded-md text-base-100"
+      class="flex h-12 w-12 items-center justify-center rounded-md text-base-100 hover:bg-gray-100"
       @click="toggleView"
     >
       <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->

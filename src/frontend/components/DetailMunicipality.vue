@@ -7,14 +7,14 @@
         <ItemRanking :municipality-score="municipalityScore" />
       </div>
       <div class="mb-4">
-        <div role="tablist" class="slk-chart-tabs tabs-boxed tabs w-fit">
+        <div role="tablist" class="slk-chart-tabs tabs tabs-box w-fit">
           <a
             role="tab"
             class="tab gap-1.5"
             :class="{ 'tab-active': activeTab === 'polar' }"
             @click="activeTab = 'polar'"
           >
-            <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
               <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
               <line x1="12" y1="2" x2="12" y2="22" />
@@ -29,7 +29,7 @@
             :class="{ 'tab-active': activeTab === 'treemap' }"
             @click="activeTab = 'treemap'"
           >
-            <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="2" width="9" height="20" rx="1" />
               <rect x="13" y="2" width="9" height="9" rx="1" />
               <rect x="13" y="13" width="9" height="9" rx="1" />
@@ -51,14 +51,14 @@
           <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
           <p
             v-if="activeTab === 'treemap'"
-            class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+            class="mx-auto mt-3 text-center text-xs text-gray-500 italic"
             style="max-width: 50vw"
           >
             {{ $t("municipality.chart.treemap.description") }}
           </p>
         </div>
       </div>
-      <p class="mb-4 mt-0 text-center text-xs">
+      <p class="mt-0 mb-4 text-center text-xs">
         <ClientOnly>
           {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? "", $locale) }}
         </ClientOnly>
@@ -76,7 +76,7 @@
       <!-- Mobile: Participate Section -->
       <div
         v-if="municipality.public_contact"
-        class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+        class="collapse-plus collapse mb-4 rounded-xs p-2 px-0 shadow-list md:px-2"
       >
         <input type="checkbox" name="sectors-accordion" autocomplete="off" />
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
@@ -93,7 +93,7 @@
       <!-- Mobile: Statistics Section Link -->
       <NuxtLink
         :to="`/data/${municipality.ars}`"
-        class="slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
+        class="slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
       >
         <img
           src="~/assets/icons/icon_evaluation_criteria.svg"
@@ -111,7 +111,7 @@
       <!-- Mobile: Kommunalwahl Question Generation Link -->
       <NuxtLink
         :to="`/elections/${municipality.slug}`"
-        class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
+        class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
       >
         <img
           src="~/assets/icons/icon_politics.svg"
@@ -139,7 +139,7 @@
       <NuxtLink
         v-if="municipalityProjects && municipalityProjects.length > 0"
         :to="{ path: '/projects', query: { municipality: municipality.name } }"
-        class="mt-4 flex items-center gap-3 rounded-sm bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
+        class="mt-4 flex items-center gap-3 rounded-xs bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
       >
         <img src="~/assets/icons/icon_approved.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
         <h3 class="font-heading text-h2">
@@ -157,14 +157,14 @@
           <item-ranking :municipality-score="municipalityScore" />
         </div>
         <div class="mb-4">
-          <div role="tablist" class="slk-chart-tabs tabs-boxed tabs w-fit">
+          <div role="tablist" class="slk-chart-tabs tabs tabs-box w-fit">
             <a
               role="tab"
               class="tab gap-1.5"
               :class="{ 'tab-active': activeTab === 'polar' }"
               @click="activeTab = 'polar'"
             >
-              <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
                 <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
                 <line x1="12" y1="2" x2="12" y2="22" />
@@ -179,7 +179,7 @@
               :class="{ 'tab-active': activeTab === 'treemap' }"
               @click="activeTab = 'treemap'"
             >
-              <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="2" width="9" height="20" rx="1" />
                 <rect x="13" y="2" width="9" height="9" rx="1" />
                 <rect x="13" y="13" width="9" height="9" rx="1" />
@@ -201,14 +201,14 @@
             <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
             <p
               v-if="activeTab === 'polar'"
-              class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+              class="mx-auto mt-3 text-center text-xs text-gray-500 italic"
               style="max-width: 50vw"
             >
               {{ $t("municipality.chart.polar.description") }}
             </p>
             <p
               v-else-if="activeTab === 'treemap'"
-              class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+              class="mx-auto mt-3 text-center text-xs text-gray-500 italic"
               style="max-width: 50vw"
             >
               {{ $t("municipality.chart.treemap.description") }}
@@ -222,7 +222,7 @@
         <!-- Notice about current developments, if it exists -->
         <div
           v-if="municipality.overall_status_comment"
-          class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+          class="collapse-plus collapse mb-4 rounded-xs p-2 px-0 shadow-list md:px-2"
         >
           <input type="checkbox" name="sectors-accordion" autocomplete="off" />
           <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
@@ -257,7 +257,7 @@
           <!-- Statistics Section Link -->
           <NuxtLink
             :to="municipality.ars ? `/data/${municipality.ars}` : '/data'"
-            class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
+            class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
           >
             <img
               src="~/assets/icons/icon_evaluation_criteria.svg"
@@ -275,7 +275,7 @@
           <!-- Kommunalwahl Question Generation Link -->
           <NuxtLink
             :to="`/elections/${municipality.slug}`"
-            class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
+            class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
           >
             <img
               src="~/assets/icons/icon_politics.svg"
@@ -298,7 +298,7 @@
           </NuxtLink>
 
           <!-- Participate Section -->
-          <div v-if="municipality?.public_contact" class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2">
+          <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-xs p-2 shadow-list md:px-2">
             <input type="checkbox" name="contact-accordion" autocomplete="off" />
             <div class="collapse-title flex items-center gap-3 px-2 md:px-4">
               <img src="~/assets/icons/icon_team.svg" class="h-6 w-6 opacity-60" />
@@ -314,7 +314,7 @@
           <!-- Associated Projects -->
           <div
             v-if="municipalityProjects && municipalityProjects.length > 0"
-            class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2"
+            class="collapse-plus collapse rounded-xs p-2 shadow-list md:px-2"
           >
             <div class="mb-4 flex items-center gap-3 p-3">
               <img
@@ -348,8 +348,8 @@
           </div>
 
           <!-- Last Update Info -->
-          <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
-            <div class="text-gray-600 flex items-center gap-2 text-sm">
+          <div v-if="municipality?.date_updated" class="rounded-xs p-2 shadow-list md:px-4">
+            <div class="flex items-center gap-2 text-sm text-gray-600">
               <img
                 src="~/assets/icons/icon_info.svg"
                 alt=""

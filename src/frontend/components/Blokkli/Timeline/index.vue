@@ -9,7 +9,7 @@
       }"
     >
       <!-- Vertical line -->
-      <div class="absolute bottom-2 top-2 w-0.5" :class="[lineClass, linePositionClass]" />
+      <div class="absolute top-2 bottom-2 w-0.5" :class="[lineClass, linePositionClass]" />
       <BlokkliField
         name="items"
         :list="props.items || []"

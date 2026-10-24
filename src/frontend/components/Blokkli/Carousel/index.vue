@@ -30,7 +30,7 @@
     >
       <button
         v-if="options.showArrows"
-        class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white shadow transition-opacity"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm transition-opacity"
         :class="canScrollLeft ? 'opacity-100' : 'cursor-default opacity-30'"
         :aria-label="$t('generic.back')"
         @click="scrollBy(-1)"
@@ -51,7 +51,7 @@
 
       <button
         v-if="options.showArrows"
-        class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white shadow transition-opacity"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm transition-opacity"
         :class="canScrollRight ? 'opacity-100' : 'cursor-default opacity-30'"
         aria-label="Weiter"
         @click="scrollBy(1)"

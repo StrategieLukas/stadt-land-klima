@@ -15,7 +15,7 @@
     <button
       type="button"
       class="flex items-center gap-0.5 leading-none transition-colors"
-      :class="isCurrent ? 'text-gray-800 cursor-default font-semibold' : 'text-gray-500 hover:text-[#006e94]'"
+      :class="isCurrent ? 'cursor-default font-semibold text-gray-800' : 'text-gray-500 hover:text-[#006e94]'"
       @click="toggle"
     >
       <NuxtLink
@@ -42,19 +42,19 @@
     <!-- Dropdown -->
     <div
       v-if="open"
-      class="border-gray-200 absolute left-0 top-full z-[500] mt-1.5 max-h-[60vh] w-max min-w-[180px] max-w-xs overflow-hidden overflow-y-auto rounded-xl border bg-white shadow-2xl"
+      class="absolute top-full left-0 z-500 mt-1.5 max-h-[60vh] w-max max-w-xs min-w-[180px] overflow-hidden overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-2xl"
     >
-      <div v-if="loading" class="text-gray-400 animate-pulse px-4 py-3 text-xs">Wird geladen…</div>
+      <div v-if="loading" class="animate-pulse px-4 py-3 text-xs text-gray-400">Wird geladen…</div>
       <template v-else>
         <NuxtLink
           v-for="sibling in siblings"
           :key="sibling.ars"
           :to="`/data/${toSlug(sibling.prefix, sibling.name)}`"
-          class="hover:bg-gray-50 flex items-baseline gap-2 px-3 py-2 text-xs transition-colors"
+          class="flex items-baseline gap-2 px-3 py-2 text-xs transition-colors hover:bg-gray-50"
           :class="sibling.ars === currentArs ? 'bg-[#006e94]/5 font-semibold text-[#006e94]' : 'text-gray-700'"
           @click="selectSibling(sibling)"
         >
-          <span class="text-gray-400 shrink-0 text-[10px]">{{ sibling.prefix }}</span>
+          <span class="shrink-0 text-[10px] text-gray-400">{{ sibling.prefix }}</span>
           <span class="whitespace-nowrap">{{ sibling.name }}</span>
         </NuxtLink>
       </template>

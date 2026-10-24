@@ -17,7 +17,7 @@
         <div
           v-for="index in range(0, max)"
           :key="index"
-          :class="value >= index + 1 ? 'bg-light-blue' : 'bg-black bg-opacity-20'"
+          :class="value >= index + 1 ? 'bg-light-blue' : 'bg-black/20'"
           :style="{ height: valuePercent(index + 1) + '%', width: 100 / max + '%' }"
         ></div>
       </div>

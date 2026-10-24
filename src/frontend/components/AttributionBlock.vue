@@ -1,19 +1,19 @@
 <template>
   <div
     v-if="hasContent"
-    class="text-gray-500 text-xs"
-    :class="embedded ? 'bg-transparent' : 'bg-gray-50 border-gray-100 mt-4 rounded-lg border px-4 py-3'"
+    class="text-xs text-gray-500"
+    :class="embedded ? 'bg-transparent' : 'mt-4 rounded-lg border border-gray-100 bg-gray-50 px-4 py-3'"
   >
-    <div class="text-gray-400 mb-2 text-[10px] font-bold uppercase tracking-wide">Attribution / Quelle</div>
+    <div class="mb-2 text-[10px] font-bold tracking-wide text-gray-400 uppercase">Attribution / Quelle</div>
     <ul class="space-y-1.5">
       <li v-for="(item, index) in attributionItems" :key="`${item.source}-${index}`" class="leading-relaxed">
-        <span class="text-gray-600 font-semibold">Quelle:</span>
+        <span class="font-semibold text-gray-600">Quelle:</span>
         <a
           v-if="item.sourceUrl"
           :href="item.sourceUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:text-gray-700 underline"
+          class="underline hover:text-gray-700"
           >{{ item.source }}</a
         >
         <span v-else>{{ item.source }}</span>
@@ -27,14 +27,14 @@
             :href="item.licenseUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="hover:text-gray-700 underline"
+            class="underline hover:text-gray-700"
             >{{ item.licenseName }}</a
           >
           <span v-else>{{ item.licenseName }}</span>
         </template>
       </li>
       <li v-if="effectiveDate" class="inline-flex items-baseline gap-1">
-        <span class="text-gray-600 font-semibold">Stand:</span>
+        <span class="font-semibold text-gray-600">Stand:</span>
         <span>{{ formattedDate }}</span>
       </li>
     </ul>

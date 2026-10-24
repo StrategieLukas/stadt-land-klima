@@ -1,14 +1,14 @@
 <template>
-  <div class="slk-maplibre-render group/maplibre bg-gray-50 relative h-full w-full overflow-hidden dark:bg-slate-900">
+  <div class="slk-maplibre-render group/maplibre relative h-full w-full overflow-hidden bg-gray-50 dark:bg-slate-900">
     <div ref="containerRef" class="h-full w-full" />
     <div
       v-if="canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/maplibre:pointer-events-auto group-hover/maplibre:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
+      class="pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border border-gray-300 bg-white/95 p-1 opacity-0 shadow-md transition-opacity group-hover/maplibre:pointer-events-auto group-hover/maplibre:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         v-if="resolvedFeatureApiUrl"
         type="button"
-        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
         title="Kartendaten herunterladen"
         aria-label="Kartendaten herunterladen"
         @click.stop="downloadData"
@@ -17,7 +17,7 @@
       </button>
       <button
         type="button"
-        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
         title="Karte als PNG herunterladen"
         aria-label="Karte als PNG herunterladen"
         @click.stop="downloadPng"
@@ -27,7 +27,7 @@
       <button
         v-if="resolvedFeatureApiUrl"
         type="button"
-        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
         title="API-Aufruf kopieren"
         aria-label="API-Aufruf kopieren"
         @click.stop="copyApiCall"
@@ -40,7 +40,7 @@
     </div>
     <div
       v-if="error"
-      class="text-gray-400 absolute inset-0 flex items-center justify-center text-sm dark:text-slate-400"
+      class="absolute inset-0 flex items-center justify-center text-sm text-gray-400 dark:text-slate-400"
     >
       Karte konnte nicht geladen werden.
     </div>

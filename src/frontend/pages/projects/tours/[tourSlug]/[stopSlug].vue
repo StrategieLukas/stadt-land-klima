@@ -4,8 +4,8 @@
       >← {{ $t("tour.back_to_series", { ":title": stop.tour.title }) }}</NuxtLink
     >
     <header class="mb-6">
-      <span class="mb-3 inline-block text-xs font-bold uppercase text-olive-green">{{ $t("tour.stop") }}</span>
-      <h1 class="mb-4 font-heading text-3xl font-black leading-tight sm:text-5xl">
+      <span class="mb-3 inline-block text-xs font-bold text-olive-green uppercase">{{ $t("tour.stop") }}</span>
+      <h1 class="mb-4 font-heading text-3xl leading-tight font-black sm:text-5xl">
         {{ reportVisible && stop.report_title ? stop.report_title : stop.title }}
       </h1>
       <div class="mb-3 flex flex-wrap gap-4 text-sm">
@@ -61,7 +61,7 @@
     </section>
     <nav class="event-detail__related mt-8 flex flex-wrap gap-3">
       <CanonicalButton
-        class="max-w-full !whitespace-normal"
+        class="max-w-full whitespace-normal!"
         :href="`${tourHref(stop.tour)}#stop-${stop.slug}`"
         :label="$t('tour.back_to_series', { ':title': stop.tour.title })"
         color="dark"
@@ -70,7 +70,7 @@
       <CanonicalButton
         v-for="project in projects"
         :key="project.id"
-        class="max-w-full !whitespace-normal"
+        class="max-w-full whitespace-normal!"
         :href="`/projects/${project.slug}`"
         :label="projects.length === 1 ? $t('tour.visit_project') : `${$t('tour.visit_project')} ${project.title}`"
         :title="project.title"
@@ -84,44 +84,28 @@
       </button>
       <form v-if="metadataOpen" class="mb-4 grid gap-3" @submit.prevent="saveStop(false)">
         <label
-          >{{ $t("tour.visit_title")
-          }}<input v-model="metadata.title" required class="input input-bordered block w-full"
+          >{{ $t("tour.visit_title") }}<input v-model="metadata.title" required class="input block w-full"
         /></label>
-        <label
-          >{{ $t("tour.location") }}<input v-model="metadata.location" class="input input-bordered block w-full"
-        /></label>
-        <label
-          >{{ $t("tour.state") }}<input v-model="metadata.state" class="input input-bordered block w-full"
-        /></label>
+        <label>{{ $t("tour.location") }}<input v-model="metadata.location" class="input block w-full" /></label>
+        <label>{{ $t("tour.state") }}<input v-model="metadata.state" class="input block w-full" /></label>
         <label
           >{{ $t("tour.start_date")
-          }}<input
-            v-model="metadata.start_date"
-            type="datetime-local"
-            required
-            class="input input-bordered block w-full"
+          }}<input v-model="metadata.start_date" type="datetime-local" required class="input block w-full"
         /></label>
         <label
-          >{{ $t("tour.end_date")
-          }}<input v-model="metadata.end_date" type="datetime-local" class="input input-bordered block w-full"
+          >{{ $t("tour.end_date") }}<input v-model="metadata.end_date" type="datetime-local" class="input block w-full"
         /></label>
         <label class="flex items-center gap-2"
           ><input v-model="metadata.date_only" type="checkbox" class="checkbox" />{{ $t("tour.date_only") }}</label
         >
+        <label>{{ $t("tour.report_title") }}<input v-model="metadata.report_title" class="input block w-full" /></label>
         <label
-          >{{ $t("tour.report_title")
-          }}<input v-model="metadata.report_title" class="input input-bordered block w-full"
-        /></label>
-        <label
-          >{{ $t("tour.report_teaser")
-          }}<textarea v-model="metadata.teaser" class="textarea textarea-bordered block w-full" />
+          >{{ $t("tour.report_teaser") }}<textarea v-model="metadata.teaser" class="textarea block w-full" />
         </label>
-        <label
-          >{{ $t("tour.report_author") }}<input v-model="metadata.author" class="input input-bordered block w-full"
-        /></label>
+        <label>{{ $t("tour.report_author") }}<input v-model="metadata.author" class="input block w-full" /></label>
         <label
           >{{ $t("tour.stop_status")
-          }}<select v-model="metadata.status" class="select select-bordered block w-full">
+          }}<select v-model="metadata.status" class="select block w-full">
             <option v-for="value in statuses" :key="value" :value="value">
               {{ $translateDynamic(`status.${value}`) }}
             </option>
@@ -129,7 +113,7 @@
         >
         <label
           >{{ $t("tour.report_status")
-          }}<select v-model="metadata.report_status" class="select select-bordered block w-full">
+          }}<select v-model="metadata.report_status" class="select block w-full">
             <option v-for="value in statuses" :key="value" :value="value">
               {{ $translateDynamic(`status.${value}`) }}
             </option>

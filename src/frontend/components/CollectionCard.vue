@@ -1,11 +1,11 @@
 <template>
   <NuxtLink
     :to="`/data/${areaSlug}/${collection.id}`"
-    class="border-gray-100 group flex w-64 flex-none snap-start flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-200 hover:border-[#006e94]/30 hover:shadow-md"
+    class="group flex w-64 flex-none snap-start flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xs transition-all duration-200 hover:border-[#006e94]/30 hover:shadow-md"
     @click="startDataRouteFeedback(`${t(collection.title)} wird geladen...`)"
   >
     <!-- Cover image / placeholder -->
-    <div class="bg-gray-100 relative h-32 flex-none overflow-hidden">
+    <div class="relative h-32 flex-none overflow-hidden bg-gray-100">
       <img
         v-if="coverImageUrl"
         :src="coverImageUrl"
@@ -14,7 +14,7 @@
       />
       <span
         v-if="coverImageUrl && coverImageAttribution"
-        class="pointer-events-none absolute bottom-1.5 right-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+        class="pointer-events-none absolute right-1.5 bottom-1.5 max-w-[calc(100%-0.75rem)] truncate rounded-sm bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
         :title="coverImageAttribution"
       >
         {{ coverImageAttribution }}
@@ -30,7 +30,7 @@
       <!-- Sector badge -->
       <span
         v-if="sectorLabel"
-        class="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+        class="absolute top-2 left-2 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase"
         :style="`background: ${sectorColor}`"
         >{{ sectorLabel }}</span
       >
@@ -39,11 +39,11 @@
     <!-- Text body -->
     <div class="flex min-h-0 flex-1 flex-col p-4">
       <h3
-        class="text-gray-900 mb-1 line-clamp-2 text-sm font-bold leading-snug transition-colors group-hover:text-[#006e94]"
+        class="mb-1 line-clamp-2 text-sm leading-snug font-bold text-gray-900 transition-colors group-hover:text-[#006e94]"
       >
         {{ t(collection.title) }}
       </h3>
-      <p v-if="description" class="text-gray-500 line-clamp-3 flex-1 text-xs leading-relaxed">{{ description }}</p>
+      <p v-if="description" class="line-clamp-3 flex-1 text-xs leading-relaxed text-gray-500">{{ description }}</p>
     </div>
 
     <!-- Footer arrow -->

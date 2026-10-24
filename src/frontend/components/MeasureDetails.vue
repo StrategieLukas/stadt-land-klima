@@ -4,7 +4,7 @@
 
   <StaticMeasureDetails :measure="measure_rating.measure" />
 
-  <div v-if="measure_rating.applicable" class="border-gray-300 mb-4">
+  <div v-if="measure_rating.applicable" class="mb-4 border-gray-300">
     <div v-if="measure_rating.current_progress" class="mb-4 border-t-4 p-4">
       <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.achievement_heading") }}
@@ -33,7 +33,7 @@
     </dl>
   </div>
 
-  <div v-if="!measure_rating.applicable" class="border-gray-300 mb-4 border-t-4 p-4">
+  <div v-if="!measure_rating.applicable" class="mb-4 border-t-4 border-gray-300 p-4">
     <div v-if="measure_rating.why_not_applicable">
       <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.why_not_applicable_heading") }}
@@ -46,7 +46,7 @@
     </div>
   </div>
 
-  <div class="border-gray-300 mb-4 border-t-4 p-4">
+  <div class="mb-4 border-t-4 border-gray-300 p-4">
     <NuxtLink
       :to="`/measures/${measure_rating.measure.slug}?v=${municipalityScore.catalog_version.name}`"
       class="text-black underline"
@@ -76,7 +76,7 @@
   </div>
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
-  <div v-if="Number(measure_rating.rating) < 1" class="border-gray-300 mt-4 border-t-4 p-4">
+  <div v-if="Number(measure_rating.rating) < 1" class="mt-4 border-t-4 border-gray-300 p-4">
     <h3 class="mb-3 text-h3 font-bold text-black">{{ $t("measure_rating.better_examples.title") }}:</h3>
 
     <p v-if="loadingExamples">{{ $t("generic.loading") }}</p>
@@ -94,7 +94,7 @@
       </li>
     </ul>
 
-    <p v-else class="text-gray-500 text-sm italic">{{ $t("measure_rating.better_examples.not_found") }}.</p>
+    <p v-else class="text-sm text-gray-500 italic">{{ $t("measure_rating.better_examples.not_found") }}.</p>
   </div>
 </template>
 <script setup lang="ts">

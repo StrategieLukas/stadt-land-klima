@@ -98,7 +98,7 @@ function applyLayout() {
   //   horizontal col step increase: gc = GAP × (√3 / 2)
   const GAP = 16;
   const BORDER_EXT = 4; // ::before extends 4 px outside; offset positions by this
-  const SHADOW_PAD = 28; // extra space on all sides so drop-shadow isn't clipped
+  const SHADOW_PAD = 28; // extra space on all sides so drop-shadow-sm isn't clipped
   const gv = GAP;
   const gc = (GAP * Math.sqrt(3)) / 2;
   const rowStep = hexH.value + gv;

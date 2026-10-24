@@ -1,14 +1,14 @@
 <template>
   <section
     id="alle-datenprodukte"
-    class="border-gray-100 border-t py-4"
+    class="border-t border-gray-100 py-4"
     :style="`scroll-margin-top: ${scrollMarginTop}px`"
   >
     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 class="text-gray-900 text-2xl font-black leading-tight sm:text-3xl">Alle Datenprodukte</h2>
+        <h2 class="text-2xl leading-tight font-black text-gray-900 sm:text-3xl">Alle Datenprodukte</h2>
       </div>
-      <p class="text-gray-500 text-xs">{{ collections.length }} Produkte</p>
+      <p class="text-xs text-gray-500">{{ collections.length }} Produkte</p>
     </div>
 
     <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">

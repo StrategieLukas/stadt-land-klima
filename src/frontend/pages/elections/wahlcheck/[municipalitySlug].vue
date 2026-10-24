@@ -1,7 +1,7 @@
 <template>
   <div class="elections-flow min-h-screen bg-mild-white">
     <!-- Header -->
-    <div class="border-b border-solid-gray-10 bg-white shadow-sm">
+    <div class="border-b border-solid-gray-10 bg-white shadow-xs">
       <div class="mx-auto max-w-6xl px-4 py-4 text-center">
         <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
         <p v-if="electionData?.election" class="text-sm text-mid-gray">
@@ -25,7 +25,7 @@
               >
                 {{ currentStep > index + 1 ? "✓" : index + 1 }}
               </div>
-              <span class="mt-1 whitespace-nowrap text-xs font-medium text-stats-dark">
+              <span class="mt-1 text-xs font-medium whitespace-nowrap text-stats-dark">
                 {{ step.label }}
               </span>
             </div>
@@ -62,7 +62,7 @@
       <!-- Not Found / Not Public -->
       <div
         v-else-if="!electionData?.election"
-        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
+        class="my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center text-orange-800"
       >
         <h2 class="mb-4 text-2xl font-bold">{{ $t("elections.no_public_election.title") }}</h2>
         <p class="mb-4">

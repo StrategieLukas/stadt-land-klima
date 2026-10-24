@@ -9,7 +9,7 @@
       :class="borderLeftClass"
     >
       <Icon icon="mdi:format-quote-open" class="mb-2 h-8 w-8 opacity-30" :class="accentTextClass" />
-      <p v-blokkli-editable:quote class="mb-3 text-lg italic leading-relaxed" v-text="props.quote" />
+      <p v-blokkli-editable:quote class="mb-3 text-lg leading-relaxed italic" v-text="props.quote" />
       <footer>
         <cite
           v-if="props.attribution || isEditing"
@@ -36,9 +36,9 @@
       :class="accentBorderTopClass"
     >
       <Icon icon="mdi:format-quote-open" class="mb-3 h-8 w-8 opacity-40" :class="accentTextClass" />
-      <p v-blokkli-editable:quote class="mb-4 text-base italic leading-relaxed" v-text="props.quote" />
-      <div class="border-gray-100 mt-4 flex items-center gap-3 border-t pt-4">
-        <div v-blokkli-droppable:imageId class="flex-shrink-0">
+      <p v-blokkli-editable:quote class="mb-4 text-base leading-relaxed italic" v-text="props.quote" />
+      <div class="mt-4 flex items-center gap-3 border-t border-gray-100 pt-4">
+        <div v-blokkli-droppable:imageId class="shrink-0">
           <SmartImg
             v-if="props.imageId"
             :asset-id="props.imageId"
@@ -51,7 +51,7 @@
           />
           <div
             v-else-if="isEditing"
-            class="bg-gray-100 border-gray-300 text-gray-400 flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed text-xs"
+            class="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-gray-100 text-xs text-gray-400"
           >
             Foto
           </div>
@@ -79,7 +79,7 @@
       <Icon icon="mdi:format-quote-open" class="mx-auto mb-3 h-12 w-12 opacity-20" :class="accentTextClass" />
       <p
         v-blokkli-editable:quote
-        class="mb-2 text-2xl font-semibold leading-snug md:text-3xl"
+        class="mb-2 text-2xl leading-snug font-semibold md:text-3xl"
         :class="accentTextClass"
         v-text="props.quote"
       />

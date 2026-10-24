@@ -25,7 +25,7 @@
 
       <!-- Loading State -->
       <div v-if="pending" class="flex items-center justify-center py-20">
-        <span class="loading loading-spinner loading-lg text-primary"></span>
+        <span class="loading loading-lg loading-spinner text-primary"></span>
       </div>
 
       <!-- Error State -->
@@ -73,7 +73,7 @@
       <div v-else-if="questions && questions.length > 0" class="space-y-8">
         <div
           v-if="isPastCutoff"
-          class="text-orange-700 mb-8 rounded-lg border border-orange bg-solid-orange-10 p-6 text-center font-bold"
+          class="mb-8 rounded-lg border border-orange bg-solid-orange-10 p-6 text-center font-bold text-orange-700"
         >
           {{
             $t("elections.theses.cutoff_reached", {
@@ -89,11 +89,11 @@
         >
           <div class="mb-6 flex items-start">
             <span
-              class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-stats-dark font-bold text-white"
+              class="mr-4 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stats-dark font-bold text-white"
             >
               {{ Number(index) + 1 }}
             </span>
-            <h3 class="pt-1 text-h3 font-semibold leading-tight text-black">
+            <h3 class="pt-1 text-h3 leading-tight font-semibold text-black">
               {{ question.title || question.thesis }}
             </h3>
           </div>
@@ -130,7 +130,7 @@
               </div>
             </div>
             <div
-              class="grid gap-1 text-center text-[8px] font-medium uppercase tracking-wider text-mid-gray sm:text-xs"
+              class="grid gap-1 text-center text-[8px] font-medium tracking-wider text-mid-gray uppercase sm:text-xs"
               :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
             >
               <div v-for="option in ratingOptions" :key="option.value">
@@ -140,7 +140,7 @@
           </div>
 
           <!-- Reasoning Field -->
-          <div class="ml-0 mt-8 sm:ml-12">
+          <div class="mt-8 ml-0 sm:ml-12">
             <label :for="'explanation-' + question.id" class="mb-2 block text-sm font-semibold text-stats-dark">
               {{ $t("elections.theses.reasoning_label") }}
             </label>
@@ -150,7 +150,7 @@
               rows="3"
               maxlength="500"
               :disabled="isPastCutoff"
-              class="textarea textarea-bordered w-full resize-none bg-mild-white text-black transition-all focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
+              class="textarea w-full resize-none bg-mild-white text-black transition-all focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
               :class="{ 'cursor-not-allowed opacity-50': isPastCutoff }"
               :placeholder="$t('elections.theses.reasoning_placeholder')"
             ></textarea>
@@ -167,7 +167,7 @@
         <div v-if="!isPastCutoff" class="flex flex-col items-center pt-8">
           <button
             :disabled="!isFormComplete || submitting"
-            class="btn btn-primary btn-lg rounded-full px-12 font-bold text-white shadow-lg transition-all hover:scale-105 disabled:opacity-50"
+            class="btn rounded-full px-12 font-bold text-white shadow-lg transition-all btn-lg btn-primary hover:scale-105 disabled:opacity-50"
             @click="submitAnswers"
           >
             <span v-if="submitting" class="loading loading-spinner"></span>

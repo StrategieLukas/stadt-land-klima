@@ -1,21 +1,21 @@
 <template>
   <div :id="'block-' + uuid" class="blokkli-block-projects-carousel bg-localzero-yellow">
     <!-- Section header -->
-    <div class="px-6 pb-6 pt-10">
+    <div class="px-6 pt-10 pb-6">
       <p
         v-blokkli-editable:label
-        class="mb-3 text-xs font-semibold uppercase tracking-widest"
+        class="mb-3 text-xs font-semibold tracking-widest uppercase"
         v-text="props.label || 'Erfolgsprojekte'"
       />
       <h2
         v-blokkli-editable:heading
-        class="text-3xl font-bold leading-tight md:text-5xl"
+        class="text-3xl leading-tight font-bold md:text-5xl"
         v-text="props.heading || 'Überschrift'"
       />
     </div>
 
     <!-- Editor fallback -->
-    <div v-if="isEditing" class="px-6 pb-10 text-sm italic text-solid-black-50">
+    <div v-if="isEditing" class="px-6 pb-10 text-sm text-solid-black-50 italic">
       [Projektkarussell – {{ projects?.length ?? 0 }} Einträge geladen]
     </div>
 
@@ -38,10 +38,10 @@
             <div
               v-for="(project, i) in infiniteItems"
               :key="i"
-              class="flex-shrink-0 snap-center"
+              class="shrink-0 snap-center"
               :style="{ width: slideWidthPx + 'px' }"
             >
-              <div class="bg-gray-300 w-full overflow-hidden" style="aspect-ratio: 4/3">
+              <div class="w-full overflow-hidden bg-gray-300" style="aspect-ratio: 4/3">
                 <SmartImg
                   v-if="project.image?.id"
                   :asset-id="project.image.id"
@@ -52,7 +52,7 @@
                   img-class="object-cover w-full h-full"
                 />
               </div>
-              <p class="mt-2 text-sm font-semibold leading-snug">{{ project.title }}</p>
+              <p class="mt-2 text-sm leading-snug font-semibold">{{ project.title }}</p>
             </div>
           </div>
         </div>
@@ -61,7 +61,7 @@
       <!-- Navigation row: ← dots → (arrows always active — endless scroll) -->
       <div v-if="projects && projects.length > 1" class="mt-6 flex items-center justify-center gap-4 px-6">
         <button
-          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-black text-white"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black text-white"
           :aria-label="$t('generic.back')"
           @click="scrollBy(-1)"
         >
@@ -80,7 +80,7 @@
         </div>
 
         <button
-          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-black text-white"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black text-white"
           aria-label="Weiter"
           @click="scrollBy(1)"
         >
@@ -104,7 +104,7 @@
         </div>
         <NuxtLink
           to="/projects"
-          class="mt-3 inline-flex flex-shrink-0 items-center gap-1 text-sm font-semibold underline underline-offset-2"
+          class="mt-3 inline-flex shrink-0 items-center gap-1 text-sm font-semibold underline underline-offset-2"
           ><span v-blokkli-editable:linkText v-text="props.linkText || 'Alle Erfolgsprojekte ansehen'"
         /></NuxtLink>
       </div>

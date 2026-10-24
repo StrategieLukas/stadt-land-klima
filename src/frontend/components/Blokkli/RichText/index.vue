@@ -8,7 +8,7 @@
     <pre
       v-if="isEditing"
       v-blokkli-editable:content
-      class="markdown-source bg-gray-50 border-gray-200 prose prose-sm min-h-[6rem] max-w-none whitespace-pre-wrap rounded border p-3 font-mono text-sm"
+      class="markdown-source prose prose-sm min-h-24 max-w-none rounded-sm border border-gray-200 bg-gray-50 p-3 font-mono text-sm whitespace-pre-wrap"
       v-text="props.content || ''"
     />
 

@@ -4,10 +4,10 @@
       >← {{ backLabel }}</NuxtLink
     >
     <header class="mb-6">
-      <span class="mb-3 inline-block text-xs font-bold uppercase text-olive-green">{{
+      <span class="mb-3 inline-block text-xs font-bold text-olive-green uppercase">{{
         eventTypeLabel(event.event_type)
       }}</span>
-      <h1 class="mb-4 font-heading text-3xl font-black leading-tight sm:text-5xl">{{ event.title }}</h1>
+      <h1 class="mb-4 font-heading text-3xl leading-tight font-black sm:text-5xl">{{ event.title }}</h1>
       <div class="mb-3 flex flex-wrap gap-4 text-sm">
         <time :datetime="event.start_date">{{
           formatEventDateTimeRange(event.start_date, event.end_date, $locale, event.date_only)
@@ -45,7 +45,7 @@
     <nav v-if="event.series || eventProjects.length" class="event-detail__related mt-8 flex flex-wrap gap-3">
       <CanonicalButton
         v-if="event.series"
-        class="max-w-full !whitespace-normal"
+        class="max-w-full whitespace-normal!"
         :href="`/events/series/${event.series.slug}#stop-${event.slug}`"
         :label="$t('tour.back_to_series', { ':title': event.series.title })"
         color="dark"

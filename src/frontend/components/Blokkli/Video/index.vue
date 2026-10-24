@@ -6,7 +6,7 @@
         <iframe
           v-if="embedUrl"
           :src="embedUrl"
-          class="absolute inset-0 h-full w-full rounded"
+          class="absolute inset-0 h-full w-full rounded-sm"
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
@@ -15,7 +15,7 @@
         <video
           v-else-if="isDirectVideo"
           :src="videoSrc"
-          class="absolute inset-0 h-full w-full rounded object-cover"
+          class="absolute inset-0 h-full w-full rounded-sm object-cover"
           :controls="options.controls !== false"
           :muted="options.muted"
           playsinline
@@ -23,7 +23,7 @@
         <!-- Placeholder when no valid URL -->
         <div
           v-else
-          class="bg-gray-100 border-gray-300 text-gray-400 absolute inset-0 flex items-center justify-center rounded border-2 border-dashed"
+          class="absolute inset-0 flex items-center justify-center rounded-sm border-2 border-dashed border-gray-300 bg-gray-100 text-gray-400"
         >
           <span class="px-4 text-center text-sm">
             {{ options.videoUrl ? "Ungültige oder nicht unterstützte URL" : "Video-URL in den Optionen eingeben" }}
@@ -33,7 +33,7 @@
       <figcaption
         v-if="props.caption || isEditing"
         v-blokkli-editable:caption
-        class="mt-2 text-center text-sm italic text-gray"
+        class="mt-2 text-center text-sm text-gray italic"
         v-text="props.caption"
       />
     </figure>

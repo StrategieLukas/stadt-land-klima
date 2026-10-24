@@ -1,14 +1,14 @@
 <template>
   <Teleport to="body">
     <!-- Backdrop -->
-    <div class="fixed inset-0 z-[100] flex flex-col justify-end bg-black/40" @click.self="$emit('close')">
+    <div class="fixed inset-0 z-100 flex flex-col justify-end bg-black/40" @click.self="$emit('close')">
       <!-- Sheet -->
       <div class="flex flex-col overflow-hidden rounded-t-2xl bg-white" style="max-height: 92vh">
         <!-- Sticky header -->
-        <div class="border-gray-100 flex flex-none items-center justify-between border-b px-5 py-4">
-          <h2 class="text-gray-900 text-base font-bold">Alle Datensätze</h2>
+        <div class="flex flex-none items-center justify-between border-b border-gray-100 px-5 py-4">
+          <h2 class="text-base font-bold text-gray-900">Alle Datensätze</h2>
           <button
-            class="hover:bg-gray-100 text-gray-500 flex h-8 w-8 items-center justify-center rounded-full transition-colors"
+            class="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100"
             aria-label="Schließen"
             @click="$emit('close')"
           >
@@ -19,9 +19,9 @@
         </div>
 
         <!-- Sector filter chips -->
-        <div class="no-scrollbar border-gray-100 flex flex-none items-center gap-2 overflow-x-auto border-b px-5 py-3">
+        <div class="no-scrollbar flex flex-none items-center gap-2 overflow-x-auto border-b border-gray-100 px-5 py-3">
           <button
-            class="flex-none whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+            class="flex-none rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors"
             :class="activeFilter === null ? 'bg-[#006e94] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
             @click="activeFilter = null"
           >
@@ -30,7 +30,7 @@
           <button
             v-for="sector in availableSectors"
             :key="sector.key"
-            class="flex-none whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+            class="flex-none rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors"
             :class="activeFilter === sector.key ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
             :style="activeFilter === sector.key ? `background: ${sector.color}` : ''"
             @click="activeFilter = sector.key"
@@ -42,18 +42,18 @@
         <!-- Scrollable grid -->
         <div class="flex-1 overflow-y-auto px-4 py-4">
           <template v-for="sector in sectorsToShow" :key="sector.key">
-            <h3 class="text-gray-400 mb-3 mt-4 text-xs font-semibold uppercase tracking-wide first:mt-0">
+            <h3 class="mt-4 mb-3 text-xs font-semibold tracking-wide text-gray-400 uppercase first:mt-0">
               {{ sector.label }}
             </h3>
             <div class="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
               <button
                 v-for="col in sector.collections"
                 :key="col.id"
-                class="border-gray-100 group overflow-hidden rounded-xl border bg-white text-left shadow-sm transition-all hover:border-[#006e94]/30 hover:shadow-md"
+                class="group overflow-hidden rounded-xl border border-gray-100 bg-white text-left shadow-xs transition-all hover:border-[#006e94]/30 hover:shadow-md"
                 @click="selectCollection(col.id)"
               >
                 <!-- Cover image -->
-                <div class="bg-gray-100 relative h-24 overflow-hidden">
+                <div class="relative h-24 overflow-hidden bg-gray-100">
                   <img
                     v-if="coverImageUrl(col)"
                     :src="coverImageUrl(col) ?? undefined"
@@ -62,7 +62,7 @@
                   />
                   <span
                     v-if="coverImageUrl(col) && coverImageAttribution(col)"
-                    class="pointer-events-none absolute bottom-1.5 right-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+                    class="pointer-events-none absolute right-1.5 bottom-1.5 max-w-[calc(100%-0.75rem)] truncate rounded-sm bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
                     :title="coverImageAttribution(col) ?? undefined"
                   >
                     {{ coverImageAttribution(col) }}
@@ -73,7 +73,7 @@
                     :style="`background: linear-gradient(135deg, ${SECTOR_COLORS[col.sector?.toLowerCase() ?? 'other'] ?? SECTOR_COLORS.other}18, ${SECTOR_COLORS[col.sector?.toLowerCase() ?? 'other'] ?? SECTOR_COLORS.other}35)`"
                   />
                   <span
-                    class="absolute left-1.5 top-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white"
+                    class="absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-white uppercase"
                     :style="`background: ${SECTOR_COLORS[col.sector?.toLowerCase() ?? 'other'] ?? SECTOR_COLORS.other}`"
                   >
                     {{ sector.label }}
@@ -81,7 +81,7 @@
                 </div>
                 <!-- Title -->
                 <div class="p-3">
-                  <p class="text-gray-900 line-clamp-2 text-xs font-semibold leading-snug">
+                  <p class="line-clamp-2 text-xs leading-snug font-semibold text-gray-900">
                     {{ t(col.title) }}
                   </p>
                 </div>

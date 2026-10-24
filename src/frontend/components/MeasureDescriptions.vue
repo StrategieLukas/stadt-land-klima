@@ -4,7 +4,7 @@
     <!-- Accordion -->
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <!-- Description benefit -->
-      <div v-if="measure.description_benefit" class="collapse collapse-plus">
+      <div v-if="measure.description_benefit" class="collapse-plus collapse">
         <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
         <div class="collapse-title px-2 pl-0 md:px-4">
@@ -19,7 +19,7 @@
       </div>
 
       <!-- Description verification -->
-      <div v-if="measure.description_verification" class="collapse collapse-plus">
+      <div v-if="measure.description_verification" class="collapse-plus collapse">
         <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
         <div class="collapse-title px-2 pl-0 md:px-4">
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Description contribution -->
-      <div v-if="measure.description_contribution" class="collapse collapse-plus">
+      <div v-if="measure.description_contribution" class="collapse-plus collapse">
         <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
         <div class="collapse-title px-2 pl-0 md:px-4">
@@ -49,7 +49,7 @@
       </div>
 
       <!-- Description implementation -->
-      <div v-if="measure.description_implementation" class="collapse collapse-plus">
+      <div v-if="measure.description_implementation" class="collapse-plus collapse">
         <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
         <div class="collapse-title px-2 pl-0 md:px-4">
@@ -64,7 +64,7 @@
       </div>
 
       <!-- Description legal -->
-      <div v-if="measure.description_legal" class="collapse collapse-plus">
+      <div v-if="measure.description_legal" class="collapse-plus collapse">
         <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
         <div class="collapse-title px-2 pl-0 md:px-4">
@@ -79,7 +79,7 @@
       </div>
 
       <!-- Description funding -->
-      <div v-if="measure.description_funding" class="collapse collapse-plus">
+      <div v-if="measure.description_funding" class="collapse-plus collapse">
         <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
         <div class="collapse-title px-2 pl-0 md:px-4">
@@ -94,7 +94,7 @@
       </div>
 
       <!-- Description tutorial -->
-      <div v-if="measure.description_tutorial" class="collapse collapse-plus">
+      <div v-if="measure.description_tutorial" class="collapse-plus collapse">
         <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
         <div class="collapse-title px-2 pl-0 md:px-4">

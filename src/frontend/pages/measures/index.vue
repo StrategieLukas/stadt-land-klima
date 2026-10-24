@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full min-w-0 max-w-5xl overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mx-auto w-full max-w-5xl min-w-0 overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
     <header class="mb-8">
       <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("measures.heading") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("measures.description") }}</p>
@@ -29,7 +29,7 @@
         @click="filterOpen = !filterOpen"
       >
         <span class="flex items-center gap-2">
-          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -39,12 +39,12 @@
           <span>{{ $t("generic.filter_and_view") }}</span>
           <span
             v-if="activeFilterCount > 0"
-            class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
+            class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs leading-none font-bold"
             >{{ activeFilterCount }}</span
           >
         </span>
         <svg
-          class="h-4 w-4 flex-shrink-0 transition-transform duration-200"
+          class="h-4 w-4 shrink-0 transition-transform duration-200"
           :class="filterOpen ? 'rotate-180' : ''"
           fill="none"
           viewBox="0 0 24 24"
@@ -56,11 +56,11 @@
       </button>
 
       <!-- Filter rows (always visible at xs+, collapsible below xs) -->
-      <div v-show="filterOpen" class="xs:!block">
+      <div v-show="filterOpen" class="xs:block!">
         <!-- Row 0: Catalog version + view toggle -->
         <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-2 py-1.5">
           <svg
-            class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
+            class="slk-filter-panel-icon h-4 w-4 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -136,7 +136,7 @@
         <!-- Row 1: Sector filter -->
         <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-2 py-1.5">
           <svg
-            class="slk-filter-panel-icon mt-1 h-4 w-4 flex-shrink-0"
+            class="slk-filter-panel-icon mt-1 h-4 w-4 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -165,7 +165,7 @@
             >
               <img
                 :src="sectorImages[sector]"
-                class="slk-filter-sector-icon h-6 w-6 flex-shrink-0 mix-blend-multiply grayscale invert"
+                class="slk-filter-sector-icon h-6 w-6 shrink-0 mix-blend-multiply grayscale invert"
                 :class="selectedSector === sector ? 'opacity-100' : 'opacity-40'"
                 alt=""
               />
@@ -179,7 +179,7 @@
         <!-- Row 2: Quick-filter toggles -->
         <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-2 py-1.5">
           <svg
-            class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
+            class="slk-filter-panel-icon h-4 w-4 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -238,7 +238,7 @@
           <!-- Row 3: Sort -->
           <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-2 py-1.5">
             <svg
-              class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
+              class="slk-filter-panel-icon h-4 w-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -297,14 +297,14 @@
     <!-- Sector description (shown when a sector is selected) -->
     <div
       v-if="selectedSector"
-      class="text-gray-700 mb-4 max-w-2xl border-l-4 border-gray/30 bg-gray/5 px-4 py-3 text-sm"
+      class="mb-4 max-w-2xl border-l-4 border-gray/30 bg-gray/5 px-4 py-3 text-sm text-gray-700"
     >
       <p class="mb-1 font-bold">{{ $translateDynamic(`measure_sectors.${selectedSector}.title`) }}</p>
       <p>{{ $translateDynamic(`measure_sectors.${selectedSector}.description`) }}</p>
     </div>
 
     <!-- Result count (list / cards only) -->
-    <p v-if="viewMode === 'list' || viewMode === 'cards'" class="text-gray-500 mb-4 text-sm">
+    <p v-if="viewMode === 'list' || viewMode === 'cards'" class="mb-4 text-sm text-gray-500">
       {{ filteredMeasures.length }} Maßnahmen
     </p>
 
@@ -339,19 +339,19 @@
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
         :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
-        class="card block rounded-md border border-gray/20 shadow transition-shadow duration-200 hover:shadow-lg"
+        class="card block rounded-md border border-gray/20 shadow-sm transition-shadow duration-200 hover:shadow-lg"
       >
         <div class="card-body">
           <div class="flex items-start gap-3">
-            <img :src="sectorImages[measure.sector]" class="mt-0.5 h-7 w-7 flex-shrink-0 opacity-50" alt="" />
+            <img :src="sectorImages[measure.sector]" class="mt-0.5 h-7 w-7 shrink-0 opacity-50" alt="" />
             <div class="min-w-0 flex-1">
               <div class="mb-1 flex flex-wrap items-center gap-2">
-                <span class="flex-shrink-0 rounded bg-gray px-2 py-0.5 font-mono text-xs text-white">{{
+                <span class="shrink-0 rounded-sm bg-gray px-2 py-0.5 font-mono text-xs text-white">{{
                   measure.measure_id
                 }}</span>
-                <h2 class="font-heading text-sm font-bold leading-snug text-gray">{{ measure.name }}</h2>
+                <h2 class="font-heading text-sm leading-snug font-bold text-gray">{{ measure.name }}</h2>
               </div>
-              <p v-if="measure.description_about" class="text-gray-500 line-clamp-2 text-xs">
+              <p v-if="measure.description_about" class="line-clamp-2 text-xs text-gray-500">
                 {{ truncateHtml(measure.description_about) }}
               </p>
             </div>

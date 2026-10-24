@@ -1,6 +1,6 @@
 # Security hardening implemented on this branch
 
-Current implementation record, reviewed on **2026-10-24** for `0000-security-updates` through `d476db1b` (`fix formatting`) plus the policy-scoped credential-tool update in the working tree. This consolidates the earlier architecture, migration, phase and security-review documents. The original S01–S17 finding identifiers are retained below for traceability. Committed reviews remain historical checkpoints; this document and [REMAINING_TODOS.md](REMAINING_TODOS.md) describe the current state. [FEATURES.md](FEATURES.md) remains the detailed functionality and regression-coverage inventory.
+Current implementation record, reviewed on **2026-10-24** for `0000-security-updates` through hardening commit `d5391a81` plus the Tailwind/DaisyUI migration in the working tree. This consolidates the earlier architecture, migration, phase and security-review documents. The original S01–S17 finding identifiers are retained below for traceability. Committed reviews remain historical checkpoints; this document and [REMAINING_TODOS.md](REMAINING_TODOS.md) describe the current state. [FEATURES.md](FEATURES.md) remains the detailed functionality and regression-coverage inventory.
 
 **Nuxt and TypeScript phases 0–8, the Blökkli 2 migration and the locally implemented hardening are complete. This does not mean every vendor advisory, production operation or integration is resolved.** The core/runtime hotfix was reported successfully deployed to staging and production; deployment of this complete security branch and production credential retirement have not been established by local tests.
 
@@ -8,16 +8,16 @@ Current implementation record, reviewed on **2026-10-24** for `0000-security-upd
 
 The implementation and latest local validation are complete at the checkpoint above. **Release closure remains open.** Use [F1–F8 in the finalisation checklist](REMAINING_TODOS.md#finalisation-status-and-order) to record completion of:
 
-1. Final source/index review and the decision whether the planned Tailwind 4/DaisyUI 5 migration ships with this branch or separately.
+1. Review/commit the new Tailwind 4/DaisyUI 5 migration and verify native target-platform acceptance before rollout.
 2. Remaining pinned Directus/image assessments and mitigations, plus an explicit disposition for the seven version-based node-forge audit entries while the local backport is used.
 3. Actual host/database/secret hardening and the Data Studio origin/session-isolation decision.
 4. Staging deployment of the complete stack, code-first import/proxy verification, configured-integration checks and resolution of the deployed homepage hydration warning.
 5. Production cutover with a current off-host backup/recovery path, then credential retirement, replacement invitations, search/cache cleanup and verification that old credentials fail.
 6. Post-deployment observation, durable CI/release evidence and current feature/debt/security documentation.
 
-The CSS migration has not started: `nuxt.config.ts` still registers the Tailwind 3 PostCSS plugin, `main.css` retains the old directives, and `tailwind.config.js` owns the custom themes, typography and rating safelist. [T1–T7](REMAINING_TODOS.md#tailwind-4-and-daisyui-5-migration) cover the remaining implementation, browser/platform decisions and acceptance. Completing it will not by itself remove the Nitro/node-forge warning or pinned Directus risks.
+The CSS migration is implemented: Tailwind 4.3.3 uses its Vite plugin, DaisyUI 5.7.50 themes and runtime rating sources live in the CSS entry, and shared brand/typography values remain in the explicitly loaded JS configuration. [T1–T7](REMAINING_TODOS.md#tailwind-4-and-daisyui-5-migration) distinguish implemented work from native macOS/Windows and rollout acceptance. This does not remove the independent forge or pinned-Directus findings.
 
-**Finalisation means recorded outcomes for the release gates and an explicit delivery outcome for frontend modernization.** Existing manual/partial feature coverage and unverified integrations remain identified in FEATURES and the TODO document. Do not translate a passing local suite into a claim that deployment, credentials, every integration or every advisory is resolved. The earlier release-checklist update was documentation-only; the later credential-policy update also changes CLI planning/application. No dependency upgrade, production deployment or actual credential rotation was performed. Validation is recorded separately from the prior implementation evidence.
+**Finalisation means recorded outcomes for the release gates and an explicit delivery outcome for frontend modernization.** Existing manual/partial feature coverage and unverified integrations remain identified in FEATURES and the TODO document. Do not translate a passing local suite into a claim that deployment, credentials, every integration or every advisory is resolved. The earlier release-checklist update was documentation-only; the later credential-policy update also changes CLI planning/application. The later CSS migration upgrades frontend styling dependencies; no production deployment or actual credential rotation was performed. Validation is recorded separately from the earlier implementation evidence.
 
 ## Installed stack
 
@@ -29,7 +29,7 @@ Versions below are from repository manifests/lockfiles or declared runtime image
 | Blökkli                                         | 2.0.0-alpha.73                                                |
 | TypeScript / vue-tsc                            | 6.0.3 / 3.3.13                                                |
 | ESLint / Nuxt ESLint config / typescript-eslint | 10.13.0 / 1.17.0 / 8.72.0                                     |
-| Tailwind CSS / DaisyUI                          | **3.4.19 / 4.12.24**; version 4/5 migration has not happened  |
+| Tailwind CSS / DaisyUI                          | **4.3.3 / 5.7.50**, with the Tailwind Vite integration        |
 | Frontend / Directus Node runtimes               | 24.22.1 / 22.23.4                                             |
 | Directus                                        | **11.17.4**, explicitly retained; no authorization to upgrade |
 | Directus optional storage-driver Undici         | Locked replacement 7.30.1                                     |
@@ -37,7 +37,7 @@ Versions below are from repository manifests/lockfiles or declared runtime image
 | Meilisearch / Redis                             | 1.55.0 / 8.10.2-alpine                                        |
 | Maintenance nginx / Typst                       | 1.30.6-alpine / checksum-verified 0.15.1                      |
 
-The frontend manifest and lockfile both confirm Tailwind 3 and DaisyUI 4. Tailwind 4/DaisyUI 5 is now an explicit remaining modernization workstream, with build/theme/component migration and visual/platform acceptance still to do; see [the migration checklist](REMAINING_TODOS.md#tailwind-4-and-daisyui-5-migration). It is separate from the completed node-forge and formatting fixes. TypeScript 7 is also deferred for actual lint/editor/Vue compatibility.
+The frontend now uses exact Tailwind 4.3.3 / DaisyUI 5.7.50 releases and the Tailwind Vite plugin. See [the CSS migration evidence](#tailwind-4-and-daisyui-5-implementation) and [target acceptance](REMAINING_TODOS.md#tailwind-4-and-daisyui-5-migration). TypeScript 7 remains deferred for actual lint/editor/Vue compatibility.
 
 ## Architecture and public data boundaries
 
@@ -329,3 +329,40 @@ Fresh local verification:
 | Shell syntax / diff review              | Changed shell launchers pass bash syntax checks; final diff reviewed for credential handling and privilege/ownership scope                                                                                                                                         |
 
 No production deployment/rotation, real database ownership cutover, provider change or mail was performed. Development services were started to run the suite. Disposable PostgreSQL fixtures were removed. The pre-existing staged index was preserved unchanged. The remaining vendor advisories, optional startup whitelist, bulk search reindex implementation/execution, real restore/host checks and staging/production acceptance remain open in [REMAINING_TODOS.md](REMAINING_TODOS.md); these operational tools do not backport those vendor fixes.
+
+## Tailwind 4 and DaisyUI 5 implementation
+
+Implemented on **2026-10-24**, after hardening commit `d5391a81` (not pushed). Tailwind **4.3.3**, its Vite plugin **4.3.3** and DaisyUI **5.7.50** are exact manifest/lock selections; Nuxt 4.6.2, Vite 8.3.5, Blökkli 2.0.0-alpha.73 and TypeScript 6.0.3 are unchanged. The [official upgrade tool](https://tailwindcss.com/docs/upgrade-guide) handled standard utility names; the project-specific changes were reviewed and repaired manually.
+
+The app uses one Tailwind Vite pipeline. The CSS entry explicitly loads the supported JS brand/typography configuration, the typography plugin and two DaisyUI custom themes; the obsolete JS safelist is replaced by inline sources for all rating backgrounds/tints, borders/text and dynamic 10%/90% opacity variants. The existing theme IDs, stored light/dark preference and brand colors remain stable. Prettier uses `tailwindStylesheet`; the JS token file remains inside strict checked-tooling coverage.
+
+Visual checks caught a closed desktop sidebar occupying 320 pixels, new card padding that changed list wrapping, and a new DaisyUI dock component colliding with the site's custom mobile dock. Those are corrected. The mobile dock keeps its existing design under a site-specific class. Removed bordered-input/form-control classes and opacity utilities are migrated, and the previous border contrast/card dimensions are preserved. CanonicalButton uses equivalent v4 shadow/shrink utilities with its shared CSS untouched.
+
+The codemod also changed comparisons against the stored editor option `outline`; strict checking caught that and the machine value was restored. The new SSR test checks actual outlined/filled output. An AST review of changed Vue scripts found no remaining changed comparison operands; script string changes are class utilities. No displayed text, translations, public permissions, schema or Directus version was changed.
+
+Locked installation succeeded both on the Linux host and in the existing Debian Node 24 container. CSS-engine bindings remain optional for Linux/macOS/Windows architectures, verified against the complete lockfile. Install dependencies per machine/container; do not copy native `node_modules` between platforms. Actual macOS/Windows execution remains manual target acceptance. Generated production server output uses precompiled CSS and does not need the CSS compiler at runtime.
+
+A fresh audit initially found the low-severity [serialize-javascript advisory](https://github.com/yahoo/serialize-javascript/security/advisories/GHSA-m5mm-p8h7-m29v); the compatible transitive package is now **7.1.4**. The remaining seven high graph entries are the existing version-based node-forge/listhen/Nuxt graph. The source-verified forge backport still passes; no downgrade, major override or audit exception was added.
+
+The new compiler/theme/optional-binding cases run in the default fast unit suite (about 0.4 seconds added locally). The explicit `test:styles` gate checks real desktop/mobile light/dark pages, menu transitions, page centering, card padding, button corners, hydration and request failures. It blocks non-read requests and supports `TEST_STYLE_BROWSER=chromium|firefox|webkit`. Browser-engine and final release evidence is appended after the final runs.
+
+The local HTTPS test harness now supports an explicitly selected `TEST_HTTPS_CERT` public-key pin. Chromium's per-context certificate-error override missed a speculative spinner stylesheet request after opening several contexts; the isolated project-filter flow reproduced it and passed with the specific local certificate pinned. Node clients use `NODE_EXTRA_CA_CERTS` for that certificate. No frontend TLS/CSP setting or browser error assertion was weakened. The new unit case checks opt-in/default behavior, certificate-specific arguments and failure on a missing certificate; only a public fixture certificate is checked in. WebKit's intentional hard-navigation metadata-abort artifact is prevented by waiting for the actual metadata response between test pages.
+
+### CSS migration validation results
+
+Fresh local results for the migration working tree:
+
+| Gate                                        | Result                                                                                                                                                                                           |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Locked installs                             | Linux host and Debian Node 24 frontend container succeeded, retaining optional platform dependencies                                                                                             |
+| Strict frontend checking / production build | 362 maintained sources; build completed in 52.8 seconds                                                                                                                                          |
+| Required `cd bin && ./test_dev.sh`          | 155 unit/security cases, 26 CLI cases, 17 fast browser workflows; zero failures; browser phase 37.71 seconds                                                                                     |
+| Explicit production HTTPS full profile      | 95/95, 320.93 seconds, with the temporary certificate trusted by the controller and pinned for Chromium                                                                                          |
+| Editor persistence                          | Both live cases passed, 21.50 seconds, including failed publication/recovery, nested content, media and reusable blocks                                                                          |
+| Adversarial disclosure migration            | 23/23, 12.27 seconds, including public built scripts/maps/payload credential checks                                                                                                              |
+| Production CSP                              | Eight public routes: fresh nonces, hydration, zero CSP violations and rejection of an unnonced script                                                                                            |
+| Style/interaction gate                      | Chromium 5.38s, Firefox 8.73s, WebKit 14.94s; each covers desktop/mobile in both themes. WebKit ran in the matching official Playwright Ubuntu container; Chromium/Firefox ran on the Linux host |
+| Lint / formatting / harness                 | Zero-warning frontend ESLint, maintained-source Prettier check, strict harness compilation and diff whitespace checks passed                                                                     |
+| Frontend audit / exact guard                | Seven high graph entries, zero critical/moderate/low; node-forge backport verification passes and serialize-javascript is 7.1.4                                                                  |
+
+No real external delivery or authenticated StadtLandZahl parity is implied by these results. Native macOS/Windows execution and deployed-content visual acceptance remain open target checks. No production server/credential action, Directus upgrade or push was performed. The migration remains uncommitted for review. Temporary test runtimes/proxy/private TLS key were removed; the normal development frontend remains available on localhost:8080.

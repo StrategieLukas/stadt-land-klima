@@ -8,7 +8,7 @@
           v-if="props.imageId"
           :asset-id="props.imageId"
           :alt="props.alt || ''"
-          img-class="w-full h-auto rounded"
+          img-class="w-full h-auto rounded-sm"
           :width="1200"
           :quality="80"
           fit="contain"
@@ -16,7 +16,7 @@
         <!-- Placeholder shown when no image is selected -->
         <div
           v-else
-          class="bg-gray-100 border-gray-300 text-gray-400 flex min-h-[12rem] items-center justify-center rounded border-2 border-dashed"
+          class="flex min-h-48 items-center justify-center rounded-sm border-2 border-dashed border-gray-300 bg-gray-100 text-gray-400"
         >
           <span class="text-sm">Bild aus Medienbibliothek auswählen oder hierher ziehen</span>
         </div>
@@ -25,7 +25,7 @@
     <figcaption
       v-if="props.caption || isEditing"
       v-blokkli-editable:caption
-      class="mt-2 text-center text-sm italic text-gray"
+      class="mt-2 text-center text-sm text-gray italic"
       v-text="props.caption"
     />
   </figure>

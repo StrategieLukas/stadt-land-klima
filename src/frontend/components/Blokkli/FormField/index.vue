@@ -6,11 +6,11 @@
         :name="inputName"
         type="checkbox"
         value="yes"
-        class="border-gray-300 checkbox checkbox-sm mt-1 shrink-0"
+        class="checkbox mt-1 shrink-0 border-gray-300 checkbox-sm"
         :required="isRequired"
         :disabled="isEditing"
       />
-      <label :for="inputId" class="text-gray-700 min-w-0 text-sm">
+      <label :for="inputId" class="min-w-0 text-sm text-gray-700">
         <span class="inline-flex min-w-0 items-start gap-1">
           <span class="min-w-0">
             <BlokkliField v-if="hasLabelBlocks || isEditing" name="label" :list="props.label || []" tag="span" />
@@ -24,7 +24,7 @@
     </div>
 
     <template v-else>
-      <label :for="inputId" class="text-gray-700 mb-1 block text-sm font-medium">
+      <label :for="inputId" class="mb-1 block text-sm font-medium text-gray-700">
         <span class="inline-flex min-w-0 items-start gap-1">
           <span class="min-w-0">
             <BlokkliField v-if="hasLabelBlocks || isEditing" name="label" :list="props.label || []" tag="span" />
@@ -42,7 +42,7 @@
         :name="inputName"
         rows="5"
         maxlength="5000"
-        class="textarea textarea-bordered w-full"
+        class="textarea w-full"
         :placeholder="placeholder"
         :required="isRequired"
         :disabled="isEditing"
@@ -52,7 +52,7 @@
         v-else-if="fieldType === 'select'"
         :id="inputId"
         :name="inputName"
-        class="select select-bordered w-full"
+        class="select w-full"
         :required="isRequired"
         :disabled="isEditing"
       >
@@ -66,7 +66,7 @@
         :name="inputName"
         :type="fieldType === 'email' ? 'email' : 'text'"
         maxlength="5000"
-        class="input input-bordered w-full"
+        class="input w-full"
         :placeholder="placeholder"
         :required="isRequired"
         :autocomplete="autocomplete || undefined"

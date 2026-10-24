@@ -9,7 +9,7 @@
       <ClientOnly>
         <div
           v-if="wordItems.length"
-          class="pointer-events-none absolute inset-0 select-none overflow-hidden"
+          class="pointer-events-none absolute inset-0 overflow-hidden select-none"
           aria-hidden="true"
         >
           <template v-for="item in wordItems" :key="item.id">
@@ -17,12 +17,12 @@
             <NuxtLink
               v-if="item.slug"
               :to="`/municipalities/${item.slug}`"
-              class="pointer-events-auto absolute whitespace-nowrap font-semibold leading-none transition-opacity duration-150 hover:opacity-100"
+              class="pointer-events-auto absolute leading-none font-semibold whitespace-nowrap transition-opacity duration-150 hover:opacity-100"
               :style="item.style"
               >{{ item.name }}</NuxtLink
             >
             <!-- Unrated: plain span, inherits pointer-events-none from container -->
-            <span v-else class="absolute whitespace-nowrap font-semibold leading-none" :style="item.style">{{
+            <span v-else class="absolute leading-none font-semibold whitespace-nowrap" :style="item.style">{{
               item.name
             }}</span>
           </template>
@@ -35,7 +35,7 @@
           <h2
             v-if="props.title || isEditing"
             v-blokkli-editable:title
-            class="mb-3 text-2xl font-bold leading-tight sm:text-3xl"
+            class="mb-3 text-2xl leading-tight font-bold sm:text-3xl"
             :class="titleClass"
             v-text="props.title"
           />

@@ -13,7 +13,7 @@
       <!-- Left icon (position: left or both) -->
       <span
         v-if="hasIcon && (options.iconPosition === 'left' || options.iconPosition === 'both')"
-        class="blokkli-button-icon flex w-12 flex-shrink-0 items-center justify-center self-stretch border-r-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
+        class="blokkli-button-icon flex w-12 shrink-0 items-center justify-center self-stretch border-r-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
       >
         <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
         <span
@@ -26,13 +26,13 @@
       </span>
       <!-- Label -->
       <span class="flex items-center gap-1 whitespace-nowrap" :class="labelClass">
-        <Icon icon="mdi:open-in-new" class="h-4 w-4 flex-shrink-0 opacity-80" />
+        <Icon icon="mdi:open-in-new" class="h-4 w-4 shrink-0 opacity-80" />
         <span v-blokkli-editable:label v-text="props.label" />
       </span>
       <!-- Right icon (position: right or both) -->
       <span
         v-if="hasIcon && (options.iconPosition === 'right' || options.iconPosition === 'both')"
-        class="blokkli-button-icon flex w-12 flex-shrink-0 items-center justify-center self-stretch border-l-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
+        class="blokkli-button-icon flex w-12 shrink-0 items-center justify-center self-stretch border-l-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
       >
         <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
         <span
@@ -55,7 +55,7 @@
       <!-- Left icon (position: left or both) -->
       <span
         v-if="hasIcon && (options.iconPosition === 'left' || options.iconPosition === 'both')"
-        class="blokkli-button-icon flex w-12 flex-shrink-0 items-center justify-center self-stretch border-r-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
+        class="blokkli-button-icon flex w-12 shrink-0 items-center justify-center self-stretch border-r-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
       >
         <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
         <span
@@ -73,7 +73,7 @@
       <!-- Right icon (position: right or both) -->
       <span
         v-if="hasIcon && (options.iconPosition === 'right' || options.iconPosition === 'both')"
-        class="blokkli-button-icon flex w-12 flex-shrink-0 items-center justify-center self-stretch border-l-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
+        class="blokkli-button-icon flex w-12 shrink-0 items-center justify-center self-stretch border-l-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
       >
         <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
         <span

@@ -2,7 +2,7 @@
   <div :id="'block-' + uuid" class="blokkli-block-timeline-item relative pb-10 pl-12">
     <!-- Dot on the line -->
     <div
-      class="timeline-item-dot absolute left-0 top-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full"
+      class="timeline-item-dot absolute top-1.5 left-0 z-10 flex h-8 w-8 items-center justify-center rounded-full"
       :class="dotBgClass"
     >
       <Icon v-if="options.icon" :icon="options.icon" class="h-4 w-4 text-white" />
@@ -13,13 +13,13 @@
     <span
       v-if="props.date || isEditing"
       v-blokkli-editable:date
-      class="mb-1 block text-xs font-bold uppercase tracking-widest"
+      class="mb-1 block text-xs font-bold tracking-widest uppercase"
       :class="accentTextClass"
       v-text="props.date"
     />
 
     <!-- Title -->
-    <h3 v-blokkli-editable:title class="mb-2 text-lg font-bold leading-snug text-black" v-text="props.title" />
+    <h3 v-blokkli-editable:title class="mb-2 text-lg leading-snug font-bold text-black" v-text="props.title" />
 
     <!-- Description / nested blocks -->
     <BlokkliField name="blocks" :list="props.blocks || []" tag="div" class="mt-1 flex flex-col gap-3" />

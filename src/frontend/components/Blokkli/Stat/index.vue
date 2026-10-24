@@ -5,7 +5,7 @@
       <div class="mb-2 flex items-baseline justify-center gap-1">
         <span
           v-blokkli-editable:value
-          class="font-bold leading-none"
+          class="leading-none font-bold"
           :class="[valueSizeClass, textClass]"
           v-text="props.value"
         />
@@ -19,7 +19,7 @@
       </div>
       <p
         v-blokkli-editable:label
-        class="mb-1 text-base font-semibold uppercase tracking-wide opacity-90"
+        class="mb-1 text-base font-semibold tracking-wide uppercase opacity-90"
         :class="textClass"
         v-text="props.label"
       />
@@ -34,8 +34,8 @@
 
     <!-- Inline layout -->
     <div v-else-if="options.layout === 'inline'" class="flex items-center gap-6 py-4 pl-4" :class="borderLeftClass">
-      <div class="flex flex-shrink-0 items-baseline gap-1" :class="accentTextClass">
-        <span v-blokkli-editable:value class="font-bold leading-none" :class="valueSizeClass" v-text="props.value" />
+      <div class="flex shrink-0 items-baseline gap-1" :class="accentTextClass">
+        <span v-blokkli-editable:value class="leading-none font-bold" :class="valueSizeClass" v-text="props.value" />
         <span
           v-if="props.unit || isEditing"
           v-blokkli-editable:unit
@@ -44,7 +44,7 @@
         />
       </div>
       <div>
-        <p v-blokkli-editable:label class="mb-0.5 text-sm font-semibold uppercase tracking-wide" v-text="props.label" />
+        <p v-blokkli-editable:label class="mb-0.5 text-sm font-semibold tracking-wide uppercase" v-text="props.label" />
         <p
           v-if="props.description || isEditing"
           v-blokkli-editable:description

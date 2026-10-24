@@ -1,7 +1,7 @@
 <template>
   <div class="elections-flow min-h-screen bg-mild-white">
     <!-- Header -->
-    <div class="border-b border-solid-gray-10 bg-white shadow-sm">
+    <div class="border-b border-solid-gray-10 bg-white shadow-xs">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <NuxtLink to="/" class="flex items-center gap-3">
           <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" :alt="$t('logo.alt')" class="h-10 w-auto dark:hidden" />
@@ -39,7 +39,7 @@
       <!-- No Public Elections -->
       <div
         v-else-if="publicElections.length === 0"
-        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
+        class="my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center text-orange-800"
       >
         <div class="mb-6">
           <img
@@ -99,7 +99,7 @@
                   {{ election.localteam.municipality_name || election.localteam.name }}
                 </p>
               </div>
-              <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-solid-ff-green-10">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-solid-ff-green-10">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5 text-ff-green"

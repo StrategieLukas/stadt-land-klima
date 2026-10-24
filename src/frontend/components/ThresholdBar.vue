@@ -8,7 +8,7 @@
           v-for="zone in zones"
           :key="zone.color"
           :style="{ width: zone.width + '%', backgroundColor: ZONE_COLORS[zone.color] }"
-          class="flex-shrink-0"
+          class="shrink-0"
         />
       </div>
 
@@ -24,7 +24,7 @@
       <span
         v-for="label in thresholdLabels"
         :key="label.pos"
-        class="text-gray-400 absolute -translate-x-1/2 text-[9px] leading-none"
+        class="absolute -translate-x-1/2 text-[9px] leading-none text-gray-400"
         :style="{ left: label.pos + '%' }"
       >
         {{ label.text }}

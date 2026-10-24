@@ -1,7 +1,7 @@
 <template>
   <div class="card max-w-[400px] overflow-hidden rounded-none bg-white shadow-xl">
     <div class="relative">
-      <NuxtLink :to="`/projects/${slug}`" class="bg-gray-200 group relative flex h-40 items-center justify-center">
+      <NuxtLink :to="`/projects/${slug}`" class="group relative flex h-40 items-center justify-center bg-gray-200">
         <SmartImg
           :asset-id="image_id"
           :is-raster="image_is_raster"
@@ -12,18 +12,18 @@
           sizes="(max-width: 768px) 312px, 400px"
           img-class="object-cover w-full h-full"
         />
-        <div v-if="tag" class="absolute left-2 top-2 rounded bg-yellow-400 px-2 py-1 text-xs">
+        <div v-if="tag" class="absolute top-2 left-2 rounded-sm bg-yellow-400 px-2 py-1 text-xs">
           {{ tag }}
         </div>
 
         <!-- Mini-Logo, if article has associated organisation -->
-        <div v-if="organisation" class="absolute right-0 top-0 h-28 w-28 overflow-hidden">
+        <div v-if="organisation" class="absolute top-0 right-0 h-28 w-28 overflow-hidden">
           <div
-            class="absolute right-0 top-0 h-0 w-0 border-l-[7rem] border-t-[7rem] border-l-transparent border-t-white"
+            class="absolute top-0 right-0 h-0 w-0 border-t-[7rem] border-l-[7rem] border-t-white border-l-transparent"
           ></div>
           <!-- Using raw image url (no width parameter) for easier request caching as organisation logos should be small -->
           <img
-            class="absolute right-2 top-2"
+            class="absolute top-2 right-2"
             height="48"
             width="48"
             :alt="organisation.name ?? ''"
@@ -53,12 +53,12 @@
         </p>
 
         <!-- Truncated abstract text -->
-        <p class="text-gray-600 mb-2 text-sm">
+        <p class="mb-2 text-sm text-gray-600">
           {{ truncatedAbstract }}
         </p>
 
         <!-- Author and Date Section -->
-        <p v-if="byline" class="text-gray-500 mb-2 text-xs italic">
+        <p v-if="byline" class="mb-2 text-xs text-gray-500 italic">
           {{ byline }}
         </p>
 
@@ -68,7 +68,7 @@
             v-for="m in measures"
             :key="m.id"
             :to="`/measures/${m.slug || m.id}`"
-            class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
+            class="inline-block rounded-sm bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
             >{{ m.measure_id }}</NuxtLink
           >
         </div>

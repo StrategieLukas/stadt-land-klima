@@ -15,6 +15,7 @@ import { treemapDatum } from "../../../src/frontend/shared/treemap.js";
 import { attachVisualizationData, cloneVisualization } from "../../../src/frontend/shared/visualization.js";
 import { DataMapSchema } from "../../../src/frontend/shared/contracts/dataMap.js";
 import { requestErrorData, requestErrorMessage, captchaEventData } from "../../../src/frontend/shared/requestError.js";
+import { resolveBlokkliInternalLink } from "../../../src/frontend/utils/blokkliLinks.js";
 
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 // The harness executes the actual SFC script/template with Vue, without a browser/server per assertion.
@@ -30,9 +31,12 @@ function load(name: string, globals: Record<string, unknown> = {}, dependencies:
   const { descriptor, errors } = compiler.parse(readFileSync(new URL(name, componentRoot), "utf8"));
   assert.deepEqual(errors, []);
   const script = compiler.compileScript(descriptor, { id: name, inlineTemplate: true });
-  const compiled = ts.transpileModule(script.content.replaceAll("import.meta.glob(", "__viteGlob("), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
+  const compiled = ts.transpileModule(
+    script.content.replaceAll("import.meta.glob(", "__viteGlob(").replaceAll("import.meta.blokkliEditing", "false"),
+    {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    },
+  );
   const module = { exports: { default: {} as import("../../../src/frontend/node_modules/vue/dist/vue.js").Component } };
   runInNewContext(compiled.outputText, {
     module,
@@ -76,8 +80,40 @@ async function render(
     }),
   );
   app.config.globalProperties.$t = (key: string) => key;
+  app.directive("blokkli-editable", { getSSRProps: () => ({}) });
   return ssr.renderToString(app);
 }
+
+test("persisted editor button outline variants keep their border and contrast after utility migration", async () => {
+  for (const variant of ["outline", "filled"]) {
+    const html = await render(
+      "Blokkli/Button/index.vue",
+      { label: "Existing button" },
+      {
+        defineBlokkli: (definition: { options: Record<string, { default: unknown }> }) => ({
+          uuid: "existing-button",
+          options: vue.ref({
+            ...Object.fromEntries(Object.entries(definition.options).map(([key, option]) => [key, option.default])),
+            variant,
+          }),
+        }),
+      },
+      {
+        vue: { ...vue, resolveComponent: () => "a" },
+        "@iconify/vue": { Icon: vue.defineComponent(() => () => vue.h("span")) },
+        "~/utils/blokkliLinks": { resolveBlokkliInternalLink },
+      },
+    );
+    assert.match(html, /Existing button/);
+    if (variant === "outline") {
+      assert.match(html, /border-2 border-ff-green/);
+      assert.match(html, /text-ff-green hover:text-white/);
+    } else {
+      assert.match(html, /class="[^"]*\bbg-ff-green\b/);
+      assert.doesNotMatch(html, /border-2 border-ff-green/);
+    }
+  }
+});
 
 test("every maintained SFC parses and every component script uses TypeScript", () => {
   let count = 0;

@@ -6,16 +6,16 @@
 
     <div class="mt-6">
       <h1 class="mb-2 font-heading text-h1 font-bold text-green">{{ $t("localteam.create") }}</h1>
-      <p class="text-gray-600 mb-6">
+      <p class="mb-6 text-gray-600">
         {{ $t("localteam.register.intro") }}
       </p>
 
       <!-- Step indicator -->
-      <div class="mb-6 flex select-none items-center gap-2 xs:gap-3">
+      <div class="mb-6 flex items-center gap-2 select-none xs:gap-3">
         <!-- Step 1 -->
         <div class="flex items-center gap-1.5 xs:gap-2">
           <div
-            class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors"
+            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors"
             :class="selectedArea ? 'bg-green text-white' : 'bg-green text-white'"
           >
             <svg v-if="selectedArea" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +31,7 @@
         <!-- Step 2 -->
         <div class="flex items-center gap-1.5 xs:gap-2">
           <div
-            class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors"
+            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors"
             :class="
               registrationSuccess
                 ? 'bg-green text-white'
@@ -56,7 +56,7 @@
         <!-- Step 3 -->
         <div class="flex items-center gap-1.5 xs:gap-2">
           <div
-            class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors"
+            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors"
             :class="registrationSuccess ? 'bg-green text-white' : 'bg-gray-200 text-gray-400'"
           >
             <svg v-if="registrationSuccess" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,9 +75,9 @@
 
       <!-- Step 1: No municipality selected yet → show search -->
       <div v-if="!selectedArea">
-        <div class="rounded-sm bg-white p-4 shadow-list sm:p-8">
+        <div class="rounded-xs bg-white p-4 shadow-list sm:p-8">
           <h2 class="mb-1 font-heading text-h2 font-bold text-green">{{ $t("localteam.register.select.title") }}</h2>
-          <p class="text-gray-500 mb-5 text-sm">
+          <p class="mb-5 text-sm text-gray-500">
             {{ $t("localteam.register.select.description") }}
           </p>
           <AdministrativeAreaSearchBar
@@ -91,9 +91,9 @@
       <!-- Step 2: Municipality selected → mini-map + form or already-exists notice -->
       <div v-else class="space-y-6">
         <!-- Mini-map for geolocation validation -->
-        <div class="overflow-hidden rounded-sm shadow-list">
-          <div class="bg-gray-50 border-gray-200 flex items-center gap-2 border-b px-4 py-3">
-            <svg class="h-4 w-4 flex-shrink-0 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="overflow-hidden rounded-xs shadow-list">
+          <div class="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-3">
+            <svg class="h-4 w-4 shrink-0 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -107,10 +107,10 @@
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <span class="text-gray-700 text-sm font-medium">
+            <span class="text-sm font-medium text-gray-700">
               {{ $t("localteam.register.selected_municipality") }}:
               <strong class="text-green">{{ selectedArea.name }}</strong>
-              <span v-if="selectedArea.prefix" class="text-gray-500 font-normal"> ({{ selectedArea.prefix }})</span>
+              <span v-if="selectedArea.prefix" class="font-normal text-gray-500"> ({{ selectedArea.prefix }})</span>
             </span>
           </div>
 
@@ -123,17 +123,17 @@
                 :administrative-area-name="selectedArea.name"
               />
             </div>
-            <div v-else-if="geoLoading" class="bg-gray-100 flex h-56 items-center justify-center">
+            <div v-else-if="geoLoading" class="flex h-56 items-center justify-center bg-gray-100">
               <SlkFlowerSpinner :size="32" />
             </div>
-            <div v-else class="bg-gray-100 flex h-24 items-center justify-center">
-              <span class="text-gray-400 text-sm italic">{{ $t("map.not_available") }}</span>
+            <div v-else class="flex h-24 items-center justify-center bg-gray-100">
+              <span class="text-sm text-gray-400 italic">{{ $t("map.not_available") }}</span>
             </div>
           </ClientOnly>
 
           <!-- Bottom bar: verify -->
-          <div class="bg-gray-50 border-gray-200 text-gray-500 flex items-center gap-1.5 border-t px-4 py-3 text-sm">
-            <svg class="h-4 w-4 flex-shrink-0 text-green" fill="currentColor" viewBox="0 0 20 20">
+          <div class="flex items-center gap-1.5 border-t border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+            <svg class="h-4 w-4 shrink-0 text-green" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fill-rule="evenodd"
                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -146,9 +146,9 @@
 
         <!-- Already has a local team → contact prompt -->
         <!-- Case 1: Current backend catalog rating is published and complete -->
-        <div v-if="ratingState === 'complete'" class="rounded-sm bg-white p-4 shadow-list sm:p-8">
+        <div v-if="ratingState === 'complete'" class="rounded-xs bg-white p-4 shadow-list sm:p-8">
           <div class="mb-5 flex items-start gap-3 sm:gap-4">
-            <div class="bg-green-100 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100">
               <svg class="h-5 w-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
@@ -159,8 +159,8 @@
               </svg>
             </div>
             <div>
-              <h2 class="text-gray-800 mb-1 font-heading text-h2 font-bold">{{ $t("rating.completed") }}</h2>
-              <p class="text-gray-600 text-sm">
+              <h2 class="mb-1 font-heading text-h2 font-bold text-gray-800">{{ $t("rating.completed") }}</h2>
+              <p class="text-sm text-gray-600">
                 <span
                   v-html="sanitizeHtml($t('localteam.register.completed.body', { ':name': selectedArea.name }))"
                 ></span>
@@ -195,9 +195,9 @@
         </div>
 
         <!-- Case 2: Localteam exists and the current rating has been started -->
-        <div v-else-if="ratingState === 'in-progress'" class="rounded-sm bg-white p-4 shadow-list sm:p-8">
+        <div v-else-if="ratingState === 'in-progress'" class="rounded-xs bg-white p-4 shadow-list sm:p-8">
           <div class="mb-5 flex items-start gap-3 sm:gap-4">
-            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-yellow-100">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-100">
               <svg class="h-5 w-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
@@ -208,10 +208,10 @@
               </svg>
             </div>
             <div>
-              <h2 class="text-gray-800 mb-1 font-heading text-h2 font-bold">
+              <h2 class="mb-1 font-heading text-h2 font-bold text-gray-800">
                 {{ $t("localteam.active_rating_in_progress") }}
               </h2>
-              <p class="text-gray-600 text-sm">
+              <p class="text-sm text-gray-600">
                 <span
                   v-html="sanitizeHtml($t('localteam.register.in_progress.body', { ':name': selectedArea.name }))"
                 ></span>
@@ -238,10 +238,10 @@
         </div>
 
         <!-- Case 3: Localteam exists, but the current rating has not been started -->
-        <div v-else-if="ratingState === 'not-started'" class="rounded-sm bg-white p-4 shadow-list sm:p-8">
+        <div v-else-if="ratingState === 'not-started'" class="rounded-xs bg-white p-4 shadow-list sm:p-8">
           <div class="mb-5 flex items-start gap-3 sm:gap-4">
-            <div class="bg-gray-100 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-              <svg class="text-gray-600 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100">
+              <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -251,10 +251,10 @@
               </svg>
             </div>
             <div>
-              <h2 class="text-gray-800 mb-1 font-heading text-h2 font-bold">
+              <h2 class="mb-1 font-heading text-h2 font-bold text-gray-800">
                 {{ $t("localteam.active_rating_not_started") }}
               </h2>
-              <p class="text-gray-600 text-sm">
+              <p class="text-sm text-gray-600">
                 <span
                   v-html="sanitizeHtml($t('localteam.register.not_started.body', { ':name': selectedArea.name }))"
                 ></span>

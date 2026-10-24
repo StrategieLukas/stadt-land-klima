@@ -21,16 +21,16 @@
       </div>
     </header>
 
-    <div v-if="pending" class="border-gray-100 text-gray-500 rounded-lg border bg-white p-6 shadow-sm">
+    <div v-if="pending" class="rounded-lg border border-gray-100 bg-white p-6 text-gray-500 shadow-xs">
       {{ $t("generic.loading") }}
     </div>
 
-    <div v-else-if="hasLoadError" class="rounded-lg border border-red/20 bg-red/5 p-6 text-red shadow-sm">
+    <div v-else-if="hasLoadError" class="rounded-lg border border-red/20 bg-red/5 p-6 text-red shadow-xs">
       {{ $t("tools.loading_error") }}
     </div>
 
     <template v-else>
-      <div class="mb-6 rounded-lg border border-stats-light bg-stats-light/40 p-3 shadow-sm">
+      <div class="mb-6 rounded-lg border border-stats-light bg-stats-light/40 p-3 shadow-xs">
         <div class="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -61,13 +61,13 @@
         </div>
       </div>
 
-      <p class="text-gray-500 mb-4 text-sm">
+      <p class="mb-4 text-sm text-gray-500">
         {{ $t("tools.results_count", { ":count": filteredTools.length }) }}
       </p>
 
       <div
         v-if="filteredTools.length === 0"
-        class="border-gray-100 text-gray-500 rounded-lg border bg-white p-6 shadow-sm"
+        class="rounded-lg border border-gray-100 bg-white p-6 text-gray-500 shadow-xs"
       >
         {{ $t("tools.empty") }}
       </div>
@@ -76,13 +76,13 @@
         <article
           v-for="tool in filteredTools"
           :key="tool.id"
-          class="border-gray-100 card overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md"
+          class="card overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xs transition-shadow hover:shadow-md"
         >
           <a
             :href="tool.link"
             target="_blank"
             rel="noopener noreferrer"
-            class="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-blue"
+            class="group block focus-visible:ring-2 focus-visible:ring-light-blue focus-visible:outline-hidden"
             :aria-label="$t('tools.open_tool')"
           >
             <div class="relative h-44 overflow-hidden bg-stats-light">
@@ -98,7 +98,7 @@
               />
               <div
                 v-else
-                class="flex h-full items-center justify-center bg-gradient-to-br from-stats-light via-white to-ranking-light"
+                class="flex h-full items-center justify-center bg-linear-to-br from-stats-light via-white to-ranking-light"
               >
                 <svg
                   class="h-16 w-16 text-stats-dark/25"
@@ -117,13 +117,13 @@
                 </svg>
               </div>
               <span
-                class="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-stats-dark shadow-sm"
+                class="absolute top-3 left-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-stats-dark shadow-xs"
               >
                 {{ categoryLabel(tool) }}
               </span>
               <span
                 v-if="tool.image_credits"
-                class="absolute bottom-2 right-2 max-w-[80%] truncate rounded bg-black/60 px-2 py-1 text-[0.65rem] text-white"
+                class="absolute right-2 bottom-2 max-w-[80%] truncate rounded-sm bg-black/60 px-2 py-1 text-[0.65rem] text-white"
               >
                 {{ tool.image_credits }}
               </span>
@@ -132,13 +132,13 @@
 
           <div class="card-body gap-3 p-5">
             <div>
-              <h2 class="text-xl font-bold leading-snug text-gray">{{ tool.title }}</h2>
-              <p v-if="tool.vendor" class="mt-1 text-xs font-semibold uppercase tracking-wide text-mid-gray">
+              <h2 class="text-xl leading-snug font-bold text-gray">{{ tool.title }}</h2>
+              <p v-if="tool.vendor" class="mt-1 text-xs font-semibold tracking-wide text-mid-gray uppercase">
                 {{ $t("tools.vendor_label") }}: {{ tool.vendor }}
               </p>
             </div>
 
-            <p class="text-gray-600 text-sm leading-relaxed">{{ tool.description }}</p>
+            <p class="text-sm leading-relaxed text-gray-600">{{ tool.description }}</p>
 
             <div class="mt-auto flex items-center justify-between gap-3 pt-2">
               <span class="min-w-0 truncate text-xs text-mid-gray">{{ linkHost(tool.link) }}</span>
@@ -146,7 +146,7 @@
                 :href="tool.link"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="btn btn-sm rounded-full border-stats-dark bg-stats-dark px-4 text-white hover:border-light-blue hover:bg-light-blue"
+                class="btn rounded-full border-stats-dark bg-stats-dark px-4 text-white btn-sm hover:border-light-blue hover:bg-light-blue"
               >
                 {{ $t("tools.open_tool") }}
               </a>

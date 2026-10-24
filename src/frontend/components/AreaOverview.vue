@@ -8,12 +8,12 @@
   <div :style="{ height: mapHeight }" class="flex flex-col overflow-hidden">
     <div class="flex min-h-0 flex-1 flex-col xl:grid xl:grid-cols-[1fr_320px]">
       <!-- ── SVG map ─────────────────────────────────────────────────────────── -->
-      <div class="bg-gray-50 h-[42vh] min-h-0 p-4 xl:h-full xl:p-6">
-        <div class="border-gray-200 relative h-full overflow-hidden rounded-lg border bg-white">
+      <div class="h-[42vh] min-h-0 bg-gray-50 p-4 xl:h-full xl:p-6">
+        <div class="relative h-full overflow-hidden rounded-lg border border-gray-200 bg-white">
           <!-- Back button (Germany page when drilled into a state) -->
           <button
             v-if="selectedState && isGermany"
-            class="text-gray-700 btn btn-sm absolute left-3 top-3 z-20 h-9 min-h-0 border-white/80 bg-white/95 px-3 text-xs font-semibold shadow-sm hover:border-[#006e94]/30 hover:bg-white hover:text-[#006e94]"
+            class="btn absolute top-3 left-3 z-20 h-9 min-h-0 border-white/80 bg-white/95 px-3 text-xs font-semibold text-gray-700 shadow-xs btn-sm hover:border-[#006e94]/30 hover:bg-white hover:text-[#006e94]"
             @click="exitStateView()"
           >
             <Icon icon="mdi:arrow-left" class="h-4 w-4" />
@@ -23,7 +23,7 @@
           <!-- Municipality loading indicator -->
           <div
             v-if="municipalitiesLoading"
-            class="text-gray-500 pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm"
+            class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm text-gray-500"
           >
             <SlkFlowerSpinner :size="24" class="mr-2" />
             <span>Kommunen werden geladen...</span>
@@ -34,7 +34,7 @@
             v-if="!selectedState && svgStatePaths.length"
             viewBox="0 0 560 560"
             xmlns="http://www.w3.org/2000/svg"
-            class="relative z-0 h-full w-full drop-shadow-sm"
+            class="relative z-0 h-full w-full drop-shadow-xs"
           >
             <!--
             paint-order: stroke fill — fill paints over the inner half of the stroke,
@@ -113,17 +113,17 @@
           <!-- Zoom controls -->
           <div
             v-if="selectedState && !municipalitiesLoading"
-            class="absolute right-3 top-3 z-20 flex flex-col overflow-hidden rounded-lg border border-white/80 bg-white/95 shadow-sm"
+            class="absolute top-3 right-3 z-20 flex flex-col overflow-hidden rounded-lg border border-white/80 bg-white/95 shadow-xs"
           >
             <button
-              class="text-gray-700 btn btn-ghost btn-sm h-9 min-h-0 w-9 rounded-none px-0 hover:bg-[#e6f1f5] hover:text-[#006e94]"
+              class="btn h-9 min-h-0 w-9 rounded-none btn-ghost px-0 text-gray-700 btn-sm hover:bg-[#e6f1f5] hover:text-[#006e94]"
               aria-label="Karte vergrößern"
               @click="zoomIn()"
             >
               <Icon icon="mdi:plus" class="h-5 w-5" />
             </button>
             <button
-              class="border-gray-100 text-gray-700 btn btn-ghost btn-sm h-9 min-h-0 w-9 rounded-none border-t px-0 hover:bg-[#e6f1f5] hover:text-[#006e94] disabled:opacity-40"
+              class="btn h-9 min-h-0 w-9 rounded-none border-t border-gray-100 btn-ghost px-0 text-gray-700 btn-sm hover:bg-[#e6f1f5] hover:text-[#006e94] disabled:opacity-40"
               :disabled="zoom <= MIN_ZOOM + 0.001"
               aria-label="Karte verkleinern"
               @click="zoomOut()"
@@ -131,7 +131,7 @@
               <Icon icon="mdi:minus" class="h-5 w-5" />
             </button>
             <button
-              class="border-gray-100 text-gray-700 btn btn-ghost btn-sm h-9 min-h-0 w-9 rounded-none border-t px-0 hover:bg-[#e6f1f5] hover:text-[#006e94]"
+              class="btn h-9 min-h-0 w-9 rounded-none border-t border-gray-100 btn-ghost px-0 text-gray-700 btn-sm hover:bg-[#e6f1f5] hover:text-[#006e94]"
               aria-label="Karte zurücksetzen"
               @click="resetMapView()"
             >
@@ -141,11 +141,11 @@
 
           <div
             v-if="selectedState && !municipalitiesLoading"
-            class="text-gray-500 absolute bottom-3 right-3 z-20 hidden items-center gap-2 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs shadow-sm sm:flex"
+            class="absolute right-3 bottom-3 z-20 hidden items-center gap-2 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs text-gray-500 shadow-xs sm:flex"
           >
             <Icon icon="mdi:magnify-plus-outline" class="h-4 w-4 text-[#006e94]" />
-            <span class="text-gray-700 font-semibold tabular-nums">{{ Math.round(zoom * 100) }}%</span>
-            <span class="bg-gray-200 h-3 w-px" />
+            <span class="font-semibold text-gray-700 tabular-nums">{{ Math.round(zoom * 100) }}%</span>
+            <span class="h-3 w-px bg-gray-200" />
             <span>Beschriftung ab {{ currentLabelThreshold.toLocaleString("de-DE") }} Einw.</span>
           </div>
 
@@ -211,7 +211,7 @@
 
           <div
             v-if="selectedState && !municipalitiesLoading && !selectedStateSvgPath && !svgMunicipalityDots.length"
-            class="text-gray-400 absolute inset-0 flex items-center justify-center text-sm"
+            class="absolute inset-0 flex items-center justify-center text-sm text-gray-400"
           >
             Keine Kartendaten verfügbar.
           </div>
@@ -221,17 +221,17 @@
             v-if="hoveredItem && !municipalitiesLoading"
             class="pointer-events-none absolute bottom-4 left-4 z-20 min-w-[180px] rounded-xl bg-white/95 px-4 py-3 shadow-lg ring-1 ring-black/5"
           >
-            <div class="text-gray-900 text-sm font-semibold leading-snug">
-              <span v-if="hoveredItem.prefix" class="text-gray-400 mr-1 text-xs font-normal">{{
+            <div class="text-sm leading-snug font-semibold text-gray-900">
+              <span v-if="hoveredItem.prefix" class="mr-1 text-xs font-normal text-gray-400">{{
                 hoveredItem.prefix
               }}</span
               >{{ hoveredItem.name }}
             </div>
             <div v-if="hoveredItem.statusLabel" class="mt-1 flex items-center gap-1.5">
               <span class="h-2 w-2 flex-none rounded-full" :style="`background:${hoveredItem.color}`" />
-              <span class="text-gray-600 text-xs">{{ hoveredItem.statusLabel }}</span>
+              <span class="text-xs text-gray-600">{{ hoveredItem.statusLabel }}</span>
             </div>
-            <div v-if="hoveredItem.population" class="text-gray-400 mt-0.5 text-xs">
+            <div v-if="hoveredItem.population" class="mt-0.5 text-xs text-gray-400">
               {{ hoveredItem.population.toLocaleString("de-DE") }} Einwohner
             </div>
             <div
@@ -246,27 +246,27 @@
       </div>
 
       <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
-      <div class="border-gray-100 flex flex-col overflow-hidden border-b border-r border-t xl:border-l xl:border-t-0">
+      <div class="flex flex-col overflow-hidden border-t border-r border-b border-gray-100 xl:border-t-0 xl:border-l">
         <!-- Compact header: name + key stats -->
-        <div class="border-gray-100 flex-none border-b px-4 py-4 xl:px-6">
-          <p class="mb-0.5 text-xs font-bold uppercase tracking-widest text-[#006e94]">
+        <div class="flex-none border-b border-gray-100 px-4 py-4 xl:px-6">
+          <p class="mb-0.5 text-xs font-bold tracking-widest text-[#006e94] uppercase">
             {{ selectedState ? "Bundesland" : "Bundesrepublik" }}
           </p>
-          <h1 class="text-gray-900 text-xl font-black leading-tight">
+          <h1 class="text-xl leading-tight font-black text-gray-900">
             {{ selectedState ? selectedState.name : area.name }}
           </h1>
           <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5">
             <div v-if="!selectedState && states.length" class="text-sm">
-              <span class="text-gray-800 font-bold tabular-nums">{{ states.length }}</span>
-              <span class="text-gray-400 ml-1 text-xs">Bundesländer</span>
+              <span class="font-bold text-gray-800 tabular-nums">{{ states.length }}</span>
+              <span class="ml-1 text-xs text-gray-400">Bundesländer</span>
             </div>
             <div v-if="sidebarPopulation" class="text-sm">
-              <span class="text-gray-800 font-bold tabular-nums">{{ sidebarPopulation.toLocaleString("de-DE") }}</span>
-              <span class="text-gray-400 ml-1 text-xs">Einwohner</span>
+              <span class="font-bold text-gray-800 tabular-nums">{{ sidebarPopulation.toLocaleString("de-DE") }}</span>
+              <span class="ml-1 text-xs text-gray-400">Einwohner</span>
             </div>
             <div v-if="selectedState && !municipalitiesLoading && municipalities.length" class="text-sm">
-              <span class="text-gray-800 font-bold tabular-nums">{{ visibleMunicipalities.length }}</span>
-              <span class="text-gray-400 ml-1 text-xs">sichtbare Kommunen</span>
+              <span class="font-bold text-gray-800 tabular-nums">{{ visibleMunicipalities.length }}</span>
+              <span class="ml-1 text-xs text-gray-400">sichtbare Kommunen</span>
             </div>
           </div>
         </div>
@@ -275,16 +275,16 @@
         <div class="flex-1 overflow-y-auto">
           <!-- Germany view: states list -->
           <template v-if="!selectedState">
-            <div class="divide-gray-50 divide-y">
+            <div class="divide-y divide-gray-50">
               <button
                 v-for="s in sortedStates"
                 :key="s.ars"
-                class="hover:bg-gray-50 group flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors xl:px-6 xl:py-2"
+                class="group flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-gray-50 xl:px-6 xl:py-2"
                 @click="selectState(s)"
                 @mouseenter="!isLeavingOverview && (hoveredItem = s)"
                 @mouseleave="hoveredItem = null"
               >
-                <span class="text-gray-800 text-sm font-semibold transition-colors group-hover:text-[#006e94]">
+                <span class="text-sm font-semibold text-gray-800 transition-colors group-hover:text-[#006e94]">
                   {{ s.name }}
                 </span>
               </button>
@@ -293,37 +293,37 @@
 
           <!-- State view: municipalities list -->
           <template v-else>
-            <div v-if="municipalitiesLoading" class="text-gray-400 animate-pulse p-6 text-sm">
+            <div v-if="municipalitiesLoading" class="animate-pulse p-6 text-sm text-gray-400">
               <div class="mb-4 flex items-center gap-2">
                 <SlkFlowerSpinner :size="20" />
                 <span>Kommunen werden geladen…</span>
               </div>
               <div class="space-y-3">
                 <div v-for="i in 10" :key="i" class="grid grid-cols-[4.5rem_minmax(0,1fr)_1rem] items-center gap-3">
-                  <div class="bg-gray-100 h-3 rounded" />
-                  <div class="bg-gray-100 h-4 rounded" :style="{ width: `${64 + (i % 4) * 8}%` }" />
-                  <div class="bg-gray-100 h-3 w-3 rounded-full" />
+                  <div class="h-3 rounded-sm bg-gray-100" />
+                  <div class="h-4 rounded-sm bg-gray-100" :style="{ width: `${64 + (i % 4) * 8}%` }" />
+                  <div class="h-3 w-3 rounded-full bg-gray-100" />
                 </div>
               </div>
             </div>
             <template v-else>
-              <div class="border-gray-100 border-b px-4 py-3 xl:px-6">
-                <h2 class="text-gray-500 text-xs font-bold uppercase tracking-wide">Bewertbare Kommunen</h2>
+              <div class="border-b border-gray-100 px-4 py-3 xl:px-6">
+                <h2 class="text-xs font-bold tracking-wide text-gray-500 uppercase">Bewertbare Kommunen</h2>
               </div>
-              <div class="divide-gray-50 divide-y">
+              <div class="divide-y divide-gray-50">
                 <NuxtLink
                   v-for="m in visibleMunicipalities"
                   :key="m.ars"
                   :to="`/data/${areaToSlug(m.prefix, m.name)}`"
-                  class="hover:bg-gray-50 group grid grid-cols-[4.5rem_minmax(0,1fr)_1rem] items-center gap-3 px-4 py-3 transition-colors xl:px-6"
+                  class="group grid grid-cols-[4.5rem_minmax(0,1fr)_1rem] items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50 xl:px-6"
                   :class="dataRouteLoading ? 'pointer-events-none opacity-60' : ''"
                   @click="startMunicipalityNavigation(m)"
                   @mouseenter="hoveredItem = municipalityHoverObj(m)"
                   @mouseleave="hoveredItem = null"
                 >
-                  <span class="text-gray-400 truncate text-right text-xs">{{ m.prefix }}</span>
+                  <span class="truncate text-right text-xs text-gray-400">{{ m.prefix }}</span>
                   <span
-                    class="text-gray-800 min-w-0 truncate text-left text-sm font-semibold transition-colors group-hover:text-[#006e94]"
+                    class="min-w-0 truncate text-left text-sm font-semibold text-gray-800 transition-colors group-hover:text-[#006e94]"
                   >
                     {{ m.name }}
                   </span>

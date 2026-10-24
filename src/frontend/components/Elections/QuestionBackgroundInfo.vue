@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="html"
-    class="question-background has-long-links prose prose-sm max-w-none hyphens-auto break-words text-gray"
+    class="question-background has-long-links prose prose-sm max-w-none wrap-break-word hyphens-auto text-gray"
     :class="{
       'rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4': appearance === 'box',
       'text-sm italic': appearance === 'italic',

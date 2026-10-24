@@ -1,9 +1,9 @@
-import { loginWebsite, newContext } from "./lib/browser.js";
+import { launchBrowser, loginWebsite, newContext } from "./lib/browser.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { chromium, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { parseEnvFile } from "./lib/config.js";
 import { createAdminClient } from "./lib/directus.js";
 import { openBlokkliField, saveBlokkliField } from "./lib/blokkli.js";
@@ -21,7 +21,7 @@ test("Blökkli edits survive preview, failed publish, successful publish and rel
     status: "published",
   });
   const slug = entity.slug;
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchBrowser(true);
   try {
     await admin.createItem("blocks", {
       uuid: randomUUID(),
@@ -149,7 +149,7 @@ test(
       slug: name,
       status: "published",
     });
-    const browser = await chromium.launch({ headless: true });
+    const browser = await launchBrowser(true);
     let fileId: string | undefined;
     let libraryId: string | number | undefined;
     const nested = (bundle: string, props: Record<string, unknown>, options: Record<string, unknown> = {}) => ({

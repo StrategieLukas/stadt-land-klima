@@ -322,12 +322,12 @@ const layoutClass = computed(() => {
     },
     "columns-1-2": {
       responsive:
-        "grid grid-cols-1 md:grid-cols-3 gap-6 [&>*:first-child]:md:col-span-1 [&>*:last-child]:md:col-span-2",
+        "grid grid-cols-1 md:grid-cols-3 gap-6 md:[&>*:first-child]:col-span-1 md:[&>*:last-child]:col-span-2",
       fixed: "grid grid-cols-3 gap-6 [&>*:first-child]:col-span-1 [&>*:last-child]:col-span-2",
     },
     "columns-2-1": {
       responsive:
-        "grid grid-cols-1 md:grid-cols-3 gap-6 [&>*:first-child]:md:col-span-2 [&>*:last-child]:md:col-span-1",
+        "grid grid-cols-1 md:grid-cols-3 gap-6 md:[&>*:first-child]:col-span-2 md:[&>*:last-child]:col-span-1",
       fixed: "grid grid-cols-3 gap-6 [&>*:first-child]:col-span-2 [&>*:last-child]:col-span-1",
     },
   };
@@ -381,7 +381,7 @@ const borderClass = computed(() => {
 const roundedClass = computed(() => {
   const map: Record<string, string> = {
     none: "",
-    small: "rounded",
+    small: "rounded-sm",
     medium: "rounded-lg",
     large: "rounded-2xl",
     full: "rounded-full",
@@ -392,7 +392,7 @@ const roundedClass = computed(() => {
 const shadowClass = computed(() => {
   const map: Record<string, string> = {
     none: "",
-    small: "shadow-sm",
+    small: "shadow-xs",
     medium: "shadow-md",
     large: "shadow-xl",
   };

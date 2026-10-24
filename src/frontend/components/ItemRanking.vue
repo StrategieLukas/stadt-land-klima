@@ -1,13 +1,13 @@
 <template>
   <div
-    class="relative mb-3 flex items-stretch gap-4 bg-opacity-10 py-5 pl-10 pr-4"
+    class="relative mb-3 flex items-stretch gap-4 py-5 pr-4 pl-10"
     :class="[isRanking ? 'shadow-list' : '', colorClass.bg]"
   >
     <div class="relative h-full pt-6">
       <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
       <div
-        class="absolute top-0 w-full whitespace-nowrap break-keep text-center font-heading text-3xl font-bold text-black"
+        class="absolute top-0 w-full text-center font-heading text-3xl font-bold break-keep whitespace-nowrap text-black"
       >
         {{ (municipalityScore.rank ?? 0) > 0 ? municipalityScore.rank : "?" }}
       </div>
@@ -66,11 +66,11 @@ const municipality = props.municipalityScore.municipality;
 const scoreTotalRounded = Math.round(Number(props.municipalityScore.score_total) * 10) / 10;
 
 const colors = {
-  0: { bg: "bg-rating-0" },
-  20: { bg: "bg-rating-1" },
-  40: { bg: "bg-rating-2" },
-  60: { bg: "bg-rating-3" },
-  80: { bg: "bg-rating-4" },
+  0: { bg: "bg-rating-0/10" },
+  20: { bg: "bg-rating-1/10" },
+  40: { bg: "bg-rating-2/10" },
+  60: { bg: "bg-rating-3/10" },
+  80: { bg: "bg-rating-4/10" },
 };
 
 const colorClass = computed(() => {

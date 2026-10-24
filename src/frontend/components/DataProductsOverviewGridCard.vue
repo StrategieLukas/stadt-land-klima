@@ -2,13 +2,13 @@
   <button
     ref="cardRef"
     type="button"
-    class="border-gray-200 group flex h-[250px] flex-col overflow-hidden rounded-lg border bg-white text-left shadow-sm transition-all hover:border-stats-dark hover:shadow-list focus:outline-none focus-visible:ring-2 focus-visible:ring-stats-dark xl:h-[260px]"
+    class="group flex h-[250px] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-left shadow-xs transition-all hover:border-stats-dark hover:shadow-list focus:outline-hidden focus-visible:ring-2 focus-visible:ring-stats-dark xl:h-[260px]"
     :aria-expanded="showKpi ? undefined : expanded"
     :aria-controls="!showKpi && expanded ? 'data-collection-detail' : undefined"
     :class="{ 'ring-2 ring-stats-dark': expanded }"
     @click="$emit('select')"
   >
-    <div class="bg-gray-100 relative min-h-0 flex-1 overflow-hidden">
+    <div class="relative min-h-0 flex-1 overflow-hidden bg-gray-100">
       <img
         v-if="coverImageUrl"
         :src="coverImageUrl"
@@ -16,10 +16,10 @@
         class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         loading="lazy"
       />
-      <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/10" />
+      <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-black/10" />
       <span
         v-if="coverImageUrl && coverImageAttribution"
-        class="pointer-events-none absolute right-1.5 top-1.5 z-[2] max-w-[45%] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+        class="pointer-events-none absolute top-1.5 right-1.5 z-2 max-w-[45%] truncate rounded-sm bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
         :title="coverImageAttribution"
       >
         {{ coverImageAttribution }}
@@ -29,20 +29,23 @@
         class="relative z-0 flex h-full w-full items-center justify-center"
         :style="fallbackBackground"
       >
-        <Icon :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-line'" class="h-10 w-10 text-white/75 drop-shadow" />
+        <Icon
+          :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-line'"
+          class="h-10 w-10 text-white/75 drop-shadow-sm"
+        />
       </div>
 
-      <div class="absolute inset-x-0 top-0 z-[1] flex items-start justify-between gap-2 p-3">
+      <div class="absolute inset-x-0 top-0 z-1 flex items-start justify-between gap-2 p-3">
         <span
-          class="inline-flex max-w-[70%] items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
+          class="inline-flex max-w-[70%] items-center rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase shadow-xs"
           :style="{ backgroundColor: color }"
         >
           {{ sector }}
         </span>
       </div>
 
-      <div class="absolute inset-x-0 bottom-0 z-[1] px-3 pb-3">
-        <h3 class="line-clamp-2 text-sm font-black leading-tight text-white drop-shadow sm:text-base">
+      <div class="absolute inset-x-0 bottom-0 z-1 px-3 pb-3">
+        <h3 class="line-clamp-2 text-sm leading-tight font-black text-white drop-shadow-sm sm:text-base">
           {{ title }}
         </h3>
       </div>
@@ -50,12 +53,12 @@
 
     <div
       v-if="showKpi"
-      class="border-gray-100 flex-none border-t p-3 transition-colors"
+      class="flex-none border-t border-gray-100 p-3 transition-colors"
       :style="{ backgroundColor: kpiTintBackground }"
     >
       <div>
         <div class="mb-1.5 flex items-center justify-between gap-2">
-          <span class="text-gray-400 truncate text-[10px] font-semibold uppercase tracking-wide">
+          <span class="truncate text-[10px] font-semibold tracking-wide text-gray-400 uppercase">
             {{ kpiLabel || "Kennwert" }}
           </span>
           <span class="text-[11px] font-bold tabular-nums" :style="{ color: kpiCategoryColor }" :title="kpiTooltip">
@@ -69,7 +72,7 @@
           :unit="unitLabel"
           :is-percentage="kpi.is_percentage"
         />
-        <div v-else class="bg-gray-100 h-7 rounded-full" />
+        <div v-else class="h-7 rounded-full bg-gray-100" />
       </div>
     </div>
   </button>

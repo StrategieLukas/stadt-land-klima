@@ -19,10 +19,13 @@
       </svg>
     </button>
 
-    <div v-if="open" class="slk-filter-menu absolute z-50 mt-1 min-w-full max-w-full overflow-hidden rounded shadow-lg">
+    <div
+      v-if="open"
+      class="slk-filter-menu absolute z-50 mt-1 max-w-full min-w-full overflow-hidden rounded-sm shadow-lg"
+    >
       <button
         type="button"
-        class="slk-filter-menu-item w-full whitespace-normal break-words px-4 py-2 text-left text-sm transition-colors"
+        class="slk-filter-menu-item w-full px-4 py-2 text-left text-sm wrap-break-word whitespace-normal transition-colors"
         :class="modelValue === null ? 'slk-filter-menu-item--active' : ''"
         :style="customColorStyle"
         @click="select(null)"
@@ -33,7 +36,7 @@
         v-for="opt in options"
         :key="opt.value"
         type="button"
-        class="slk-filter-menu-item w-full whitespace-normal break-words px-4 py-2 text-left text-sm transition-colors"
+        class="slk-filter-menu-item w-full px-4 py-2 text-left text-sm wrap-break-word whitespace-normal transition-colors"
         :class="modelValue === opt.value ? 'slk-filter-menu-item--active' : ''"
         :style="customColorStyle"
         @click="select(opt.value)"
@@ -53,7 +56,7 @@ const props = defineProps({
   label: { type: String, required: true }, // default/reset text e.g. "Alle Bundesländer"
   options: { type: Array as PropType<{ label: string; value: string }[]>, required: true }, // [{ label: String, value: String }]
   modelValue: { type: String as PropType<string | null | undefined>, default: null },
-  width: { type: String as PropType<string | undefined>, default: "min-w-[10rem]" }, // fixed width to prevent layout shift
+  width: { type: String as PropType<string | undefined>, default: "min-w-40" }, // fixed width to prevent layout shift
   activeColor: { type: String as PropType<string | undefined>, default: "#16BAE7" }, // active state color
   dark: { type: Boolean as PropType<boolean | undefined>, default: false }, // kept for existing callers
 });

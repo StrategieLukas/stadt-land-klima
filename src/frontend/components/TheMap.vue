@@ -1,5 +1,5 @@
 <template>
-  <div class="left-4 top-4 z-[1000] rounded bg-white p-2 shadow">
+  <div class="top-4 left-4 z-1000 rounded-sm bg-white p-2 shadow-sm">
     <label class="flex items-center gap-2 text-sm font-medium">
       <input v-model="showMunicipalitiesWithUnfinishedRating" type="checkbox" class="toggle toggle-sm" />
       {{ $t("map.showUnfinishedRatings") }}

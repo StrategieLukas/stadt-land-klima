@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="palette-fade">
-      <div v-if="isOpen" class="pointer-events-none fixed inset-0 z-[10004] font-sans">
+      <div v-if="isOpen" class="pointer-events-none fixed inset-0 z-10004 font-sans">
         <!-- Dark backdrop — starts below header in embedded mode so the white bar stays unobscured -->
         <div
           class="slk-modal-backdrop pointer-events-auto absolute inset-x-0 bottom-0 bg-black/50"
@@ -20,7 +20,7 @@
         >
           <div
             class="palette-panel flex flex-col overflow-hidden"
-            :class="embeddedInput ? 'border-gray-200 rounded-2xl border shadow-xl' : 'rounded-2xl shadow-2xl'"
+            :class="embeddedInput ? 'rounded-2xl border border-gray-200 shadow-xl' : 'rounded-2xl shadow-2xl'"
             style="max-height: 76vh"
             role="dialog"
             aria-modal="true"
@@ -31,7 +31,7 @@
             <div v-if="!embeddedInput" class="palette-input-row flex items-center gap-3 border-b px-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="text-gray-400 h-5 w-5 flex-shrink-0"
+                class="h-5 w-5 shrink-0 text-gray-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -46,17 +46,17 @@
               <input
                 ref="inputRef"
                 v-model="query"
-                class="placeholder-gray-400 flex-1 py-4 text-base outline-none"
+                class="flex-1 py-4 text-base placeholder-gray-400 outline-hidden"
                 :placeholder="$t('search.palette.placeholder')"
                 @keydown.up.prevent="moveFocus(-1)"
                 @keydown.down.prevent="moveFocus(1)"
                 @keydown.enter.prevent="navigateToFocused"
                 @keydown.escape="close"
               />
-              <kbd class="text-gray-400 bg-gray-100 hidden rounded px-2 py-1 text-xs sm:block">ESC</kbd>
+              <kbd class="hidden rounded-sm bg-gray-100 px-2 py-1 text-xs text-gray-400 sm:block">ESC</kbd>
               <button
                 type="button"
-                class="text-gray-400 hover:text-gray-600 flex-shrink-0 p-1 sm:hidden"
+                class="shrink-0 p-1 text-gray-400 hover:text-gray-600 sm:hidden"
                 :aria-label="$t('generic.close')"
                 @click="close"
               >
@@ -76,18 +76,18 @@
             <!-- Results -->
             <div class="palette-results-scroll flex-1 overflow-y-auto">
               <!-- Loading -->
-              <div v-if="isLoading" class="text-gray-400 flex items-center justify-center gap-2 py-10 text-sm">
+              <div v-if="isLoading" class="flex items-center justify-center gap-2 py-10 text-sm text-gray-400">
                 <SlkFlowerSpinner :size="20" />
                 {{ $t("generic.search") }}
               </div>
 
               <!-- No query yet -->
-              <div v-else-if="!query.trim()" class="text-gray-400 py-10 text-center text-sm">
+              <div v-else-if="!query.trim()" class="py-10 text-center text-sm text-gray-400">
                 {{ $t("search.prompt") }}
               </div>
 
               <!-- No results -->
-              <div v-else-if="!flatResults.length" class="text-gray-400 py-10 text-center text-sm">
+              <div v-else-if="!flatResults.length" class="py-10 text-center text-sm text-gray-400">
                 {{ $t("search.no_results_for", { ":query": query }) }}
               </div>
 
@@ -97,7 +97,7 @@
                   <!-- Group header — only shown when the group has results -->
                   <li
                     v-if="group.results.length"
-                    class="palette-group-header pointer-events-none sticky top-0 z-10 select-none px-4 py-1.5 text-xs font-semibold uppercase tracking-wide"
+                    class="palette-group-header pointer-events-none sticky top-0 z-10 px-4 py-1.5 text-xs font-semibold tracking-wide uppercase select-none"
                   >
                     {{ group.label }}
                   </li>
@@ -120,7 +120,7 @@
                       <div class="flex w-full items-start gap-3">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="text-gray-400 mt-0.5 h-4 w-4 flex-shrink-0"
+                          class="mt-0.5 h-4 w-4 shrink-0 text-gray-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -133,15 +133,15 @@
                           />
                         </svg>
                         <div class="min-w-0 flex-1">
-                          <div class="text-gray-900 font-semibold leading-tight" v-html="sanitizeHtml(result.title)" />
+                          <div class="leading-tight font-semibold text-gray-900" v-html="sanitizeHtml(result.title)" />
                           <div
                             v-if="result.excerpt"
-                            class="text-gray-500 mt-0.5 line-clamp-2 text-xs"
+                            class="mt-0.5 line-clamp-2 text-xs text-gray-500"
                             v-html="sanitizeHtml(result.excerpt)"
                           />
                         </div>
                         <span
-                          class="palette-content-badge bg-gray-100 text-gray-600 ml-2 inline-flex flex-shrink-0 items-center gap-1 self-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs"
+                          class="palette-content-badge ml-2 inline-flex shrink-0 items-center gap-1 self-center rounded-full bg-gray-100 px-2 py-0.5 text-xs whitespace-nowrap text-gray-600"
                         >
                           {{ contentTypeLabel(result.type) }}
                           <template v-if="result.meta">
@@ -150,7 +150,7 @@
                               v-if="sectorImages[result.meta as keyof typeof sectorImages]"
                               :src="sectorImages[result.meta as keyof typeof sectorImages]"
                               :title="sectorLabels[result.meta] ?? result.meta"
-                              class="palette-sector-icon h-8 w-8 flex-shrink-0 mix-blend-multiply grayscale invert"
+                              class="palette-sector-icon h-8 w-8 shrink-0 mix-blend-multiply grayscale invert"
                               :alt="sectorLabels[result.meta] ?? result.meta"
                             />
                             <span v-else>{{ result.meta }}</span>
@@ -164,19 +164,19 @@
             </div>
 
             <!-- Footer hint -->
-            <div class="palette-footer text-gray-400 flex items-center gap-4 border-t px-4 py-2 text-xs">
+            <div class="palette-footer flex items-center gap-4 border-t px-4 py-2 text-xs text-gray-400">
               <span class="hidden sm:inline"
-                ><kbd class="bg-gray-100 rounded px-1.5 py-0.5">↑↓</kbd> {{ $t("search.hint.navigate") }}</span
+                ><kbd class="rounded-sm bg-gray-100 px-1.5 py-0.5">↑↓</kbd> {{ $t("search.hint.navigate") }}</span
               >
               <span class="hidden sm:inline"
-                ><kbd class="bg-gray-100 rounded px-1.5 py-0.5">↵</kbd> {{ $t("search.hint.open") }}</span
+                ><kbd class="rounded-sm bg-gray-100 px-1.5 py-0.5">↵</kbd> {{ $t("search.hint.open") }}</span
               >
               <span class="hidden sm:inline"
-                ><kbd class="bg-gray-100 rounded px-1.5 py-0.5">ESC</kbd> {{ $t("search.hint.close") }}</span
+                ><kbd class="rounded-sm bg-gray-100 px-1.5 py-0.5">ESC</kbd> {{ $t("search.hint.close") }}</span
               >
               <button
                 type="button"
-                class="bg-gray-100 text-gray-600 hover:bg-gray-200 ml-auto flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium sm:hidden"
+                class="ml-auto flex items-center gap-1.5 rounded-sm bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 sm:hidden"
                 @click="close"
               >
                 <svg

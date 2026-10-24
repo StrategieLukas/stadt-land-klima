@@ -1,10 +1,10 @@
 <template>
   <div class="flex h-36 flex-col border-2 bg-white p-4 shadow-xl" style="border-color: #339737">
     <div class="flex min-h-0 flex-1 items-center gap-3">
-      <img v-if="avatarSrc" :src="avatarSrc" :alt="name" class="h-12 w-12 flex-shrink-0 rounded-full object-cover" />
+      <img v-if="avatarSrc" :src="avatarSrc" :alt="name" class="h-12 w-12 shrink-0 rounded-full object-cover" />
       <div
         v-else
-        class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full"
+        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
         style="background-color: #339737"
       >
         <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -16,10 +16,10 @@
         </svg>
       </div>
       <div class="min-w-0">
-        <h2 class="font-heading text-base font-bold leading-tight" style="color: #339737">
+        <h2 class="font-heading text-base leading-tight font-bold" style="color: #339737">
           {{ $t("onboarding.title") }}
         </h2>
-        <p class="text-gray-500 mt-0.5 line-clamp-2 text-xs">{{ $t("onboarding.book_appointment.long") }}</p>
+        <p class="mt-0.5 line-clamp-2 text-xs text-gray-500">{{ $t("onboarding.book_appointment.long") }}</p>
       </div>
     </div>
     <button
@@ -35,13 +35,13 @@
     <transition name="fade">
       <div
         v-if="showCal"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+        class="fixed inset-0 z-9999 flex items-center justify-center bg-black/60"
         @click.self="closeCal"
       >
         <!-- Now sized to viewport -->
         <div class="h-[90vh] w-[90vw]"><CalBookingFrame /></div>
 
-        <button class="absolute right-3 top-3 text-2xl text-white" :aria-label="$t('generic.close')" @click="closeCal">
+        <button class="absolute top-3 right-3 text-2xl text-white" :aria-label="$t('generic.close')" @click="closeCal">
           ✕
         </button>
       </div>

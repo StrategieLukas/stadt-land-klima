@@ -1,12 +1,12 @@
 <template>
   <div
-    class="mx-auto w-full min-w-0 max-w-5xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8"
+    class="mx-auto w-full max-w-5xl min-w-0 px-4 py-4 sm:px-6 sm:py-8 lg:px-8"
     :style="`--section-scroll-mt: ${headerHeight + 16}px`"
   >
     <!-- Back link with chevron + sibling navigation -->
     <div class="flex flex-wrap items-center gap-2">
       <NuxtLink :to="measureIndexLocation" class="inline-flex items-center gap-1 font-heading text-h4 text-light-blue">
-        <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
         {{
@@ -20,7 +20,7 @@
         <NuxtLink
           v-if="prevMeasure"
           :to="measureDetailLocation(prevMeasure.slug)"
-          class="inline-flex items-center gap-1 rounded border border-gray/30 px-2 py-0.5 text-xs text-gray transition-colors hover:bg-gray/5"
+          class="inline-flex items-center gap-1 rounded-sm border border-gray/30 px-2 py-0.5 text-xs text-gray transition-colors hover:bg-gray/5"
           :title="`← ${prevMeasure.measure_id}: ${prevMeasure.name}`"
         >
           <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -32,7 +32,7 @@
         <NuxtLink
           v-if="nextMeasure"
           :to="measureDetailLocation(nextMeasure.slug)"
-          class="inline-flex items-center gap-1 rounded border border-gray/30 px-2 py-0.5 text-xs text-gray transition-colors hover:bg-gray/5"
+          class="inline-flex items-center gap-1 rounded-sm border border-gray/30 px-2 py-0.5 text-xs text-gray transition-colors hover:bg-gray/5"
           :title="`${nextMeasure.measure_id}: ${nextMeasure.name} →`"
         >
           {{ nextMeasure.measure_id }}
@@ -48,7 +48,7 @@
       v-if="measureVersions && measureVersions.length > 1"
       class="slk-filter-theme-neutral mt-3 flex flex-wrap items-center gap-2"
     >
-      <span class="text-gray-500 text-xs">{{ $t("measure.version_label") }}</span>
+      <span class="text-xs text-gray-500">{{ $t("measure.version_label") }}</span>
       <NuxtLink
         v-for="mv in measureVersions"
         :key="mv.catalog_version.id"
@@ -63,7 +63,7 @@
     <!-- Mobile section pills – sticky bar matching events/news page design -->
     <nav
       v-if="measure && navItems.length"
-      class="border-gray-100 sticky z-10 -mx-4 mb-4 mt-4 border-b bg-white/90 px-4 backdrop-blur-sm xl:hidden"
+      class="sticky z-10 -mx-4 mt-4 mb-4 border-b border-gray-100 bg-white/90 px-4 backdrop-blur-xs xl:hidden"
       :style="`top: ${pillTop}px`"
     >
       <div
@@ -76,7 +76,7 @@
           :key="item.id"
           :href="`#${item.id}`"
           :class="[
-            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
+            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
             activeSection === item.id
               ? 'bg-[#006e94]/10 font-semibold text-[#006e94]'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
@@ -91,19 +91,19 @@
       <!-- Sticky sidebar (desktop only) -->
       <nav
         v-if="measure && navItems.length"
-        class="sticky hidden w-44 flex-shrink-0 self-start text-sm xl:block"
+        class="sticky hidden w-44 shrink-0 self-start text-sm xl:block"
         :style="`top: ${headerHeight + 12}px`"
       >
-        <p class="text-gray-400 mb-3 text-xs font-bold uppercase tracking-widest">{{ $t("measure.sections.title") }}</p>
+        <p class="mb-3 text-xs font-bold tracking-widest text-gray-400 uppercase">{{ $t("measure.sections.title") }}</p>
         <ul class="space-y-1">
           <li v-for="item in navItems" :key="item.id">
             <a
               :href="`#${item.id}`"
               :class="[
-                'block truncate rounded px-2 py-1 transition-colors',
+                'block truncate rounded-sm px-2 py-1 transition-colors',
                 activeSection === item.id
                   ? 'bg-[#006e94]/5 font-semibold text-[#006e94]'
-                  : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
+                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
               ]"
               >{{ item.label }}</a
             >
@@ -115,9 +115,7 @@
       <div class="min-w-0 flex-1">
         <article v-if="measure" class="mb-8">
           <div class="mb-4 flex flex-wrap items-center gap-3">
-            <span class="flex-shrink-0 rounded-lg bg-gray px-2 py-1 font-mono text-base-100">{{
-              measure.measure_id
-            }}</span>
+            <span class="shrink-0 rounded-lg bg-gray px-2 py-1 font-mono text-base-100">{{ measure.measure_id }}</span>
             <h1 class="font-heading text-h1 font-bold text-gray">{{ measure.name }}</h1>
           </div>
 
@@ -128,7 +126,7 @@
               class="block h-auto w-full"
             />
           </div>
-          <p v-if="measureImageCredits" class="text-gray-500 mb-6 text-center text-xs italic">
+          <p v-if="measureImageCredits" class="mb-6 text-center text-xs text-gray-500 italic">
             {{ measureImageCredits }}
           </p>
 
@@ -154,12 +152,12 @@
         <!-- Loading skeleton while measure is being fetched -->
         <div v-else class="mb-8 animate-pulse space-y-4">
           <div class="flex items-center gap-3">
-            <div class="bg-gray-200 h-8 w-16 rounded-lg"></div>
-            <div class="bg-gray-200 h-8 w-64 rounded"></div>
+            <div class="h-8 w-16 rounded-lg bg-gray-200"></div>
+            <div class="h-8 w-64 rounded-sm bg-gray-200"></div>
           </div>
-          <div class="bg-gray-100 h-4 w-full rounded"></div>
-          <div class="bg-gray-100 h-4 w-5/6 rounded"></div>
-          <div class="bg-gray-100 h-4 w-4/6 rounded"></div>
+          <div class="h-4 w-full rounded-sm bg-gray-100"></div>
+          <div class="h-4 w-5/6 rounded-sm bg-gray-100"></div>
+          <div class="h-4 w-4/6 rounded-sm bg-gray-100"></div>
         </div>
 
         <!-- Feedback section -->
@@ -168,19 +166,19 @@
             <img
               src="~/assets/icons/icon_hint.svg"
               alt=""
-              class="slk-theme-icon--light mt-0.5 h-6 w-6 flex-shrink-0 opacity-50"
+              class="slk-theme-icon--light mt-0.5 h-6 w-6 shrink-0 opacity-50"
             />
             <img
               src="~/assets/icons/icon_hint-dark.svg"
               alt=""
-              class="slk-theme-icon--dark mt-0.5 h-6 w-6 flex-shrink-0 opacity-50"
+              class="slk-theme-icon--dark mt-0.5 h-6 w-6 shrink-0 opacity-50"
             />
             <div>
               <h2 class="mb-4 font-heading text-h3 font-bold text-gray">{{ $t("measure.feedback.title") }}</h2>
-              <p class="text-gray-500 mb-3 text-sm">{{ $t("measure.feedback.description") }}</p>
+              <p class="mb-3 text-sm text-gray-500">{{ $t("measure.feedback.description") }}</p>
               <NuxtLink
                 :to="feedbackLocation"
-                class="inline-flex items-center gap-2 rounded bg-light-blue px-4 py-2 text-sm font-bold text-white transition hover:brightness-110"
+                class="inline-flex items-center gap-2 rounded-sm bg-light-blue px-4 py-2 text-sm font-bold text-white transition hover:brightness-110"
               >
                 {{ $t("feedback.give_external") }}
               </NuxtLink>

@@ -7,7 +7,7 @@
         </NuxtLink>
       </li>
 
-      <li v-if="completeMunicipalityScores.length === 0" class="text-gray-600 mt-4 text-sm">
+      <li v-if="completeMunicipalityScores.length === 0" class="mt-4 text-sm text-gray-600">
         {{ $t("ranking.no_elements_yet") }}
       </li>
     </ul>

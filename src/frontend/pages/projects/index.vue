@@ -35,7 +35,7 @@
         @click="filterOpen = !filterOpen"
       >
         <span class="flex items-center gap-2">
-          <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -45,12 +45,12 @@
           <span>{{ $t("generic.filter_and_sort") }}</span>
           <span
             v-if="activeFilterCount > 0"
-            class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
+            class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs leading-none font-bold"
             >{{ activeFilterCount }}</span
           >
         </span>
         <svg
-          class="h-4 w-4 flex-shrink-0 transition-transform duration-200"
+          class="h-4 w-4 shrink-0 transition-transform duration-200"
           :class="filterOpen ? 'rotate-180' : ''"
           fill="none"
           viewBox="0 0 24 24"
@@ -66,17 +66,17 @@
           v-model="selectedTour"
           :label="$t('tour.filter_all')"
           :options="tourOptions"
-          width="min-w-[15rem]"
+          width="min-w-60"
         />
       </div>
 
       <!-- Filter rows (always visible at xs+, collapsible below xs) -->
-      <div v-show="filterOpen" class="xs:!block">
+      <div v-show="filterOpen" class="xs:block!">
         <!-- Filter row -->
         <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-2 py-1.5">
           <!-- Filter icon -->
           <svg
-            class="slk-filter-panel-icon mt-1 h-4 w-4 flex-shrink-0"
+            class="slk-filter-panel-icon mt-1 h-4 w-4 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -93,27 +93,27 @@
               v-model="selectedState"
               :label="$t('filters.all_states')"
               :options="stateOptions"
-              width="min-w-[13rem]"
+              width="min-w-52"
             />
             <FilterBadgeDropdown
               v-model="selectedSector"
               :label="$t('measure_sectors.all')"
               :options="sectorOptions"
-              width="min-w-[11rem]"
+              width="min-w-44"
             />
             <FilterBadgeDropdown
               v-if="orgOptions.length > 0"
               v-model="selectedOrgId"
               :label="$t('filters.all_organisations')"
               :options="orgOptions"
-              width="min-w-[12rem]"
+              width="min-w-48"
             />
             <div v-if="tourOptions.length > 0" class="hidden xs:block">
               <FilterBadgeDropdown
                 v-model="selectedTour"
                 :label="$t('tour.filter_all')"
                 :options="tourOptions"
-                width="min-w-[15rem]"
+                width="min-w-60"
               />
             </div>
             <FilterBadgeBoolean v-model="filterAutonomous" :label="$t('projects.filters.autonomous')" />
@@ -165,7 +165,7 @@
         <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-2 py-1.5">
           <!-- Sort icon -->
           <svg
-            class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
+            class="slk-filter-panel-icon h-4 w-4 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -198,7 +198,7 @@
       {{ selectedTour ? $t("tour.no_published_projects") : $t("projects.empty_placeholder") }}
     </div>
 
-    <div v-if="isMapView" class="h-[65vh] min-h-[28rem] overflow-hidden rounded-xl border border-solid-stats-dark-20">
+    <div v-if="isMapView" class="h-[65vh] min-h-112 overflow-hidden rounded-xl border border-solid-stats-dark-20">
       <ClientOnly v-if="mapProjects.length">
         <ProjectsMap :projects="mapProjects" />
         <template #fallback
@@ -212,7 +212,7 @@
       <div v-for="project in filteredProjects" :key="project.id" class="relative">
         <span
           v-if="project.profile_stage === 'preview'"
-          class="absolute right-3 top-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-bold text-stats-dark shadow"
+          class="absolute top-3 right-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-bold text-stats-dark shadow-sm"
         >
           {{ $t("tour.preview") }}
         </span>

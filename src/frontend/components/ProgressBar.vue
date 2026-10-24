@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col">
     <div
-      :class="['relative w-full border', colorClass.border, layout === 'compact' ? 'h-4 rounded-sm' : 'h-8 rounded-md']"
+      :class="['relative w-full border', colorClass.border, layout === 'compact' ? 'h-4 rounded-xs' : 'h-8 rounded-md']"
     >
       <div
         :class="[
@@ -12,7 +12,7 @@
         :style="{ width: width + '%' }"
       >
         <div
-          class="slk-progress-label relative mr-1 whitespace-nowrap font-heading font-bold"
+          class="slk-progress-label relative mr-1 font-heading font-bold whitespace-nowrap"
           :class="[
             layout === 'compact' ? colorClass.text_compact + ' top-0.25 text-sm' : colorClass.text_default + ' text-xl',
           ]"
@@ -68,11 +68,11 @@ const colors = {
   80: { bg: "bg-rating-4", border: "border-rating-4", text_default: "text-white", text_compact: "text-white" },
 };
 const durations = {
-  0: "duration-[500ms]",
-  20: "duration-[700ms]",
-  40: "duration-[900ms]",
-  60: "duration-[1100ms]",
-  80: "duration-[1300ms]",
+  0: "duration-500",
+  20: "duration-700",
+  40: "duration-900",
+  60: "duration-1100",
+  80: "duration-1300",
 };
 
 const width = ref(0);

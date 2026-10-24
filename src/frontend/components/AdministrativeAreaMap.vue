@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-gray-100 relative z-10 h-64 w-full overflow-hidden rounded-lg">
+  <div class="relative z-10 h-64 w-full overflow-hidden rounded-lg bg-gray-100">
     <LMap ref="map" :zoom="zoom" :center="center" :options="mapOptions" class="h-full w-full" @ready="onMapReady">
       <LTileLayer :key="tileUrl" :url="tileUrl" :attribution="attribution" :subdomains="subdomains" :max-zoom="20" />
 

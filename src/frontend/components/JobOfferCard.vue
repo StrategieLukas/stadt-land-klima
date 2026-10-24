@@ -1,24 +1,24 @@
 <template>
   <NuxtLink
     :to="`/jobs/${job.slug}`"
-    class="border-gray-100 group block h-full rounded-lg border bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-light-green hover:shadow-md"
+    class="group block h-full rounded-lg border border-gray-100 bg-white p-5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-light-green hover:shadow-md"
   >
     <div class="flex h-full flex-col gap-4">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <span
-            class="mb-2 inline-flex rounded-full bg-solid-light-green-10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-olive-green"
+            class="mb-2 inline-flex rounded-full bg-solid-light-green-10 px-2 py-0.5 text-xs font-semibold tracking-wide text-olive-green uppercase"
           >
             {{ typeLabel(job.type) }}
           </span>
-          <h3 class="text-gray-900 line-clamp-3 text-lg font-bold leading-snug group-hover:text-olive-green">
+          <h3 class="line-clamp-3 text-lg leading-snug font-bold text-gray-900 group-hover:text-olive-green">
             {{ job.role_title }}
           </h3>
         </div>
 
         <div
           v-if="hasOrganisationIdentity"
-          class="border-gray-100 flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-md border bg-mild-white"
+          class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-mild-white"
           :aria-label="organisationName"
         >
           <SmartImg
@@ -31,16 +31,16 @@
             fit="contain"
             img-class="h-full w-full object-contain p-1"
           />
-          <span v-else class="text-gray-400 px-2 text-center text-sm font-bold">
+          <span v-else class="px-2 text-center text-sm font-bold text-gray-400">
             {{ organisationInitials }}
           </span>
         </div>
       </div>
 
-      <div class="text-gray-500 mt-auto space-y-2 text-sm">
+      <div class="mt-auto space-y-2 text-sm text-gray-500">
         <div class="flex items-center gap-2">
           <svg
-            class="h-4 w-4 flex-shrink-0 text-stats-dark"
+            class="h-4 w-4 shrink-0 text-stats-dark"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -57,7 +57,7 @@
 
         <div class="flex items-center gap-2">
           <svg
-            class="h-4 w-4 flex-shrink-0 text-stats-dark"
+            class="h-4 w-4 shrink-0 text-stats-dark"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -74,7 +74,7 @@
 
         <div v-if="job.weekly_hours" class="flex items-center gap-2">
           <svg
-            class="h-4 w-4 flex-shrink-0 text-stats-dark"
+            class="h-4 w-4 shrink-0 text-stats-dark"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

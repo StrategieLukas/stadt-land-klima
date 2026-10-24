@@ -1,11 +1,11 @@
 <template>
   <div class="w-full max-w-3xl">
     <!-- Progress Bar Container -->
-    <div class="group relative h-8 w-full overflow-visible rounded-md border border-base-300 bg-neutral-200 shadow-sm">
+    <div class="group relative h-8 w-full overflow-visible rounded-md border border-base-300 bg-neutral-200 shadow-xs">
       <!-- Filled Progress Bar -->
       <div
         ref="fillRef"
-        class="absolute left-0 top-0 h-full rounded-md transition-all duration-500 ease-out group-hover:brightness-105"
+        class="absolute top-0 left-0 h-full rounded-md transition-all duration-500 ease-out group-hover:brightness-105"
         :class="currentRatingColor"
         :style="{
           width: fillWidth + '%',
@@ -29,8 +29,8 @@
         <!-- Value Label -->
         <div
           v-if="!(t.hideLabelOnMobile || t.hideLabelOnDesktop)"
-          class="absolute -top-6 whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-semibold text-white shadow-sm"
-          :class="[t.color, 'bg-opacity-90', 'z-10 hover:z-50']"
+          class="absolute -top-6 rounded-sm px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap text-white shadow-xs"
+          :class="[`${t.color}/90`, 'z-10 hover:z-50']"
         >
           {{ t.value }}
           <span class="hidden sm:inline">{{ unit }}</span>
@@ -39,8 +39,8 @@
         <!-- Show only on mobile if desktop label should be hidden -->
         <div
           v-else-if="t.hideLabelOnDesktop && !t.hideLabelOnMobile"
-          class="absolute -top-6 block whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-semibold text-white shadow-sm sm:hidden"
-          :class="[t.color, 'bg-opacity-90']"
+          class="absolute -top-6 block rounded-sm px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap text-white shadow-xs sm:hidden"
+          :class="`${t.color}/90`"
         >
           {{ t.value }}
           <span class="hidden sm:inline">{{ unit }}</span>
@@ -49,8 +49,8 @@
         <!-- Show only on desktop if mobile label should be hidden -->
         <div
           v-else-if="t.hideLabelOnMobile && !t.hideLabelOnDesktop"
-          class="absolute -top-6 hidden whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-semibold text-white shadow-sm sm:block"
-          :class="[t.color, 'bg-opacity-90']"
+          class="absolute -top-6 hidden rounded-sm px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap text-white shadow-xs sm:block"
+          :class="`${t.color}/90`"
         >
           {{ t.value }}
           <span class="hidden sm:inline">{{ unit }}</span>

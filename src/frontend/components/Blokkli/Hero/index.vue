@@ -19,7 +19,7 @@
       <button
         v-if="isEditing && imageUrl"
         type="button"
-        class="btn btn-error btn-sm pointer-events-auto absolute right-4 top-4 z-30"
+        class="btn pointer-events-auto absolute top-4 right-4 z-30 btn-error btn-sm"
         :aria-label="$t('blokkli.media.remove_background_image')"
         :title="$t('blokkli.media.remove_background_image')"
         @click.stop.prevent="clearBackgroundImage"
@@ -33,7 +33,7 @@
       <div class="relative z-20 mx-auto w-full max-w-5xl px-8 py-12" :class="contentAlignClass">
         <h1
           v-blokkli-editable:title
-          class="mb-4 whitespace-pre-line text-4xl leading-tight md:text-5xl lg:text-6xl"
+          class="mb-4 text-4xl leading-tight whitespace-pre-line md:text-5xl lg:text-6xl"
           :class="[titleColorClass, titleWeightClass]"
           v-html="sanitizeHtml(sanitizedTitle)"
         />
@@ -211,14 +211,14 @@ const overlayClass = computed(() => {
     none: "",
     light: "bg-white/40",
     dark: "bg-black/50",
-    gradient: "bg-gradient-to-t from-black/70 via-black/20 to-transparent",
+    gradient: "bg-linear-to-t from-black/70 via-black/20 to-transparent",
   };
   return map[options.value.overlay] ?? "bg-black/50";
 });
 
 const backgroundColorClass = computed(() => {
   const map: Record<string, string> = {
-    default: "bg-gradient-to-br from-stats-dark to-light-blue",
+    default: "bg-linear-to-br from-stats-dark to-light-blue",
     black: "bg-black",
     gray: "bg-gray",
     white: "bg-mild-white",

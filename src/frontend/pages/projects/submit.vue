@@ -6,7 +6,7 @@
 
     <div class="mb-6">
       <h1 class="font-heading text-h1 font-bold text-green">{{ $t("projects.submit.title") }}</h1>
-      <p class="text-gray-600 mt-2">{{ $t("projects.submit.intro") }}</p>
+      <p class="mt-2 text-gray-600">{{ $t("projects.submit.intro") }}</p>
     </div>
 
     <div v-if="successMessage" class="alert border-green bg-rating-3-light text-green shadow-list">
@@ -16,12 +16,12 @@
       </div>
     </div>
 
-    <form v-else class="space-y-6 rounded-sm bg-white p-4 shadow-list sm:p-8" @submit.prevent="submitArticle">
+    <form v-else class="space-y-6 rounded-xs bg-white p-4 shadow-list sm:p-8" @submit.prevent="submitArticle">
       <section class="space-y-4">
-        <h2 class="text-gray-800 font-heading text-h3 font-bold">{{ $t("projects.submit.section.project") }}</h2>
+        <h2 class="font-heading text-h3 font-bold text-gray-800">{{ $t("projects.submit.section.project") }}</h2>
 
         <div>
-          <label for="project-title" class="text-gray-700 mb-1 block text-sm font-medium">
+          <label for="project-title" class="mb-1 block text-sm font-medium text-gray-700">
             {{ $t("projects.submit.field.title") }} <span class="text-red-500">*</span>
           </label>
           <input
@@ -30,12 +30,12 @@
             type="text"
             :maxlength="ARTICLE_SUBMISSION_LIMITS.title"
             required
-            class="input input-bordered w-full"
+            class="input w-full"
           />
         </div>
 
         <div>
-          <label for="project-subtitle" class="text-gray-700 mb-1 block text-sm font-medium">
+          <label for="project-subtitle" class="mb-1 block text-sm font-medium text-gray-700">
             {{ $t("projects.submit.field.subtitle") }}
           </label>
           <input
@@ -43,13 +43,13 @@
             v-model="form.subtitle"
             type="text"
             :maxlength="ARTICLE_SUBMISSION_LIMITS.subtitle"
-            class="input input-bordered w-full"
+            class="input w-full"
           />
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label for="project-municipality" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-municipality" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.municipality") }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -58,15 +58,15 @@
               type="text"
               :maxlength="ARTICLE_SUBMISSION_LIMITS.municipalityName"
               required
-              class="input input-bordered w-full"
+              class="input w-full"
             />
           </div>
 
           <div>
-            <label for="project-state" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-state" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.state") }}
             </label>
-            <select id="project-state" v-model="form.state" class="select select-bordered w-full">
+            <select id="project-state" v-model="form.state" class="select w-full">
               <option value="">{{ $t("generic.form.please_select") }}</option>
               <option v-for="state in stateOptions" :key="state" :value="state">{{ state }}</option>
             </select>
@@ -74,7 +74,7 @@
         </div>
 
         <fieldset>
-          <legend class="text-gray-700 mb-2 block text-sm font-medium">
+          <legend class="mb-2 block text-sm font-medium text-gray-700">
             {{ $t("projects.submit.field.sectors") }} <span class="text-red-500">*</span>
           </legend>
           <div class="grid grid-cols-1 gap-2 xs:grid-cols-2 sm:grid-cols-3">
@@ -82,7 +82,7 @@
               <input
                 v-model="form.sectors"
                 type="checkbox"
-                class="border-gray-300 checkbox checkbox-sm"
+                class="checkbox border-gray-300 checkbox-sm"
                 :value="sector.value"
                 :disabled="
                   !form.sectors.includes(sector.value) && form.sectors.length >= ARTICLE_SUBMISSION_MAX_SECTORS
@@ -91,7 +91,7 @@
               <span>{{ sector.label }}</span>
             </label>
           </div>
-          <p class="text-gray-500 mt-2 text-xs">
+          <p class="mt-2 text-xs text-gray-500">
             {{
               $t("projects.submit.hint.sectors_max", {
                 ":max": ARTICLE_SUBMISSION_MAX_SECTORS,
@@ -101,7 +101,7 @@
         </fieldset>
 
         <div>
-          <label for="project-abstract" class="text-gray-700 mb-1 block text-sm font-medium">
+          <label for="project-abstract" class="mb-1 block text-sm font-medium text-gray-700">
             {{ $t("projects.submit.field.abstract") }} <span class="text-red-500">*</span>
           </label>
           <textarea
@@ -110,15 +110,15 @@
             rows="4"
             :maxlength="ARTICLE_SUBMISSION_LIMITS.abstract"
             required
-            class="textarea textarea-bordered w-full"
+            class="textarea w-full"
           />
-          <p class="text-gray-500 mt-1 text-right text-xs">
+          <p class="mt-1 text-right text-xs text-gray-500">
             {{ form.abstract.length }} / {{ ARTICLE_SUBMISSION_LIMITS.abstract }}
           </p>
         </div>
 
         <div>
-          <label for="project-article-text" class="text-gray-700 mb-1 block text-sm font-medium">
+          <label for="project-article-text" class="mb-1 block text-sm font-medium text-gray-700">
             {{ $t("projects.submit.field.article_text") }} <span class="text-red-500">*</span>
           </label>
           <textarea
@@ -127,16 +127,16 @@
             rows="9"
             :maxlength="ARTICLE_SUBMISSION_LIMITS.articleText"
             required
-            class="textarea textarea-bordered w-full"
+            class="textarea w-full"
           />
-          <p class="text-gray-500 mt-1 text-right text-xs">
+          <p class="mt-1 text-right text-xs text-gray-500">
             {{ form.articleText.length }} / {{ ARTICLE_SUBMISSION_LIMITS.articleText }}
           </p>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label for="project-link" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-link" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.link") }}
             </label>
             <input
@@ -144,11 +144,11 @@
               v-model="form.link"
               type="url"
               :maxlength="ARTICLE_SUBMISSION_LIMITS.link"
-              class="input input-bordered w-full"
+              class="input w-full"
             />
           </div>
           <div>
-            <label for="project-instagram" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-instagram" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.instagram") }}
             </label>
             <input
@@ -156,11 +156,11 @@
               v-model="form.instagram"
               type="url"
               :maxlength="ARTICLE_SUBMISSION_LIMITS.instagram"
-              class="input input-bordered w-full"
+              class="input w-full"
             />
           </div>
           <div>
-            <label for="project-linkedin" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-linkedin" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.linkedin") }}
             </label>
             <input
@@ -168,14 +168,14 @@
               v-model="form.linkedin"
               type="url"
               :maxlength="ARTICLE_SUBMISSION_LIMITS.linkedin"
-              class="input input-bordered w-full"
+              class="input w-full"
             />
           </div>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label for="project-image" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-image" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.image") }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -184,16 +184,16 @@
               type="file"
               :accept="ALLOWED_IMAGE_TYPES.join(',')"
               required
-              class="file-input file-input-bordered w-full"
+              class="file-input w-full"
               @change="onImageChange"
             />
-            <p class="text-gray-500 mt-1 text-xs">
+            <p class="mt-1 text-xs text-gray-500">
               {{ $t("projects.submit.hint.image", { ":max": ARTICLE_SUBMISSION_MAX_IMAGE_MB }) }}
             </p>
           </div>
 
           <div>
-            <label for="project-image-credits" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-image-credits" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.image_credits") }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -202,17 +202,17 @@
               type="text"
               :maxlength="ARTICLE_SUBMISSION_LIMITS.imageCredits"
               required
-              class="input input-bordered w-full"
+              class="input w-full"
             />
           </div>
         </div>
 
-        <label class="border-gray-200 bg-gray-50 flex items-start gap-3 rounded-sm border p-3 text-sm">
+        <label class="flex items-start gap-3 rounded-xs border border-gray-200 bg-gray-50 p-3 text-sm">
           <input
             v-model="form.imageRightsConfirmed"
             type="checkbox"
             required
-            class="border-gray-300 checkbox checkbox-sm mt-0.5 shrink-0"
+            class="checkbox mt-0.5 shrink-0 border-gray-300 checkbox-sm"
           />
           <span class="text-gray-700">
             {{ $t("projects.submit.field.image_rights_confirmed") }} <span class="text-red-500">*</span>
@@ -220,12 +220,12 @@
         </label>
       </section>
 
-      <section class="border-gray-100 space-y-4 border-t pt-6">
-        <h2 class="text-gray-800 font-heading text-h3 font-bold">{{ $t("projects.submit.section.contact") }}</h2>
+      <section class="space-y-4 border-t border-gray-100 pt-6">
+        <h2 class="font-heading text-h3 font-bold text-gray-800">{{ $t("projects.submit.section.contact") }}</h2>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label for="project-author" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-author" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.author") }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -235,12 +235,12 @@
               autocomplete="name"
               :maxlength="ARTICLE_SUBMISSION_LIMITS.author"
               required
-              class="input input-bordered w-full"
+              class="input w-full"
             />
           </div>
 
           <div>
-            <label for="project-email" class="text-gray-700 mb-1 block text-sm font-medium">
+            <label for="project-email" class="mb-1 block text-sm font-medium text-gray-700">
               {{ $t("projects.submit.field.email") }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -250,13 +250,13 @@
               autocomplete="email"
               :maxlength="ARTICLE_SUBMISSION_LIMITS.submitterEmail"
               required
-              class="input input-bordered w-full"
+              class="input w-full"
             />
           </div>
         </div>
 
         <div>
-          <label class="text-gray-700 mb-1 block text-sm font-medium">
+          <label class="mb-1 block text-sm font-medium text-gray-700">
             {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }}
             <span class="text-red-500">*</span>
           </label>
@@ -265,13 +265,13 @@
             type="text"
             inputmode="numeric"
             pattern="[0-9]+"
-            class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
           />
-          <p v-if="mathChallengeError" class="text-red-500 mt-1 text-xs">{{ mathChallengeError }}</p>
+          <p v-if="mathChallengeError" class="mt-1 text-xs text-red-500">{{ mathChallengeError }}</p>
         </div>
 
         <div>
-          <label class="text-gray-700 mb-2 block text-sm font-medium">
+          <label class="mb-2 block text-sm font-medium text-gray-700">
             {{ $t("captcha.title") }} <span class="text-red-500">*</span>
           </label>
           <ClientOnly>
@@ -283,20 +283,20 @@
               style="--altcha-border-radius: 6px; --altcha-color-border: #d1d5db; width: 100%"
             />
             <template #fallback>
-              <div class="border-gray-200 bg-gray-50 flex h-16 items-center justify-center rounded-md border">
-                <span class="text-gray-400 text-xs">{{ $t("captcha.loading") }}</span>
+              <div class="flex h-16 items-center justify-center rounded-md border border-gray-200 bg-gray-50">
+                <span class="text-xs text-gray-400">{{ $t("captcha.loading") }}</span>
               </div>
             </template>
           </ClientOnly>
-          <p v-if="captchaError" class="text-red-500 mt-1 text-xs">{{ captchaError }}</p>
+          <p v-if="captchaError" class="mt-1 text-xs text-red-500">{{ captchaError }}</p>
         </div>
 
-        <div v-if="errorMessage" role="alert" class="alert alert-error text-sm">
+        <div v-if="errorMessage" role="alert" class="alert text-sm alert-error">
           <span>{{ errorMessage }}</span>
         </div>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-gray-400 text-xs">{{ $t("generic.privacy.disclaimer") }}</p>
+          <p class="text-xs text-gray-400">{{ $t("generic.privacy.disclaimer") }}</p>
           <button
             type="submit"
             class="btn bg-green px-6 font-semibold text-white hover:bg-green hover:opacity-90"

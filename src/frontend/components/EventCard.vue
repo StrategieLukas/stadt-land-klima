@@ -1,7 +1,7 @@
 <template>
   <article :class="cardClasses">
     <NuxtLink :to="`/events/${event.slug}`" class="block">
-      <div v-if="event.image" class="bg-gray-100 relative h-40 overflow-hidden">
+      <div v-if="event.image" class="relative h-40 overflow-hidden bg-gray-100">
         <SmartImg
           :asset-id="typeof event.image === 'string' ? event.image : event.image?.id"
           :is-raster="typeof event.image === 'object' && event.image?.type ? isRaster(event.image.type) : true"
@@ -35,7 +35,7 @@
         <h3 :class="titleClasses">{{ event.title }}</h3>
         <div :class="metaClasses">
           <span class="flex items-center gap-1">
-            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -45,7 +45,7 @@
             {{ formatEventDateTimeRange(event.start_date, event.end_date, $locale, event.date_only) }}
           </span>
           <span v-if="event.location" class="flex items-center gap-1">
-            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -61,7 +61,7 @@
 
     <div v-if="event.event_category !== 'internal'" :class="actionWrapClasses">
       <a :href="calendarHref" :download="`${event.slug}.ics`" :class="calendarLinkClasses" @click.stop>
-        <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -115,7 +115,7 @@ const { $locale, $t } = useNuxtApp() as unknown as {
 const calendarHref = computed(() => `/api/events/${encodeURIComponent(props.event.slug)}.ics`);
 
 const cardClasses = computed(() => {
-  const base = "bg-white rounded-lg shadow-sm border overflow-hidden transition-all";
+  const base = "bg-white rounded-lg shadow-xs border overflow-hidden transition-all";
 
   if (props.variant === "current") {
     return `${base} border-orange-200 hover:shadow-md hover:border-orange-400`;
@@ -160,7 +160,7 @@ const placeholderClasses = computed(() => {
   const base = "relative flex h-40 items-center justify-center";
 
   if (props.variant === "current") {
-    return `${base} bg-gradient-to-br from-orange-50 to-orange-100`;
+    return `${base} bg-linear-to-br from-orange-50 to-orange-100`;
   }
 
   return `${base} bg-gray-50`;

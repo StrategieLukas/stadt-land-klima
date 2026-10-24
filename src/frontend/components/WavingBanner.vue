@@ -1,6 +1,6 @@
 <template>
   <div class="w-full px-2">
-    <div ref="banner" class="banner mb-3 w-full rounded border-2 border-double border-rating-0 text-center">
+    <div ref="banner" class="banner mb-3 w-full rounded-sm border-2 border-double border-rating-0 text-center">
       <h1 class="text-rating-0">
         <slot></slot>
       </h1>

@@ -1,9 +1,9 @@
 <template>
-  <div class="dock dock-xl border-gray-200 flex items-center justify-around border-t bg-white text-black">
+  <div class="slk-dock flex items-center justify-around border-t border-gray-200 bg-white text-black">
     <button
       v-for="page in navigationPages"
       :key="page.id"
-      :class="{ 'dock-active': isPageActive(page.slug) }"
+      :class="{ 'slk-dock-active': isPageActive(page.slug) }"
       class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
       @click="
         followLink(page.slug);
@@ -13,12 +13,14 @@
       <div class="size-[3em]">
         <div v-html="sanitizeSvg(page.icon_svg)"></div>
       </div>
-      <span class="dock-label max-w-full truncate text-center font-heading text-sm">{{ navLabel(page, "name") }}</span>
+      <span class="slk-dock-label max-w-full truncate text-center font-heading text-sm">{{
+        navLabel(page, "name")
+      }}</span>
     </button>
 
     <button
       id="page-drawer-toggle"
-      :class="{ 'dock-active': isDrawerOpen }"
+      :class="{ 'slk-dock-active': isDrawerOpen }"
       class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
       @click="toggleDrawer"
     >
@@ -29,7 +31,7 @@
           clip-rule="evenodd"
         />
       </svg>
-      <span class="dock-label max-w-full truncate text-center font-heading text-sm">{{ $t("generic.menu") }}</span>
+      <span class="slk-dock-label max-w-full truncate text-center font-heading text-sm">{{ $t("generic.menu") }}</span>
     </button>
   </div>
 </template>
@@ -73,11 +75,11 @@ const followLink = (pageSlug: string) => {
 </script>
 
 <style scoped>
-.dock-active {
+.slk-dock-active {
   color: #afca0b !important;
 }
 
-.dock-active svg {
+.slk-dock-active svg {
   color: #afca0b !important;
 }
 </style>

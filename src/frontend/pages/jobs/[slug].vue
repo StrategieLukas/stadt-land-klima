@@ -3,7 +3,7 @@
     <article class="mx-auto w-full max-w-6xl">
       <NuxtLink
         :to="backHref"
-        class="text-gray-500 hover:text-gray-800 mb-6 inline-flex items-center gap-1 text-sm font-medium"
+        class="mb-6 inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800"
       >
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -11,17 +11,17 @@
         {{ backLabel }}
       </NuxtLink>
 
-      <header class="border-gray-100 rounded-lg border bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+      <header class="rounded-lg border border-gray-100 bg-white p-6 shadow-xs sm:p-8 lg:p-10">
         <div class="max-w-3xl">
           <div class="mb-5 flex flex-wrap items-center gap-3">
             <span
-              class="inline-flex rounded-full bg-rating-3-very-light px-3 py-1 text-xs font-bold uppercase tracking-wide text-olive-green ring-1 ring-solid-light-green-30"
+              class="inline-flex rounded-full bg-rating-3-very-light px-3 py-1 text-xs font-bold tracking-wide text-olive-green uppercase ring-1 ring-solid-light-green-30"
             >
               {{ typeLabel(job.type) }}
             </span>
           </div>
-          <h1 class="text-gray-900 text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">{{ job.role_title }}</h1>
-          <div class="text-gray-600 mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
+          <h1 class="text-3xl leading-tight font-bold text-gray-900 sm:text-4xl lg:text-5xl">{{ job.role_title }}</h1>
+          <div class="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-gray-600">
             <span class="inline-flex items-center gap-2">
               <svg
                 class="h-4 w-4 text-stats-dark"
@@ -91,11 +91,11 @@
         </div>
 
         <aside class="space-y-4 lg:sticky lg:top-24">
-          <div class="border-gray-100 rounded-lg border bg-white p-5 shadow-sm">
+          <div class="rounded-lg border border-gray-100 bg-white p-5 shadow-xs">
             <div class="mb-5 flex items-center gap-3">
               <div
                 v-if="hasOrganisationIdentity"
-                class="border-gray-100 flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-md border bg-mild-white"
+                class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-mild-white"
               >
                 <SmartImg
                   v-if="organisationLogoAssetId"
@@ -107,10 +107,10 @@
                   fit="contain"
                   img-class="h-full w-full object-contain p-1"
                 />
-                <span v-else class="text-gray-400 text-sm font-bold">{{ organisationInitials }}</span>
+                <span v-else class="text-sm font-bold text-gray-400">{{ organisationInitials }}</span>
               </div>
               <div class="min-w-0">
-                <p class="text-gray-500 text-[11px] font-extrabold uppercase tracking-wide">
+                <p class="text-[11px] font-extrabold tracking-wide text-gray-500 uppercase">
                   {{ $t("jobs.organisation") }}
                 </p>
                 <a
@@ -122,34 +122,34 @@
                 >
                   {{ job.organisation?.name }}
                 </a>
-                <p v-else class="text-gray-900 text-sm font-normal">{{ job.organisation?.name }}</p>
+                <p v-else class="text-sm font-normal text-gray-900">{{ job.organisation?.name }}</p>
               </div>
             </div>
 
-            <dl class="border-gray-100 space-y-4 border-t pt-4 text-sm">
+            <dl class="space-y-4 border-t border-gray-100 pt-4 text-sm">
               <div>
-                <dt class="text-gray-500 mb-1 text-[11px] font-extrabold uppercase tracking-wide">
+                <dt class="mb-1 text-[11px] font-extrabold tracking-wide text-gray-500 uppercase">
                   {{ $t("jobs.period") }}
                 </dt>
-                <dd class="text-gray-800 text-sm font-normal">{{ formatDateRange(job.start_date, job.end_date) }}</dd>
+                <dd class="text-sm font-normal text-gray-800">{{ formatDateRange(job.start_date, job.end_date) }}</dd>
               </div>
               <div v-if="compensation">
-                <dt class="text-gray-500 mb-1 text-[11px] font-extrabold uppercase tracking-wide">
+                <dt class="mb-1 text-[11px] font-extrabold tracking-wide text-gray-500 uppercase">
                   {{ $t("jobs.compensation") }}
                 </dt>
-                <dd class="text-gray-800 text-sm font-normal">{{ compensation }}</dd>
+                <dd class="text-sm font-normal text-gray-800">{{ compensation }}</dd>
               </div>
               <div v-if="job.weekly_hours">
-                <dt class="text-gray-500 mb-1 text-[11px] font-extrabold uppercase tracking-wide">
+                <dt class="mb-1 text-[11px] font-extrabold tracking-wide text-gray-500 uppercase">
                   {{ $t("jobs.weekly_hours") }}
                 </dt>
-                <dd class="text-gray-800 text-sm font-normal">{{ job.weekly_hours }}</dd>
+                <dd class="text-sm font-normal text-gray-800">{{ job.weekly_hours }}</dd>
               </div>
               <div>
-                <dt class="text-gray-500 mb-1 text-[11px] font-extrabold uppercase tracking-wide">
+                <dt class="mb-1 text-[11px] font-extrabold tracking-wide text-gray-500 uppercase">
                   {{ typeLabel(job.type) }}
                 </dt>
-                <dd class="text-gray-800 text-sm font-normal">
+                <dd class="text-sm font-normal text-gray-800">
                   {{ isPaid(job.type) ? $t("jobs.paid") : $t("jobs.volunteer") }}
                 </dd>
               </div>
@@ -160,7 +160,7 @@
               :href="job.application_url"
               target="_blank"
               rel="noopener noreferrer"
-              class="btn mt-5 min-h-0 w-full rounded bg-light-green px-5 py-3 font-bold text-white hover:bg-olive-green"
+              class="btn mt-5 min-h-0 w-full rounded-sm bg-light-green px-5 py-3 font-bold text-white hover:bg-olive-green"
             >
               {{ $t("jobs.apply") }}
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,7 +178,7 @@
     </article>
   </div>
 
-  <div v-else class="text-gray-500 py-8">
+  <div v-else class="py-8 text-gray-500">
     {{ $t("jobs.not_found") }}
   </div>
 </template>

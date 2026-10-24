@@ -1,34 +1,34 @@
 <template>
-  <div class="border-gray-200 my-8 border-t-4 pt-6">
+  <div class="my-8 border-t-4 border-gray-200 pt-6">
     <h2 class="mb-1 font-heading text-h2 font-bold text-gray">{{ $t("measure_rating.history.title") }}</h2>
-    <p class="text-gray-500 mb-4 text-sm">
+    <p class="mb-4 text-sm text-gray-500">
       {{ $t("measure_rating.history.description") }}
     </p>
 
-    <div v-if="loading" class="text-gray-400 py-8 text-center text-sm">{{ $t("generic.loading") }}</div>
-    <div v-else-if="!hasData" class="text-gray-500 py-4 text-sm">{{ $t("measure_rating.history.no_data") }}</div>
+    <div v-if="loading" class="py-8 text-center text-sm text-gray-400">{{ $t("generic.loading") }}</div>
+    <div v-else-if="!hasData" class="py-4 text-sm text-gray-500">{{ $t("measure_rating.history.no_data") }}</div>
 
     <template v-else>
       <!-- Change summary chips (only when 2 versions exist) -->
       <div v-if="twoVersions" class="mb-4 flex flex-wrap gap-2 text-xs">
         <span
           v-if="improvedCount"
-          class="bg-green-50 text-green-700 border-green-200 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-bold"
+          class="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 font-bold text-green-700"
           >↑ {{ $t("measure_rating.history.change.improved", { ":count": improvedCount }) }}</span
         >
         <span
           v-if="sameCount"
-          class="bg-gray-50 text-gray-600 border-gray-200 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-bold"
+          class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 font-bold text-gray-600"
           >→ {{ $t("measure_rating.history.change.same", { ":count": sameCount }) }}</span
         >
         <span
           v-if="degradedCount"
-          class="bg-red-50 text-red-700 border-red-200 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-bold"
+          class="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 font-bold text-red-700"
           >↓ {{ $t("measure_rating.history.change.degraded", { ":count": degradedCount }) }}</span
         >
         <span
           v-if="onlySingleCount"
-          class="bg-gray-50 text-gray-400 border-gray-200 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-bold"
+          class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 font-bold text-gray-400"
           >{{ $t("measure_rating.history.change.single_catalog", { ":count": onlySingleCount }) }}</span
         >
       </div>
@@ -128,20 +128,20 @@
       </div>
 
       <!-- Hover info bar -->
-      <div class="mt-2 flex min-h-[2.5rem] items-center">
+      <div class="mt-2 flex min-h-10 items-center">
         <Transition name="fade-info">
           <div v-if="hoveredMuniData" class="flex flex-wrap items-center gap-2 text-sm">
             <NuxtLink
               v-if="hoveredMuniData.slug"
               :to="`/municipalities/${hoveredMuniData.slug}`"
-              class="text-gray-800 font-semibold hover:underline"
+              class="font-semibold text-gray-800 hover:underline"
               >{{ hoveredMuniData.name }}</NuxtLink
             >
-            <span v-else class="text-gray-700 font-semibold">{{ hoveredMuniData.name }}</span>
+            <span v-else class="font-semibold text-gray-700">{{ hoveredMuniData.name }}</span>
             <template v-if="twoVersions && hoveredMuniData.leftRating !== null && hoveredMuniData.rightRating !== null">
               <span class="text-gray-300 select-none">|</span>
               <span
-                class="slk-rating-chip rounded px-1.5 py-0.5 text-xs font-bold text-white"
+                class="slk-rating-chip rounded-sm px-1.5 py-0.5 text-xs font-bold text-white"
                 :style="{
                   backgroundColor: ratingColorMap[hoveredMuniData.leftRating] || '#999',
                   color: ratingChipTextColor(hoveredMuniData.leftRating),
@@ -152,7 +152,7 @@
                 changeArrow(hoveredMuniData)
               }}</span>
               <span
-                class="slk-rating-chip rounded px-1.5 py-0.5 text-xs font-bold text-white"
+                class="slk-rating-chip rounded-sm px-1.5 py-0.5 text-xs font-bold text-white"
                 :style="{
                   backgroundColor: ratingColorMap[hoveredMuniData.rightRating] || '#999',
                   color: ratingChipTextColor(hoveredMuniData.rightRating),
@@ -163,7 +163,7 @@
             <template v-else-if="hoveredMuniData.leftRating !== null">
               <span class="text-gray-300 select-none">|</span>
               <span
-                class="slk-rating-chip rounded px-1.5 py-0.5 text-xs font-bold text-white"
+                class="slk-rating-chip rounded-sm px-1.5 py-0.5 text-xs font-bold text-white"
                 :style="{
                   backgroundColor: ratingColorMap[hoveredMuniData.leftRating] || '#999',
                   color: ratingChipTextColor(hoveredMuniData.leftRating),
@@ -172,46 +172,46 @@
               >
             </template>
           </div>
-          <p v-else class="text-gray-400 text-xs italic">{{ $t("measure_rating.history.hover_hint") }}</p>
+          <p v-else class="text-xs text-gray-400 italic">{{ $t("measure_rating.history.hover_hint") }}</p>
         </Transition>
       </div>
 
       <!-- Color legend -->
-      <div v-if="twoVersions" class="text-gray-500 mt-3 flex flex-wrap gap-4 text-xs">
+      <div v-if="twoVersions" class="mt-3 flex flex-wrap gap-4 text-xs text-gray-500">
         <span class="flex items-center gap-1.5"
-          ><span class="inline-block h-2 w-8 rounded" style="background: #4caf50; opacity: 0.7" />
+          ><span class="inline-block h-2 w-8 rounded-sm" style="background: #4caf50; opacity: 0.7" />
           {{ $t("measure_rating.history.legend.improved") }}</span
         >
         <span class="flex items-center gap-1.5"
-          ><span class="inline-block h-2 w-8 rounded" style="background: #9e9e9e; opacity: 0.7" />
+          ><span class="inline-block h-2 w-8 rounded-sm" style="background: #9e9e9e; opacity: 0.7" />
           {{ $t("measure_rating.history.legend.same") }}</span
         >
         <span class="flex items-center gap-1.5"
-          ><span class="inline-block h-2 w-8 rounded" style="background: #f44336; opacity: 0.7" />
+          ><span class="inline-block h-2 w-8 rounded-sm" style="background: #f44336; opacity: 0.7" />
           {{ $t("measure_rating.history.legend.degraded") }}</span
         >
         <span class="flex items-center gap-1.5"
-          ><span class="inline-block h-2 w-8 rounded" style="background: #90a4ae; opacity: 0.7" />
+          ><span class="inline-block h-2 w-8 rounded-sm" style="background: #90a4ae; opacity: 0.7" />
           {{ $t("measure_rating.history.legend.not_comparable") }}</span
         >
       </div>
 
       <!-- Selected-node municipality chips -->
       <Transition name="fade-info">
-        <div v-if="selectedNode" class="border-gray-200 mt-4 border-t pt-4">
+        <div v-if="selectedNode" class="mt-4 border-t border-gray-200 pt-4">
           <div class="mb-2 flex items-center gap-2">
             <span
-              class="inline-block h-3 w-3 flex-shrink-0 rounded-sm"
+              class="inline-block h-3 w-3 shrink-0 rounded-xs"
               :style="{ backgroundColor: RATING_CFG[selectedNode.ratingKey].color }"
             />
             <span class="text-sm font-semibold" :style="{ color: RATING_CFG[selectedNode.ratingKey].color }">
               {{ RATING_CFG[selectedNode.ratingKey].shortLabel }}
             </span>
-            <span class="text-gray-400 text-xs"
+            <span class="text-xs text-gray-400"
               >({{ $t("measure_catalog.singular") }}:
               {{ selectedNode.side === "left" ? leftVersion?.label : rightVersion?.label }})</span
             >
-            <button class="text-gray-400 hover:text-gray-600 ml-auto text-sm leading-none" @click="selectedNode = null">
+            <button class="ml-auto text-sm leading-none text-gray-400 hover:text-gray-600" @click="selectedNode = null">
               ✕
             </button>
           </div>

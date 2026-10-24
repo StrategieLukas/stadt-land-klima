@@ -26,7 +26,7 @@
         <h2 id="data-construction-title" class="font-heading text-3xl font-bold">
           {{ $t("data.construction.title") }}
         </h2>
-        <p class="mt-4 max-w-3xl whitespace-pre-line text-lg leading-relaxed">
+        <p class="mt-4 max-w-3xl text-lg leading-relaxed whitespace-pre-line">
           {{ dataPageConfig.under_construction_explanation || $t("data.construction.explanation") }}
         </p>
       </div>
@@ -36,7 +36,7 @@
       <!-- ── Sticky breadcrumb nav ──────────────────────────────────────────── -->
       <nav ref="breadcrumbNav" class="sticky z-30" :style="`top: ${pillTop}px`">
         <div
-          class="border-gray-100 absolute border-b bg-white/90 backdrop-blur-sm"
+          class="absolute border-b border-gray-100 bg-white/90 backdrop-blur-xs"
           :class="{ 'border-t': !breadcrumbStuck || pillTop === 0 }"
           style="top: 0; bottom: 0; left: calc((100% - 100vw) / 2); right: calc((100% - 100vw) / 2)"
         />
@@ -94,7 +94,7 @@
               <article
                 v-if="selectedCollectionId === collection.id && expandedCollection"
                 id="data-collection-detail"
-                class="data-collection-detail col-span-full scroll-mt-24 rounded-lg border border-solid-stats-dark-20 bg-white p-5 shadow-sm sm:p-8"
+                class="data-collection-detail col-span-full scroll-mt-24 rounded-lg border border-solid-stats-dark-20 bg-white p-5 shadow-xs sm:p-8"
                 :style="detailOrder(index)"
               >
                 <div class="mb-4 flex flex-wrap items-start justify-between gap-4">

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="data-area-hero-map border-gray-200 relative z-0 h-[240px] overflow-hidden rounded-lg border bg-white shadow-sm sm:h-[280px] xl:h-[320px]"
+    class="data-area-hero-map relative z-0 h-[240px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs sm:h-[280px] xl:h-[320px]"
   >
     <ClientOnly>
       <LMap
@@ -33,7 +33,7 @@
     <Transition name="fade">
       <div
         v-if="nearbyAreasLoading"
-        class="text-gray-600 pointer-events-none absolute right-3 top-3 z-[500] inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-semibold shadow-sm backdrop-blur-sm"
+        class="pointer-events-none absolute top-3 right-3 z-500 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-600 shadow-xs backdrop-blur-xs"
       >
         <SlkFlowerSpinner :size="18" />
         <span>Nachbargebiete laden...</span>

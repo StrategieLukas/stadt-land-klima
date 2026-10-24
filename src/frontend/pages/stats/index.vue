@@ -24,14 +24,14 @@
 
     <section id="massnahmenstatistiken" class="mb-8">
       <!-- Filter panel — full width -->
-      <div class="slk-filter-panel slk-filter-theme-stats mb-4 flex flex-col gap-0 rounded-sm px-3 py-3">
+      <div class="slk-filter-panel slk-filter-theme-stats mb-4 flex flex-col gap-0 rounded-xs px-3 py-3">
         <!-- Collapsible toggle (only shown below xs breakpoint) -->
         <button
           class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
           @click="filterOpen = !filterOpen"
         >
           <span class="flex items-center gap-2">
-            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -41,12 +41,12 @@
             <span>{{ $t("generic.filter") }}</span>
             <span
               v-if="activeFilterCount > 0"
-              class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
+              class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs leading-none font-bold"
               >{{ activeFilterCount }}</span
             >
           </span>
           <svg
-            class="h-4 w-4 flex-shrink-0 transition-transform duration-200"
+            class="h-4 w-4 shrink-0 transition-transform duration-200"
             :class="filterOpen ? 'rotate-180' : ''"
             fill="none"
             viewBox="0 0 24 24"
@@ -58,11 +58,11 @@
         </button>
 
         <!-- Filter rows (always visible at xs+, collapsible below xs) -->
-        <div v-show="filterOpen" class="xs:!block">
+        <div v-show="filterOpen" class="xs:block!">
           <!-- Row 0: catalog + type -->
           <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-3 py-1.5">
             <svg
-              class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
+              class="slk-filter-panel-icon h-4 w-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -102,7 +102,7 @@
           <!-- Row 1: state dropdown -->
           <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-3 py-1.5">
             <svg
-              class="slk-filter-panel-icon mt-1 h-4 w-4 flex-shrink-0"
+              class="slk-filter-panel-icon mt-1 h-4 w-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -119,7 +119,7 @@
                 v-model="filterState"
                 label="Alle Bundesländer"
                 :options="availableStates.map((s) => ({ label: s, value: s }))"
-                width="min-w-[13rem]"
+                width="min-w-52"
                 :dark="false"
               />
             </div>
@@ -129,78 +129,78 @@
       <!-- /filter panel -->
 
       <!-- desktop content padding wrapper -->
-      <div class="md:px-4 md:pb-6 md:pt-4">
+      <div class="md:px-4 md:pt-4 md:pb-6">
         <!-- KPI grid — filter-dependent, shown below the filters -->
         <div class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <template v-if="statsLoading">
             <div
               v-for="i in 5"
               :key="i"
-              class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list"
+              class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list"
               :class="i === 5 ? 'col-span-2 sm:col-span-1' : ''"
             >
-              <div class="bg-gray-200 mb-1 h-8 w-10 animate-pulse rounded"></div>
-              <div class="bg-gray-100 mt-1 h-3 w-16 animate-pulse rounded"></div>
+              <div class="mb-1 h-8 w-10 animate-pulse rounded-sm bg-gray-200"></div>
+              <div class="mt-1 h-3 w-16 animate-pulse rounded-sm bg-gray-100"></div>
             </div>
           </template>
           <template v-else>
-            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalCompleted }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.fully_rated") }}</span>
+            <div class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list">
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{ kpi.totalCompleted }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.fully_rated") }}</span>
             </div>
-            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalHalfRatedProgress }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.in_progress") }}</span>
+            <div class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list">
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{ kpi.totalHalfRatedProgress }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.in_progress") }}</span>
             </div>
-            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalMunicipalities }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.total_municipalities") }}</span>
+            <div class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list">
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{ kpi.totalMunicipalities }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.total_municipalities") }}</span>
             </div>
-            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalMeasures }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.measures_in_catalog") }}</span>
+            <div class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list">
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{ kpi.totalMeasures }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.measures_in_catalog") }}</span>
             </div>
             <div
-              class="col-span-2 flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list sm:col-span-1"
+              class="col-span-2 flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list sm:col-span-1"
             >
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{
                 kpi.totalFilledRatings.toLocaleString("de-DE")
               }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.completed_ratings") }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.completed_ratings") }}</span>
             </div>
           </template>
         </div>
 
         <!-- Tabs -->
-        <div class="border-gray-200 mb-4 flex gap-1 overflow-x-auto border-b">
+        <div class="mb-4 flex gap-1 overflow-x-auto border-b border-gray-200">
           <button
-            class="flex-shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold transition-colors"
+            class="shrink-0 border-b-2 px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors"
             :class="
               activeTab === 'measures'
                 ? 'border-gray-700 text-gray-800'
-                : 'text-gray-500 hover:text-gray-700 border-transparent'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             "
             @click="activeTab = 'measures'"
           >
             {{ $t("stats.measures.singular_title") }}
           </button>
           <button
-            class="flex-shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold transition-colors"
+            class="shrink-0 border-b-2 px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors"
             :class="
               activeTab === 'clustering'
                 ? 'border-gray-700 text-gray-800'
-                : 'text-gray-500 hover:text-gray-700 border-transparent'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             "
             @click="switchToClusteringTab"
           >
             {{ $t("stats.clustering.title") }}
           </button>
           <button
-            class="flex-shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold transition-colors"
+            class="shrink-0 border-b-2 px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors"
             :class="
               activeTab === 'dominance'
                 ? 'border-gray-700 text-gray-800'
-                : 'text-gray-500 hover:text-gray-700 border-transparent'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             "
             @click="switchToDominanceTab"
           >
@@ -211,13 +211,13 @@
         <!-- TAB: Maßnahmenstatistik -->
         <div v-show="activeTab === 'measures'">
           <!-- Mobile sub-tabs (only shown on small screens) -->
-          <div v-if="isSmall" class="border-gray-200 -mx-0 mb-4 flex border-b">
+          <div v-if="isSmall" class="mx-0 mb-4 flex border-b border-gray-200">
             <button
               class="flex flex-1 flex-col items-center gap-0.5 border-b-2 px-1 py-2 text-xs font-semibold transition-colors"
               :class="
                 mobileMeasuresTab === 'selection'
                   ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               "
               @click="mobileMeasuresTab = 'selection'"
             >
@@ -232,7 +232,7 @@
               :class="
                 mobileMeasuresTab === 'plot'
                   ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               "
               @click="mobileMeasuresTab = 'plot'"
             >
@@ -250,7 +250,7 @@
               :class="
                 mobileMeasuresTab === 'list'
                   ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               "
               @click="mobileMeasuresTab = 'list'"
             >
@@ -264,27 +264,27 @@
           <!-- Main interactive panel: sunburst (left) + distribution chart (right) -->
           <div class="mb-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
             <!-- Skeleton: sunburst card -->
-            <div v-if="statsLoading" class="flex flex-col rounded-sm bg-white p-5 shadow-list">
-              <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
-                <div class="bg-gray-200 mb-1 h-4 w-40 animate-pulse rounded"></div>
-                <div class="bg-gray-100 mt-1 h-3 w-56 animate-pulse rounded"></div>
+            <div v-if="statsLoading" class="flex flex-col rounded-xs bg-white p-5 shadow-list">
+              <div class="-mx-5 -mt-5 mb-4 rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3">
+                <div class="mb-1 h-4 w-40 animate-pulse rounded-sm bg-gray-200"></div>
+                <div class="mt-1 h-3 w-56 animate-pulse rounded-sm bg-gray-100"></div>
               </div>
               <div class="flex flex-1 items-center justify-center" style="min-height: 300px">
-                <div class="bg-gray-200 animate-pulse rounded-full" style="width: 220px; height: 220px"></div>
+                <div class="animate-pulse rounded-full bg-gray-200" style="width: 220px; height: 220px"></div>
               </div>
             </div>
 
             <!-- Skeleton: distribution card -->
-            <div v-if="statsLoading" class="flex flex-col rounded-sm bg-white p-5 shadow-list">
-              <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
-                <div class="bg-gray-200 mb-1 h-4 w-48 animate-pulse rounded"></div>
-                <div class="bg-gray-100 mt-1 h-3 w-60 animate-pulse rounded"></div>
+            <div v-if="statsLoading" class="flex flex-col rounded-xs bg-white p-5 shadow-list">
+              <div class="-mx-5 -mt-5 mb-4 rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3">
+                <div class="mb-1 h-4 w-48 animate-pulse rounded-sm bg-gray-200"></div>
+                <div class="mt-1 h-3 w-60 animate-pulse rounded-sm bg-gray-100"></div>
               </div>
               <div class="flex flex-1 flex-col justify-end gap-2 px-2" style="min-height: 300px">
                 <div v-for="i in 7" :key="i" class="flex items-end gap-2">
-                  <div class="bg-gray-100 h-3 w-8 flex-shrink-0 animate-pulse rounded"></div>
+                  <div class="h-3 w-8 shrink-0 animate-pulse rounded-sm bg-gray-100"></div>
                   <div
-                    class="bg-gray-200 animate-pulse rounded"
+                    class="animate-pulse rounded-sm bg-gray-200"
                     :style="{ height: '12px', width: `${30 + i * 8}%` }"
                   ></div>
                 </div>
@@ -294,28 +294,28 @@
             <!-- Sunburst / List view card -->
             <div
               v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'selection')"
-              class="flex flex-col rounded-sm bg-white p-5 shadow-list"
+              class="flex flex-col rounded-xs bg-white p-5 shadow-list"
             >
               <!-- Card header with toggle -->
               <div
-                class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b px-5 py-3"
+                class="-mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3"
               >
                 <div>
                   <h2 class="text-base font-bold">Sektoren &amp; Maßnahmen{{ filterSuffix }}</h2>
-                  <p class="text-gray-500 mt-0.5 text-xs">
+                  <p class="mt-0.5 text-xs text-gray-500">
                     <span v-if="!showListView || isSmall">Klick auf Sektor oder Maßnahme für Details →</span>
                     <span v-else>Sektor oder Maßnahme auswählen für Details →</span>
                   </p>
                 </div>
                 <!-- Toggle only on non-small screens -->
-                <div v-if="!isSmall" role="tablist" class="tabs-boxed tabs ml-3 w-fit flex-shrink-0">
+                <div v-if="!isSmall" role="tablist" class="tabs tabs-box ml-3 w-fit shrink-0">
                   <a
                     role="tab"
                     class="tab gap-1.5"
                     :class="{ 'tab-active': !showListView }"
                     @click="showListView = false"
                   >
-                    <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 32 32" fill="currentColor">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 32 32" fill="currentColor">
                       <path
                         d="M16 2a1 1 0 0 0-1 1v7.09a6 6 0 0 0-2.46 1.043L7.838 6.431a1.455 1.455 0 0 0-2.087.024a14.05 14.05 0 0 0 4.054 22.142a11 11 0 0 0 1.899.768a14.1 14.1 0 0 0 13.844-3.132a1.434 1.434 0 0 0 .028-2.064l-4.699-4.699A6 6 0 0 0 21.91 17H29a1 1 0 0 0 1-1A14.016 14.016 0 0 0 16 2m0 10a4 4 0 1 1-4 4a4.005 4.005 0 0 1 4-4M6.83 8.251l4.296 4.296a5.91 5.91 0 0 0-.011 6.924l-4.277 4.277A12.02 12.02 0 0 1 6.83 8.251m1.423 16.91l4.276-4.276A5.96 5.96 0 0 0 15 21.91v6.042a11.88 11.88 0 0 1-6.747-2.79ZM17 27.956V21.91a6 6 0 0 0 2.46-1.027l4.283 4.282A11.9 11.9 0 0 1 17 27.956M21.91 15A6.01 6.01 0 0 0 17 10.09V4.041A12.02 12.02 0 0 1 27.959 15Z"
                       />
@@ -329,7 +329,7 @@
                     @click="showListView = true"
                   >
                     <svg
-                      class="h-4 w-4 flex-shrink-0"
+                      class="h-4 w-4 shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -358,14 +358,14 @@
               <div
                 v-show="!isSmall && showListView"
                 style="height: 420px"
-                class="border-gray-100 flex flex-col overflow-hidden rounded-lg border"
+                class="flex flex-col overflow-hidden rounded-lg border border-gray-100"
               >
                 <button
-                  class="border-gray-100 flex w-full flex-shrink-0 items-center gap-2 border-b px-3 py-2 text-left text-sm font-medium transition-colors"
+                  class="flex w-full shrink-0 items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-sm font-medium transition-colors"
                   :class="!sunburstSelection.type ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
                   @click="clearSunburstSelection"
                 >
-                  <span class="h-5 w-5 flex-shrink-0 opacity-40">
+                  <span class="h-5 w-5 shrink-0 opacity-40">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                       <circle cx="12" cy="12" r="9" />
                       <path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2" />
@@ -374,7 +374,7 @@
                   <span class="flex-1 font-semibold">Gesamtbewertung</span>
                   <span
                     v-if="overallMeanScore != null"
-                    class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                    class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                     :style="{ background: ratingToColor(overallMeanScore), color: ratingTextColor(overallMeanScore) }"
                     >{{ (overallMeanScore * 100).toFixed(0) }}%</span
                   >
@@ -382,7 +382,7 @@
                 <div class="flex-1 overflow-y-auto">
                   <div v-for="sector in allSectorsOrdered" :key="sector.sectorKey">
                     <button
-                      class="border-gray-100 flex w-full items-center gap-2 border-b px-3 py-2 text-left text-sm font-semibold transition-colors"
+                      class="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-sm font-semibold transition-colors"
                       :class="
                         sunburstSelection.sectorKey === sector.sectorKey && sunburstSelection.type === 'sector'
                           ? 'bg-blue-50 text-blue-700'
@@ -392,12 +392,12 @@
                     >
                       <img
                         :src="sectorImages[sector.sectorKey]"
-                        class="slk-filter-sector-icon h-5 w-5 flex-shrink-0 opacity-70 mix-blend-multiply grayscale invert"
+                        class="slk-filter-sector-icon h-5 w-5 shrink-0 opacity-70 mix-blend-multiply grayscale invert"
                       />
                       <span class="flex-1 text-left">{{ shortSectorNames[sector.sectorKey] }}</span>
                       <span
                         v-if="sectorMeanScores.get(sector.sectorKey) != null"
-                        class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                        class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                         :style="{
                           background: ratingToColor(sectorMeanScores.get(sector.sectorKey)),
                           color: ratingTextColor(sectorMeanScores.get(sector.sectorKey)),
@@ -405,7 +405,7 @@
                         >{{ ((sectorMeanScores.get(sector.sectorKey) ?? 0) * 100).toFixed(0) }}%</span
                       >
                       <svg
-                        class="text-gray-400 h-4 w-4 flex-shrink-0 transition-transform duration-150"
+                        class="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150"
                         :class="expandedSectorKey === sector.sectorKey ? 'rotate-180' : ''"
                         fill="none"
                         stroke="currentColor"
@@ -418,7 +418,7 @@
                       <button
                         v-for="measure in Object.values(sector.measures)"
                         :key="measure.id"
-                        class="border-gray-50 flex w-full items-center gap-2 border-b py-1.5 pl-8 pr-3 text-left text-xs transition-colors"
+                        class="flex w-full items-center gap-2 border-b border-gray-50 py-1.5 pr-3 pl-8 text-left text-xs transition-colors"
                         :class="
                           sunburstSelection.measureId === measure.id
                             ? 'bg-blue-50 font-semibold text-blue-700'
@@ -429,14 +429,14 @@
                         <span class="flex-1 text-left">{{ measure.name }}</span>
                         <span
                           v-if="meanMeasureRatings.get(measure.id) != null"
-                          class="slk-rating-chip ml-1 flex-shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold text-white"
+                          class="slk-rating-chip ml-1 shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold text-white"
                           :style="{
                             background: ratingToColor(meanMeasureRatings.get(measure.id)),
                             color: ratingTextColor(meanMeasureRatings.get(measure.id)),
                           }"
                           >{{ ((meanMeasureRatings.get(measure.id) ?? 0) * 100).toFixed(0) }}%</span
                         >
-                        <span v-else class="text-gray-300 ml-1 flex-shrink-0 text-xs">–</span>
+                        <span v-else class="ml-1 shrink-0 text-xs text-gray-300">–</span>
                       </button>
                     </div>
                   </div>
@@ -447,14 +447,14 @@
               <div
                 v-show="isSmall"
                 style="height: 420px"
-                class="border-gray-100 flex flex-col overflow-hidden rounded-lg border"
+                class="flex flex-col overflow-hidden rounded-lg border border-gray-100"
               >
                 <button
-                  class="border-gray-100 flex w-full flex-shrink-0 items-center gap-2 border-b px-3 py-2 text-left text-sm font-medium transition-colors"
+                  class="flex w-full shrink-0 items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-sm font-medium transition-colors"
                   :class="!sunburstSelection.type ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
                   @click="clearSunburstSelection"
                 >
-                  <span class="h-5 w-5 flex-shrink-0 opacity-40">
+                  <span class="h-5 w-5 shrink-0 opacity-40">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                       <circle cx="12" cy="12" r="9" />
                       <path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2" />
@@ -463,7 +463,7 @@
                   <span class="flex-1 font-semibold">Gesamtbewertung</span>
                   <span
                     v-if="overallMeanScore != null"
-                    class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                    class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                     :style="{ background: ratingToColor(overallMeanScore), color: ratingTextColor(overallMeanScore) }"
                     >{{ (overallMeanScore * 100).toFixed(0) }}%</span
                   >
@@ -471,7 +471,7 @@
                 <div class="flex-1 overflow-y-auto">
                   <div v-for="sector in allSectorsOrdered" :key="sector.sectorKey">
                     <button
-                      class="border-gray-100 flex w-full items-center gap-2 border-b px-3 py-2 text-left text-sm font-semibold transition-colors"
+                      class="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-sm font-semibold transition-colors"
                       :class="
                         sunburstSelection.sectorKey === sector.sectorKey && sunburstSelection.type === 'sector'
                           ? 'bg-blue-50 text-blue-700'
@@ -481,12 +481,12 @@
                     >
                       <img
                         :src="sectorImages[sector.sectorKey]"
-                        class="slk-filter-sector-icon h-5 w-5 flex-shrink-0 opacity-70 mix-blend-multiply grayscale invert"
+                        class="slk-filter-sector-icon h-5 w-5 shrink-0 opacity-70 mix-blend-multiply grayscale invert"
                       />
                       <span class="flex-1 text-left">{{ shortSectorNames[sector.sectorKey] }}</span>
                       <span
                         v-if="sectorMeanScores.get(sector.sectorKey) != null"
-                        class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                        class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                         :style="{
                           background: ratingToColor(sectorMeanScores.get(sector.sectorKey)),
                           color: ratingTextColor(sectorMeanScores.get(sector.sectorKey)),
@@ -494,7 +494,7 @@
                         >{{ ((sectorMeanScores.get(sector.sectorKey) ?? 0) * 100).toFixed(0) }}%</span
                       >
                       <svg
-                        class="text-gray-400 h-4 w-4 flex-shrink-0 transition-transform duration-150"
+                        class="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150"
                         :class="expandedSectorKey === sector.sectorKey ? 'rotate-180' : ''"
                         fill="none"
                         stroke="currentColor"
@@ -507,7 +507,7 @@
                       <button
                         v-for="measure in Object.values(sector.measures)"
                         :key="measure.id"
-                        class="border-gray-50 flex w-full items-center gap-2 border-b py-1.5 pl-8 pr-3 text-left text-xs transition-colors"
+                        class="flex w-full items-center gap-2 border-b border-gray-50 py-1.5 pr-3 pl-8 text-left text-xs transition-colors"
                         :class="
                           sunburstSelection.measureId === measure.id
                             ? 'bg-blue-50 font-semibold text-blue-700'
@@ -518,14 +518,14 @@
                         <span class="flex-1 text-left">{{ measure.name }}</span>
                         <span
                           v-if="meanMeasureRatings.get(measure.id) != null"
-                          class="slk-rating-chip ml-1 flex-shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold text-white"
+                          class="slk-rating-chip ml-1 shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold text-white"
                           :style="{
                             background: ratingToColor(meanMeasureRatings.get(measure.id)),
                             color: ratingTextColor(meanMeasureRatings.get(measure.id)),
                           }"
                           >{{ ((meanMeasureRatings.get(measure.id) ?? 0) * 100).toFixed(0) }}%</span
                         >
-                        <span v-else class="text-gray-300 ml-1 flex-shrink-0 text-xs">–</span>
+                        <span v-else class="ml-1 shrink-0 text-xs text-gray-300">–</span>
                       </button>
                     </div>
                   </div>
@@ -535,7 +535,7 @@
               <div class="mt-3 flex items-center justify-center gap-2">
                 <template v-if="sunburstSelection.label">
                   <button
-                    class="text-gray-400 hover:text-gray-600 px-1 text-xs"
+                    class="px-1 text-xs text-gray-400 hover:text-gray-600"
                     title="Zurück (←)"
                     @click="navigateSunburstSelection(-1)"
                   >
@@ -549,10 +549,10 @@
                       >{{ sunburstSelection.type === "sector" ? "Sektor" : "Maßnahme" }}:
                       {{ sunburstSelection.label }}</span
                     >
-                    <span class="text-sm font-bold leading-none">×</span>
+                    <span class="text-sm leading-none font-bold">×</span>
                   </button>
                   <button
-                    class="text-gray-400 hover:text-gray-600 px-1 text-xs"
+                    class="px-1 text-xs text-gray-400 hover:text-gray-600"
                     title="Vorwärts (→)"
                     @click="navigateSunburstSelection(1)"
                   >
@@ -574,16 +574,16 @@
                     Zur Seite
                   </NuxtLink>
                 </template>
-                <span v-else class="text-gray-400 text-xs">{{ $t("stats.sunburst.click_ring_hint") }}</span>
+                <span v-else class="text-xs text-gray-400">{{ $t("stats.sunburst.click_ring_hint") }}</span>
               </div>
             </div>
 
             <!-- Distribution chart card -->
             <div
               v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'plot')"
-              class="flex flex-col rounded-sm bg-white p-5 shadow-list"
+              class="flex flex-col rounded-xs bg-white p-5 shadow-list"
             >
-              <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
+              <div class="-mx-5 -mt-5 mb-4 rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3">
                 <h2 class="text-base font-bold">
                   <span v-if="!sunburstSelection.type">{{
                     $t("stats.histogram.all_municipalities", { ":filter": filterSuffix })
@@ -595,7 +595,7 @@
                     $t("stats.histogram.rating_distribution", { ":label": sunburstSelection.label })
                   }}</span>
                 </h2>
-                <p class="text-gray-500 mt-0.5 text-xs">
+                <p class="mt-0.5 text-xs text-gray-500">
                   <span v-if="!sunburstSelection.type">{{ $t("stats.histogram.total_score_description") }}</span>
                   <span v-else-if="sunburstSelection.type === 'sector'">{{
                     $t("stats.histogram.sector_score_description", {
@@ -614,10 +614,10 @@
                     @click="clearPanelMunFilter"
                   >
                     <span>{{ panelMunFilter.label }}</span>
-                    <span class="text-sm font-bold leading-none">×</span>
+                    <span class="text-sm leading-none font-bold">×</span>
                   </button>
                 </template>
-                <span v-else-if="sunburstSelection.type" class="text-gray-400 text-xs">{{
+                <span v-else-if="sunburstSelection.type" class="text-xs text-gray-400">{{
                   $t("stats.histogram.click_bar_hint")
                 }}</span>
               </div>
@@ -626,15 +626,15 @@
           <!-- /top row -->
 
           <!-- Skeleton: municipality list card -->
-          <div v-if="statsLoading" class="mb-8 rounded-sm bg-white p-5 shadow-list">
-            <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
-              <div class="bg-gray-200 h-4 w-32 animate-pulse rounded"></div>
+          <div v-if="statsLoading" class="mb-8 rounded-xs bg-white p-5 shadow-list">
+            <div class="-mx-5 -mt-5 mb-4 rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3">
+              <div class="h-4 w-32 animate-pulse rounded-sm bg-gray-200"></div>
             </div>
             <div class="grid grid-cols-1 gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
-              <div v-for="i in 10" :key="i" class="border-gray-100 flex items-center gap-3 border-b py-1.5">
-                <div class="bg-gray-100 h-3 w-5 flex-shrink-0 animate-pulse rounded"></div>
-                <div class="bg-gray-200 h-3 flex-1 animate-pulse rounded"></div>
-                <div class="bg-gray-200 h-5 w-10 flex-shrink-0 animate-pulse rounded-full"></div>
+              <div v-for="i in 10" :key="i" class="flex items-center gap-3 border-b border-gray-100 py-1.5">
+                <div class="h-3 w-5 shrink-0 animate-pulse rounded-sm bg-gray-100"></div>
+                <div class="h-3 flex-1 animate-pulse rounded-sm bg-gray-200"></div>
+                <div class="h-5 w-10 shrink-0 animate-pulse rounded-full bg-gray-200"></div>
               </div>
             </div>
           </div>
@@ -642,12 +642,12 @@
           <!-- Municipality list card -->
           <div
             v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'list')"
-            class="mb-8 rounded-sm bg-white p-5 shadow-list"
+            class="mb-8 rounded-xs bg-white p-5 shadow-list"
           >
             <div
-              class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b px-5 py-3"
+              class="-mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3"
             >
-              <h3 class="text-gray-800 text-base font-semibold">
+              <h3 class="text-base font-semibold text-gray-800">
                 <span v-if="!panelMunFilter.active">
                   {{ $t("stats.top_10") }}<span v-if="sunburstSelection.label">: {{ sunburstSelection.label }}</span
                   ><span v-else> {{ $t("stats.municipalities") }}{{ filterSuffix }}</span>
@@ -656,7 +656,7 @@
               </h3>
               <button
                 v-if="panelMunFilter.active"
-                class="ml-2 flex-shrink-0 text-xs text-blue-600 hover:underline"
+                class="ml-2 shrink-0 text-xs text-blue-600 hover:underline"
                 @click="clearPanelMunFilter"
               >
                 × {{ $t("stats.filter.clear") }}
@@ -666,13 +666,11 @@
               <div
                 v-for="(ms, i) in panelMunicipalities"
                 :key="ms.id ?? ms.slug ?? i"
-                class="border-gray-100 flex items-center gap-3 border-b py-1.5 last:border-0"
+                class="flex items-center gap-3 border-b border-gray-100 py-1.5 last:border-0"
               >
-                <span
-                  v-if="!panelMunFilter.active"
-                  class="text-gray-400 w-5 flex-shrink-0 text-right text-xs font-bold"
-                  >{{ i + 1 }}</span
-                >
+                <span v-if="!panelMunFilter.active" class="w-5 shrink-0 text-right text-xs font-bold text-gray-400">{{
+                  i + 1
+                }}</span>
                 <NuxtLink
                   :to="ms.slug ? `/municipalities/${ms.slug}` : '#'"
                   class="flex-1 truncate text-sm text-blue-600 hover:text-blue-800 hover:underline"
@@ -680,7 +678,7 @@
                 >
                 <span
                   v-if="ms.score_total != null"
-                  class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                  class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                   :style="{
                     background: ratingToColor(parseNumber(ms.score_total) / 100),
                     color: ratingTextColor(parseNumber(ms.score_total) / 100),
@@ -688,7 +686,7 @@
                   >{{ parseNumber(ms.score_total).toFixed(1) }}</span
                 >
               </div>
-              <p v-if="!panelMunicipalities.length" class="text-gray-400 col-span-full py-2 text-xs">
+              <p v-if="!panelMunicipalities.length" class="col-span-full py-2 text-xs text-gray-400">
                 {{ $t("generic.no_data") }}
               </p>
             </div>
@@ -704,11 +702,11 @@
               <div class="mb-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 class="text-xl font-bold">{{ $t("stats.clustering.title") }}</h2>
-                  <p class="text-gray-500 mt-1 text-sm">{{ $t("stats.clustering.click_hint") }} →</p>
+                  <p class="mt-1 text-sm text-gray-500">{{ $t("stats.clustering.click_hint") }} →</p>
                 </div>
-                <div class="flex flex-shrink-0 items-center gap-3">
-                  <label class="whitespace-nowrap text-sm font-semibold">k =</label>
-                  <input v-model.number="kClusters" type="range" min="2" max="10" class="range range-sm w-28" />
+                <div class="flex shrink-0 items-center gap-3">
+                  <label class="text-sm font-semibold whitespace-nowrap">k =</label>
+                  <input v-model.number="kClusters" type="range" min="2" max="10" class="range w-28 range-sm" />
                   <span class="w-4 text-sm font-bold">{{ kClusters }}</span>
                   <CanonicalButton
                     class="ml-2"
@@ -719,7 +717,7 @@
                 </div>
               </div>
               <!-- Methodology note -->
-              <div class="text-gray-400 mb-3 text-xs leading-relaxed">
+              <div class="mb-3 text-xs leading-relaxed text-gray-400">
                 <span v-html="sanitizeHtml($t('stats.clustering.methodology'))"></span>
               </div>
               <div ref="clusterContainer" class="w-full" style="min-height: 100px"></div>
@@ -727,16 +725,16 @@
             </div>
 
             <!-- Cluster profile panel -->
-            <div class="rounded-sm bg-white p-5 shadow-list">
+            <div class="rounded-xs bg-white p-5 shadow-list">
               <h3 class="mb-3 text-base font-bold">
                 <span v-if="!clusterProfile.clusterLabel">{{ $t("stats.clustering.profile") }}</span>
                 <span v-else>{{ clusterProfile.clusterLabel }}</span>
               </h3>
-              <p v-if="!clusterProfile.clusterLabel" class="text-gray-400 text-sm">
+              <p v-if="!clusterProfile.clusterLabel" class="text-sm text-gray-400">
                 {{ $t("stats.clustering.empty_profile") }}
               </p>
               <template v-else>
-                <p class="text-gray-500 mb-3 text-xs">
+                <p class="mb-3 text-xs text-gray-500">
                   {{
                     $t("stats.clustering.profile_summary", {
                       ":count": clusterProfile.count,
@@ -746,12 +744,10 @@
                 </p>
                 <div class="mb-4 flex flex-col gap-2">
                   <div v-for="sector in sectorOrder" :key="sector" class="flex items-center gap-2">
-                    <span
-                      class="w-24 flex-shrink-0 truncate text-right text-xs"
-                      :style="{ color: sectorColors[sector] }"
-                      >{{ shortSectorNames[sector] }}</span
-                    >
-                    <div class="bg-gray-100 h-3 flex-1 overflow-hidden rounded-full">
+                    <span class="w-24 shrink-0 truncate text-right text-xs" :style="{ color: sectorColors[sector] }">{{
+                      shortSectorNames[sector]
+                    }}</span>
+                    <div class="h-3 flex-1 overflow-hidden rounded-full bg-gray-100">
                       <div
                         class="h-3 rounded-full transition-all"
                         :style="{
@@ -760,13 +756,13 @@
                         }"
                       ></div>
                     </div>
-                    <span class="w-10 flex-shrink-0 font-mono text-xs">{{
+                    <span class="w-10 shrink-0 font-mono text-xs">{{
                       (clusterProfile.sectorMeans[sector] ?? 0).toFixed(1)
                     }}</span>
                   </div>
                 </div>
                 <div class="border-t pt-3">
-                  <p class="text-gray-600 mb-2 text-xs font-semibold">
+                  <p class="mb-2 text-xs font-semibold text-gray-600">
                     {{ $t("stats.clustering.municipalities_in_cluster") }}
                   </p>
                   <div class="columns-2 gap-x-3">
@@ -788,38 +784,38 @@
         <!-- TAB: Paarweiser Vergleich -->
         <div v-show="activeTab === 'dominance'">
           <!-- Method description -->
-          <div class="mb-6 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-6 rounded-xs bg-white p-5 shadow-list">
             <h2 class="mb-2 text-base font-bold">{{ $t("stats.dominance.title") }}</h2>
-            <p class="text-gray-600 mb-2 text-sm leading-relaxed">
+            <p class="mb-2 text-sm leading-relaxed text-gray-600">
               <span v-html="sanitizeHtml($t('stats.dominance.description_1'))"></span>
             </p>
-            <p class="text-gray-600 mb-2 text-sm leading-relaxed">
+            <p class="mb-2 text-sm leading-relaxed text-gray-600">
               <span v-html="sanitizeHtml($t('stats.dominance.description_2'))"></span>
             </p>
-            <p class="text-gray-400 mb-3 text-xs">{{ $t("stats.dominance.filter_note") }}</p>
+            <p class="mb-3 text-xs text-gray-400">{{ $t("stats.dominance.filter_note") }}</p>
             <CanonicalButton :label="$t('stats.analysis.start')" color="orange" @click="computeDominanceAndRender" />
           </div>
 
           <!-- Win rate ranking chart -->
-          <div class="mb-6 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-6 rounded-xs bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.win_rate_ranking") }}</h3>
-            <p class="text-gray-500 mb-3 text-xs">{{ $t("stats.dominance.win_rate_ranking.description") }}</p>
+            <p class="mb-3 text-xs text-gray-500">{{ $t("stats.dominance.win_rate_ranking.description") }}</p>
             <div ref="dominanceRankContainer" class="w-full" style="min-height: 60px"></div>
             <p v-if="dominanceError" class="mt-2 text-sm text-error">{{ dominanceError }}</p>
           </div>
 
           <!-- Dominance heatmap -->
-          <div class="mb-8 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-8 rounded-xs bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.matrix_top_40") }}</h3>
-            <p class="text-gray-500 mb-3 text-xs">{{ $t("stats.dominance.matrix.description") }}</p>
+            <p class="mb-3 text-xs text-gray-500">{{ $t("stats.dominance.matrix.description") }}</p>
             <div ref="dominanceHeatmapContainer" class="w-full overflow-x-auto" style="min-height: 60px"></div>
           </div>
 
           <!-- Force-directed dominance network -->
-          <div class="mb-8 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-8 rounded-xs bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.network") }}</h3>
-            <p class="text-gray-500 mb-2 text-xs">{{ $t("stats.dominance.network.description") }}</p>
-            <p class="text-gray-400 mb-3 text-xs">
+            <p class="mb-2 text-xs text-gray-500">{{ $t("stats.dominance.network.description") }}</p>
+            <p class="mb-3 text-xs text-gray-400">
               <span v-html="sanitizeHtml($t('stats.dominance.network.note'))"></span>
             </p>
             <div ref="dominanceForceContainer" class="w-full" style="min-height: 700px"></div>
