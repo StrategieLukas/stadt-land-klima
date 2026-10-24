@@ -42,7 +42,12 @@ try {
       page.on("response", (response) => {
         const request = response.request();
         const url = new URL(response.url());
-        if (url.origin === base && ["fetch", "xhr"].includes(request.resourceType()) && response.status() >= 400) {
+        if (
+          url.origin === base &&
+          (["fetch", "xhr", "script", "stylesheet"].includes(request.resourceType()) ||
+            url.pathname.startsWith("/api/")) &&
+          response.status() >= 400
+        ) {
           // Deliberately omit query strings, headers and response bodies.
           errors.push(`HTTP ${response.status()} ${url.pathname}`);
         }
@@ -53,7 +58,8 @@ try {
         try {
           const response = await page.goto(`${base}${path}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
           assert(response?.ok(), `${path}: HTTP ${response?.status()}`);
-          await page.locator("h1,h2").first().waitFor({ timeout: 15_000 });
+          const ready = path === "/map" ? page.locator(".leaflet-container") : page.locator("h1,h2").first();
+          await ready.waitFor({ timeout: 15_000 });
           await waitForHydration(page);
           // Data settling is bounded; do not wait for map tiles/analytics to go idle.
           await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'), undefined, {
@@ -62,16 +68,18 @@ try {
           if (path === "/measures") {
             await page.locator('a[href^="/measures/"]').first().waitFor({ timeout: 15_000 });
           }
-          assert(
-            !/^(500|404)\b/.test((await page.locator("h1,h2").first().innerText()).trim()),
-            `${path}: error page rendered`,
-          );
+          if (path !== "/map")
+            assert(
+              !/^(500|404)\b/.test((await page.locator("h1,h2").first().innerText()).trim()),
+              `${path}: error page rendered`,
+            );
           assert(errors.length === 0, `${path}: ${[...new Set(errors)].join("; ")}`);
           process.stdout.write(`[PASS] ${path}: HTTP ${response?.status()}, hydrated\n`);
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
-          failures.push(`${path}: ${message}`);
-          process.stdout.write(`[FAIL] ${path}: ${message}\n`);
+          const details = [...new Set(errors)].join("; ");
+          failures.push(`${path}: ${message}${details ? "; " + details : ""}`);
+          process.stdout.write(`[FAIL] ${path}: ${message}${details ? "; " + details : ""}\n`);
         }
       }
       await page.close();

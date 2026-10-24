@@ -515,8 +515,9 @@ test("role attachment synchronization persists exact policies and never updates 
   assert.equal(requests.filter((call) => call.path.startsWith("/users")).length, 0);
 });
 
-test("service-user provisioning covers all three roles and reuses existing tokens on repeat runs", async () => {
+test("service-user provisioning uses valid owned-domain emails and reuses raw or concealed tokens without writes", async () => {
   const users: Record<string, unknown>[] = [];
+  let concealed = false;
   reset((call) => {
     if (call.method === "GET" && call.path === "/roles") {
       const filter = RecordSchema.parse(JSON.parse(call.url.searchParams.get("filter") ?? "{}"));
@@ -527,10 +528,19 @@ test("service-user provisioning covers all three roles and reuses existing token
     assert.equal(call.path, "/users");
     if (call.method === "GET") {
       const filter = RecordSchema.parse(JSON.parse(call.url.searchParams.get("filter") ?? "{}"));
-      return { data: users.filter((user) => user.email === RecordSchema.parse(filter.email)._eq) };
+      return {
+        data: users
+          .filter((user) => user.email === RecordSchema.parse(filter.email)._eq)
+          .map((user) => (concealed ? { ...user, token: "**********" } : user)),
+      };
     }
     assert.equal(call.method, "POST");
     assert.match(String(call.body.token), /^[a-f0-9]{64}$/);
+    assert.match(
+      String(call.body.email),
+      /^frontend-(server|public|preview)@stadt-land-klima\.de$/,
+      "service identities need the owned public domain accepted by Directus email validation",
+    );
     assert.ok(
       ["role-Frontend-Server", "role-Frontend-Public", "role-Frontend-Preview"].includes(String(call.body.role)),
     );
@@ -543,13 +553,35 @@ test("service-user provisioning covers all three roles and reuses existing token
   assert.equal(requests.filter((call) => call.path === "/users" && call.method === "POST").length, 3);
   assert.deepEqual(await provisionServiceUsers(url, "fixture-token"), result);
   assert.equal(requests.filter((call) => call.method !== "GET").length, 3, "second run must make no writes");
+  concealed = true;
+  await assert.rejects(provisionServiceUsers(url, "fixture-token"), /review it explicitly/);
+  const recovered = await provisionServiceUsers(url, "fixture-token", async ({ id, role, email }) => {
+    const user = users.find((entry) => entry.id === id && entry.role === role && entry.email === email);
+    assert.ok(user, "stored-token lookup must be bound to the checked identity");
+    return String(user.token);
+  });
+  assert.deepEqual(recovered, result);
+  await assert.rejects(
+    provisionServiceUsers(url, "fixture-token", async () => "weak"),
+    /review it explicitly/,
+  );
+  assert.equal(
+    requests.filter((call) => call.method !== "GET").length,
+    3,
+    "concealed tokens must never cause replacement writes",
+  );
   reset(() => ({ data: [{ id: "ambiguous-one" }, { id: "ambiguous-two" }] }));
   await assert.rejects(provisionServiceUsers(url, "fixture-token"), /not uniquely found/);
   assert.equal(requests.filter((call) => call.method !== "GET").length, 0);
 });
 
 test("service-user provisioning rejects conflicting, disabled or weak existing identities before any writes", async () => {
-  for (const override of [{ role: "administrator" }, { status: "suspended" }, { token: "weak" }]) {
+  for (const override of [
+    { role: "administrator" },
+    { status: "suspended" },
+    { token: "weak" },
+    { role: "administrator", token: "**********" },
+  ]) {
     reset((call) => {
       if (call.path === "/roles") {
         const filter = RecordSchema.parse(JSON.parse(call.url.searchParams.get("filter") ?? "{}"));
@@ -559,12 +591,24 @@ test("service-user provisioning rejects conflicting, disabled or weak existing i
       const filter = RecordSchema.parse(JSON.parse(call.url.searchParams.get("filter") ?? "{}"));
       return {
         data:
-          RecordSchema.parse(filter.email)._eq === "frontend-preview@stadt-land-klima.local"
+          RecordSchema.parse(filter.email)._eq === "frontend-preview@stadt-land-klima.de"
             ? [{ id: "existing", role: "role-Frontend-Preview", status: "active", token: "a".repeat(64), ...override }]
             : [],
       };
     });
-    await assert.rejects(provisionServiceUsers(url, "fixture-token"), /review it explicitly/);
+    let lookups = 0;
+    await assert.rejects(
+      provisionServiceUsers(url, "fixture-token", async () => {
+        lookups++;
+        return "a".repeat(64);
+      }),
+      /review it explicitly/,
+    );
+    assert.equal(
+      lookups,
+      0,
+      "invalid identity metadata and weak unmasked tokens must never invoke stored-token recovery",
+    );
     assert.equal(requests.filter((call) => call.method !== "GET").length, 0);
   }
 });

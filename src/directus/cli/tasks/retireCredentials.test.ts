@@ -12,8 +12,30 @@ import {
   type RetirementRequest,
   retirementScopeFromPolicy,
   readRetirementScope,
+  createRetirementRequest,
 } from "./retireCredentials.ts";
 const allScope = { legacyFrontend: true, candidates: true, previews: true };
+test("retirement accepts empty successful cache responses but rejects HTTP errors and malformed JSON", async () => {
+  for (const status of [200, 204]) {
+    const request = createRetirementRequest("http://cms/", "private-token", async (url, options) => {
+      assert.equal(url, "http://cms/utils/cache/clear");
+      assert.equal(options?.method, "POST");
+      assert.equal(options?.redirect, "error");
+      return new Response(null, { status });
+    });
+    assert.equal(await request("/utils/cache/clear", "POST"), null);
+  }
+  const valid = createRetirementRequest("http://cms", "private-token", async () => Response.json({ data: [] }));
+  assert.deepEqual(await valid("/users"), { data: [] });
+  const denied = createRetirementRequest(
+    "http://cms",
+    "private-token",
+    async () => new Response("secret", { status: 403 }),
+  );
+  await assert.rejects(denied("/users"), /^Error: Retirement request failed: HTTP 403$/);
+  const malformed = createRetirementRequest("http://cms", "private-token", async () => new Response("broken JSON"));
+  await assert.rejects(malformed("/users"), SyntaxError);
+});
 function fixture() {
   const candidates = [{ id: 1, access_token: "previous-candidate" }];
   const municipalities = [{ id: "city", preview_token: "previous-preview", slug: "test-city" }];
@@ -90,6 +112,35 @@ test("retirement validates all preconditions before mutation and rejects instanc
     );
     assert.deepEqual(f.writes, [], drift);
   }
+});
+test("concealed API tokens require private recovery and real token drift rejects retirement before writes", async () => {
+  const f = fixture();
+  const scope = { legacyFrontend: true, candidates: false, previews: false };
+  let storedToken = "old-shared";
+  const request: RetirementRequest = async (path, method, body) => {
+    const response = await f.request(path, method, body);
+    if ((!method || method === "GET") && path.startsWith("/users?")) {
+      return { data: f.users.map((user) => ({ ...user, token: user.token === null ? null : "**********" })) };
+    }
+    return response;
+  };
+  await assert.rejects(planRetirement(request, "https://cms", "https://site", scope), /private stored-token reader/);
+  const read = async (identity: { id: string; role: string; email: string | null; status: string }) => {
+    assert.deepEqual(identity, { id: "legacy", role: "old", email: null, status: "active" });
+    return storedToken;
+  };
+  const plan = await planRetirement(request, "https://cms", "https://site", scope, read);
+  const raw = await planRetirement(f.request, "https://cms", "https://site", scope);
+  assert.equal(plan.credentials[0]!.previousHash, raw.credentials[0]!.previousHash);
+  storedToken = "changed-behind-concealed-response";
+  await assert.rejects(
+    applyRetirement(request, plan, "https://cms", "https://site", scope, read),
+    /changed since planning/,
+  );
+  assert.deepEqual(f.writes, []);
+  storedToken = "old-shared";
+  assert.equal((await applyRetirement(request, plan, "https://cms", "https://site", scope, read)).updated, 1);
+  assert.equal((await applyRetirement(request, plan, "https://cms", "https://site", scope, read)).alreadyApplied, 1);
 });
 test("retirement can resume after a partial upstream failure without rotating completed credentials again", async () => {
   const f = fixture();
