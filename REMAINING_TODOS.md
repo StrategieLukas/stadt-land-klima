@@ -42,7 +42,7 @@ Follow [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) in order. These are ro
 
 ## Explicit upstream patch maintenance
 
-- **node-forge:** retain the source-hash-verified PKCS#1 backport and nonempty-NULL protection until an independently reviewed fixed upstream release is compatible. The raw frontend audit still reports seven high graph entries for that dependency chain; no blanket suppression or framework downgrade was added. The raw audit workflow deliberately keeps these visible.
+- **node-forge:** retain the source-hash-verified PKCS#1 backport and nonempty-NULL protection until an independently reviewed fixed upstream release is compatible. The raw frontend audit still reports seven high graph entries for that dependency chain; no blanket suppression or framework downgrade was added. The raw audit workflow deliberately keeps these visible and failing. Its job summary and `dependency-audit` artifact now identify advisory titles/URLs and affected packages; operational audit failures have separate diagnostics. Push the reporting changes to enable this improved output in CI.
 - **Pinned image:** raw findings remain in the machine-readable image report. `audit:directus-image:reviewed` requires exact package/version/advisory dispositions, the production configuration controls and passing image regressions. Unknown findings and an expired review fail. The current review expires **2026-11-24**; renew it with evidence rather than extending the date mechanically.
 - **Directus source/dependency overlays:** keep the original source hashes, exact dependency replacements and compatible API regressions. A new base image/layout requires a fresh review. Do not upgrade Directus beyond 11.17.4 without explicit authorization.
 

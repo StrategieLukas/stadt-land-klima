@@ -7,6 +7,8 @@ on:
     paths:
       - "**/package-lock.json"
       - "bin/test_suite/src/dependencyAudit.ts"
+      - "bin/test_suite/src/lib/dependencyAuditReport.ts"
+      - "bin/test_suite/src/dependencyAudit.test.ts"
       - ".github/workflows/dependency-audit.yml"
 permissions:
   contents: read
@@ -22,9 +24,12 @@ jobs:
         with:
           node-version-file: .node-version
       # Locked installs do not execute repository/dependency lifecycle scripts.
-      - run: npm ci --ignore-scripts --prefix bin/test_suite
-      - run: npm --prefix bin/test_suite run audit:dependencies -- "$RUNNER_TEMP/dependency-audit"
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      - name: Install audit tooling without lifecycle scripts
+        run: npm ci --ignore-scripts --prefix bin/test_suite
+      - name: Audit lockfiles and publish findings in job summary
+        run: npm --prefix bin/test_suite run audit:dependencies -- "$RUNNER_TEMP/dependency-audit"
+      - name: Upload audit summary and JSON reports
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:
           name: dependency-audit
