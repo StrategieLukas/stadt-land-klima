@@ -1,6 +1,5 @@
 <template>
   <div v-if="isExistingRecord" class="election-actions">
-
     <!-- Generate Theses card -->
     <div class="action-card">
       <div class="card-header">
@@ -19,9 +18,7 @@
         </v-chip>
       </div>
 
-      <v-notice v-if="alreadyGenerated" type="success" class="card-notice">
-        Thesen wurden bereits generiert.
-      </v-notice>
+      <v-notice v-if="alreadyGenerated" type="success" class="card-notice"> Thesen wurden bereits generiert. </v-notice>
 
       <div class="card-footer">
         <v-button
@@ -82,17 +79,10 @@
         </v-chip>
       </div>
 
-      <v-notice v-if="alreadySent" type="success" class="card-notice">
-        E-Mails wurden bereits versendet.
-      </v-notice>
+      <v-notice v-if="alreadySent" type="success" class="card-notice"> E-Mails wurden bereits versendet. </v-notice>
 
       <div class="card-footer">
-        <v-button
-          v-if="!alreadySent"
-          :loading="loadingMails"
-          :disabled="isAnyLoading"
-          @click="handleSendMails"
-        >
+        <v-button v-if="!alreadySent" :loading="loadingMails" :disabled="isAnyLoading" @click="handleSendMails">
           <v-icon name="send" left />
           E-Mails versenden
         </v-button>
@@ -101,12 +91,7 @@
           E-Mails versendet
         </v-button>
 
-        <v-button
-          :loading="loadingTestMail"
-          :disabled="isAnyLoading"
-          secondary
-          @click="handleSendTestMail"
-        >
+        <v-button :loading="loadingTestMail" :disabled="isAnyLoading" secondary @click="handleSendTestMail">
           <v-icon name="forward_to_inbox" left />
           Test-E-Mail senden
         </v-button>
@@ -234,9 +219,7 @@
           <div class="mail-summary-sections">
             <section class="mail-summary-section">
               <h4>Erfolgreich benachrichtigt</h4>
-              <p v-if="sentCandidates.length === 0" class="mail-summary-empty">
-                Keine {{ participantPlural }}.
-              </p>
+              <p v-if="sentCandidates.length === 0" class="mail-summary-empty">Keine {{ participantPlural }}.</p>
               <ul v-else>
                 <li v-for="candidate in sentCandidates" :key="`sent-${candidate.id}`">
                   <span class="mail-summary-name">{{ candidate.name }}</span>
@@ -247,14 +230,12 @@
 
             <section class="mail-summary-section">
               <h4>Fehlgeschlagen</h4>
-              <p v-if="failedCandidates.length === 0" class="mail-summary-empty">
-                Keine fehlgeschlagenen E-Mails.
-              </p>
+              <p v-if="failedCandidates.length === 0" class="mail-summary-empty">Keine fehlgeschlagenen E-Mails.</p>
               <ul v-else>
                 <li v-for="candidate in failedCandidates" :key="`failed-${candidate.id}`">
                   <span class="mail-summary-name">{{ candidate.name }}</span>
                   <span class="mail-summary-detail">
-                    {{ candidate.email || 'Keine E-Mail-Adresse' }}
+                    {{ candidate.email || "Keine E-Mail-Adresse" }}
                     <template v-if="candidate.message"> · {{ candidate.message }}</template>
                   </span>
                 </li>
@@ -270,7 +251,7 @@
                 <li v-for="candidate in skippedCandidates" :key="`skipped-${candidate.id}`">
                   <span class="mail-summary-name">{{ candidate.name }}</span>
                   <span class="mail-summary-detail">
-                    {{ candidate.message || 'Keine E-Mail-Adresse hinterlegt.' }}
+                    {{ candidate.message || "Keine E-Mail-Adresse hinterlegt." }}
                   </span>
                 </li>
               </ul>
@@ -283,13 +264,12 @@
         </div>
       </div>
     </teleport>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch, type Ref } from 'vue';
-import { useApi } from '@directus/extensions-sdk';
+import { ref, computed, onMounted, onBeforeUnmount, watch, type Ref } from "vue";
+import { useApi } from "@directus/extensions-sdk";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -306,9 +286,7 @@ const props = defineProps<{
 
 const api = useApi();
 
-const isExistingRecord = computed(
-  () => props.primaryKey != null && props.primaryKey !== '+',
-);
+const isExistingRecord = computed(() => props.primaryKey != null && props.primaryKey !== "+");
 
 // ---------------------------------------------------------------------------
 // Remote state (fetched from API)
@@ -337,49 +315,26 @@ const sessionReviewRequested = ref(false);
 // ---------------------------------------------------------------------------
 
 const alreadyGenerated = computed(
-  () =>
-    sessionGenerated.value ||
-    remote.value.alreadyGenerated ||
-    !!props.values?.already_generated_questions,
+  () => sessionGenerated.value || remote.value.alreadyGenerated || !!props.values?.already_generated_questions,
 );
 
-const alreadySent = computed(
-  () =>
-    sessionSent.value ||
-    remote.value.alreadySent ||
-    !!props.values?.already_sent_mails,
-);
+const alreadySent = computed(() => sessionSent.value || remote.value.alreadySent || !!props.values?.already_sent_mails);
 
 const alreadySentReminder = computed(
-  () =>
-    sessionSentReminder.value ||
-    remote.value.alreadySentReminder ||
-    !!props.values?.already_sent_reminder_mails,
+  () => sessionSentReminder.value || remote.value.alreadySentReminder || !!props.values?.already_sent_reminder_mails,
 );
 
 const alreadySentThankYou = computed(
-  () =>
-    sessionSentThankYou.value ||
-    remote.value.alreadySentThankYou ||
-    !!props.values?.already_sent_thank_you_mails,
+  () => sessionSentThankYou.value || remote.value.alreadySentThankYou || !!props.values?.already_sent_thank_you_mails,
 );
 
 const reviewRequested = computed(
-  () =>
-    sessionReviewRequested.value ||
-    remote.value.reviewRequested ||
-    !!props.values?.review_requested,
+  () => sessionReviewRequested.value || remote.value.reviewRequested || !!props.values?.review_requested,
 );
 
-const isApproved = computed(
-  () => remote.value.isApproved || !!props.values?.is_approved,
-);
-const isPartyElection = computed(
-  () => remote.value.isPartyElection || props.values?.is_party_election === true,
-);
-const participantPlural = computed(
-  () => isPartyElection.value ? 'Parteien' : 'Kandidat:innen',
-);
+const isApproved = computed(() => remote.value.isApproved || !!props.values?.is_approved);
+const isPartyElection = computed(() => remote.value.isPartyElection || props.values?.is_party_election === true);
+const participantPlural = computed(() => (isPartyElection.value ? "Parteien" : "Kandidat:innen"));
 
 // ---------------------------------------------------------------------------
 // Loading state
@@ -406,7 +361,7 @@ const isAnyLoading = computed(
 // ---------------------------------------------------------------------------
 
 interface Feedback {
-  type: 'success' | 'danger';
+  type: "success" | "danger";
   message: string | null;
 }
 
@@ -425,7 +380,7 @@ interface MailSendResult extends Record<string, unknown> {
   skippedCount?: number;
   totalCandidates?: number;
   eligibleCandidates?: number;
-  mailType?: 'invitation' | 'reminder' | 'thank_you';
+  mailType?: "invitation" | "reminder" | "thank_you";
   sent?: MailCandidateSummary[];
   failed?: MailCandidateSummary[];
   skipped?: MailCandidateSummary[];
@@ -433,15 +388,15 @@ interface MailSendResult extends Record<string, unknown> {
   selectedCandidate?: MailCandidateSummary;
 }
 
-const feedback = ref<Feedback>({ type: 'success', message: null });
+const feedback = ref<Feedback>({ type: "success", message: null });
 const mailSummary = ref<MailSendResult | null>(null);
 let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
 
-function showFeedback(type: Feedback['type'], message: string, durationMs = 6000) {
+function showFeedback(type: Feedback["type"], message: string, durationMs = 6000) {
   if (feedbackTimer) clearTimeout(feedbackTimer);
   feedback.value = { type, message };
   feedbackTimer = setTimeout(() => {
-    feedback.value = { type: 'success', message: null };
+    feedback.value = { type: "success", message: null };
   }, durationMs);
 }
 
@@ -453,13 +408,13 @@ const sentCandidates = computed(() => mailSummary.value?.sent ?? []);
 const failedCandidates = computed(() => mailSummary.value?.failed ?? []);
 const skippedCandidates = computed(() => mailSummary.value?.skipped ?? []);
 const mailSummarySubtitle = computed(() => {
-  if (!mailSummary.value) return '';
+  if (!mailSummary.value) return "";
 
   return [
     `${mailSummary.value.sentCount ?? 0} versendet`,
     `${mailSummary.value.failedCount ?? 0} fehlgeschlagen`,
     `${mailSummary.value.skippedCount ?? 0} ohne E-Mail übersprungen`,
-  ].join(', ');
+  ].join(", ");
 });
 
 function closeMailSummary() {
@@ -477,13 +432,13 @@ async function fetchStatus() {
     const { data } = await api.get(`/items/elections/${props.primaryKey}`, {
       params: {
         fields: [
-          'already_generated_questions',
-          'already_sent_mails',
-          'already_sent_reminder_mails',
-          'already_sent_thank_you_mails',
-          'is_approved',
-          'is_party_election',
-          'review_requested',
+          "already_generated_questions",
+          "already_sent_mails",
+          "already_sent_reminder_mails",
+          "already_sent_thank_you_mails",
+          "is_approved",
+          "is_party_election",
+          "review_requested",
         ],
       },
     });
@@ -511,9 +466,7 @@ watch(() => props.primaryKey, fetchStatus);
 // Actions
 // ---------------------------------------------------------------------------
 
-async function callEndpoint<T extends Record<string, unknown> = Record<string, unknown>>(
-  endpoint: string,
-): Promise<T> {
+async function callEndpoint<T extends Record<string, unknown> = Record<string, unknown>>(endpoint: string): Promise<T> {
   const { data } = await api.post(`/election-actions/${endpoint}`, {
     election_id: String(props.primaryKey),
   });
@@ -525,8 +478,7 @@ async function callEndpoint<T extends Record<string, unknown> = Record<string, u
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error) {
     // Try to surface a Directus API error message if present
-    const apiMessage = (err as any)?.response?.data?.errors?.[0]?.message
-      ?? (err as any)?.response?.data?.error;
+    const apiMessage = (err as any)?.response?.data?.errors?.[0]?.message ?? (err as any)?.response?.data?.error;
     return apiMessage ?? err.message;
   }
   return String(err);
@@ -535,21 +487,19 @@ function extractErrorMessage(err: unknown): string {
 async function handleGenerate() {
   loadingGenerate.value = true;
   try {
-    await callEndpoint('generate');
+    await callEndpoint("generate");
     sessionGenerated.value = true;
-    showFeedback('success', 'Thesen wurden erfolgreich generiert.');
+    showFeedback("success", "Thesen wurden erfolgreich generiert.");
     fetchStatus(); // refresh in background to sync full server state
   } catch (err) {
-    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+    showFeedback("danger", `Fehler: ${extractErrorMessage(err)}`);
   } finally {
     loadingGenerate.value = false;
   }
 }
 
 async function handleRegenerate() {
-  const confirmed = window.confirm(
-    'Bestehende Thesen löschen und neu generieren?',
-  );
+  const confirmed = window.confirm("Bestehende Thesen löschen und neu generieren?");
   if (!confirmed) return;
   await handleGenerate();
 }
@@ -557,12 +507,12 @@ async function handleRegenerate() {
 async function handleRequestReview() {
   loadingReview.value = true;
   try {
-    await callEndpoint('request-review');
+    await callEndpoint("request-review");
     sessionReviewRequested.value = true;
-    showFeedback('success', 'Review der Thesen wurde angefragt.');
+    showFeedback("success", "Review der Thesen wurde angefragt.");
     fetchStatus();
   } catch (err) {
-    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+    showFeedback("danger", `Fehler: ${extractErrorMessage(err)}`);
   } finally {
     loadingReview.value = false;
   }
@@ -570,28 +520,34 @@ async function handleRequestReview() {
 
 async function handleSendMails() {
   await handleBulkMail({
-    endpoint: 'send-mails',
+    endpoint: "send-mails",
     confirmation: `E-Mails wirklich an alle ${participantPlural.value} mit hinterlegter E-Mail-Adresse versenden? ${participantPlural.value} ohne E-Mail werden übersprungen.`,
     loading: loadingMails,
-    setSessionSent: () => { sessionSent.value = true; },
+    setSessionSent: () => {
+      sessionSent.value = true;
+    },
   });
 }
 
 async function handleSendReminders() {
   await handleBulkMail({
-    endpoint: 'send-reminders',
+    endpoint: "send-reminders",
     confirmation: `Reminder-E-Mails wirklich einmalig an alle ${participantPlural.value} ohne eingereichte Antworten versenden?`,
     loading: loadingReminders,
-    setSessionSent: () => { sessionSentReminder.value = true; },
+    setSessionSent: () => {
+      sessionSentReminder.value = true;
+    },
   });
 }
 
 async function handleSendThankYouMails() {
   await handleBulkMail({
-    endpoint: 'send-thank-you-mails',
+    endpoint: "send-thank-you-mails",
     confirmation: `Dankes-E-Mails wirklich einmalig an alle ${participantPlural.value} mit eingereichten Antworten versenden?`,
     loading: loadingThankYou,
-    setSessionSent: () => { sessionSentThankYou.value = true; },
+    setSessionSent: () => {
+      sessionSentThankYou.value = true;
+    },
   });
 }
 
@@ -621,19 +577,19 @@ async function handleBulkMail({
 
     if (failedCount > 0) {
       showFeedback(
-        'danger',
+        "danger",
         `E-Mail-Versand abgeschlossen: ${sentCount} versendet, ${failedCount} fehlgeschlagen, ${skippedCount} übersprungen.`,
         9000,
       );
     } else if (sentCount > 0) {
       showFeedback(
-        'success',
+        "success",
         `E-Mail-Versand abgeschlossen: ${sentCount} versendet, ${skippedCount} übersprungen.`,
         9000,
       );
     } else {
       showFeedback(
-        'danger',
+        "danger",
         `Keine E-Mails wurden versendet. ${skippedCount} ${participantPlural.value} ohne E-Mail wurden übersprungen.`,
         9000,
       );
@@ -641,7 +597,7 @@ async function handleBulkMail({
 
     fetchStatus();
   } catch (err) {
-    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+    showFeedback("danger", `Fehler: ${extractErrorMessage(err)}`);
   } finally {
     loading.value = false;
   }
@@ -650,26 +606,18 @@ async function handleBulkMail({
 async function handleSendTestMail() {
   loadingTestMail.value = true;
   try {
-    const result = await callEndpoint<MailSendResult>('test-mail');
-    const candidateName = result.selectedCandidate?.name ?? 'eine zufällig ausgewählte Person';
-    const recipient = result.testRecipient ?? 'info@stadt-land-klima.de';
+    const result = await callEndpoint<MailSendResult>("test-mail");
+    const candidateName = result.selectedCandidate?.name ?? "eine zufällig ausgewählte Person";
+    const recipient = result.testRecipient ?? "info@stadt-land-klima.de";
 
     if ((result.sentCount ?? 0) > 0) {
-      showFeedback(
-        'success',
-        `Test-E-Mail für ${candidateName} wurde an ${recipient} versendet.`,
-        9000,
-      );
+      showFeedback("success", `Test-E-Mail für ${candidateName} wurde an ${recipient} versendet.`, 9000);
     } else {
       const failure = result.failed?.[0]?.message;
-      showFeedback(
-        'danger',
-        `Test-E-Mail konnte nicht versendet werden.${failure ? ` ${failure}` : ''}`,
-        9000,
-      );
+      showFeedback("danger", `Test-E-Mail konnte nicht versendet werden.${failure ? ` ${failure}` : ""}`, 9000);
     }
   } catch (err) {
-    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+    showFeedback("danger", `Fehler: ${extractErrorMessage(err)}`);
   } finally {
     loadingTestMail.value = false;
   }

@@ -1,0 +1,5 @@
+name: Frontend-Public
+icon: public
+description: Minimal public frontend role — no grants initially, added as needed
+policies:
+  - Frontend-Public

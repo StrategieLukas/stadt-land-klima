@@ -12,8 +12,12 @@ if [ -f src/directus/.env ]; then
   set +a
 fi
 
-: "${DB_USER:?DB_USER is required}"
 : "${DB_DATABASE:?DB_DATABASE is required}"
 DB_PORT="${DB_PORT:-5432}"
 
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml exec -T db psql -p "$DB_PORT" -U "$DB_USER" -d "$DB_DATABASE" "$@"
+source "$SCRIPT_DIR/../lib/core-service-data.sh"
+core_compose production
+"${CORE_COMPOSE[@]}" exec -T db sh -ec '
+  port=$1; database=$2; shift 2
+  exec psql -v ON_ERROR_STOP=1 -p "$port" -U "$POSTGRES_USER" -d "$database" "$@"
+' sh "$DB_PORT" "$DB_DATABASE" "$@"

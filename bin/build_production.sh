@@ -19,6 +19,7 @@ for arg in "$@"; do
       echo "Options:
 --no-directus-build  skip the Directus image
 --no-frontend-build  skip the frontend image"
+      echo "The maintenance image is rebuilt with any selected application image."
       exit 0
       ;;
     *)
@@ -29,6 +30,8 @@ for arg in "$@"; do
 done
 
 cd "$REPO_ROOT"
+source "$SCRIPT_DIR/lib/core-service-data.sh"
+core_compose production
 BUILD_SERVICES=()
 if [[ $BUILD_DIRECTUS == true ]]; then
   BUILD_SERVICES+=(directus)
@@ -42,8 +45,10 @@ if ((${#BUILD_SERVICES[@]} == 0)); then
   exit 0
 fi
 
+BUILD_SERVICES+=(maintenance)
+
 echo "Rebuilding production images without Docker build cache..."
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml build \
+"${CORE_COMPOSE[@]}" build \
   --no-cache \
   --pull \
   --build-arg UID="$(id -u)" \

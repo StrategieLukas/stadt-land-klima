@@ -5,7 +5,7 @@
       <!-- Full-viewport background: bleeds past the max-w container via negative offsets.
            No z-index needed — DOM order ensures content div (below) paints on top. -->
       <div
-        class="border-gray-100 absolute border-b bg-white/90 backdrop-blur-sm"
+        class="absolute border-b border-gray-100 bg-white/90 backdrop-blur-xs"
         style="top: 0; bottom: 0; left: calc((100% - 100vw) / 2); right: calc((100% - 100vw) / 2)"
       />
       <div class="relative flex min-w-0 flex-wrap items-center gap-3 py-2 sm:flex-nowrap">
@@ -16,25 +16,25 @@
             :lon="displayLon"
             :size="30"
           />
-          <div v-else class="skeleton h-[30px] w-[30px] rounded-md" />
+          <div v-else class="h-[30px] w-[30px] skeleton rounded-md" />
         </div>
         <ol class="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-xs">
           <template v-if="!hasDisplayArea">
-            <li class="skeleton h-3 w-20" />
+            <li class="h-3 w-20 skeleton" />
             <li class="text-gray-300 select-none">›</li>
-            <li class="skeleton h-3 w-28" />
+            <li class="h-3 w-28 skeleton" />
           </template>
           <template v-else-if="!areaReady">
             <li>
               <BreadcrumbItem label="Deutschland" href="/data" :sibling-level="null" />
             </li>
             <li class="text-gray-300 select-none">›</li>
-            <li class="skeleton h-3 w-32" />
+            <li class="h-3 w-32 skeleton" />
             <li class="text-gray-300 select-none">›</li>
-            <li class="text-gray-800 font-semibold">{{ `${displayArea?.prefix} ${displayArea?.name}`.trim() }}</li>
+            <li class="font-semibold text-gray-800">{{ `${displayArea?.prefix} ${displayArea?.name}`.trim() }}</li>
           </template>
           <template v-else>
-            <template v-if="displayArea?.level > 1">
+            <template v-if="(displayArea?.level ?? 0) > 1">
               <li>
                 <BreadcrumbItem label="Deutschland" href="/data" :sibling-level="null" />
               </li>
@@ -66,7 +66,7 @@
         <a
           v-if="areaReady && collections.length"
           href="#alle-datenprodukte"
-          class="border-gray-200 text-gray-700 inline-flex flex-none items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors hover:border-[#006e94]/30 hover:text-[#006e94]"
+          class="inline-flex flex-none items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-xs transition-colors hover:border-[#006e94]/30 hover:text-[#006e94]"
           @click.prevent="scrollToAllProducts"
         >
           <Icon icon="mdi:view-grid-outline" class="h-4 w-4" />
@@ -77,27 +77,27 @@
 
     <!-- ── Route-level loading: avoid rendering stale area content during reused-page navigation. ── -->
     <section v-if="!hasDisplayArea" class="py-6">
-      <div class="text-gray-500 mb-4 flex items-center justify-center gap-3 text-sm">
+      <div class="mb-4 flex items-center justify-center gap-3 text-sm text-gray-500">
         <SlkFlowerSpinner :size="28" />
         <span>{{ dataRouteLabel }}</span>
       </div>
       <div class="grid gap-5 xl:grid-cols-12 xl:items-center">
-        <div class="border-gray-200 rounded-lg border p-5 xl:col-span-5">
-          <div class="skeleton mb-4 h-3 w-24" />
-          <div class="skeleton mb-6 h-14 w-3/4" />
+        <div class="rounded-lg border border-gray-200 p-5 xl:col-span-5">
+          <div class="mb-4 h-3 w-24 skeleton" />
+          <div class="mb-6 h-14 w-3/4 skeleton" />
           <div class="grid grid-cols-2 gap-4">
-            <div class="skeleton h-14" />
-            <div class="skeleton h-14" />
-            <div class="skeleton h-14" />
+            <div class="h-14 skeleton" />
+            <div class="h-14 skeleton" />
+            <div class="h-14 skeleton" />
           </div>
         </div>
-        <div class="skeleton h-[240px] rounded-lg sm:h-[280px] xl:col-span-7 xl:h-[320px]" />
+        <div class="h-[240px] skeleton rounded-lg sm:h-[280px] xl:col-span-7 xl:h-[320px]" />
       </div>
     </section>
 
     <!-- ── Overview layout (Germany / non-rateable Bundesland) ───────────── -->
     <template v-else-if="areaReady && usesOverviewLayout">
-      <AreaOverview :area="area" :contained-by="containedBy" />
+      <AreaOverview :area="area!" :contained-by="containedBy" />
     </template>
 
     <!-- ── Scrollytelling layout (Kreis / Gemeinde) ───────────────────────── -->
@@ -109,28 +109,28 @@
         :style="`scroll-margin-top: ${headerHeight + 16}px`"
       >
         <div
-          class="group/hero border-gray-200 relative h-full overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
+          class="group/hero relative h-full overflow-hidden rounded-lg border border-gray-200 p-5 shadow-xs xl:col-span-5"
           :class="areaReady && heroBackgroundImage ? 'bg-gray-900' : 'bg-white'"
           :style="areaReady ? heroBackgroundStyle : undefined"
         >
-          <div v-if="!areaReady" class="skeleton absolute inset-0 rounded-none" />
+          <div v-if="!areaReady" class="absolute inset-0 skeleton rounded-none" />
           <div v-else-if="heroBackgroundImage" class="absolute inset-0 h-full bg-black/45 backdrop-blur-[1px]" />
           <span
             v-if="areaReady && heroBackgroundImage && heroBackgroundAttribution"
-            class="pointer-events-none absolute right-2 top-2 z-[1] max-w-[calc(100%-1rem)] truncate rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover/hero:opacity-100"
+            class="pointer-events-none absolute top-2 right-2 z-1 max-w-[calc(100%-1rem)] truncate rounded-sm bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 opacity-0 transition-opacity group-hover/hero:opacity-100 focus-within:opacity-100"
             :title="heroBackgroundAttribution"
           >
             {{ heroBackgroundAttribution }}
           </span>
           <div class="relative">
             <p
-              class="mb-2 text-xs font-bold uppercase tracking-widest"
+              class="mb-2 text-xs font-bold tracking-widest uppercase"
               :class="areaReady && heroBackgroundImage ? 'text-white/80' : 'text-[#006e94]'"
             >
               {{ displayArea?.prefix }}
             </p>
             <h1
-              class="mb-4 text-5xl font-black leading-none xl:text-6xl"
+              class="mb-4 text-5xl leading-none font-black xl:text-6xl"
               :class="areaReady && heroBackgroundImage ? 'text-white' : 'text-gray-900'"
             >
               {{ displayArea?.name }}
@@ -186,11 +186,11 @@
         <div class="xl:col-span-7">
           <DataAreaHeroMap
             v-if="areaReady"
-            :area="area"
+            :area="area!"
             :nearby-areas="nearbyAreas"
             :nearby-areas-loading="nearbyAreasLoading"
           />
-          <div v-else class="skeleton h-[240px] rounded-lg sm:h-[280px] xl:h-[320px]" />
+          <div v-else class="h-[240px] skeleton rounded-lg sm:h-[280px] xl:h-[320px]" />
         </div>
       </section>
 
@@ -202,48 +202,48 @@
         :style="`scroll-margin-top: ${productScrollMarginTop}px`"
       >
         <div v-if="showCollectionsSkeleton">
-          <div class="border-gray-100 border-t py-4">
+          <div class="border-t border-gray-100 py-4">
             <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <div class="skeleton mb-2 h-3 w-28" />
-                <div class="skeleton h-8 w-60" />
+                <div class="mb-2 h-3 w-28 skeleton" />
+                <div class="h-8 w-60 skeleton" />
               </div>
-              <div class="skeleton h-3 w-20" />
+              <div class="h-3 w-20 skeleton" />
             </div>
             <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
               <div
                 v-for="i in 10"
                 :key="i"
-                class="border-gray-200 h-[250px] overflow-hidden rounded-lg border bg-white xl:h-[260px]"
+                class="h-[250px] overflow-hidden rounded-lg border border-gray-200 bg-white xl:h-[260px]"
               >
-                <div class="skeleton relative h-full rounded-none">
-                  <div class="absolute left-3 top-3 h-5 w-20 rounded-full bg-white/35" />
-                  <div class="absolute bottom-16 left-3 h-5 w-3/5 rounded bg-white/35" />
+                <div class="relative h-full skeleton rounded-none">
+                  <div class="absolute top-3 left-3 h-5 w-20 rounded-full bg-white/35" />
+                  <div class="absolute bottom-16 left-3 h-5 w-3/5 rounded-sm bg-white/35" />
                   <div class="absolute inset-x-0 bottom-0 h-14 bg-white/25" />
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="sticky z-20 -mx-2 bg-white/90 px-2 py-3 backdrop-blur-sm" :style="`top: ${sectorBarTop}px`">
+          <div class="sticky z-20 -mx-2 bg-white/90 px-2 py-3 backdrop-blur-xs" :style="`top: ${sectorBarTop}px`">
             <div class="relative flex gap-2 overflow-hidden">
-              <div v-for="i in 5" :key="i" class="skeleton h-8 w-36 rounded-full" />
+              <div v-for="i in 5" :key="i" class="h-8 w-36 skeleton rounded-full" />
             </div>
           </div>
 
           <div class="py-8">
-            <div class="skeleton mb-4 h-10 w-72" />
-            <div v-for="i in 2" :key="i" class="border-gray-100 overflow-visible border-t pb-6 pt-10">
+            <div class="mb-4 h-10 w-72 skeleton" />
+            <div v-for="i in 2" :key="i" class="overflow-visible border-t border-gray-100 pt-10 pb-6">
               <div class="grid gap-5 xl:grid-cols-12">
                 <div class="space-y-4 xl:col-span-5">
-                  <div class="skeleton h-[280px] rounded-lg" />
-                  <div class="skeleton h-28 rounded-lg" />
-                  <div class="skeleton h-16 rounded-lg" />
+                  <div class="h-[280px] skeleton rounded-lg" />
+                  <div class="h-28 skeleton rounded-lg" />
+                  <div class="h-16 skeleton rounded-lg" />
                 </div>
-                <div class="skeleton h-[340px] rounded-lg sm:h-[430px] xl:col-span-7 xl:h-full" />
+                <div class="h-[340px] skeleton rounded-lg sm:h-[430px] xl:col-span-7 xl:h-full" />
               </div>
-              <div class="skeleton mt-6 h-[688px] rounded-lg lg:h-[368px]" />
-              <div class="skeleton mt-4 h-[66px] rounded-lg" />
+              <div class="mt-6 h-[688px] skeleton rounded-lg lg:h-[368px]" />
+              <div class="mt-4 h-[66px] skeleton rounded-lg" />
             </div>
           </div>
         </div>
@@ -259,9 +259,9 @@
             @select="scrollToCollection"
           />
 
-          <nav class="sticky z-20 -mx-2 bg-white/90 px-2 py-3 backdrop-blur-sm" :style="`top: ${sectorBarTop}px`">
+          <nav class="sticky z-20 -mx-2 bg-white/90 px-2 py-3 backdrop-blur-xs" :style="`top: ${sectorBarTop}px`">
             <div
-              class="border-gray-100 pointer-events-none absolute border-b bg-white/90 backdrop-blur-sm"
+              class="pointer-events-none absolute border-b border-gray-100 bg-white/90 backdrop-blur-xs"
               style="top: 0; bottom: 0; left: calc((100% - 100vw) / 2); right: calc((100% - 100vw) / 2)"
             />
             <div class="relative flex min-w-0 items-center gap-3">
@@ -274,18 +274,20 @@
                   :class="
                     sector.key === activeSectorKey
                       ? 'border-transparent text-white'
-                      : 'border-gray-200 text-gray-500 bg-white hover:text-[#006e94]'
+                      : 'border-gray-200 bg-white text-gray-500 hover:text-[#006e94]'
                   "
                   :style="sector.key === activeSectorKey ? { backgroundColor: sector.color } : undefined"
                   @click="scrollToSector(sector.key)"
                 >
+                  <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
                   <span
                     v-if="sectorIconSvg(sector.key)"
-                    class="flex h-5 w-5 flex-shrink-0 items-center justify-center text-current [&>svg]:h-full [&>svg]:w-full"
+                    class="flex h-5 w-5 shrink-0 items-center justify-center text-current [&>svg]:h-full [&>svg]:w-full"
                     :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-60'"
                     v-html="sectorIconSvg(sector.key)"
                   />
-                  {{ $t(`measure_sectors.${sector.key}.title`) }}
+                  <!-- eslint-enable vue/no-v-html -->
+                  {{ $translateDynamic(`measure_sectors.${sector.key}.title`) }}
                 </button>
               </div>
             </div>
@@ -296,17 +298,19 @@
               <div
                 :id="`sector-${group.key}`"
                 :data-sector-heading-key="group.key"
-                class="border-gray-100 flex items-center gap-2 border-t pb-2 pt-8"
+                class="flex items-center gap-2 border-t border-gray-100 pt-8 pb-2"
                 :style="`scroll-margin-top: ${productScrollMarginTop}px`"
               >
+                <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
                 <span
                   v-if="sectorIconSvg(group.key)"
-                  class="flex h-10 w-10 flex-shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
                   :style="{ color: group.color }"
                   v-html="sectorIconSvg(group.key)"
                 />
-                <h2 class="text-gray-900 text-4xl font-black">{{ group.label }}</h2>
-                <span class="text-gray-400 justify-self-end text-xs">{{ group.collections.length }} Datenprodukte</span>
+                <!-- eslint-enable vue/no-v-html -->
+                <h2 class="text-4xl font-black text-gray-900">{{ group.label }}</h2>
+                <span class="justify-self-end text-xs text-gray-400">{{ group.collections.length }} Datenprodukte</span>
               </div>
               <DataProductScrollSection
                 v-for="col in group.collections"
@@ -322,7 +326,7 @@
           </div>
         </template>
 
-        <div v-else-if="collectionsReady" class="text-gray-400 py-10 text-center text-sm">
+        <div v-else-if="collectionsReady" class="py-10 text-center text-sm text-gray-400">
           Keine Klimadatensätze verfügbar.
         </div>
       </section> </template
@@ -330,22 +334,27 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { parseGeoCenter } from "~/shared/contracts/geometry";
+import { asRecord } from "~/shared/visualization";
+import { CollectionsResponseSchema } from "~/shared/contracts/slz";
+import type { Collection } from "~/types/slz-api";
+import { AreaSchema, type Area } from "~/shared/contracts/search";
 import { Icon } from "@iconify/vue";
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
-import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
-import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug.js";
+import { useHeaderHeight } from "~/composables/useHeaderHeight";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
+import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug";
 import statesLookup from "~/assets/germany-states-lookup.json";
 import { normalizeCollection, sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
 import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible } from "~/utils/dataPageVisibility";
 
-const sectorSvgFiles = import.meta.glob("@/assets/icons/icon_category_*.svg", {
+const sectorSvgFiles = import.meta.glob<string>("@/assets/icons/icon_category_*.svg", {
   query: "?raw",
   import: "default",
   eager: true,
 });
-const sectorIconNames = {
+const sectorIconNames: Record<string, string> = {
   energy: "icon_category_energy",
   buildings: "icon_category_buildings",
   industry: "icon_category_industry",
@@ -363,7 +372,7 @@ const sectorIconSvgs = Object.fromEntries(
 definePageMeta({
   key: (route) => route.fullPath,
   middleware: [
-    'data-availability',
+    "data-availability",
     (to) => {
       const requestedSlug = String(to.params.slug ?? "");
       if (requestedSlug === "bundesrepublik-deutschland") {
@@ -379,7 +388,7 @@ definePageMeta({
 
 // ── Route + config ───────────────────────────────────────────────────────────
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $translateDynamic } = useNuxtApp();
 const route = useRoute();
 const slug = computed(() => String(route.params.slug ?? ""));
 
@@ -410,37 +419,40 @@ const { data: pageData, pending: areaPending } = useAsyncData(
     const resolvedArea = await $fetch("/api/area-by-slug", {
       params: { slug: slug.value, includeGeo: true },
     });
-    if (!resolvedArea) return { requestedSlug: slug.value, notFound: true };
+    if (!resolvedArea)
+      return {
+        requestedSlug: slug.value,
+        notFound: true,
+        area: null,
+        containedBy: [],
+        municipalityImageId: null,
+        municipalityImageCredits: null,
+      };
     const ars = resolvedArea.ars;
     const [containedByChain, muniResult] = await Promise.all([
-      fetchContainedBy(ars, resolvedArea.level).catch(() => []),
-      $directus
-        .request(
-          $readItems("municipalities", {
-            filter: { ars: { _eq: ars } },
-            fields: ["image", "image_credits"],
-            limit: 1,
-          }),
-        )
+      fetchContainedBy(ars, resolvedArea.level ?? 6).catch(() => []),
+      $fetch("/api/public/area-municipalities", { query: { ars } })
+        .then((result) => result.municipalities)
         .catch(() => []),
     ]);
 
     return {
       requestedSlug: slug.value,
+      notFound: false,
       area: resolvedArea,
       containedBy: containedByChain ?? [],
       municipalityImageId: muniResult?.[0]?.image ?? null,
       municipalityImageCredits: muniResult?.[0]?.image_credits ?? null,
     };
   },
-  { watch: [slug], lazy: process.client },
+  { watch: [slug], lazy: import.meta.client },
 );
 
-if (process.server && pageData.value?.notFound) {
+if (import.meta.server && pageData.value?.notFound) {
   throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
 }
 
-if (process.server && pageData.value?.area && /^\d+$/.test(slug.value)) {
+if (import.meta.server && pageData.value?.area && /^\d+$/.test(slug.value)) {
   const resolved = pageData.value.area;
   await navigateTo(`/data/${areaToSlug(resolved.prefix ?? "", resolved.name)}`, { redirectCode: 301, replace: true });
 }
@@ -450,7 +462,7 @@ watch(pageData, (value) => {
     throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
   }
   if (value?.requestedSlug === slug.value && value?.area && /^\d+$/.test(slug.value)) {
-    navigateTo(`/data/${areaToSlug(value.area.prefix ?? "", value.area.name)}`, { replace: true });
+    void navigateTo(`/data/${areaToSlug(value.area.prefix ?? "", value.area.name)}`, { replace: true });
   }
 });
 
@@ -461,7 +473,15 @@ const resolvedArea = computed(() => {
   const pageSlug = areaToSlug(areaValue?.prefix ?? "", areaValue.name);
   return pageSlug === slug.value ? areaValue : null;
 });
-const area = computed(() => resolvedArea.value ?? matchingSeedArea.value ?? {});
+const area = computed(() => {
+  const value = resolvedArea.value ?? matchingSeedArea.value;
+  if (!value) return null;
+  const parsed = AreaSchema.safeParse({
+    ...value,
+    population: value.population == null ? null : Number(value.population),
+  });
+  return parsed.success ? parsed.data : null;
+});
 const displayArea = computed(() => area.value);
 const hasDisplayArea = computed(() => !!displayArea.value?.name);
 const exportAreaName = computed(
@@ -473,21 +493,9 @@ const municipalityImageId = computed(() => (areaReady.value ? (pageData.value?.m
 const municipalityImageCredits = computed(() =>
   areaReady.value ? (pageData.value?.municipalityImageCredits ?? null) : null,
 );
-const displayGeoCenter = computed(() => displayArea.value?.geo_center ?? displayArea.value?.geoCenter ?? null);
-const displayLat = computed(() => {
-  const center = displayGeoCenter.value;
-  if (!center) return null;
-  if (Array.isArray(center)) return center[1];
-  if (center.coordinates) return center.coordinates[1];
-  return center.lat ?? null;
-});
-const displayLon = computed(() => {
-  const center = displayGeoCenter.value;
-  if (!center) return null;
-  if (Array.isArray(center)) return center[0];
-  if (center.coordinates) return center.coordinates[0];
-  return center.lon ?? center.lng ?? null;
-});
+const displayGeoCenter = computed(() => parseGeoCenter(displayArea.value?.geo_center ?? displayArea.value?.geoCenter));
+const displayLat = computed(() => displayGeoCenter.value?.lat ?? null);
+const displayLon = computed(() => displayGeoCenter.value?.lon ?? null);
 const isAreaLoading = computed(() => !areaReady.value);
 const usesOverviewLayout = computed(
   () => areaReady.value && (area.value?.level ?? 99) <= 2 && !area.value?.is_reasonable_for_municipal_rating,
@@ -495,12 +503,12 @@ const usesOverviewLayout = computed(
 
 // ── Nearby/bordering areas (CSR, intentionally decoupled) ────────────────────
 
-const nearbyAreas = ref([]);
+const nearbyAreas = ref<Area[]>([]);
 const nearbyAreasLoading = ref(false);
 let nearbyAreasRequestId = 0;
 
 async function loadNearbyAreasForCurrentArea() {
-  if (process.server) return;
+  if (import.meta.server) return;
 
   const requestId = ++nearbyAreasRequestId;
   const requestSlug = slug.value;
@@ -509,7 +517,7 @@ async function loadNearbyAreasForCurrentArea() {
   nearbyAreas.value = [];
   nearbyAreasLoading.value = false;
 
-  if (!areaReady.value || !currentArea?.ars || currentArea.level <= 2) {
+  if (!areaReady.value || !currentArea?.ars || (currentArea.level ?? 6) <= 2) {
     return;
   }
 
@@ -541,7 +549,7 @@ async function loadNearbyAreasForCurrentArea() {
     );
 
     if (requestId !== nearbyAreasRequestId || requestSlug !== slug.value) return;
-    nearbyAreas.value = enrichedNearbyAreas.filter(Boolean);
+    nearbyAreas.value = enrichedNearbyAreas.filter((area): area is NonNullable<typeof area> => area !== null);
   } catch {
     if (requestId === nearbyAreasRequestId && requestSlug === slug.value) nearbyAreas.value = [];
   } finally {
@@ -552,14 +560,14 @@ async function loadNearbyAreasForCurrentArea() {
 watch(
   [areaReady, () => resolvedArea.value?.ars, slug],
   () => {
-    loadNearbyAreasForCurrentArea();
+    void loadNearbyAreasForCurrentArea();
   },
   { immediate: true },
 );
 
 // ── Collections (CSR, area-injected) ────────────────────────────────────────
 
-const collections = ref([]);
+const collections = ref<Collection[]>([]);
 const collectionsLoading = ref(false);
 const collectionsLoadedForSlug = ref("");
 const collectionsReady = computed(
@@ -586,7 +594,9 @@ async function loadCollectionsForCurrentArea() {
   try {
     // Try slim manifest first: much smaller (no vegalite_specs), CDN-cached.
     // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded.
-    const manifest = await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 });
+    const manifest = CollectionsResponseSchema.parse(
+      await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 }),
+    );
     const slim = (manifest?.collections ?? [])
       .filter((c) => isCollectionVisible(c.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG))
       .map((c) => normalizeCollection(c));
@@ -606,7 +616,9 @@ async function loadCollectionsForCurrentArea() {
   try {
     // Fall back to full area-specific API.
     const params = area.value?.ars ? { area: area.value.ars } : {};
-    const data = await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 });
+    const data = CollectionsResponseSchema.parse(
+      await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 }),
+    );
 
     if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
 
@@ -629,49 +641,49 @@ async function loadCollectionsForCurrentArea() {
 watch(
   [areaReady, usesOverviewLayout, () => area.value?.ars, slug],
   () => {
-    loadCollectionsForCurrentArea();
+    void loadCollectionsForCurrentArea();
   },
   { immediate: true },
 );
 
 // ── Product scroll navigation ────────────────────────────────────────────────
 
-const exploreSection = ref(null);
+const exploreSection = ref<HTMLElement | { $el: HTMLElement } | null>(null);
 const activeSectorKey = ref("");
-let productSectionScrollFrame = null;
-let removeProductSectionListeners = null;
+let productSectionScrollFrame: number | null = null;
+let removeProductSectionListeners: (() => void) | null = null;
 
 const sectorBarTop = computed(() => pillTop.value + 52);
 const productScrollMarginTop = computed(() => sectorBarTop.value + 58);
 
 const groupedCollections = computed(() => {
-  const groups = [];
-  const byKey = new Map();
+  const groups: { key: string; label: string; color: string | undefined; collections: Collection[] }[] = [];
+  const byKey = new Map<string, (typeof groups)[number]>();
   for (const collection of collections.value) {
     const key = sectorKey(collection);
     if (!byKey.has(key)) {
       const group = {
         key,
-        label: $t(`measure_sectors.${key}.title`) || sectorLabel(collection),
+        label: $translateDynamic(`measure_sectors.${key}.title`) || sectorLabel(collection),
         color: sectorColor(collection),
-        collections: [],
+        collections: [] as Collection[],
       };
       byKey.set(key, group);
       groups.push(group);
     }
-    byKey.get(key).collections.push(collection);
+    byKey.get(key)?.collections.push(collection);
   }
   return groups;
 });
 
 const productSectors = computed(() => groupedCollections.value.map(({ key, label, color }) => ({ key, label, color })));
 
-function sectorIconSvg(key) {
+function sectorIconSvg(key: string) {
   const iconName = sectorIconNames[key];
   return iconName ? (sectorIconSvgs[iconName] ?? "") : "";
 }
 
-function prepareIconSvg(raw) {
+function prepareIconSvg(raw: string) {
   return String(raw)
     .replace(/<\?xml[^?]*\?>/g, "")
     .replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1")
@@ -708,7 +720,7 @@ const heroBackgroundStyle = computed(() =>
 watch(
   productSectors,
   (sectors) => {
-    if (!activeSectorKey.value && sectors.length) activeSectorKey.value = sectors[0].key;
+    if (!activeSectorKey.value && sectors.length) activeSectorKey.value = sectors[0]!.key;
   },
   { immediate: true },
 );
@@ -720,20 +732,13 @@ watch(isAreaLoading, (loading) => {
   }
 });
 
-function scrollToExplore() {
-  const el = exploreSection.value?.$el ?? exploreSection.value;
-  if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY - productScrollMarginTop.value;
-  window.scrollTo({ top, behavior: "smooth" });
-}
-
-function normalizeAssetUrl(url) {
+function normalizeAssetUrl(url: unknown) {
   if (!url || typeof url !== "string") return "";
   if (url.startsWith("http://web:8070")) return url.replace("http://web:8070", baseUrl);
   return url;
 }
 
-function findAreaImageUrl(areaValue) {
+function findAreaImageUrl(areaValue: Partial<Area> | null) {
   const candidates = [
     areaValue?.teaser_image_url,
     areaValue?.teaserImageUrl,
@@ -754,14 +759,15 @@ function findAreaImageUrl(areaValue) {
     if (!candidate) continue;
     if (typeof candidate === "string") return normalizeAssetUrl(candidate);
     if (typeof candidate === "object") {
-      const nested = candidate.url ?? candidate.src ?? candidate.href ?? candidate.id;
+      const image = asRecord(candidate) ?? {};
+      const nested = image.url ?? image.src ?? image.href ?? image.id;
       if (typeof nested === "string") return normalizeAssetUrl(nested);
     }
   }
   return "";
 }
 
-function findAreaImageAttribution(areaValue) {
+function findAreaImageAttribution(areaValue: Partial<Area> | null) {
   const candidates = [
     areaValue?.teaser_image,
     areaValue?.teaserImage,
@@ -773,7 +779,10 @@ function findAreaImageAttribution(areaValue) {
   for (const candidate of candidates) {
     if (!candidate || typeof candidate !== "object") continue;
     const attribution =
-      candidate.attribution_key ?? candidate.attributionKey ?? candidate.attribution ?? candidate.credits;
+      (asRecord(candidate) ?? {}).attribution_key ??
+      (asRecord(candidate) ?? {}).attributionKey ??
+      (asRecord(candidate) ?? {}).attribution ??
+      (asRecord(candidate) ?? {}).credits;
     if (typeof attribution === "string" && attribution.trim()) return attribution.trim();
   }
   return "";
@@ -787,7 +796,7 @@ function scrollToAllProducts() {
   window.scrollTo({ top, behavior: "smooth" });
 }
 
-function scrollToCollection(collectionId) {
+function scrollToCollection(collectionId: string) {
   const el = document.getElementById(collectionId) ?? document.querySelector(`[data-collection-id="${collectionId}"]`);
   if (!el) return;
   const top = el.getBoundingClientRect().top + window.scrollY - productScrollMarginTop.value;
@@ -795,7 +804,7 @@ function scrollToCollection(collectionId) {
   window.scrollTo({ top, behavior: "smooth" });
 }
 
-function scrollToSector(key) {
+function scrollToSector(key: string) {
   const el = document.getElementById(`sector-${key}`);
   if (!el) return;
   activeSectorKey.value = key;
@@ -860,8 +869,8 @@ onMounted(() => {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function levelLabel(level) {
-  const map = {
+function levelLabel(level: number | null | undefined) {
+  const map: Record<number, string> = {
     1: "Bundesrepublik",
     2: "Bundesland",
     3: "Regierungsbezirk",
@@ -869,10 +878,10 @@ function levelLabel(level) {
     5: "Verbandsgemeinde",
     6: "Gemeinde",
   };
-  return map[level] ?? `Ebene ${level}`;
+  return map[level ?? 0] ?? `Ebene ${level}`;
 }
 
-function isReasonableArea(areaValue) {
+function isReasonableArea(areaValue: Area) {
   return (areaValue?.is_reasonable_for_municipal_rating ?? areaValue?.isReasonableForMunicipalRating ?? true) === true;
 }
 

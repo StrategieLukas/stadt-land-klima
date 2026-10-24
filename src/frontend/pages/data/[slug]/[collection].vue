@@ -3,7 +3,7 @@
     <!-- ── Sticky breadcrumb + back nav ──────────────────────────────────── -->
     <nav class="relative sticky z-30" :style="`top: ${pillTop}px`">
       <div
-        class="border-gray-100 absolute inset-y-0 -z-10 border-b bg-white/90 backdrop-blur-sm"
+        class="absolute inset-y-0 -z-10 border-b border-gray-100 bg-white/90 backdrop-blur-xs"
         style="left: calc((100% - 100vw) / 2); right: calc((100% - 100vw) / 2)"
       />
       <div class="relative flex min-w-0 items-center gap-3 py-2">
@@ -17,8 +17,8 @@
           </svg>
           {{ area?.name ?? areaSlug }}
         </NuxtLink>
-        <span class="text-gray-300 select-none text-xs">›</span>
-        <span class="text-gray-700 truncate text-xs font-medium">{{ collectionTitle }}</span>
+        <span class="text-xs text-gray-300 select-none">›</span>
+        <span class="truncate text-xs font-medium text-gray-700">{{ collectionTitle }}</span>
       </div>
     </nav>
 
@@ -26,19 +26,19 @@
     <div v-if="pageLoading || renderLoading || dataRouteLoading" class="py-16">
       <div class="flex items-center justify-center gap-2">
         <SlkFlowerSpinner :size="32" />
-        <span class="text-gray-500 text-sm">Datensatz wird geladen…</span>
+        <span class="text-sm text-gray-500">Datensatz wird geladen…</span>
       </div>
       <div class="mx-auto mt-8 grid max-w-5xl gap-5 xl:grid-cols-12">
         <div class="space-y-4 xl:col-span-5">
-          <div class="bg-gray-100 h-52 animate-pulse rounded-lg" />
-          <div class="bg-gray-100 h-28 animate-pulse rounded-lg" />
+          <div class="h-52 animate-pulse rounded-lg bg-gray-100" />
+          <div class="h-28 animate-pulse rounded-lg bg-gray-100" />
         </div>
-        <div class="bg-gray-100 h-80 animate-pulse rounded-lg xl:col-span-7" />
+        <div class="h-80 animate-pulse rounded-lg bg-gray-100 xl:col-span-7" />
       </div>
     </div>
 
     <!-- ── Error ─────────────────────────────────────────────────────────── -->
-    <div v-else-if="renderError" class="text-gray-400 py-16 text-center text-sm">
+    <div v-else-if="renderError" class="py-16 text-center text-sm text-gray-400">
       Dieser Datensatz konnte nicht geladen werden.
     </div>
 
@@ -98,10 +98,12 @@
 </template>
 
 <script setup lang="ts">
+import { CollectionSchema, SummarySchema } from "~/shared/contracts/slz";
+import { singleRouteValue } from "~/shared/routeValues";
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
-import { resolveSlugToArea } from "~/composables/useAreaBySlug.js";
+import { useHeaderHeight } from "~/composables/useHeaderHeight";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
+import { resolveSlugToArea } from "~/composables/useAreaBySlug";
 import { useCollectionRender } from "~/composables/useCollectionRender";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible } from "~/utils/dataPageVisibility";
@@ -109,15 +111,15 @@ import type { Collection, CollectionSummary } from "~/types/slz-api";
 
 definePageMeta({
   key: (route) => route.fullPath,
-  middleware: ['data-availability'],
+  middleware: ["data-availability"],
 });
 
 const route = useRoute();
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl as string;
 
-const areaSlug = computed(() => route.params.slug as string);
-const collectionSlug = computed(() => route.params.collection as string);
+const areaSlug = computed(() => singleRouteValue(route.params.slug) ?? "");
+const collectionSlug = computed(() => singleRouteValue(route.params.collection) ?? "");
 
 const { data: dataPageConfig } = await useDataPageConfig();
 if (!isCollectionVisible(collectionSlug.value, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG)) {
@@ -199,14 +201,16 @@ onMounted(() => {
 
 onMounted(async () => {
   try {
-    const data = await $fetch<Collection>(`${baseUrl}/api/collections/${collectionSlug.value}/`);
+    const data = CollectionSchema.parse(
+      await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`),
+    );
     collection.value = data;
     if (area.value?.ars) {
       await loadFromRender(collectionSlug.value, area.value.ars);
     } else {
       await load(collectionSlug.value, data);
     }
-  } catch (_) {
+  } catch {
     renderError.value = true;
   } finally {
     pageLoading.value = false;
@@ -216,11 +220,15 @@ onMounted(async () => {
   // Fetch summary for attribution block (best-effort)
   if (area.value?.ars) {
     try {
-      const s = await $fetch<CollectionSummary>(`${baseUrl}/api/collections/${collectionSlug.value}/summary/`, {
-        params: { area: area.value.ars },
-      });
+      const s = SummarySchema.parse(
+        await $fetch(`${baseUrl}/api/collections/${collectionSlug.value}/summary/`, {
+          params: { area: area.value.ars },
+        }),
+      );
       collectionSummary.value = s;
-    } catch (_) {}
+    } catch {
+      /* Attribution is optional when the source is unavailable. */
+    }
   }
 
   initStepObserver();
@@ -252,7 +260,9 @@ function initStepObserver() {
     { rootMargin: "-20% 0px -60% 0px", threshold: 0 },
   );
 
-  stepEls.forEach((el) => stepObserver!.observe(el));
+  stepEls.forEach((el) => {
+    stepObserver!.observe(el);
+  });
 }
 
 function scrollToStep(index: number) {

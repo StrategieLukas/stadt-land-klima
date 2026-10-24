@@ -1,5 +1,7 @@
 # TypeScript Conversion Status - Directus Extensions
 
+> Historical checkpoint. This early inventory is superseded. Its extension counts and remaining-conversion lists do not describe the current checkout: all 14 maintained extensions and the operational CLI now have compiler enforcement. Current status: [implemented hardening](SECURITY_HARDENING.md) and [remaining work/decisions](REMAINING_TODOS.md).
+
 ## Summary
 
 **Total Extensions:** 15
@@ -205,6 +207,7 @@ npm run build
 ## Build Verification
 
 All 7 converted extensions have been built successfully with:
+
 ```bash
 npm run build
 ```

@@ -1,5 +1,5 @@
-import { ref, type Ref } from 'vue';
-import type { Page } from './types';
+import { ref, type Ref } from "vue";
+import type { Page } from "./types";
 
 type Api = {
   get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }>;
@@ -17,17 +17,14 @@ export function usePageSearch(api: Api | undefined) {
     }
     timer = setTimeout(async () => {
       try {
-        const res = await api?.get('/items/pages', {
+        const res = await api?.get("/items/pages", {
           params: {
-            'fields[]': ['name', 'slug'],
+            "fields[]": ["name", "slug"],
             filter: JSON.stringify({
               _and: [
-                { status: { _eq: 'published' } },
+                { status: { _eq: "published" } },
                 {
-                  _or: [
-                    { name: { _icontains: query } },
-                    { slug: { _icontains: query } },
-                  ],
+                  _or: [{ name: { _icontains: query } }, { slug: { _icontains: query } }],
                 },
               ],
             }),
@@ -41,10 +38,7 @@ export function usePageSearch(api: Api | undefined) {
     }, 300);
   }
 
-  function selectPage(
-    page: Page,
-    buffer: { page_slug: string; label: string },
-  ): void {
+  function selectPage(page: Page, buffer: { page_slug: string; label: string }): void {
     buffer.page_slug = page.slug;
     if (!buffer.label) buffer.label = page.name;
     pageResults.value = [];

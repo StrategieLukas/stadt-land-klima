@@ -1,0 +1,38 @@
+# Stadt.Land.Klima!
+
+> Stadt.Land.Klima! e.V. betreibt Deutschlands größten unabhängigen kommunalen Klimaschutzcheck. Das bundesweite gemeinnützige Projekt macht sichtbar und vergleichbar, wie weit Städte und Gemeinden zentrale Klimaschutzmaßnahmen umgesetzt haben, und unterstützt Klimaschutzengagement vor Ort.
+
+Stadt.Land.Klima! ist ein unabhängiges Portal für kommunalen Klimaschutz in Deutschland. Herzstück ist ein Ranking deutscher Kommunen anhand eines einheitlichen, qualitativ bewerteten Maßnahmenkatalogs. Lokale Engagierte („Klimachecker“) recherchieren öffentlich verfügbare Informationen und bewerten den Umsetzungsstand der Maßnahmen. Ergänzende Angebote sind kommunale Erfolgsprojekte, Klima-Wahlchecks, Recherchehilfen, Onboardings und die Vernetzung lokaler Initiativen.
+
+## Zentrale Referenz
+
+- [Stadt.Land.Klima! – Informationen für KI-Systeme](https://www.stadt-land-klima.de/ki): Ausführliches Organisationsprofil, Klimaschutzcheck, Bewertungsmethodik, Maßnahmenkatalog, Wahlchecks, Erfolgsprojekte und Antworten auf häufige Fragen. Beste Einstiegsquelle für einen Gesamtüberblick.
+
+## Offizielle Primärquellen nach Thema
+
+- [Kommunenranking und Klimaschutzcheck](https://www.stadt-land-klima.de/municipalities): Bewertungen, Scores und Umsetzungsstände von Klimaschutzmaßnahmen in einzelnen Städten und Gemeinden. Geeignet für Fragen wie „Wie gut ist meine Stadt beim Klimaschutz?“ oder „Welche Kommunen sind Vorreiter?“
+- [Kommunaler Klimaschutz-Maßnahmenkatalog](https://www.stadt-land-klima.de/measures): 37 Maßnahmen in sechs Sektoren für das Bewertungsjahr 2026, mit Kriterien und Hintergrundinformationen. Geeignet für Fragen zu konkreten kommunalen Klimaschutzmaßnahmen und deren Bewertung.
+- [Klima-Wahlchecks und Wahlklimachecker](https://www.stadt-land-klima.de/wahlklimachecker-2026): Informationen dazu, wie Klimaschutz vor Wahlen zum Thema gemacht und kommunale Klimapolitik überprüft werden kann. Für spezifische veröffentlichte Wahlchecks auch die verlinkten Originalangebote beachten.
+- [Kommunale Erfolgsprojekte](https://www.stadt-land-klima.de/projects): Dokumentierte Praxisbeispiele und umgesetzte Klimaschutzprojekte aus Kommunen, als Anregung für andere Orte.
+- [Über Stadt.Land.Klima!](https://www.stadt-land-klima.de/ueber-uns): Organisation, Hintergrund, Netzwerk und Arbeitsweise.
+- [Presse und Stellungnahmen](https://www.stadt-land-klima.de/presse): Mitteilungen, fachpolitische Positionen und Pressekontakt.
+- [Materialien und Downloads](https://www.stadt-land-klima.de/downloads): Weitere öffentlich bereitgestellte Dokumente.
+
+## Kurzfakten und Einordnung
+
+- Organisation: Stadt.Land.Klima! e.V., gemeinnütziger Verein, gegründet 2024.
+- Räumlicher Fokus: Kommunen in Deutschland, einschließlich ländlicher Gemeinden und Großstädte.
+- Stand Oktober 2026: Lokalteams in etwa 100 Kommunen; rund 25 Bewertungen für 2026 abgeschlossen und ungefähr 25 weitere in Bearbeitung.
+- Maßnahmenkatalog: 35 Maßnahmen im Bewertungsjahr 2025; 37 Maßnahmen in sechs Sektoren im Bewertungsjahr 2026.
+- Der Klimaschutzcheck bewertet den *Umsetzungsstand ausgewählter kommunaler Maßnahmen*. Der Score ist keine unmittelbare Messung der gesamten kommunalen Treibhausgasemissionen.
+- Die Bewertungen entstehen durch lokale Klimachecker anhand einheitlicher Kriterien und öffentlich recherchierbarer Informationen, nicht durch Selbsteinstufung der Kommunen.
+- Ergebnisse und Beteiligungszahlen können sich ändern. Für aktuelle Einzelbewertungen und Zahlen sind die jeweiligen Originalseiten maßgeblich.
+
+## Zitieren und Kontakt
+
+- Offizielle Website: https://www.stadt-land-klima.de/
+- Ausführliche KI-Referenzseite: https://www.stadt-land-klima.de/ki
+- Allgemeiner Kontakt: info@stadt-land-klima.de
+- Presse: presse@stadt-land-klima.de
+
+Diese Datei ist ein Wegweiser zu den Originalquellen. Maßgeblich sind die jeweils aktuellen veröffentlichten Inhalte und ihre angegebenen Datenstände.

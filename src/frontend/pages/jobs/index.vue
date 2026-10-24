@@ -1,18 +1,32 @@
 <template>
   <div class="py-8">
     <header class="mb-8">
-      <h1 class="mb-4 font-heading text-4xl font-black text-orange sm:text-6xl">{{ $t('jobs.title') }}</h1>
-      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('jobs.description') }}</p>
+      <h1 class="mb-4 font-heading text-4xl font-black text-orange sm:text-6xl">{{ $t("jobs.title") }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("jobs.description") }}</p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <CanonicalButton :label="$t('stats.participate')" href="/mitmachen" icon-slug="mdi:account-group-outline" color="orange" text-color="white" />
-        <CanonicalButton :label="$t('organisation.title')" href="/organisation" icon-slug="mdi:information-outline" color="orange" text-color="white" />
+        <CanonicalButton
+          :label="$t('stats.participate')"
+          href="/mitmachen"
+          icon-slug="mdi:account-group-outline"
+          color="orange"
+          text-color="white"
+        />
+        <CanonicalButton
+          :label="$t('organisation.title')"
+          href="/organisation"
+          icon-slug="mdi:information-outline"
+          color="orange"
+          text-color="white"
+        />
       </div>
     </header>
 
     <div v-if="hasJobs" class="space-y-12">
       <section v-if="employmentJobs.length" id="festanstellung">
-        <h2 class="mb-4 border-b border-solid-light-green-40 pb-2 text-base font-semibold uppercase tracking-wide text-olive-green">
-          {{ $t('jobs.heading.employment') }}
+        <h2
+          class="mb-4 border-b border-solid-light-green-40 pb-2 text-base font-semibold tracking-wide text-olive-green uppercase"
+        >
+          {{ $t("jobs.heading.employment") }}
         </h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <JobOfferCard
@@ -26,8 +40,10 @@
       </section>
 
       <section v-if="internshipStudentJobs.length" id="praktika-werkstudi">
-        <h2 class="mb-4 border-b border-stats-light pb-2 text-base font-semibold uppercase tracking-wide text-stats-dark">
-          {{ $t('jobs.heading.internship_student') }}
+        <h2
+          class="mb-4 border-b border-stats-light pb-2 text-base font-semibold tracking-wide text-stats-dark uppercase"
+        >
+          {{ $t("jobs.heading.internship_student") }}
         </h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <JobOfferCard
@@ -41,8 +57,10 @@
       </section>
 
       <section v-if="volunteerJobs.length" id="ehrenamt">
-        <h2 class="mb-4 border-b border-rating-3-light pb-2 text-base font-semibold uppercase tracking-wide text-olive-green">
-          {{ $t('jobs.heading.volunteer') }}
+        <h2
+          class="mb-4 border-b border-rating-3-light pb-2 text-base font-semibold tracking-wide text-olive-green uppercase"
+        >
+          {{ $t("jobs.heading.volunteer") }}
         </h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <JobOfferCard
@@ -56,55 +74,36 @@
       </section>
     </div>
 
-    <div v-else class="rounded-lg border border-gray-100 bg-white p-6 text-gray-500 shadow-sm">
-      {{ $t('jobs.empty') }}
+    <div v-else class="rounded-lg border border-gray-100 bg-white p-6 text-gray-500 shadow-xs">
+      {{ $t("jobs.empty") }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
+import type { JobType } from "~/shared/contracts/jobs";
 
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $t } = useNuxtApp();
 
-useHead({ title: $t('jobs.title') })
+useHead({ title: $t("jobs.title") });
 
-const { data: jobs } = await useAsyncData('jobs-list', async () => {
-  try {
-    return await $directus.request($readItems('job_offers' as never, {
-      filter: { status: { _eq: 'published' } },
-      fields: [
-        'id',
-        'role_title',
-        'slug',
-        'type',
-        'status',
-        'start_date',
-        'end_date',
-        'weekly_hours',
-        'salary',
-        'hourly_wage',
-        { organisation: ['id', 'name', 'link', { logo: ['id', 'type'] }] },
-      ],
-      sort: ['start_date', 'role_title'],
-      limit: -1,
-    } as never))
-  } catch (e: any) {
-    console.warn('[jobs] Failed to load job offers:', e?.message)
-    return []
-  }
-})
+const { data: jobsData } = await useAsyncData("jobs-list", () => $fetch("/api/public/jobs"));
 
-function typeLabel(type: string) {
-  return $t(`jobs.type.${type}`) || type || ''
+const jobs = computed(() => jobsData.value?.jobs ?? []);
+
+function typeLabel(type: JobType) {
+  return $t(`jobs.type.${type}`) || type || "";
 }
 
-function byType(types: string[]) {
-  return (jobs.value || []).filter((job: any) => types.includes(job.type))
+function byType(types: JobType[]) {
+  return jobs.value.filter((job) => types.includes(job.type));
 }
 
-const employmentJobs = computed(() => byType(['full_time', 'part_time']))
-const internshipStudentJobs = computed(() => byType(['internship', 'working_student']))
-const volunteerJobs = computed(() => byType(['volunteer']))
-const hasJobs = computed(() => employmentJobs.value.length || internshipStudentJobs.value.length || volunteerJobs.value.length)
+const employmentJobs = computed(() => byType(["full_time", "part_time"]));
+const internshipStudentJobs = computed(() => byType(["internship", "working_student"]));
+const volunteerJobs = computed(() => byType(["volunteer"]));
+const hasJobs = computed(
+  () => employmentJobs.value.length || internshipStudentJobs.value.length || volunteerJobs.value.length,
+);
 </script>

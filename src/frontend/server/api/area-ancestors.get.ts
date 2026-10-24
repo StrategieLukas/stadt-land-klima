@@ -1,3 +1,7 @@
+import { queryText } from "~/server/utils/publicQuery";
+import { z } from "zod";
+import { AreaSchema } from "~/shared/contracts/search";
+import { parseCms } from "~/server/utils/parseCms";
 /**
  * GET /api/area-ancestors?ars=<ars>
  *
@@ -7,13 +11,17 @@
  */
 
 export default defineEventHandler(async (event) => {
-  const sp  = new URLSearchParams((event.path ?? '').split('?')[1] ?? '')
-  const ars = sp.get('ars') ?? ''
-  if (!ars.trim()) return { ancestors: [] }
+  const query = getQuery(event);
+  const ars = queryText(query.ars, 12);
+  if (ars && !/^\d+$/.test(ars)) throw createError({ statusCode: 400, statusMessage: "Invalid ARS" });
+  if (!ars) return { ancestors: [] };
 
   try {
-    return await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/ancestors/`)
+    return parseCms(
+      z.object({ ancestors: z.array(AreaSchema) }),
+      await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/ancestors/`),
+    );
   } catch {
-    return { ancestors: [] }
+    return { ancestors: [] };
   }
-})
+});

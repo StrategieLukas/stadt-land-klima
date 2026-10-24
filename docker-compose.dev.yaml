@@ -1,7 +1,7 @@
 services:
   db:
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
 
   directus:
     ports:
@@ -17,23 +17,15 @@ services:
     command: ["sh", "/start_dev.sh"]
     environment:
       SLK_ENV: development
-    networks:
-      - default
-      - stadt-land-zahl_default
 
   #pgadmin:
-    #image: dpage/pgadmin4
-    #container_name: pgadmin4
-    #restart: always
-    #ports:
-    #  - "5050:80"
-    #environment:
-    #  PGADMIN_DEFAULT_EMAIL: user@example.com
-    #  PGADMIN_DEFAULT_PASSWORD: password
-    #volumes:
-    #  - ./pgadmin:/pgadmin
-
-networks:
-  stadt-land-zahl_default: 
-    external: true
-    driver: bridge
+  #image: dpage/pgadmin4
+  #container_name: pgadmin4
+  #restart: always
+  #ports:
+  #  - "5050:80"
+  #environment:
+  #  PGADMIN_DEFAULT_EMAIL: user@example.com
+  #  PGADMIN_DEFAULT_PASSWORD: password
+  #volumes:
+  #  - ./pgadmin:/pgadmin

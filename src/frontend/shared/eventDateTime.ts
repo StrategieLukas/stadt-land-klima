@@ -9,11 +9,7 @@ function parseDateOnly(value?: string | null) {
   const day = Number(match[3]);
   const date = new Date(Date.UTC(year, month - 1, day));
 
-  if (
-    date.getUTCFullYear() !== year ||
-    date.getUTCMonth() !== month - 1 ||
-    date.getUTCDate() !== day
-  ) {
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
     return null;
   }
 
@@ -43,7 +39,7 @@ function getTimeZoneOffset(date: Date, timeZone: string) {
     Number(values.second),
   );
 
-  return localTimeAsUtc - date.getTime();
+  return localTimeAsUtc - (date.getTime() - date.getUTCMilliseconds());
 }
 
 function getBerlinMidnight(year: number, month: number, day: number) {
@@ -57,19 +53,23 @@ export function getBerlinEndOfDay(isoDate?: string | null) {
   if (!parsed) return null;
 
   const nextDay = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day + 1));
-  const nextDayMidnight = getBerlinMidnight(
-    nextDay.getUTCFullYear(),
-    nextDay.getUTCMonth(),
-    nextDay.getUTCDate(),
-  );
+  const nextDayMidnight = getBerlinMidnight(nextDay.getUTCFullYear(), nextDay.getUTCMonth(), nextDay.getUTCDate());
 
   return new Date(nextDayMidnight.getTime() - 1);
 }
 
-function parseDate(value?: string | null) {
+/** Directus dateTime values without an offset represent Berlin wall-clock time. */
+export function parseBerlinDateTime(value?: string | null) {
   if (!value) return null;
-
-  const date = new Date(value);
+  const naive = /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$/.test(value);
+  let date = new Date(naive ? `${value}Z` : value);
+  if (naive && !Number.isNaN(date.getTime())) {
+    const wallTime = date.getTime();
+    // Recheck the offset at the resulting instant across daylight-saving changes.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      date = new Date(wallTime - getTimeZoneOffset(date, EVENT_TIME_ZONE));
+    }
+  }
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
@@ -118,8 +118,29 @@ function formatEventDateTime(date: Date, locale: string) {
 }
 
 export function formatBerlinDate(iso?: string | null, locale = "de-DE") {
-  const date = parseDate(iso);
+  const date = parseBerlinDateTime(iso);
   return date ? formatDate(date, locale) : "";
+}
+
+export function formatBerlinDateRange(startIso?: string | null, endIso?: string | null, locale = "de-DE") {
+  const start = parseBerlinDateTime(startIso);
+  if (!start) return "";
+  const end = parseBerlinDateTime(endIso);
+  if (!end || getBerlinDayKey(start) === getBerlinDayKey(end)) return formatDate(start, locale);
+  const startParts = getBerlinDateParts(start);
+  const endParts = getBerlinDateParts(end);
+  if (startParts.year === endParts.year && startParts.month === endParts.month) {
+    return `${Number(startParts.day)}. – ${formatDate(end, locale)}`;
+  }
+  if (startParts.year === endParts.year) {
+    const startLabel = new Intl.DateTimeFormat(locale, {
+      day: "2-digit",
+      month: "long",
+      timeZone: EVENT_TIME_ZONE,
+    }).format(start);
+    return `${startLabel} – ${formatDate(end, locale)}`;
+  }
+  return `${formatDate(start, locale)} – ${formatDate(end, locale)}`;
 }
 
 export function formatEventDateTimeRange(
@@ -128,10 +149,10 @@ export function formatEventDateTimeRange(
   locale = "de-DE",
   dateOnly = false,
 ) {
-  const start = parseDate(startIso);
+  const start = parseBerlinDateTime(startIso);
   if (!start) return "";
 
-  const end = parseDate(endIso);
+  const end = parseBerlinDateTime(endIso);
   if (dateOnly) {
     return end && getBerlinDayKey(end) !== getBerlinDayKey(start)
       ? `${formatDate(start, locale)} - ${formatDate(end, locale)}`
@@ -156,9 +177,9 @@ export function getEventPhase(
   dateOnly: boolean,
   now: Date,
 ): "current" | "future" | "past" | null {
-  const start = parseDate(startIso);
+  const start = parseBerlinDateTime(startIso);
   if (!start) return null;
-  const end = parseDate(endIso);
+  const end = parseBerlinDateTime(endIso);
   if (dateOnly) {
     const today = getBerlinDayKey(now);
     if (today < getBerlinDayKey(start)) return "future";
@@ -171,7 +192,7 @@ export function getEventPhase(
 }
 
 export function getEventMonthKey(startIso?: string | null) {
-  const start = parseDate(startIso);
+  const start = parseBerlinDateTime(startIso);
   if (!start) return "";
 
   const { month, year } = getBerlinDateParts(start);
@@ -179,7 +200,7 @@ export function getEventMonthKey(startIso?: string | null) {
 }
 
 export function formatEventMonth(startIso: string | null | undefined, locale = "de-DE") {
-  const start = parseDate(startIso);
+  const start = parseBerlinDateTime(startIso);
   if (!start) return "";
 
   return new Intl.DateTimeFormat(locale, {

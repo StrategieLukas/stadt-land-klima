@@ -1,25 +1,21 @@
 <template>
   <div class="footer-nav-editor">
     <!-- Empty state -->
-    <p v-if="columns.length === 0" class="empty-hint">
-      Noch keine Spalten. Klicke unten auf „Spalte hinzufügen".
-    </p>
+    <p v-if="columns.length === 0" class="empty-hint">Noch keine Spalten. Klicke unten auf „Spalte hinzufügen".</p>
 
     <!-- Columns list -->
-    <div
-      v-for="(col, ci) in columns"
-      :key="col.id"
-      class="column-block"
-    >
+    <div v-for="(col, ci) in columns" :key="col.id" class="column-block">
       <!-- Column header row -->
       <div class="column-header">
         <span class="column-label">
-          Spalte {{ ci + 1 }}: <strong>{{ col.title || '(kein Titel)' }}</strong>
+          Spalte {{ ci + 1 }}: <strong>{{ col.title || "(kein Titel)" }}</strong>
           <em class="link-count"> — {{ col.links.length }} Link(s)</em>
         </span>
         <div class="actions">
           <button :disabled="ci === 0 || disabled" @click="moveColumn(ci, -1)" title="Nach oben">↑</button>
-          <button :disabled="ci === columns.length - 1 || disabled" @click="moveColumn(ci, 1)" title="Nach unten">↓</button>
+          <button :disabled="ci === columns.length - 1 || disabled" @click="moveColumn(ci, 1)" title="Nach unten">
+            ↓
+          </button>
           <button :disabled="disabled" @click="toggleEditColumn(ci)" title="Bearbeiten">✏</button>
           <button class="danger" :disabled="disabled" @click="removeColumn(ci)" title="Entfernen">×</button>
         </div>
@@ -39,39 +35,31 @@
 
       <!-- Links list -->
       <div class="links-list">
-        <div
-          v-for="(link, li) in col.links"
-          :key="link.id"
-          class="link-row"
-        >
+        <div v-for="(link, li) in col.links" :key="link.id" class="link-row">
           <div class="link-info">
-            <span
-              class="type-badge"
-              :class="link.link_type === 'page' ? 'badge-page' : 'badge-ext'"
-            >
-              {{ link.link_type === 'page' ? 'Seite' : 'Extern' }}
+            <span class="type-badge" :class="link.link_type === 'page' ? 'badge-page' : 'badge-ext'">
+              {{ link.link_type === "page" ? "Seite" : "Extern" }}
             </span>
-            <span class="link-label" :title="link.label || ''">{{ link.label || '(kein Label)' }}</span>
+            <span class="link-label" :title="link.label || ''">{{ link.label || "(kein Label)" }}</span>
             <span
               class="link-target"
-              :title="link.link_type === 'page' ? '/' + link.page_slug : link.external_url"
+              :title="link.link_type === 'page' ? '/' + link.page_slug : (link.external_url ?? undefined)"
             >
-              {{ link.link_type === 'page' ? '/' + link.page_slug : link.external_url }}
+              {{ link.link_type === "page" ? "/" + link.page_slug : link.external_url }}
             </span>
           </div>
           <div class="actions">
             <button :disabled="li === 0 || disabled" @click="moveLink(ci, li, -1)" title="Nach oben">↑</button>
-            <button :disabled="li === col.links.length - 1 || disabled" @click="moveLink(ci, li, 1)" title="Nach unten">↓</button>
+            <button :disabled="li === col.links.length - 1 || disabled" @click="moveLink(ci, li, 1)" title="Nach unten">
+              ↓
+            </button>
             <button :disabled="disabled" @click="toggleEditLink(ci, li)" title="Bearbeiten">✏</button>
             <button class="danger" :disabled="disabled" @click="removeLink(ci, li)" title="Entfernen">×</button>
           </div>
         </div>
 
         <!-- Link edit form — guard uses optional chaining to avoid null[0] crash -->
-        <div
-          v-if="editingLink?.[0] === ci"
-          class="edit-form link-edit-form"
-        >
+        <div v-if="editingLink?.[0] === ci" class="edit-form link-edit-form">
           <div class="form-grid">
             <label>
               Label
@@ -88,17 +76,9 @@
 
             <label v-if="linkBuffer.link_type === 'page'" class="slug-wrapper">
               Seiten-Slug
-              <input
-                v-model="linkBuffer.page_slug"
-                placeholder="z.B. municipalities"
-                @input="onSlugInput"
-              />
+              <input v-model="linkBuffer.page_slug" placeholder="z.B. municipalities" @input="onSlugInput" />
               <ul v-if="pageResults.length" class="autocomplete">
-                <li
-                  v-for="p in pageResults"
-                  :key="p.slug"
-                  @mousedown.prevent="handleSelectPage(p)"
-                >
+                <li v-for="p in pageResults" :key="p.slug" @mousedown.prevent="handleSelectPage(p)">
                   {{ p.name }} <span class="slug-hint">/{{ p.slug }}</span>
                 </li>
               </ul>
@@ -131,14 +111,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, inject, type Ref } from 'vue';
-import type { Page } from '../types';
-import { usePageSearch } from '../usePageSearch';
+import { ref, watch, inject, type Ref } from "vue";
+import type { Page } from "../types";
+import { usePageSearch } from "../usePageSearch";
 
 interface ColumnLink {
   id: string;
   label: string;
-  link_type: 'page' | 'external';
+  link_type: "page" | "external";
   page_slug: string | null;
   external_url: string | null;
   open_new_tab: boolean;
@@ -152,7 +132,7 @@ interface Column {
 
 interface LinkBuffer {
   label: string;
-  link_type: 'page' | 'external';
+  link_type: "page" | "external";
   page_slug: string;
   external_url: string;
   open_new_tab: boolean;
@@ -164,18 +144,18 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'input', value: Column[]): void;
+  (e: "input", value: Column[]): void;
 }>();
 
 const api = inject<{
   get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }>;
-}>('api');
+}>("api");
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
 const columns: Ref<Column[]> = ref([]);
 const editingColumn: Ref<number | null> = ref(null);
-const columnBuffer: Ref<{ title: string }> = ref({ title: '' });
+const columnBuffer: Ref<{ title: string }> = ref({ title: "" });
 const editingLink: Ref<[number, number] | null> = ref(null);
 const linkBuffer: Ref<LinkBuffer> = ref(newLinkDefaults());
 
@@ -186,9 +166,12 @@ const { pageResults, search, selectPage, clear: clearPageResults } = usePageSear
 watch(
   () => props.value,
   (val) => {
-    if (!val) { columns.value = []; return; }
+    if (!val) {
+      columns.value = [];
+      return;
+    }
     try {
-      columns.value = JSON.parse(typeof val === 'string' ? val : JSON.stringify(val));
+      columns.value = JSON.parse(typeof val === "string" ? val : JSON.stringify(val));
     } catch {
       columns.value = [];
     }
@@ -199,21 +182,21 @@ watch(
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function uid(): string {
-  return 'col-' + Math.random().toString(36).slice(2, 9);
+  return "col-" + Math.random().toString(36).slice(2, 9);
 }
 
 function newLinkDefaults(): LinkBuffer {
-  return { label: '', link_type: 'page', page_slug: '', external_url: '', open_new_tab: false };
+  return { label: "", link_type: "page", page_slug: "", external_url: "", open_new_tab: false };
 }
 
 function emitUpdate(): void {
-  emit('input', JSON.parse(JSON.stringify(columns.value)));
+  emit("input", JSON.parse(JSON.stringify(columns.value)));
 }
 
 // ─── Slug autocomplete ────────────────────────────────────────────────────────
 
 function onSlugInput(): void {
-  search(linkBuffer.value.page_slug?.trim() ?? '');
+  search(linkBuffer.value.page_slug?.trim() ?? "");
 }
 
 function handleSelectPage(page: Page): void {
@@ -223,9 +206,9 @@ function handleSelectPage(page: Page): void {
 // ─── Column CRUD ──────────────────────────────────────────────────────────────
 
 function addColumn(): void {
-  columns.value.push({ id: uid(), title: '', links: [] });
+  columns.value.push({ id: uid(), title: "", links: [] });
   const ci = columns.value.length - 1;
-  columnBuffer.value = { title: '' };
+  columnBuffer.value = { title: "" };
   editingColumn.value = ci;
   editingLink.value = null;
   // Intentionally not emitting until the user saves the column title
@@ -264,7 +247,11 @@ function saveColumn(ci: number): void {
 
 function cancelEditColumn(): void {
   // If the column was just added and has no title, remove it
-  if (editingColumn.value !== null && columns.value[editingColumn.value]?.links.length === 0 && !columns.value[editingColumn.value]?.title) {
+  if (
+    editingColumn.value !== null &&
+    columns.value[editingColumn.value]?.links.length === 0 &&
+    !columns.value[editingColumn.value]?.title
+  ) {
     columns.value.splice(editingColumn.value, 1);
   }
   editingColumn.value = null;
@@ -305,10 +292,10 @@ function toggleEditLink(ci: number, li: number): void {
   editingColumn.value = null;
   const link = columns.value[ci].links[li];
   linkBuffer.value = {
-    label: link.label || '',
-    link_type: link.link_type || 'page',
-    page_slug: link.page_slug || '',
-    external_url: link.external_url || '',
+    label: link.label || "",
+    link_type: link.link_type || "page",
+    page_slug: link.page_slug || "",
+    external_url: link.external_url || "",
     open_new_tab: link.open_new_tab || false,
   };
   editingLink.value = [ci, li];
@@ -319,8 +306,8 @@ function saveLink(ci: number, li: number): void {
   const link = columns.value[ci].links[li];
   link.label = linkBuffer.value.label;
   link.link_type = linkBuffer.value.link_type;
-  link.page_slug = linkBuffer.value.link_type === 'page' ? linkBuffer.value.page_slug : null;
-  link.external_url = linkBuffer.value.link_type === 'external' ? linkBuffer.value.external_url : null;
+  link.page_slug = linkBuffer.value.link_type === "page" ? linkBuffer.value.page_slug : null;
+  link.external_url = linkBuffer.value.link_type === "external" ? linkBuffer.value.external_url : null;
   link.open_new_tab = linkBuffer.value.open_new_tab;
   editingLink.value = null;
   clearPageResults();

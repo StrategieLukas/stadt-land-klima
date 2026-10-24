@@ -1,9 +1,5 @@
 <template>
-  <div
-    :id="'block-' + uuid"
-    class="blokkli-block-donation-widget flex w-full py-4"
-    :class="alignmentClass"
-  >
+  <div :id="'block-' + uuid" class="blokkli-block-donation-widget flex w-full py-4" :class="alignmentClass">
     <BetterplaceDonationWidget :height="widgetHeight" :class="widthClass" />
   </div>
 </template>

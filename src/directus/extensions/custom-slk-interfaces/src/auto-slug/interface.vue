@@ -10,16 +10,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, unref, watch } from 'vue';
-import type { Ref } from 'vue';
-import slugify from 'slugify';
+import { computed, inject, ref, unref, watch } from "vue";
+import type { Ref } from "vue";
+import slugify from "slugify";
 
 const slugifyConfig = {
-  replacement: '-',
+  replacement: "-",
   remove: undefined,
   lower: true,
   strict: true,
-  locale: 'de',
+  locale: "de",
   trim: true,
 } as const;
 
@@ -38,22 +38,24 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'input', value: string): void;
-  (e: 'setFieldValue', payload: { field: string; value: string }): void;
+  (e: "input", value: string): void;
+  (e: "setFieldValue", payload: { field: string; value: string }): void;
 }>();
 
-const localValue = ref(props.value ?? '');
-const lastGeneratedValue = ref('');
-const injectedValues = inject<Ref<Record<string, unknown>> | Record<string, unknown>>('values', ref({}));
+const localValue = ref(props.value ?? "");
+const lastGeneratedValue = ref("");
+const injectedValues = inject<Ref<Record<string, unknown>> | Record<string, unknown>>("values", ref({}));
 
-const sourceField = computed(() => props.options?.source_field ?? props.source_field ?? 'name');
+const sourceField = computed(() => props.options?.source_field ?? props.source_field ?? "name");
 const syncExisting = computed(() => props.options?.sync_existing ?? props.sync_existing ?? false);
 const formValues = computed(() => props.values ?? unref(injectedValues) ?? {});
 const sourceValue = computed(() => formValues.value[sourceField.value]);
-const isNewItem = computed(() => props.primaryKey === '+' || props.primaryKey === null || props.primaryKey === undefined);
+const isNewItem = computed(
+  () => props.primaryKey === "+" || props.primaryKey === null || props.primaryKey === undefined,
+);
 
 function buildSlug(value: unknown): string {
-  return slugify(String(value ?? ''), slugifyConfig);
+  return slugify(String(value ?? ""), slugifyConfig);
 }
 
 function canAutoSync(): boolean {
@@ -64,9 +66,9 @@ function canAutoSync(): boolean {
 
 function setValue(value: string): void {
   localValue.value = value;
-  emit('input', value);
+  emit("input", value);
   if (props.field) {
-    emit('setFieldValue', { field: props.field, value });
+    emit("setFieldValue", { field: props.field, value });
   }
 }
 
@@ -82,12 +84,15 @@ function syncFromSource(): void {
 function onInput(event: Event): void {
   const nextValue = (event.target as HTMLInputElement).value;
   localValue.value = nextValue;
-  emit('input', nextValue);
+  emit("input", nextValue);
 }
 
-watch(() => props.value, (value) => {
-  localValue.value = value ?? '';
-});
+watch(
+  () => props.value,
+  (value) => {
+    localValue.value = value ?? "";
+  },
+);
 
 watch(sourceValue, syncFromSource, { immediate: true });
 </script>

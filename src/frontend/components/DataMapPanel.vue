@@ -9,7 +9,7 @@
     - Big number + legend strip below the map
 -->
 <template>
-  <div class="bg-gray-50 flex h-full flex-col">
+  <div class="flex h-full flex-col bg-gray-50">
     <!-- ── Map ──────────────────────────────────────────────────────────── -->
     <div class="relative min-h-0 flex-1">
       <LMap
@@ -30,16 +30,21 @@
         <template v-for="nb in visibleNearby" :key="nb.ars">
           <LGeoJson
             v-if="parseGeo(nb.geo_area ?? nb.geoArea)"
-            :geojson="parseGeo(nb.geo_area ?? nb.geoArea)"
+            :geojson="parseGeo(nb.geo_area ?? nb.geoArea) ?? []"
             :options="nearbyOpts(nb)"
           />
         </template>
 
         <!-- Carve-out mask: dims everything outside this area -->
-        <LGeoJson v-if="maskGeoJson" :geojson="maskGeoJson" :options="maskOpts" />
+        <LGeoJson v-if="maskGeoJson" :geojson="maskGeoJson ?? []" :options="maskOpts" />
 
         <!-- Area boundary outline -->
-        <LGeoJson v-if="areaBoundary" :geojson="areaBoundary" :options="boundaryOpts" @ready="onBoundaryReady" />
+        <LGeoJson
+          v-if="areaBoundary"
+          :geojson="areaBoundary ?? []"
+          :options="boundaryOpts"
+          v-on="{ ready: onBoundaryReady }"
+        />
 
         <!-- Data features: points -->
         <template v-if="layerType === 'points' && dataFeatures.length">
@@ -58,7 +63,7 @@
         <!-- Data features: polygon / choropleth -->
         <LGeoJson
           v-else-if="layerType !== 'points' && dataFeatureCollection"
-          :geojson="dataFeatureCollection"
+          :geojson="dataFeatureCollection ?? []"
           :options="featurePolyOpts"
         />
       </LMap>
@@ -67,7 +72,7 @@
       <Transition name="fade">
         <div
           v-if="loadingFeatures"
-          class="pointer-events-none absolute inset-0 z-[1000] flex items-center justify-center bg-white/50 backdrop-blur-[1px]"
+          class="pointer-events-none absolute inset-0 z-1000 flex items-center justify-center bg-white/50 backdrop-blur-[1px]"
         >
           <SlkFlowerSpinner :size="32" />
         </div>
@@ -75,56 +80,66 @@
     </div>
 
     <!-- ── Stats strip ───────────────────────────────────────────────── -->
-    <div class="border-gray-200 flex-none border-t bg-white">
+    <div class="flex-none border-t border-gray-200 bg-white">
       <!-- Active collection stats -->
-      <div v-if="activeCollection" class="divide-gray-100 flex items-stretch gap-0 divide-x">
+      <div v-if="activeCollection" class="flex items-stretch gap-0 divide-x divide-gray-100">
         <!-- Big number -->
         <div class="flex min-w-[140px] flex-col justify-center px-6 py-4">
           <div
-            class="text-5xl font-black tabular-nums leading-none transition-colors duration-500"
+            class="text-5xl leading-none font-black tabular-nums transition-colors duration-500"
             :style="bigNumColor ? `color:${bigNumColor}` : 'color:#006e94'"
           >
             {{ formattedBigNum }}
           </div>
-          <div class="text-gray-400 mt-1 max-w-[130px] text-[11px] leading-tight">{{ bigNumLabel }}</div>
+          <div class="mt-1 max-w-[130px] text-[11px] leading-tight text-gray-400">{{ bigNumLabel }}</div>
         </div>
 
         <!-- Collection info + feature count -->
         <div class="flex min-w-0 flex-1 flex-col justify-center gap-1 px-5 py-4">
-          <div class="text-gray-900 line-clamp-2 text-sm font-semibold leading-snug">
-            {{ activeCollection.title?.["de-DE"] || activeCollection.title?.["en-US"] }}
+          <div class="line-clamp-2 text-sm leading-snug font-semibold text-gray-900">
+            {{ activeCollection.title?.["de-DE"] }}
           </div>
-          <div v-if="loadingFeatures" class="text-gray-400 animate-pulse text-xs">Daten werden geladen…</div>
-          <div v-else-if="dataFeatures.length" class="text-gray-400 text-xs">
+          <div v-if="loadingFeatures" class="animate-pulse text-xs text-gray-400">Daten werden geladen…</div>
+          <div v-else-if="dataFeatures.length" class="text-xs text-gray-400">
             {{ dataFeatures.length.toLocaleString("de-DE") }} Objekte im Gebiet
           </div>
-          <div v-else class="text-gray-400 text-xs">Keine Daten verfügbar</div>
+          <div v-else class="text-xs text-gray-400">Keine Daten verfügbar</div>
         </div>
 
         <!-- Threshold legend (when thresholds are defined) -->
         <div v-if="hasThresholds" class="hidden flex-col justify-center gap-1.5 px-5 py-4 lg:flex">
           <div v-for="leg in legendItems" :key="leg.label" class="flex items-center gap-2">
             <span class="h-2.5 w-2.5 flex-none rounded-full" :style="`background:${leg.color}`" />
-            <span class="text-gray-500 whitespace-nowrap text-[11px]">{{ leg.label }}</span>
+            <span class="text-[11px] whitespace-nowrap text-gray-500">{{ leg.label }}</span>
           </div>
         </div>
       </div>
 
       <!-- Placeholder (no active collection yet) -->
-      <div v-else class="text-gray-400 px-6 py-4 text-sm italic">Scrollen Sie, um Klimadaten zu erkunden</div>
+      <div v-else class="px-6 py-4 text-sm text-gray-400 italic">Scrollen Sie, um Klimadaten zu erkunden</div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+// vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
+import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from "leaflet";
+import { parseGeoData, type GeoData } from "~/shared/contracts/geometry";
+import type { PropType } from "vue";
+import { z } from "zod";
+import { GeoFeatureSchema } from "~/shared/contracts/geometry";
+import { SummarySchema } from "~/shared/contracts/slz";
+import type { Area } from "~/shared/contracts/search";
+import type { Collection } from "~/types/slz-api";
+
 import { ref, computed, watch } from "vue";
-import { areaToSlug } from "~/composables/useAreaBySlug.js";
+import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
-  areaBoundary: { type: Object, default: null },
-  nearbyAreas: { type: Array, default: () => [] },
+  areaBoundary: { type: Object as PropType<GeoData | null | undefined>, default: null },
+  nearbyAreas: { type: Array as PropType<Area[] | undefined>, default: () => [] },
   ars: { type: String, required: true },
-  activeCollection: { type: Object, default: null },
+  activeCollection: { type: Object as PropType<Collection | null | undefined>, default: null },
   baseUrl: { type: String, required: true },
 });
 
@@ -133,13 +148,13 @@ const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
 // ── Map state ─────────────────────────────────────────────────────────────────
 
-const mapRef = ref(null);
+const mapRef = shallowRef<{ leafletObject: LeafletMap } | null>(null);
 const zoom = ref(11);
-const mapCenter = ref([51.163, 10.447]); // Germany center fallback
+const mapCenter = ref<[number, number]>([51.163, 10.447]); // Germany center fallback
 const mapReady = ref(false);
-let pendingBounds = null;
+let pendingBounds: LatLngBounds | null = null;
 
-function onMapReady(mapInstance) {
+function onMapReady(mapInstance: LeafletMap) {
   mapReady.value = true;
   if (pendingBounds) {
     mapInstance.fitBounds(pendingBounds, { padding: [30, 30], maxZoom: 14 });
@@ -147,7 +162,7 @@ function onMapReady(mapInstance) {
   }
 }
 
-function onBoundaryReady(layer) {
+function onBoundaryReady(layer: LeafletGeoJSON) {
   try {
     const bounds = layer.getBounds();
     if (!bounds.isValid()) return;
@@ -156,7 +171,9 @@ function onBoundaryReady(layer) {
     } else {
       pendingBounds = bounds;
     }
-  } catch (_) {}
+  } catch {
+    /* Invalid or unavailable map data is optional. */
+  }
 }
 
 // Re-fit when the boundary changes (new page navigation)
@@ -170,9 +187,9 @@ watch(
 
 // ── Carve-out mask ────────────────────────────────────────────────────────────
 
-const maskGeoJson = computed(() => {
+const maskGeoJson = computed<GeoData | null>(() => {
   if (!props.areaBoundary) return null;
-  const geom = props.areaBoundary?.type === "Feature" ? props.areaBoundary.geometry : props.areaBoundary;
+  const geom = props.areaBoundary.type === "Feature" ? props.areaBoundary.geometry : props.areaBoundary;
   if (!geom) return null;
 
   // World bounding box as outer ring — in GeoJSON [lng, lat]
@@ -185,13 +202,18 @@ const maskGeoJson = computed(() => {
   ];
 
   if (geom.type === "Polygon") {
-    return { type: "Feature", geometry: { type: "Polygon", coordinates: [world, geom.coordinates[0]] } };
+    return {
+      type: "Feature",
+      properties: null,
+      geometry: { type: "Polygon", coordinates: [world, ...(geom.coordinates[0] ? [geom.coordinates[0]] : [])] },
+    };
   }
   if (geom.type === "MultiPolygon") {
     // Each polygon's outer ring becomes a hole
     return {
       type: "Feature",
-      geometry: { type: "Polygon", coordinates: [world, ...geom.coordinates.map((p) => p[0])] },
+      properties: null,
+      geometry: { type: "Polygon", coordinates: [world, ...geom.coordinates.flatMap((p) => (p[0] ? [p[0]] : []))] },
     };
   }
   return null;
@@ -211,21 +233,15 @@ const boundaryOpts = {
 
 const visibleNearby = computed(() => props.nearbyAreas.filter((a) => a.geo_area ?? a.geoArea));
 
-function parseGeo(geoArea) {
-  if (!geoArea) return null;
-  if (typeof geoArea === "object") return geoArea;
-  try {
-    return JSON.parse(geoArea);
-  } catch {
-    return null;
-  }
+function parseGeo(input: unknown) {
+  return parseGeoData(input);
 }
 
-function navigateToArea(area) {
-  router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
+function navigateToArea(area: Area) {
+  void router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
 }
 
-function nearbyOpts(area) {
+function nearbyOpts(area: Area): GeoJSONOptions {
   const base = { color: "#4a90a4", weight: 1, fillColor: "#4a90a4", fillOpacity: 0.0, opacity: 0.3 };
   const hover = { ...base, fillOpacity: 0.1, opacity: 0.65 };
   return {
@@ -236,11 +252,13 @@ function nearbyOpts(area) {
         { sticky: true, direction: "top", className: "leaflet-tooltip-custom" },
       );
       layer.on("mouseover", () => {
-        layer.setStyle(hover);
-        layer.bringToFront();
+        (layer as Path).setStyle(hover);
+        (layer as Path).bringToFront();
       });
-      layer.on("mouseout", () => layer.setStyle(base));
-      layer.on("click", () => navigateToArea(area));
+      layer.on("mouseout", () => (layer as Path).setStyle(base));
+      layer.on("click", () => {
+        navigateToArea(area);
+      });
     },
   };
 }
@@ -248,9 +266,15 @@ function nearbyOpts(area) {
 // ── Active collection data features ───────────────────────────────────────────
 
 const loadingFeatures = ref(false);
-const dataFeatures = ref([]);
-const dataFeatureCollection = ref(null);
-const summaryData = ref(null);
+type DataFeature = z.infer<typeof GeoFeatureSchema>;
+const ItemPageSchema = z.object({
+  type: z.literal("FeatureCollection").default("FeatureCollection"),
+  features: z.array(GeoFeatureSchema),
+  next: z.string().nullable().optional(),
+});
+const dataFeatures = ref<DataFeature[]>([]);
+const dataFeatureCollection = ref<z.infer<typeof ItemPageSchema> | null>(null);
+const summaryData = ref<z.infer<typeof SummarySchema> | null>(null);
 
 const layerType = computed(() => props.activeCollection?.render_config?.layer_type ?? "points");
 
@@ -266,22 +290,22 @@ const thresholds = computed(() => {
 
 const hasThresholds = computed(() => Object.values(thresholds.value).some((v) => v !== null));
 
-async function fetchAllItemPages(firstPageUrl, params) {
-  const allFeatures = [];
+async function fetchAllItemPages(firstPageUrl: string, params: Record<string, string>) {
+  const allFeatures: DataFeature[] = [];
   let firstPage = null;
   let nextUrl = null;
 
-  const page = await $fetch(firstPageUrl, { params });
+  const page = ItemPageSchema.parse(await $fetch(firstPageUrl, { params }));
   firstPage = page;
   if (page?.features) allFeatures.push(...page.features);
   nextUrl = page?.next ?? null;
 
   while (nextUrl) {
     try {
-      const nextPage = await $fetch(nextUrl);
+      const nextPage = ItemPageSchema.parse(await $fetch(nextUrl));
       if (nextPage?.features) allFeatures.push(...nextPage.features);
       nextUrl = nextPage?.next ?? null;
-    } catch (_) {
+    } catch {
       break;
     }
   }
@@ -289,7 +313,7 @@ async function fetchAllItemPages(firstPageUrl, params) {
   return firstPage ? { ...firstPage, features: allFeatures } : null;
 }
 
-async function fetchActiveData(id) {
+async function fetchActiveData(id: string | undefined) {
   if (!id || !props.ars) {
     dataFeatures.value = [];
     dataFeatureCollection.value = null;
@@ -309,8 +333,8 @@ async function fetchActiveData(id) {
       dataFeatures.value = [];
       dataFeatureCollection.value = null;
     }
-    summaryData.value = summaryRes.status === "fulfilled" ? summaryRes.value : null;
-  } catch (_) {
+    summaryData.value = summaryRes.status === "fulfilled" ? SummarySchema.parse(summaryRes.value) : null;
+  } catch {
     dataFeatures.value = [];
     summaryData.value = null;
   } finally {
@@ -326,10 +350,11 @@ watch(
 
 // ── Feature styling ───────────────────────────────────────────────────────────
 
-function featColor(feature) {
+function featColor(feature: DataFeature | undefined) {
   const colorField = props.activeCollection?.render_config?.color_field;
   if (!colorField) return "#006e94";
-  const val = feature.properties?.[colorField];
+  const raw = feature?.properties?.[colorField];
+  const val = typeof raw === "number" || typeof raw === "string" ? Number(raw) : null;
   if (val == null) return "#9D9D9C";
   const t = thresholds.value;
   if (t.darkGreen !== null && val >= t.darkGreen) return "#1EA64A";
@@ -339,14 +364,14 @@ function featColor(feature) {
   return "#E30613";
 }
 
-function featLatLng(feature) {
+function featLatLng(feature: DataFeature): [number, number] {
   if (feature.geometry?.type === "Point") {
-    return [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
+    return [feature.geometry.coordinates[1]!, feature.geometry.coordinates[0]!];
   }
   return [0, 0];
 }
 
-const featurePolyOpts = computed(() => ({
+const featurePolyOpts = computed<GeoJSONOptions>(() => ({
   style: (feature) => ({
     color: featColor(feature),
     weight: 1,
@@ -364,7 +389,7 @@ const bigNumRaw = computed(() => {
       if (k in agg && typeof agg[k] === "number") return { val: agg[k], key: k };
     }
     const entry = Object.entries(agg).find(([k, v]) => k !== "id" && typeof v === "number");
-    if (entry) return { val: entry[1], key: entry[0] };
+    if (entry) return { val: Number(entry[1]), key: entry[0] };
   }
   return dataFeatures.value.length ? { val: dataFeatures.value.length, key: "Objekte" } : null;
 });
@@ -380,7 +405,7 @@ const formattedBigNum = computed(() => {
 
 const bigNumLabel = computed(() => {
   const key = bigNumRaw.value?.key ?? "";
-  const labels = {
+  const labels: Record<string, string> = {
     total: "Gesamt",
     sum: "Summe",
     count: "Anzahl",

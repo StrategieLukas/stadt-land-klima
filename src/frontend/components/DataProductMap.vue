@@ -1,13 +1,13 @@
 <template>
-  <div class="bg-gray-100 relative z-10 w-full overflow-hidden rounded-lg">
+  <div class="relative z-10 w-full overflow-hidden rounded-lg bg-gray-100">
     <div v-if="loading" class="flex h-64 items-center justify-center gap-2">
       <SlkFlowerSpinner :size="32" />
       <span class="text-gray-600">{{ $t("generic.loading") }}</span>
     </div>
 
-    <div v-else-if="error" class="text-red-600 bg-red-50 flex h-64 items-center justify-center">
+    <div v-else-if="error" class="flex h-64 items-center justify-center bg-red-50 text-red-600">
       <div class="text-center">
-        <svg class="text-red-400 mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -19,9 +19,9 @@
       </div>
     </div>
 
-    <div v-else-if="!mapData" class="text-gray-500 flex h-64 items-center justify-center">
+    <div v-else-if="!mapData" class="flex h-64 items-center justify-center text-gray-500">
       <div class="text-center">
-        <svg class="text-gray-400 mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <div v-else :class="props.height" class="bg-gray-50 w-full overflow-hidden rounded-lg">
+    <div v-else :class="props.height" class="w-full overflow-hidden rounded-lg bg-gray-50">
       <LMap ref="map" :zoom="zoom" :center="center" :options="mapOptions" class="h-full w-full" @ready="onMapReady">
         <LTileLayer :key="tileUrl" :url="tileUrl" :attribution="attribution" :subdomains="subdomains" :max-zoom="20" />
 
@@ -42,21 +42,8 @@
 
         <!-- Display markers from map data -->
         <template v-for="layer in mapData.layers" :key="layer.name">
-          <template v-if="layer.type === 'markers'" v-for="item in layer.data" :key="item.coordinates.join(',')">
-            <LMarker :lat-lng="[item.coordinates[0], item.coordinates[1]]">
-              <LIcon
-                :icon-size="[25, 41]"
-                :icon-anchor="[12, 41]"
-                :popup-anchor="[1, -34]"
-                :shadow-size="[41, 41]"
-                icon-url="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"
-                shadow-url="https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png"
-                :class-name="getMarkerClass(item.properties)"
-              />
-              <LPopup v-if="item.properties?.popup_content">
-                <div v-html="item.properties.popup_content"></div>
-              </LPopup>
-            </LMarker>
+          <template v-for="item in layer.type === 'markers' ? layer.data : []" :key="item.coordinates.join(',')">
+            <DataProductMapMarker :item="item" />
           </template>
         </template>
       </LMap>
@@ -65,7 +52,7 @@
     <!-- Legend -->
     <div
       v-if="mapData && showLegend"
-      class="absolute bottom-4 left-4 z-[1000] max-w-xs rounded-lg bg-white bg-opacity-90 p-3 shadow-md"
+      class="absolute bottom-4 left-4 z-1000 max-w-xs rounded-lg bg-white/90 p-3 shadow-md"
     >
       <h4 class="mb-2 text-sm font-semibold">{{ $t("stats.map.legend") }}</h4>
       <div v-for="layer in mapData.layers" :key="layer.name" class="mb-1 flex items-center text-xs">
@@ -79,8 +66,14 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch, onMounted, nextTick } from "vue";
+<script setup lang="ts">
+import type { Map as LeafletMap, LatLngBoundsExpression } from "leaflet";
+import type { PropType } from "vue";
+import { DataMapSchema } from "~/shared/contracts/dataMap";
+import type { z } from "zod";
+import type { GeoJsonObject } from "geojson";
+
+import { ref, computed, watch, onMounted } from "vue";
 import { useRuntimeConfig } from "nuxt/app";
 
 const props = defineProps({
@@ -93,15 +86,15 @@ const props = defineProps({
     required: true,
   },
   areaBounds: {
-    type: Object,
+    type: Object as PropType<GeoJsonObject | null | undefined>,
     default: null,
   },
   height: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "h-64",
   },
   showLegend: {
-    type: Boolean,
+    type: Boolean as PropType<boolean | undefined>,
     default: true,
   },
 });
@@ -109,15 +102,22 @@ const props = defineProps({
 const config = useRuntimeConfig();
 const { $t } = useNuxtApp();
 
-const map = ref(null);
-const mapData = ref(null);
-const loading = ref(false);
-const error = ref(null);
+const map = shallowRef<{ leafletObject: LeafletMap } | null>(null);
+type MapData = z.infer<typeof DataMapSchema>;
+type MapState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; data: MapData }
+  | { status: "error"; message: string };
+const state = shallowRef<MapState>({ status: "idle" });
+const mapData = computed(() => (state.value.status === "ready" ? state.value.data : null));
+const loading = computed(() => state.value.status === "loading");
+const error = computed(() => (state.value.status === "error" ? state.value.message : null));
 const mapReady = ref(false);
 const zoom = ref(10);
 
 // Default center (Germany)
-const defaultCenter = [51.1657, 10.4515];
+const defaultCenter: [number, number] = [51.1657, 10.4515];
 
 const center = computed(() => {
   if (mapData.value?.center) {
@@ -145,30 +145,12 @@ const areaBoundsOptions = {
   },
 };
 
-const getMarkerClass = (properties) => {
-  // Different CSS classes based on power or other properties
-  if (properties?.power_kw) {
-    const power = properties.power_kw;
-    if (power >= 150) {
-      return "marker-high-power"; // High power - red
-    } else if (power >= 50) {
-      return "marker-medium-power"; // Medium power - orange
-    } else {
-      return "marker-low-power"; // Low power - green
-    }
-  }
-
-  // Default blue marker
-  return "marker-default";
-};
-
 const fetchMapData = async () => {
   if (!props.ars || !props.dataProductType) {
     return;
   }
 
-  loading.value = true;
-  error.value = null;
+  state.value = { status: "loading" };
 
   try {
     const baseUrl = config.public.stadtlandzahlBaseUrl;
@@ -182,10 +164,10 @@ const fetchMapData = async () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = DataMapSchema.parse(await response.json());
     console.log("DataProductMap: Data received:", data);
 
-    mapData.value = data;
+    state.value = { status: "ready", data };
 
     // Fit map to bounds if available
     if (data.bounds && mapReady.value) {
@@ -193,13 +175,11 @@ const fetchMapData = async () => {
     }
   } catch (err) {
     console.error("DataProductMap: Error fetching map data:", err);
-    error.value = $t("stats.map.error_loading");
-  } finally {
-    loading.value = false;
+    state.value = { status: "error", message: $t("stats.map.error_loading") };
   }
 };
 
-const fitToBounds = (bounds) => {
+const fitToBounds = (bounds: LatLngBoundsExpression | null | undefined) => {
   if (!map.value?.leafletObject || !bounds) return;
 
   try {
@@ -220,7 +200,7 @@ const onMapReady = () => {
   // Fit to bounds if map data is already loaded
   if (mapData.value?.bounds) {
     setTimeout(() => {
-      fitToBounds(mapData.value.bounds);
+      fitToBounds(mapData.value?.bounds);
     }, 100);
   }
 
@@ -237,13 +217,13 @@ const onMapReady = () => {
 watch(
   [() => props.ars, () => props.dataProductType],
   () => {
-    fetchMapData();
+    void fetchMapData();
   },
   { immediate: false },
 );
 
 onMounted(() => {
-  fetchMapData();
+  void fetchMapData();
 });
 
 // Expose map data for parent components if needed

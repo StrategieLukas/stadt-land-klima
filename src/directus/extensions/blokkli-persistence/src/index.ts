@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 import type { Request, Response, Router } from "express";
-import type { Accountability, Database, ItemsService, Schema } from "@directus/types";
+import type { Accountability, ApiExtensionContext, SchemaOverview, AbstractService } from "@directus/types";
+
+type Database = ApiExtensionContext["database"];
+type ItemsService = AbstractService;
+type Schema = SchemaOverview;
 
 const TOUR_ENTITY_TYPES = new Set(["success_project_tours", "success_project_tour_stops"]);
 const ALLOWED_ENTITY_TYPES = new Set(["pages", "news_items", ...TOUR_ENTITY_TYPES]);
@@ -8,8 +12,7 @@ const BLOCK_FIELD_NAME = "content";
 const MAX_ROOT_BLOCKS = 500;
 const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024;
 const EDITOR_POLICY = "Blokkli-Editor";
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 interface BlockRow {
   id: number;
@@ -192,11 +195,7 @@ function sendError(res: Response, error: unknown, logger: ExtensionContext["logg
   return res.status(500).json({ error: "Blökkli content could not be persisted." });
 }
 
-async function canPublish(
-  database: Database,
-  accountability?: Accountability,
-  entityType?: string,
-): Promise<boolean> {
+async function canPublish(database: Database, accountability?: Accountability, entityType?: string): Promise<boolean> {
   if (accountability?.admin) return true;
   if (!accountability?.user) return false;
 
@@ -209,15 +208,16 @@ async function canPublish(
     })
     .select("policy.name");
 
-  return rows.some((row: { name?: string }) => row.name === EDITOR_POLICY || (entityType && TOUR_ENTITY_TYPES.has(entityType) && row.name === "SuccessProjectTour-Editor"));
+  return rows.some(
+    (row: { name?: string }) =>
+      row.name === EDITOR_POLICY ||
+      (entityType && TOUR_ENTITY_TYPES.has(entityType) && row.name === "SuccessProjectTour-Editor"),
+  );
 }
 
 export default {
   id: "blokkli-persistence",
-  handler: (
-    router: Router,
-    { database, emitter, getSchema, services, logger }: ExtensionContext,
-  ) => {
+  handler: (router: Router, { database, emitter, getSchema, services, logger }: ExtensionContext) => {
     router.get("/state", async (req: AuthenticatedRequest, res: Response) => {
       try {
         const scope = parseScope(req.query as Record<string, unknown>);
@@ -289,7 +289,9 @@ export default {
 
           if (TOUR_ENTITY_TYPES.has(scope.entityType)) {
             const reportsService = new services.ItemsService(scope.entityType, {
-              schema, accountability: req.accountability, knex: trx,
+              schema,
+              accountability: req.accountability,
+              knex: trx,
             });
             await reportsService.readOne(scope.entityUuid, { fields: ["id"] });
           }
@@ -341,9 +343,7 @@ export default {
             }
           }
 
-          const currentByUuid = new Map(
-            allRows.map((row) => [String(row.uuid), row]),
-          );
+          const currentByUuid = new Map(allRows.map((row) => [String(row.uuid), row]));
           const updatePayloads: Array<Record<string, unknown>> = [];
           const createPayloads: Array<Record<string, unknown>> = [];
 
@@ -369,9 +369,7 @@ export default {
             }
           });
 
-          const staleIds = currentRows
-            .filter((row) => !incomingUuids.includes(String(row.uuid)))
-            .map((row) => row.id);
+          const staleIds = currentRows.filter((row) => !incomingUuids.includes(String(row.uuid))).map((row) => row.id);
           const blocksService = new services.ItemsService("blocks", {
             schema,
             accountability: req.accountability,
@@ -395,11 +393,7 @@ export default {
           if (staleIds.length > 0) {
             // Keep removed content recoverable and let the normal update event
             // remove it from downstream indexes.
-            await blocksService.updateMany(
-              staleIds,
-              { status: "archived" },
-              deferActions,
-            );
+            await blocksService.updateMany(staleIds, { status: "archived" }, deferActions);
           }
 
           const persistedRows = (await trx("blocks")
@@ -423,13 +417,8 @@ export default {
             .whereNot("status", "archived")
             .orderBy("sort_order")) as BlockRow[];
 
-          committedBlockChanges.createdUuids = createPayloads.map((payload) =>
-            String(payload.uuid),
-          );
-          committedBlockChanges.updatedIds = [
-            ...updatePayloads.map((payload) => Number(payload.id)),
-            ...staleIds,
-          ];
+          committedBlockChanges.createdUuids = createPayloads.map((payload) => String(payload.uuid));
+          committedBlockChanges.updatedIds = [...updatePayloads.map((payload) => Number(payload.id)), ...staleIds];
 
           return {
             blocks: canonicalBlocks(persistedRows),
@@ -440,11 +429,11 @@ export default {
         // The extension emitter is intentionally separate from Directus core
         // action hooks. The search hook listens for this post-commit event so it
         // never tries to index rows that are still invisible in the transaction.
-        emitter.emitAction(
-          "blokkli.blocks.committed",
-          committedBlockChanges,
-          { database, schema, accountability: req.accountability },
-        );
+        emitter.emitAction("blokkli.blocks.committed", committedBlockChanges, {
+          database,
+          schema,
+          accountability: req.accountability,
+        });
 
         return res.json(result);
       } catch (error) {

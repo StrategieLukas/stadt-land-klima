@@ -49,10 +49,11 @@ export function useTheme() {
     themePreference.value = preference;
 
     if (import.meta.client) {
-      if (preference === "system") {
-        localStorage.removeItem(storageKey);
-      } else {
-        localStorage.setItem(storageKey, preference);
+      try {
+        if (preference === "system") localStorage.removeItem(storageKey);
+        else localStorage.setItem(storageKey, preference);
+      } catch {
+        /* Storage restrictions must not prevent an in-memory theme change. */
       }
     }
 
@@ -69,7 +70,12 @@ export function useTheme() {
     }
 
     initialized = true;
-    const storedPreference = localStorage.getItem(storageKey);
+    let storedPreference: string | null = null;
+    try {
+      storedPreference = localStorage.getItem(storageKey);
+    } catch {
+      /* Fall back to system. */
+    }
     themePreference.value = isThemePreference(storedPreference) ? storedPreference : "system";
     mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 

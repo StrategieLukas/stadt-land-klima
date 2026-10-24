@@ -24,10 +24,7 @@
       "state": "Sachsen",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          12.4939267,
-          50.7185043
-        ]
+        "coordinates": [12.4939267, 50.7185043]
       },
       "event_category": "internal"
     },
@@ -45,10 +42,7 @@
       "state": "Sachsen-Anhalt",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          11.7526038,
-          52.7899044
-        ]
+        "coordinates": [11.7526038, 52.7899044]
       },
       "event_category": "internal"
     },
@@ -66,10 +60,7 @@
       "state": "Brandenburg",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          13.6219208,
-          52.373076
-        ]
+        "coordinates": [13.6219208, 52.373076]
       },
       "event_category": "internal"
     },
@@ -87,10 +78,7 @@
       "state": "Sachsen",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          12.8514034,
-          50.7024268
-        ]
+        "coordinates": [12.8514034, 50.7024268]
       },
       "event_category": "internal"
     },
@@ -108,10 +96,7 @@
       "state": "Sachsen",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          12.9810458,
-          50.9854597
-        ]
+        "coordinates": [12.9810458, 50.9854597]
       },
       "event_category": "internal"
     },
@@ -129,10 +114,7 @@
       "state": "Thüringen",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          11.5879359,
-          50.9281717
-        ]
+        "coordinates": [11.5879359, 50.9281717]
       },
       "event_category": "internal"
     },
@@ -150,10 +132,7 @@
       "state": "Sachsen-Anhalt",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          11.6203578,
-          52.2007378
-        ]
+        "coordinates": [11.6203578, 52.2007378]
       },
       "event_category": "internal"
     },
@@ -171,10 +150,7 @@
       "state": "Sachsen-Anhalt",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          12.2430723,
-          51.8309956
-        ]
+        "coordinates": [12.2430723, 51.8309956]
       },
       "event_category": "internal"
     },
@@ -192,10 +168,7 @@
       "state": "Brandenburg",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          13.3902046,
-          52.866517
-        ]
+        "coordinates": [13.3902046, 52.866517]
       },
       "event_category": "internal"
     },
@@ -213,10 +186,7 @@
       "state": "Thüringen",
       "geolocation": {
         "type": "Point",
-        "coordinates": [
-          11.0287364,
-          50.9777974
-        ]
+        "coordinates": [11.0287364, 50.9777974]
       },
       "event_category": "internal"
     }

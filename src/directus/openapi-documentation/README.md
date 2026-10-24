@@ -27,6 +27,7 @@ npm run generate
 ## Customization
 
 Edit `createApiSpec.js` to modify:
+
 - Which endpoints are included in the filtered spec
 - Which collections are included in the filtered schema
 - The output file paths and names

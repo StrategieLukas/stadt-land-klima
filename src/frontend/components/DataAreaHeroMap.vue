@@ -1,6 +1,6 @@
 <template>
   <div
-    class="data-area-hero-map border-gray-200 relative z-0 h-[240px] overflow-hidden rounded-lg border bg-white shadow-sm sm:h-[280px] xl:h-[320px]"
+    class="data-area-hero-map relative z-0 h-[240px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs sm:h-[280px] xl:h-[320px]"
   >
     <ClientOnly>
       <LMap
@@ -17,15 +17,15 @@
         <LGeoJson
           v-for="neighbor in visibleNeighbors"
           :key="neighbor.ars"
-          :geojson="parseGeo(neighbor.geo_area ?? neighbor.geoArea)"
+          :geojson="parseGeo(neighbor.geo_area ?? neighbor.geoArea) ?? []"
           :options="areaOptions(neighbor, false)"
         />
 
         <LGeoJson
           v-if="areaBoundary"
-          :geojson="areaBoundary"
+          :geojson="areaBoundary ?? []"
           :options="areaOptions(area, true)"
-          @ready="onBoundaryReady"
+          v-on="{ ready: onBoundaryReady }"
         />
       </LMap>
     </ClientOnly>
@@ -33,7 +33,7 @@
     <Transition name="fade">
       <div
         v-if="nearbyAreasLoading"
-        class="text-gray-600 pointer-events-none absolute right-3 top-3 z-[500] inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-semibold shadow-sm backdrop-blur-sm"
+        class="pointer-events-none absolute top-3 right-3 z-500 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-600 shadow-xs backdrop-blur-xs"
       >
         <SlkFlowerSpinner :size="18" />
         <span>Nachbargebiete laden...</span>
@@ -42,23 +42,29 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+// vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
+import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from "leaflet";
+import { parseGeoData, parseGeoCenter } from "~/shared/contracts/geometry";
+import type { PropType } from "vue";
+import type { Area } from "~/shared/contracts/search";
+
 import { computed, ref } from "vue";
-import { areaToSlug } from "~/composables/useAreaBySlug.js";
+import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
-  area: { type: Object, required: true },
-  nearbyAreas: { type: Array, default: () => [] },
-  nearbyAreasLoading: { type: Boolean, default: false },
+  area: { type: Object as PropType<Area>, required: true },
+  nearbyAreas: { type: Array as PropType<Area[] | undefined>, default: () => [] },
+  nearbyAreasLoading: { type: Boolean as PropType<boolean | undefined>, default: false },
 });
 
 const router = useRouter();
 const { start: startDataRouteFeedback } = useDataRouteFeedback();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
-const mapRef = ref(null);
+const mapRef = shallowRef<{ leafletObject: LeafletMap } | null>(null);
 const mapReady = ref(false);
 const zoom = ref(10);
-let pendingBounds = null;
+let pendingBounds: LatLngBounds | null = null;
 
 const fitMaxZoom = 12;
 const minZoomStepBack = 2;
@@ -90,42 +96,32 @@ const visibleNeighbors = computed(() =>
   }),
 );
 
-const mapCenter = computed(() => centerFor(props.area) ?? [51.1657, 10.4515]);
+const mapCenter = computed<[number, number]>(() => centerFor(props.area) ?? [51.1657, 10.4515]);
 
-function parseGeo(geoArea) {
-  if (!geoArea) return null;
-  if (typeof geoArea === "object") return geoArea;
-  try {
-    return JSON.parse(geoArea);
-  } catch {
-    return null;
-  }
+function parseGeo(input: unknown) {
+  return parseGeoData(input);
 }
 
-function centerFor(area) {
-  const center = area?.geo_center ?? area?.geoCenter;
-  if (!center) return null;
-  if (Array.isArray(center) && center.length >= 2) return [center[1], center[0]];
-  if (center.coordinates?.length >= 2) return [center.coordinates[1], center.coordinates[0]];
-  if (typeof center.lat === "number" && typeof center.lon === "number") return [center.lat, center.lon];
-  return null;
+function centerFor(area: Area): [number, number] | null {
+  const center = parseGeoCenter(area.geo_center ?? area.geoCenter);
+  return center ? [center.lat, center.lon] : null;
 }
 
-function areaLabel(area) {
+function areaLabel(area: Area) {
   return `${area?.prefix ?? ""} ${area?.name ?? ""}`.trim();
 }
 
-function isReasonableArea(area) {
+function isReasonableArea(area: Area) {
   return (area?.is_reasonable_for_municipal_rating ?? area?.isReasonableForMunicipalRating ?? true) === true;
 }
 
-function navigateToArea(area) {
+function navigateToArea(area: Area) {
   if (!area?.prefix || !area?.name) return;
   startDataRouteFeedback(`${area.name} wird geladen...`, area);
-  router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
+  void router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
 }
 
-function areaOptions(area, selected) {
+function areaOptions(area: Area, selected: boolean): GeoJSONOptions {
   const base = selected
     ? { color: "#f27c00", fillColor: "#f27c00", fillOpacity: 0.24, opacity: 0.95, weight: 2.6 }
     : { color: "#6b7280", fillColor: "#9ca3af", fillOpacity: 0.08, opacity: 0.65, weight: 1 };
@@ -139,22 +135,24 @@ function areaOptions(area, selected) {
         direction: "center",
         permanent: true,
       });
-      layer.on("click", () => navigateToArea(area));
+      layer.on("click", () => {
+        navigateToArea(area);
+      });
 
       const hoverStyle = { ...base, fillOpacity: selected ? 0.32 : 0.16, opacity: 1 };
       layer.on("mouseenter", () => {
-        layer.setStyle(hoverStyle);
-        if (!selected) layer.bringToFront();
+        (layer as Path).setStyle(hoverStyle);
+        if (!selected) (layer as Path).bringToFront();
       });
       layer.on("mouseleave", () => {
-        layer.setStyle(base);
-        if (!selected) layer.bringToBack();
+        (layer as Path).setStyle(base);
+        if (!selected) (layer as Path).bringToBack();
       });
     },
   };
 }
 
-function fitBounds(layer) {
+function fitBounds(layer: LeafletGeoJSON) {
   try {
     const bounds = layer.getBounds();
     if (!bounds.isValid()) return;
@@ -165,16 +163,18 @@ function fitBounds(layer) {
     } else {
       pendingBounds = bounds;
     }
-  } catch (_) {}
+  } catch {
+    /* Invalid or unavailable map data is optional. */
+  }
 }
 
-function applyZoomSteps(leafletMap) {
+function applyZoomSteps(leafletMap: LeafletMap) {
   const currentZoom = leafletMap.getZoom();
   leafletMap.setMinZoom(Math.max(mapMinZoom, currentZoom - minZoomStepBack));
   leafletMap.setMaxZoom(Math.min(mapMaxZoom, currentZoom + maxZoomStepForward));
 }
 
-function onMapReady(mapInstance) {
+function onMapReady(mapInstance: LeafletMap) {
   mapReady.value = true;
   if (pendingBounds) {
     mapInstance.fitBounds(pendingBounds, { padding: [26, 26], maxZoom: fitMaxZoom });
@@ -186,7 +186,7 @@ function onMapReady(mapInstance) {
   }, 150);
 }
 
-function onBoundaryReady(layer) {
+function onBoundaryReady(layer: LeafletGeoJSON) {
   fitBounds(layer);
 }
 </script>

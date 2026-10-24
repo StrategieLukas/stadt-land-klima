@@ -64,11 +64,13 @@ EOF
 }
 
 cd "$REPO_ROOT"
+source "$SCRIPT_DIR/lib/core-service-data.sh"
+core_compose production
 
 echo "[maintenance] Activating maintenance container"
 load_plausible_config
 write_maintenance_meta
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --force-recreate maintenance
+"${CORE_COMPOSE[@]}" up -d --force-recreate maintenance
 
 echo "[stack] Stopping production application services"
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml stop frontend directus meilisearch cache db
+"${CORE_COMPOSE[@]}" stop frontend directus meilisearch cache db

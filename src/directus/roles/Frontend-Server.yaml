@@ -1,0 +1,5 @@
+name: Frontend-Server
+icon: computer
+description: Server-side frontend service role — used by Nuxt server endpoints only
+policies:
+  - Frontend-Server

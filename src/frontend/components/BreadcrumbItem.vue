@@ -15,7 +15,7 @@
     <button
       type="button"
       class="flex items-center gap-0.5 leading-none transition-colors"
-      :class="isCurrent ? 'text-gray-800 cursor-default font-semibold' : 'text-gray-500 hover:text-[#006e94]'"
+      :class="isCurrent ? 'cursor-default font-semibold text-gray-800' : 'text-gray-500 hover:text-[#006e94]'"
       @click="toggle"
     >
       <NuxtLink
@@ -42,19 +42,19 @@
     <!-- Dropdown -->
     <div
       v-if="open"
-      class="border-gray-200 absolute left-0 top-full z-[500] mt-1.5 max-h-[60vh] w-max min-w-[180px] max-w-xs overflow-hidden overflow-y-auto rounded-xl border bg-white shadow-2xl"
+      class="absolute top-full left-0 z-500 mt-1.5 max-h-[60vh] w-max max-w-xs min-w-[180px] overflow-hidden overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-2xl"
     >
-      <div v-if="loading" class="text-gray-400 animate-pulse px-4 py-3 text-xs">Wird geladen…</div>
+      <div v-if="loading" class="animate-pulse px-4 py-3 text-xs text-gray-400">Wird geladen…</div>
       <template v-else>
         <NuxtLink
           v-for="sibling in siblings"
           :key="sibling.ars"
           :to="`/data/${toSlug(sibling.prefix, sibling.name)}`"
-          class="hover:bg-gray-50 flex items-baseline gap-2 px-3 py-2 text-xs transition-colors"
+          class="flex items-baseline gap-2 px-3 py-2 text-xs transition-colors hover:bg-gray-50"
           :class="sibling.ars === currentArs ? 'bg-[#006e94]/5 font-semibold text-[#006e94]' : 'text-gray-700'"
           @click="selectSibling(sibling)"
         >
-          <span class="text-gray-400 shrink-0 text-[10px]">{{ sibling.prefix }}</span>
+          <span class="shrink-0 text-[10px] text-gray-400">{{ sibling.prefix }}</span>
           <span class="whitespace-nowrap">{{ sibling.name }}</span>
         </NuxtLink>
       </template>
@@ -62,26 +62,32 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { AreaSchema } from "~/shared/contracts/search";
+import { z } from "zod";
+import type { Area } from "~/shared/contracts/search";
+
+import type { PropType } from "vue";
+
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { areaToSlug } from "~/composables/useAreaBySlug.js";
+import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
   label: { type: String, required: true },
-  href: { type: String, default: null },
-  isCurrent: { type: Boolean, default: false },
-  siblingLevel: { type: Number, default: null },
-  arsPrefix: { type: String, default: "" },
-  currentArs: { type: String, default: null },
+  href: { type: String as PropType<string | null | undefined>, default: null },
+  isCurrent: { type: Boolean as PropType<boolean | undefined>, default: false },
+  siblingLevel: { type: Number as PropType<number | null | undefined>, default: null },
+  arsPrefix: { type: String as PropType<string | undefined>, default: "" },
+  currentArs: { type: String as PropType<string | null | undefined>, default: null },
 });
 
 const toSlug = areaToSlug;
 const { start: startDataRouteFeedback } = useDataRouteFeedback();
 
-const container = ref(null);
+const container = ref<HTMLElement | null>(null);
 const open = ref(false);
 const loading = ref(false);
-const siblings = ref([]);
+const siblings = ref<Area[]>([]);
 
 async function fetchSiblings() {
   if (siblings.value.length || !props.siblingLevel) return;
@@ -90,7 +96,7 @@ async function fetchSiblings() {
     const params = new URLSearchParams({ level: String(props.siblingLevel) });
     if (props.arsPrefix) params.set("arsPrefix", props.arsPrefix);
     const data = await $fetch(`/api/area-children?${params}`);
-    siblings.value = data ?? [];
+    siblings.value = z.array(AreaSchema).parse(data ?? []);
   } catch {
     siblings.value = [];
   } finally {
@@ -108,21 +114,26 @@ async function toggle() {
   }
 }
 
-function startNavigation(nextLabel) {
+function startNavigation(nextLabel: string) {
   startDataRouteFeedback(`${nextLabel} wird geladen...`);
 }
 
-function selectSibling(sibling) {
+function selectSibling(sibling: Area) {
   open.value = false;
   startNavigation(sibling.name);
 }
 
 // Close on outside click
-function onOutside(e) {
+function onOutside(e: MouseEvent) {
+  if (!(e.target instanceof Node)) return;
   if (container.value && !container.value.contains(e.target)) {
     open.value = false;
   }
 }
-onMounted(() => document.addEventListener("click", onOutside, { passive: true }));
-onBeforeUnmount(() => document.removeEventListener("click", onOutside));
+onMounted(() => {
+  document.addEventListener("click", onOutside, { passive: true });
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("click", onOutside);
+});
 </script>

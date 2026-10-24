@@ -1,18 +1,18 @@
 <template>
   <div
     :data-collection-id="collection.id"
-    class="border-gray-100 overflow-hidden rounded-2xl border bg-white shadow-sm"
+    class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xs"
   >
     <!-- Card header: sector color strip + title -->
-    <div class="flex items-start justify-between gap-3 px-5 pb-3 pt-4" :style="`border-left: 4px solid ${sectorColor}`">
+    <div class="flex items-start justify-between gap-3 px-5 pt-4 pb-3" :style="`border-left: 4px solid ${sectorColor}`">
       <div class="min-w-0">
         <span
-          class="mb-1.5 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+          class="mb-1.5 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase"
           :style="`background: ${sectorColor}`"
           >{{ sectorDisplay }}</span
         >
-        <h3 class="text-gray-900 text-base font-bold leading-snug">{{ t(collection.title) }}</h3>
-        <p v-if="collectionDescription" class="text-gray-500 mt-1 line-clamp-2 text-xs leading-relaxed">
+        <h3 class="text-base leading-snug font-bold text-gray-900">{{ t(collection.title) }}</h3>
+        <p v-if="collectionDescription" class="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">
           {{ collectionDescription }}
         </p>
       </div>
@@ -54,7 +54,7 @@
           </ClientOnly>
         </div>
       </div>
-      <div v-else-if="step0Description" class="text-gray-600 py-2 text-sm leading-relaxed">
+      <div v-else-if="step0Description" class="py-2 text-sm leading-relaxed text-gray-600">
         {{ step0Description }}
       </div>
     </div>
@@ -80,14 +80,14 @@
       </button>
       <NuxtLink
         :to="`/data/${areaSlug}/${collection.id}`"
-        class="text-gray-400 ml-auto text-xs transition-colors hover:text-[#006e94]"
+        class="ml-auto text-xs text-gray-400 transition-colors hover:text-[#006e94]"
       >
         Eigene Seite →
       </NuxtLink>
     </div>
 
     <!-- Expanded steps (all narrative steps) -->
-    <div v-if="expanded" class="border-gray-100 border-t">
+    <div v-if="expanded" class="border-t border-gray-100">
       <div class="px-5">
         <JourneyStep
           v-for="step in renderSteps"
@@ -99,7 +99,7 @@
           :population="population"
         />
       </div>
-      <div class="px-5 pb-5 pt-2">
+      <div class="px-5 pt-2 pb-5">
         <button
           class="inline-flex items-center gap-1.5 text-sm font-medium text-[#006e94] hover:underline"
           @click="expanded = false"
@@ -119,7 +119,6 @@ import { ref, computed } from "vue";
 import type { Collection } from "~/types/slz-api";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import { useCollectionRender } from "~/composables/useCollectionRender";
-import sectorImages from "~/shared/sectorImages.js";
 import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
 const SECTOR_COLORS: Record<string, string> = {
@@ -135,7 +134,7 @@ const props = defineProps<{
   areaSlug: string;
   ars: string;
   baseUrl: string;
-  population?: number | null;
+  population?: number | null | undefined;
 }>();
 
 const { t } = useSlzLocale();
@@ -159,9 +158,7 @@ const sectorDisplay = computed(() => {
   return t(sl as Record<string, string>);
 });
 
-const collectionDescription = computed(
-  () => props.collection.description?.["de-DE"] || props.collection.description?.["en-US"] || "",
-);
+const collectionDescription = computed(() => props.collection.description?.["de-DE"] || "");
 const collectionTitle = computed(() => t(props.collection.title) || props.collection.id);
 
 const step0Elements = computed(() => (props.collection.render_elements ?? []).filter((e) => (e.step ?? 0) === 0));

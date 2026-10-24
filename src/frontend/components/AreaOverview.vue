@@ -8,12 +8,12 @@
   <div :style="{ height: mapHeight }" class="flex flex-col overflow-hidden">
     <div class="flex min-h-0 flex-1 flex-col xl:grid xl:grid-cols-[1fr_320px]">
       <!-- ── SVG map ─────────────────────────────────────────────────────────── -->
-      <div class="bg-gray-50 h-[42vh] min-h-0 p-4 xl:h-full xl:p-6">
-        <div class="border-gray-200 relative h-full overflow-hidden rounded-lg border bg-white">
+      <div class="h-[42vh] min-h-0 bg-gray-50 p-4 xl:h-full xl:p-6">
+        <div class="relative h-full overflow-hidden rounded-lg border border-gray-200 bg-white">
           <!-- Back button (Germany page when drilled into a state) -->
           <button
             v-if="selectedState && isGermany"
-            class="text-gray-700 btn btn-sm absolute left-3 top-3 z-20 h-9 min-h-0 border-white/80 bg-white/95 px-3 text-xs font-semibold shadow-sm hover:border-[#006e94]/30 hover:bg-white hover:text-[#006e94]"
+            class="btn absolute top-3 left-3 z-20 h-9 min-h-0 border-white/80 bg-white/95 px-3 text-xs font-semibold text-gray-700 shadow-xs btn-sm hover:border-[#006e94]/30 hover:bg-white hover:text-[#006e94]"
             @click="exitStateView()"
           >
             <Icon icon="mdi:arrow-left" class="h-4 w-4" />
@@ -23,7 +23,7 @@
           <!-- Municipality loading indicator -->
           <div
             v-if="municipalitiesLoading"
-            class="text-gray-500 pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm"
+            class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm text-gray-500"
           >
             <SlkFlowerSpinner :size="24" class="mr-2" />
             <span>Kommunen werden geladen...</span>
@@ -34,7 +34,7 @@
             v-if="!selectedState && svgStatePaths.length"
             viewBox="0 0 560 560"
             xmlns="http://www.w3.org/2000/svg"
-            class="relative z-0 h-full w-full drop-shadow-sm"
+            class="relative z-0 h-full w-full drop-shadow-xs"
           >
             <!--
             paint-order: stroke fill — fill paints over the inner half of the stroke,
@@ -59,7 +59,7 @@
             <!-- Hover highlight on top -->
             <path
               v-if="hoveredItem"
-              :d="svgStatePaths.find((s) => s.ars === hoveredItem.ars)?.d ?? ''"
+              :d="svgStatePaths.find((s) => s.ars === hoveredItem?.ars)?.d ?? ''"
               fill="none"
               stroke="#006e94"
               stroke-width="2"
@@ -78,7 +78,7 @@
               fill="#374151"
               class="pointer-events-none select-none"
             >
-              <tspan :x="s.cx" :y="s.labelLines.length > 1 ? s.cy - 6 : s.cy">{{ s.labelLines[0] }}</tspan>
+              <tspan :x="s.cx" :y="s.labelLines.length > 1 ? Number(s.cy) - 6 : s.cy">{{ s.labelLines[0] }}</tspan>
               <tspan v-if="s.labelLines[1]" :x="s.cx" :dy="13">{{ s.labelLines[1] }}</tspan>
             </text>
           </svg>
@@ -113,17 +113,17 @@
           <!-- Zoom controls -->
           <div
             v-if="selectedState && !municipalitiesLoading"
-            class="absolute right-3 top-3 z-20 flex flex-col overflow-hidden rounded-lg border border-white/80 bg-white/95 shadow-sm"
+            class="absolute top-3 right-3 z-20 flex flex-col overflow-hidden rounded-lg border border-white/80 bg-white/95 shadow-xs"
           >
             <button
-              class="text-gray-700 btn btn-ghost btn-sm h-9 min-h-0 w-9 rounded-none px-0 hover:bg-[#e6f1f5] hover:text-[#006e94]"
+              class="btn h-9 min-h-0 w-9 rounded-none btn-ghost px-0 text-gray-700 btn-sm hover:bg-[#e6f1f5] hover:text-[#006e94]"
               aria-label="Karte vergrößern"
               @click="zoomIn()"
             >
               <Icon icon="mdi:plus" class="h-5 w-5" />
             </button>
             <button
-              class="border-gray-100 text-gray-700 btn btn-ghost btn-sm h-9 min-h-0 w-9 rounded-none border-t px-0 hover:bg-[#e6f1f5] hover:text-[#006e94] disabled:opacity-40"
+              class="btn h-9 min-h-0 w-9 rounded-none border-t border-gray-100 btn-ghost px-0 text-gray-700 btn-sm hover:bg-[#e6f1f5] hover:text-[#006e94] disabled:opacity-40"
               :disabled="zoom <= MIN_ZOOM + 0.001"
               aria-label="Karte verkleinern"
               @click="zoomOut()"
@@ -131,7 +131,7 @@
               <Icon icon="mdi:minus" class="h-5 w-5" />
             </button>
             <button
-              class="border-gray-100 text-gray-700 btn btn-ghost btn-sm h-9 min-h-0 w-9 rounded-none border-t px-0 hover:bg-[#e6f1f5] hover:text-[#006e94]"
+              class="btn h-9 min-h-0 w-9 rounded-none border-t border-gray-100 btn-ghost px-0 text-gray-700 btn-sm hover:bg-[#e6f1f5] hover:text-[#006e94]"
               aria-label="Karte zurücksetzen"
               @click="resetMapView()"
             >
@@ -141,11 +141,11 @@
 
           <div
             v-if="selectedState && !municipalitiesLoading"
-            class="text-gray-500 absolute bottom-3 right-3 z-20 hidden items-center gap-2 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs shadow-sm sm:flex"
+            class="absolute right-3 bottom-3 z-20 hidden items-center gap-2 rounded-lg border border-white/80 bg-white/95 px-3 py-2 text-xs text-gray-500 shadow-xs sm:flex"
           >
             <Icon icon="mdi:magnify-plus-outline" class="h-4 w-4 text-[#006e94]" />
-            <span class="text-gray-700 font-semibold tabular-nums">{{ Math.round(zoom * 100) }}%</span>
-            <span class="bg-gray-200 h-3 w-px" />
+            <span class="font-semibold text-gray-700 tabular-nums">{{ Math.round(zoom * 100) }}%</span>
+            <span class="h-3 w-px bg-gray-200" />
             <span>Beschriftung ab {{ currentLabelThreshold.toLocaleString("de-DE") }} Einw.</span>
           </div>
 
@@ -211,7 +211,7 @@
 
           <div
             v-if="selectedState && !municipalitiesLoading && !selectedStateSvgPath && !svgMunicipalityDots.length"
-            class="text-gray-400 absolute inset-0 flex items-center justify-center text-sm"
+            class="absolute inset-0 flex items-center justify-center text-sm text-gray-400"
           >
             Keine Kartendaten verfügbar.
           </div>
@@ -221,17 +221,17 @@
             v-if="hoveredItem && !municipalitiesLoading"
             class="pointer-events-none absolute bottom-4 left-4 z-20 min-w-[180px] rounded-xl bg-white/95 px-4 py-3 shadow-lg ring-1 ring-black/5"
           >
-            <div class="text-gray-900 text-sm font-semibold leading-snug">
-              <span v-if="hoveredItem.prefix" class="text-gray-400 mr-1 text-xs font-normal">{{
+            <div class="text-sm leading-snug font-semibold text-gray-900">
+              <span v-if="hoveredItem.prefix" class="mr-1 text-xs font-normal text-gray-400">{{
                 hoveredItem.prefix
               }}</span
               >{{ hoveredItem.name }}
             </div>
             <div v-if="hoveredItem.statusLabel" class="mt-1 flex items-center gap-1.5">
               <span class="h-2 w-2 flex-none rounded-full" :style="`background:${hoveredItem.color}`" />
-              <span class="text-gray-600 text-xs">{{ hoveredItem.statusLabel }}</span>
+              <span class="text-xs text-gray-600">{{ hoveredItem.statusLabel }}</span>
             </div>
-            <div v-if="hoveredItem.population" class="text-gray-400 mt-0.5 text-xs">
+            <div v-if="hoveredItem.population" class="mt-0.5 text-xs text-gray-400">
               {{ hoveredItem.population.toLocaleString("de-DE") }} Einwohner
             </div>
             <div
@@ -246,27 +246,27 @@
       </div>
 
       <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
-      <div class="border-gray-100 flex flex-col overflow-hidden border-b border-r border-t xl:border-l xl:border-t-0">
+      <div class="flex flex-col overflow-hidden border-t border-r border-b border-gray-100 xl:border-t-0 xl:border-l">
         <!-- Compact header: name + key stats -->
-        <div class="border-gray-100 flex-none border-b px-4 py-4 xl:px-6">
-          <p class="mb-0.5 text-xs font-bold uppercase tracking-widest text-[#006e94]">
+        <div class="flex-none border-b border-gray-100 px-4 py-4 xl:px-6">
+          <p class="mb-0.5 text-xs font-bold tracking-widest text-[#006e94] uppercase">
             {{ selectedState ? "Bundesland" : "Bundesrepublik" }}
           </p>
-          <h1 class="text-gray-900 text-xl font-black leading-tight">
+          <h1 class="text-xl leading-tight font-black text-gray-900">
             {{ selectedState ? selectedState.name : area.name }}
           </h1>
           <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5">
             <div v-if="!selectedState && states.length" class="text-sm">
-              <span class="text-gray-800 font-bold tabular-nums">{{ states.length }}</span>
-              <span class="text-gray-400 ml-1 text-xs">Bundesländer</span>
+              <span class="font-bold text-gray-800 tabular-nums">{{ states.length }}</span>
+              <span class="ml-1 text-xs text-gray-400">Bundesländer</span>
             </div>
             <div v-if="sidebarPopulation" class="text-sm">
-              <span class="text-gray-800 font-bold tabular-nums">{{ sidebarPopulation.toLocaleString("de-DE") }}</span>
-              <span class="text-gray-400 ml-1 text-xs">Einwohner</span>
+              <span class="font-bold text-gray-800 tabular-nums">{{ sidebarPopulation.toLocaleString("de-DE") }}</span>
+              <span class="ml-1 text-xs text-gray-400">Einwohner</span>
             </div>
             <div v-if="selectedState && !municipalitiesLoading && municipalities.length" class="text-sm">
-              <span class="text-gray-800 font-bold tabular-nums">{{ visibleMunicipalities.length }}</span>
-              <span class="text-gray-400 ml-1 text-xs">sichtbare Kommunen</span>
+              <span class="font-bold text-gray-800 tabular-nums">{{ visibleMunicipalities.length }}</span>
+              <span class="ml-1 text-xs text-gray-400">sichtbare Kommunen</span>
             </div>
           </div>
         </div>
@@ -275,16 +275,16 @@
         <div class="flex-1 overflow-y-auto">
           <!-- Germany view: states list -->
           <template v-if="!selectedState">
-            <div class="divide-gray-50 divide-y">
+            <div class="divide-y divide-gray-50">
               <button
                 v-for="s in sortedStates"
                 :key="s.ars"
-                class="hover:bg-gray-50 group flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors xl:px-6 xl:py-2"
+                class="group flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-gray-50 xl:px-6 xl:py-2"
                 @click="selectState(s)"
                 @mouseenter="!isLeavingOverview && (hoveredItem = s)"
                 @mouseleave="hoveredItem = null"
               >
-                <span class="text-gray-800 text-sm font-semibold transition-colors group-hover:text-[#006e94]">
+                <span class="text-sm font-semibold text-gray-800 transition-colors group-hover:text-[#006e94]">
                   {{ s.name }}
                 </span>
               </button>
@@ -293,37 +293,37 @@
 
           <!-- State view: municipalities list -->
           <template v-else>
-            <div v-if="municipalitiesLoading" class="text-gray-400 animate-pulse p-6 text-sm">
+            <div v-if="municipalitiesLoading" class="animate-pulse p-6 text-sm text-gray-400">
               <div class="mb-4 flex items-center gap-2">
                 <SlkFlowerSpinner :size="20" />
                 <span>Kommunen werden geladen…</span>
               </div>
               <div class="space-y-3">
                 <div v-for="i in 10" :key="i" class="grid grid-cols-[4.5rem_minmax(0,1fr)_1rem] items-center gap-3">
-                  <div class="bg-gray-100 h-3 rounded" />
-                  <div class="bg-gray-100 h-4 rounded" :style="{ width: `${64 + (i % 4) * 8}%` }" />
-                  <div class="bg-gray-100 h-3 w-3 rounded-full" />
+                  <div class="h-3 rounded-sm bg-gray-100" />
+                  <div class="h-4 rounded-sm bg-gray-100" :style="{ width: `${64 + (i % 4) * 8}%` }" />
+                  <div class="h-3 w-3 rounded-full bg-gray-100" />
                 </div>
               </div>
             </div>
             <template v-else>
-              <div class="border-gray-100 border-b px-4 py-3 xl:px-6">
-                <h2 class="text-gray-500 text-xs font-bold uppercase tracking-wide">Bewertbare Kommunen</h2>
+              <div class="border-b border-gray-100 px-4 py-3 xl:px-6">
+                <h2 class="text-xs font-bold tracking-wide text-gray-500 uppercase">Bewertbare Kommunen</h2>
               </div>
-              <div class="divide-gray-50 divide-y">
+              <div class="divide-y divide-gray-50">
                 <NuxtLink
                   v-for="m in visibleMunicipalities"
                   :key="m.ars"
                   :to="`/data/${areaToSlug(m.prefix, m.name)}`"
-                  class="hover:bg-gray-50 group grid grid-cols-[4.5rem_minmax(0,1fr)_1rem] items-center gap-3 px-4 py-3 transition-colors xl:px-6"
+                  class="group grid grid-cols-[4.5rem_minmax(0,1fr)_1rem] items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50 xl:px-6"
                   :class="dataRouteLoading ? 'pointer-events-none opacity-60' : ''"
                   @click="startMunicipalityNavigation(m)"
                   @mouseenter="hoveredItem = municipalityHoverObj(m)"
                   @mouseleave="hoveredItem = null"
                 >
-                  <span class="text-gray-400 truncate text-right text-xs">{{ m.prefix }}</span>
+                  <span class="truncate text-right text-xs text-gray-400">{{ m.prefix }}</span>
                   <span
-                    class="text-gray-800 min-w-0 truncate text-left text-sm font-semibold transition-colors group-hover:text-[#006e94]"
+                    class="min-w-0 truncate text-left text-sm font-semibold text-gray-800 transition-colors group-hover:text-[#006e94]"
                   >
                     {{ m.name }}
                   </span>
@@ -341,26 +341,61 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { z } from "zod";
+import { BoundaryGeometrySchema, parseGeoCenter, type BoundaryGeometry } from "~/shared/contracts/geometry";
+import { MunicipalitiesResponseSchema } from "~/shared/contracts/search";
+
+import type { PropType } from "vue";
+import type { Area } from "~/shared/contracts/search";
+
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useNuxtApp } from "#app";
 import { Icon } from "@iconify/vue";
-import { areaToSlug } from "~/composables/useAreaBySlug.js";
-import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
-import { fetchMunicipalitiesManifest } from "~/composables/useMunicipalitiesManifest.js";
-import germanyBorders from "~/assets/germany-state-borders.json";
+import { areaToSlug } from "~/composables/useAreaBySlug";
+import { useHeaderHeight } from "~/composables/useHeaderHeight";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
+import { fetchMunicipalitiesManifest } from "~/composables/useMunicipalitiesManifest";
+import germanyBordersRaw from "~/assets/germany-state-borders.json";
 import statesLookupRaw from "~/assets/germany-states-lookup.json";
+type SvgPoint = { x: number; y: number };
+type ProjectPoint = (lon: number, lat: number) => [number, number];
+type StateView = {
+  ars: string;
+  name: string;
+  prefix?: string | undefined;
+  slug?: string | undefined;
+  geometry?: BoundaryGeometry | null | undefined;
+};
+type HoverInfo = {
+  ars: string;
+  prefix?: string | undefined;
+  name: string;
+  population?: number | null | undefined;
+  scoreTotal?: number | null | undefined;
+  statusLabel?: string | undefined;
+  color?: string | undefined;
+};
+const germanyBorders = z
+  .object({
+    features: z.array(z.object({ properties: z.object({ NAME_1: z.string() }), geometry: BoundaryGeometrySchema })),
+  })
+  .parse(germanyBordersRaw);
 
 const props = defineProps({
-  area: { type: Object, required: true },
-  containedBy: { type: Array, default: () => [] },
-  initialStateArs: { type: String, default: null },
+  area: { type: Object as PropType<Area>, required: true },
+  containedBy: { type: Array as PropType<Area[] | undefined>, default: () => [] },
+  initialStateArs: { type: String as PropType<string | null | undefined>, default: null },
 });
 
-const emit = defineEmits(["stateSelected", "stateExited"]);
+const emit = defineEmits<{
+  stateSelected: [
+    state: { ars: string; name: string; prefix?: string | undefined; geoCenter: { lat: number; lon: number } | null },
+  ];
+  stateExited: [];
+}>();
 
-const { $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp();
+const { $stadtlandzahlAPI } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl;
 const isGermany = computed(() => props.area?.level === 1);
@@ -368,7 +403,7 @@ const { isLoading: dataRouteLoading, start: startDataRouteFeedback } = useDataRo
 
 // ── Height: fill viewport below header + breadcrumb ───────────────────────────
 const headerHeight = useHeaderHeight();
-const mobileHeaderHidden = useMobileHeaderHidden();
+const _mobileHeaderHidden = useMobileHeaderHidden();
 const isDesktop = useState("layout-isDesktop");
 
 const reservedHeaderOffset = computed(() => (isDesktop.value ? headerHeight.value : 64));
@@ -376,19 +411,19 @@ const reservedHeaderOffset = computed(() => (isDesktop.value ? headerHeight.valu
 const mapHeight = computed(() => `calc(100dvh - ${reservedHeaderOffset.value + 36}px)`);
 
 // ── Hover ──────────────────────────────────────────────────────────────────────
-const hoveredItem = ref(null);
+const hoveredItem = ref<HoverInfo | null>(null);
 
 // ── State machine ─────────────────────────────────────────────────────────────
-const selectedState = ref(null);
+const selectedState = ref<StateView | null>(null);
 const zoom = ref(1);
 const pan = ref({ x: 0, y: 0 });
 const isDragging = ref(false);
 const isLeavingOverview = ref(false);
-const stateSvgRef = ref(null);
-let _dragStart = null;
+const stateSvgRef = ref<SVGSVGElement | null>(null);
+let _dragStart: { clientX: number; clientY: number; panX: number; panY: number } | null = null;
 let _hasMoved = false;
-let _activePointerId = null;
-let _zoomFrame = null;
+let _activePointerId: number | null = null;
+let _zoomFrame: number | null = null;
 
 const SVG_W = 560;
 const SVG_H = 560;
@@ -399,15 +434,15 @@ const MAP_PADDING = 52;
 const LABEL_THRESHOLDS = [100_000, 50_000, 20_000, 5_000];
 const DIRECT_DASHBOARD_STATE_ARS = new Set(["02", "11"]);
 
-function stateMeta(stateObj) {
+function stateMeta(stateObj: StateView | null) {
   return statesLookupRaw.find((s) => s.ars === stateObj?.ars);
 }
 
-function isDirectDashboardState(stateObj) {
+function isDirectDashboardState(stateObj: StateView) {
   return isGermany.value && DIRECT_DASHBOARD_STATE_ARS.has(stateObj?.ars);
 }
 
-function dashboardHref(stateObj) {
+function dashboardHref(stateObj: StateView) {
   const meta = stateMeta(stateObj);
   const slug = stateObj?.slug ?? meta?.slug ?? areaToSlug(stateObj?.prefix ?? meta?.prefix ?? "", stateObj?.name ?? "");
   return `/data/${slug}`;
@@ -416,7 +451,7 @@ function dashboardHref(stateObj) {
 // ── Static state data (no API call needed — geometry from static GeoJSON) ─
 const lookupByName = Object.fromEntries(statesLookupRaw.map((s) => [s.name1.toLowerCase(), s]));
 
-function featureByName(name) {
+function featureByName(name: string) {
   return germanyBorders.features.find((f) => f.properties.NAME_1.toLowerCase() === (name ?? "").toLowerCase()) ?? null;
 }
 
@@ -433,15 +468,15 @@ const states = ref(
         geometry: f.geometry,
       };
     })
-    .filter(Boolean),
+    .filter((item) => item !== null),
 );
 
 const sortedStates = computed(() => [...states.value].sort((a, b) => a.name.localeCompare(b.name, "de")));
 
 // ── Municipality data ──────────────────────────────────────────────────────────
-const municipalities = ref([]);
+const municipalities = ref<Area[]>([]);
 const municipalitiesLoading = ref(false);
-const directusStatusByArs = ref({});
+const directusStatusByArs = ref<Record<string, string | null | undefined>>({});
 const sidebarPopulation = computed(() => {
   if (!selectedState.value) return numericPopulation(props.area?.population);
   if (municipalitiesLoading.value) return null;
@@ -452,7 +487,7 @@ const sidebarPopulation = computed(() => {
   return total > 0 ? total : null;
 });
 
-async function loadMunicipalities(stateArs) {
+async function loadMunicipalities(stateArs: string) {
   municipalitiesLoading.value = true;
   municipalities.value = [];
   try {
@@ -468,29 +503,28 @@ async function loadMunicipalities(stateArs) {
   } catch {
     try {
       municipalities.value = await $stadtlandzahlAPI.fetchMunicipalitiesInRegion(stateArs, 2);
-    } catch {}
+    } catch {
+      /* Optional data or URL parsing may fail; retain the existing fallback. */
+    }
   } finally {
     municipalitiesLoading.value = false;
   }
 }
 
-function numericPopulation(value) {
+function numericPopulation(value: unknown) {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? number : null;
 }
 
-async function loadDirectusMunicipalityStatus(stateArs) {
+async function loadDirectusMunicipalityStatus(stateArs: string) {
   directusStatusByArs.value = {};
   try {
-    const items = await $directus.request(
-      $readItems("municipalities", {
-        fields: ["ars", "status"],
-        filter: { ars: { _starts_with: stateArs.slice(0, 2) } },
-        limit: 500,
-      }),
-    );
-    const map = {};
-    for (const item of items ?? []) map[item.ars] = item.status;
+    const { municipalities: items } = await $fetch("/api/public/area-municipalities", {
+      query: { arsPrefix: stateArs.slice(0, 2) },
+    });
+    const map: Record<string, string | null | undefined> = {};
+    for (const item of MunicipalitiesResponseSchema.parse({ municipalities: items }).municipalities)
+      if (item.ars) map[item.ars] = item.status;
     directusStatusByArs.value = map;
   } catch {
     /* non-critical — falls back to neutral color */
@@ -498,15 +532,15 @@ async function loadDirectusMunicipalityStatus(stateArs) {
 }
 
 // ── State machine actions ──────────────────────────────────────────────────────
-function rawCentroid(geom) {
+function rawCentroid(geom: BoundaryGeometry | null | undefined) {
   if (!geom) return null;
-  let ring;
+  let ring: [number, number, ...number[]][] | undefined;
   if (geom.type === "Polygon") {
     ring = geom.coordinates[0];
   } else if (geom.type === "MultiPolygon") {
     let max = 0;
     for (const poly of geom.coordinates) {
-      if (poly[0].length > max) {
+      if (poly[0] && poly[0].length > max) {
         max = poly[0].length;
         ring = poly[0];
       }
@@ -522,7 +556,7 @@ function rawCentroid(geom) {
   return { lon: sLon / ring.length, lat: sLat / ring.length };
 }
 
-async function selectState(stateObj) {
+async function selectState(stateObj: StateView) {
   if (isDirectDashboardState(stateObj)) {
     isLeavingOverview.value = true;
     hoveredItem.value = null;
@@ -539,13 +573,13 @@ async function selectState(stateObj) {
   enterStateView(stateObj);
 }
 
-async function openMunicipality(municipality) {
+async function openMunicipality(municipality: Pick<Area, "ars" | "prefix" | "name" | "population" | "geoCenter">) {
   if (_hasMoved) return;
   startMunicipalityNavigation(municipality);
   await navigateTo(`/data/${areaToSlug(municipality.prefix, municipality.name)}`);
 }
 
-function startMunicipalityNavigation(municipality) {
+function startMunicipalityNavigation(municipality: Pick<Area, "ars" | "prefix" | "name" | "population" | "geoCenter">) {
   isLeavingOverview.value = true;
   hoveredItem.value = null;
   startDataRouteFeedback(`${municipality.name} wird geladen...`, municipality);
@@ -555,7 +589,7 @@ function prepareMunicipalityClick() {
   _hasMoved = false;
 }
 
-function enterStateView(stateObj) {
+function enterStateView(stateObj: StateView) {
   const meta = stateMeta(stateObj);
   const feature = featureByName(stateObj.name);
   const geometry = stateObj.geometry ?? feature?.geometry ?? null;
@@ -568,8 +602,8 @@ function enterStateView(stateObj) {
   zoom.value = 1;
   pan.value = { x: 0, y: 0 };
   hoveredItem.value = null;
-  loadMunicipalities(selectedState.value.ars);
-  loadDirectusMunicipalityStatus(selectedState.value.ars);
+  void loadMunicipalities(selectedState.value.ars);
+  void loadDirectusMunicipalityStatus(selectedState.value.ars);
   emit("stateSelected", {
     ars: selectedState.value.ars,
     name: selectedState.value.name,
@@ -599,11 +633,11 @@ function resetMapView() {
 }
 
 // ── Pan (drag) ─────────────────────────────────────────────────────────────────
-function clamp(value, min, max) {
+function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function normalizedZoom(value) {
+function normalizedZoom(value: number) {
   return clamp(value, MIN_ZOOM, MAX_ZOOM);
 }
 
@@ -618,14 +652,14 @@ function stateScreenBounds(nextZoom = zoom.value) {
   };
 }
 
-function clampAxis(value, minScreen, maxScreen, size) {
+function clampAxis(value: number, minScreen: number, maxScreen: number, size: number) {
   const low = size - MAP_PADDING - maxScreen;
   const high = MAP_PADDING - minScreen;
   if (low > high) return (low + high) / 2;
   return clamp(value, low, high);
 }
 
-function clampPan(x, y, nextZoom = zoom.value) {
+function clampPan(x: number, y: number, nextZoom = zoom.value) {
   const bounds = stateScreenBounds(nextZoom);
   if (!bounds || nextZoom <= MIN_ZOOM + 0.001) return { x: 0, y: 0 };
   return {
@@ -634,14 +668,14 @@ function clampPan(x, y, nextZoom = zoom.value) {
   };
 }
 
-function svgDelta(dScreenX, dScreenY) {
+function svgDelta(dScreenX: number, dScreenY: number) {
   const el = stateSvgRef.value;
   if (!el) return { dx: 0, dy: 0 };
   const rect = el.getBoundingClientRect();
   return { dx: (dScreenX * SVG_W) / rect.width, dy: (dScreenY * SVG_H) / rect.height };
 }
 
-function clientPointToSvg(clientX, clientY) {
+function clientPointToSvg(clientX: number, clientY: number) {
   const el = stateSvgRef.value;
   if (!el) return VIEW_CENTER;
   const rect = el.getBoundingClientRect();
@@ -651,7 +685,7 @@ function clientPointToSvg(clientX, clientY) {
   };
 }
 
-function panForZoom(nextZoom, focusPoint = VIEW_CENTER, startZoom = zoom.value, startPan = pan.value) {
+function panForZoom(nextZoom: number, focusPoint = VIEW_CENTER, startZoom = zoom.value, startPan = pan.value) {
   const factor = nextZoom / startZoom;
   const startTranslate = {
     x: startPan.x + VIEW_CENTER.x * (1 - startZoom),
@@ -668,13 +702,13 @@ function panForZoom(nextZoom, focusPoint = VIEW_CENTER, startZoom = zoom.value, 
   return clampPan(nextPan.x, nextPan.y, nextZoom);
 }
 
-function setZoom(nextZoom, focusPoint = VIEW_CENTER) {
+function setZoom(nextZoom: number, focusPoint = VIEW_CENTER) {
   const z = normalizedZoom(nextZoom);
   pan.value = panForZoom(z, focusPoint);
   zoom.value = z;
 }
 
-function smoothZoomTo(nextZoom, focusPoint = VIEW_CENTER, targetPan = null) {
+function smoothZoomTo(nextZoom: number, focusPoint = VIEW_CENTER, targetPan: SvgPoint | null = null) {
   const fromZoom = zoom.value;
   const toZoom = normalizedZoom(nextZoom);
   const fromPan = { ...pan.value };
@@ -684,7 +718,7 @@ function smoothZoomTo(nextZoom, focusPoint = VIEW_CENTER, targetPan = null) {
 
   if (_zoomFrame) cancelAnimationFrame(_zoomFrame);
 
-  function step(now) {
+  function step(now: number) {
     const t = clamp((now - start) / duration, 0, 1);
     const eased = 1 - Math.pow(1 - t, 3);
     zoom.value = fromZoom + (toZoom - fromZoom) * eased;
@@ -704,7 +738,7 @@ function smoothZoomTo(nextZoom, focusPoint = VIEW_CENTER, targetPan = null) {
   _zoomFrame = requestAnimationFrame(step);
 }
 
-function startDrag(e) {
+function startDrag(e: PointerEvent) {
   if (e.button !== 0) return;
   if (_zoomFrame) cancelAnimationFrame(_zoomFrame);
   _activePointerId = e.pointerId;
@@ -718,7 +752,7 @@ function startDrag(e) {
   e.preventDefault();
 }
 
-function onDrag(e) {
+function onDrag(e: PointerEvent) {
   if (_activePointerId != null && e.pointerId !== _activePointerId) return;
   if (!_dragStart) return;
   const { dx, dy } = svgDelta(e.clientX - _dragStart.clientX, e.clientY - _dragStart.clientY);
@@ -726,7 +760,7 @@ function onDrag(e) {
   pan.value = clampPan(_dragStart.panX + dx, _dragStart.panY + dy);
 }
 
-function stopDrag(e) {
+function stopDrag(e: PointerEvent) {
   if (e && _activePointerId != null && e.pointerId !== _activePointerId) return;
   if (_activePointerId != null) stateSvgRef.value?.releasePointerCapture?.(_activePointerId);
   _dragStart = null;
@@ -737,7 +771,7 @@ function stopDrag(e) {
   window.removeEventListener("pointercancel", stopDrag);
 }
 
-function onWheel(e) {
+function onWheel(e: WheelEvent) {
   const focus = clientPointToSvg(e.clientX, e.clientY);
   const factor = Math.exp(-e.deltaY * 0.0012);
   setZoom(zoom.value * factor, focus);
@@ -751,13 +785,14 @@ onUnmounted(() => {
 });
 
 // ── SVG projection ─────────────────────────────────────────────────────────────
-function buildProjection(features) {
+function buildProjection(features: { geometry: { coordinates: unknown } }[]): ProjectPoint | null {
   let minLon = Infinity,
     maxLon = -Infinity,
     minLat = Infinity,
     maxLat = -Infinity;
-  function visit(c) {
-    if (typeof c[0] === "number") {
+  function visit(c: unknown) {
+    if (!Array.isArray(c)) return;
+    if (typeof c[0] === "number" && typeof c[1] === "number") {
       if (c[0] < minLon) minLon = c[0];
       if (c[0] > maxLon) maxLon = c[0];
       if (c[1] < minLat) minLat = c[1];
@@ -774,7 +809,10 @@ function buildProjection(features) {
     (SVG_W * (1 - 2 * pad)) / ((maxLon - minLon) * cosLat),
     (SVG_H * (1 - 2 * pad)) / (maxLat - minLat),
   );
-  return (lon, lat) => [SVG_W / 2 + (lon - lonMid) * cosLat * scale, SVG_H / 2 - (lat - latMid) * scale];
+  return (lon: number, lat: number): [number, number] => [
+    SVG_W / 2 + (lon - lonMid) * cosLat * scale,
+    SVG_H / 2 - (lat - latMid) * scale,
+  ];
 }
 
 const germanyProjection = computed(() => {
@@ -787,20 +825,20 @@ const stateProjection = computed(() => {
   if (!geo) return null;
   const municipalityPoints = municipalities.value
     .map((m) => parseGeoCenter(m.geoCenter))
-    .filter(Boolean)
+    .filter((item) => item !== null)
     .map((p) => ({ geometry: { type: "Point", coordinates: [p.lon, p.lat] } }));
   return buildProjection([{ geometry: geo }, ...municipalityPoints]);
 });
 
 // ── Path helpers ───────────────────────────────────────────────────────────────
-function ringToPathStr(ring, project) {
+function ringToPathStr(ring: [number, number, ...number[]][], project: ProjectPoint) {
   const MIN = 0.09;
   let d = "",
     px = null,
     py = null;
   for (const coord of ring) {
     const [x, y] = project(coord[0], coord[1]);
-    if (px === null) {
+    if (px === null || py === null) {
       d += `M${x.toFixed(1)},${y.toFixed(1)}`;
       px = x;
       py = y;
@@ -817,16 +855,16 @@ function ringToPathStr(ring, project) {
   return d + "Z";
 }
 
-function geomToPath(geom, project) {
+function geomToPath(geom: BoundaryGeometry, project: ProjectPoint) {
   if (geom.type === "Polygon") return geom.coordinates.map((r) => ringToPathStr(r, project)).join(" ");
   if (geom.type === "MultiPolygon")
     return geom.coordinates.flatMap((p) => p.map((r) => ringToPathStr(r, project))).join(" ");
   return "";
 }
 
-function geomCentroid(geom, project) {
+function geomCentroid(geom: BoundaryGeometry, project: ProjectPoint) {
   const polygons = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
-  let largest = null;
+  let largest: { twiceArea: number; weightedX: number; weightedY: number } | null = null;
 
   for (const polygon of polygons) {
     const ring = polygon[0];
@@ -835,8 +873,8 @@ function geomCentroid(geom, project) {
     let weightedX = 0;
     let weightedY = 0;
     for (let i = 0; i < ring.length; i++) {
-      const [x1, y1] = project(...ring[i]);
-      const [x2, y2] = project(...ring[(i + 1) % ring.length]);
+      const [x1, y1] = project(ring[i]![0], ring[i]![1]);
+      const [x2, y2] = project(ring[(i + 1) % ring.length]![0], ring[(i + 1) % ring.length]![1]);
       const cross = x1 * y2 - x2 * y1;
       twiceArea += cross;
       weightedX += (x1 + x2) * cross;
@@ -847,21 +885,22 @@ function geomCentroid(geom, project) {
     }
   }
 
-  if (!largest?.twiceArea) return [SVG_W / 2, SVG_H / 2];
-  return [largest.weightedX / (3 * largest.twiceArea), largest.weightedY / (3 * largest.twiceArea)];
+  if (!largest?.twiceArea) return [SVG_W / 2, SVG_H / 2] as [number, number];
+  return [largest.weightedX / (3 * largest.twiceArea), largest.weightedY / (3 * largest.twiceArea)] as [number, number];
 }
 
 // Brandenburg surrounds Berlin, so its area centroid would put both labels together.
-const STATE_LABEL_COORDINATES = { 12: [13.2, 52.9] };
+const STATE_LABEL_COORDINATES: Record<string, [number, number]> = { 12: [13.2, 52.9] };
 
-function geomProjectedBounds(geom, project) {
+function geomProjectedBounds(geom: BoundaryGeometry, project: ProjectPoint) {
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
   let maxY = -Infinity;
 
-  function visit(c) {
-    if (typeof c[0] === "number") {
+  function visit(c: unknown) {
+    if (!Array.isArray(c)) return;
+    if (typeof c[0] === "number" && typeof c[1] === "number") {
       const [x, y] = project(c[0], c[1]);
       minX = Math.min(minX, x);
       maxX = Math.max(maxX, x);
@@ -876,7 +915,7 @@ function geomProjectedBounds(geom, project) {
   return isFinite(minX) ? { minX, maxX, minY, maxY } : null;
 }
 
-function nameToLines(name) {
+function nameToLines(name: string) {
   const idx = name.indexOf("-");
   return idx !== -1 && name.length > 12 ? [name.slice(0, idx), name.slice(idx + 1)] : [name];
 }
@@ -896,8 +935,8 @@ const svgStatePaths = computed(() => {
     .map((s) => {
       const d = geomToPath(s.geometry, project);
       if (!d) return null;
-      const [cx, cy] = STATE_LABEL_COORDINATES[s.ars]
-        ? project(...STATE_LABEL_COORDINATES[s.ars])
+      const [cx, cy]: [number, number] = STATE_LABEL_COORDINATES[s.ars]
+        ? project(...STATE_LABEL_COORDINATES[s.ars]!)
         : geomCentroid(s.geometry, project);
       return {
         ars: s.ars,
@@ -911,7 +950,7 @@ const svgStatePaths = computed(() => {
         labelLines: nameToLines(s.name),
       };
     })
-    .filter(Boolean);
+    .filter((item) => item !== null);
 });
 
 const selectedStateSvgPath = computed(() => {
@@ -928,7 +967,7 @@ const selectedStateProjectedBounds = computed(() => {
 
 const municipalityGhostDots = computed(() => {
   const bounds = selectedStateProjectedBounds.value ?? { minX: 150, maxX: 410, minY: 130, maxY: 430 };
-  const points = [
+  const points: [number, number, number][] = [
     [0.22, 0.24, 4.5],
     [0.42, 0.18, 3.5],
     [0.65, 0.28, 5.5],
@@ -947,21 +986,6 @@ const municipalityGhostDots = computed(() => {
   }));
 });
 
-function parseGeoCenter(raw) {
-  if (!raw) return null;
-  try {
-    const obj = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (Array.isArray(obj?.coordinates) && obj.coordinates.length >= 2)
-      return { lon: obj.coordinates[0], lat: obj.coordinates[1] };
-    if (Array.isArray(obj) && obj.length >= 2) return { lon: obj[0], lat: obj[1] };
-    const lat = obj.lat ?? obj.latitude;
-    const lon = obj.lon ?? obj.lng ?? obj.longitude;
-    return typeof lat === "number" && typeof lon === "number" ? { lat, lon } : null;
-  } catch {
-    return null;
-  }
-}
-
 const svgMunicipalityDots = computed(() => {
   const project = stateProjection.value;
   if (!project || !municipalities.value.length) return [];
@@ -979,7 +1003,7 @@ const svgMunicipalityDots = computed(() => {
         ars: m.ars,
         name: m.name,
         prefix: m.prefix,
-        scoreTotal: score,
+        scoreTotal: score == null ? null : Number(score),
         color: info.color,
         statusLabel: info.label,
         population,
@@ -990,12 +1014,12 @@ const svgMunicipalityDots = computed(() => {
         labelY: Number((y + (dotRadius + 4) / zoom.value).toFixed(1)),
       };
     })
-    .filter(Boolean);
+    .filter((item) => item !== null);
 });
 
 const zoomTier = computed(() => Math.min(3, Math.max(0, Math.floor(zoom.value) - 1)));
 
-const currentLabelThreshold = computed(() => LABEL_THRESHOLDS[zoomTier.value]);
+const currentLabelThreshold = computed(() => LABEL_THRESHOLDS[zoomTier.value] ?? 5_000);
 
 const visibleMunicipalityLabels = computed(() =>
   svgMunicipalityDots.value
@@ -1003,7 +1027,7 @@ const visibleMunicipalityLabels = computed(() =>
     .sort((a, b) => (b.population ?? 0) - (a.population ?? 0)),
 );
 
-function projectedPointIsVisible(dot) {
+function projectedPointIsVisible(dot: SvgPoint) {
   const screenX = dot.x * zoom.value + VIEW_CENTER.x * (1 - zoom.value) + pan.value.x;
   const screenY = dot.y * zoom.value + VIEW_CENTER.y * (1 - zoom.value) + pan.value.y;
   return screenX >= 0 && screenX <= SVG_W && screenY >= 0 && screenY <= SVG_H;
@@ -1024,7 +1048,7 @@ const visibleMunicipalities = computed(() => {
 });
 
 // ── Color helpers ──────────────────────────────────────────────────────────────
-function statusInfo(status) {
+function statusInfo(status: string | null | undefined) {
   switch (status) {
     case "published":
       return { label: "Vollständig bewertet", color: "#1EA64A" };
@@ -1032,20 +1056,22 @@ function statusInfo(status) {
       return { label: "In Bewertung", color: "#F0AA00" };
     case "archived":
       return { label: "Abgebrochen", color: "#E30613" };
+    case null:
+    case undefined:
     default:
       return { label: "Noch nicht gegründet", color: "#CBD5E1" };
   }
 }
 
-function scoreColor(score) {
+function scoreColor(score: number | string | null) {
   if (score == null) return "#CBD5E1";
-  if (score >= 75) return "#1EA64A";
-  if (score >= 50) return "#A3C53A";
-  if (score >= 25) return "#F0AA00";
+  if (Number(score) >= 75) return "#1EA64A";
+  if (Number(score) >= 50) return "#A3C53A";
+  if (Number(score) >= 25) return "#F0AA00";
   return "#E30613";
 }
 
-function markerRadius(pop) {
+function markerRadius(pop: number | null | undefined) {
   if (!pop) return 4.25;
   if (pop >= 100_000) return 6.2;
   if (pop >= 50_000) return 5.4;
@@ -1054,7 +1080,7 @@ function markerRadius(pop) {
 }
 
 // Non-linear font-size in screen units; divided by zoom before rendering.
-function labelFontSize(pop) {
+function labelFontSize(pop: number | null | undefined) {
   if (!pop) return 9.5;
   if (pop >= 500_000) return 12;
   if (pop >= 100_000) return 11;
@@ -1062,13 +1088,14 @@ function labelFontSize(pop) {
   return 9.5;
 }
 
-function municipalityHoverObj(m) {
+function municipalityHoverObj(m: Area) {
   const info = statusInfo(directusStatusByArs.value[m.ars]);
   return {
     ars: m.ars,
     name: m.name,
     prefix: m.prefix,
-    scoreTotal: m.stadtlandklimaDataAll?.[0]?.scoreTotal ?? null,
+    scoreTotal:
+      m.stadtlandklimaDataAll?.[0]?.scoreTotal == null ? null : Number(m.stadtlandklimaDataAll[0]?.scoreTotal),
     color: info.color,
     statusLabel: info.label,
     population: m.population ?? null,
@@ -1088,18 +1115,21 @@ onMounted(() => {
       prefix: props.area.prefix ?? "",
       geometry: featureByName(props.area.name)?.geometry ?? null,
     };
-    loadMunicipalities(props.area.ars);
-    loadDirectusMunicipalityStatus(props.area.ars);
+    void loadMunicipalities(props.area.ars);
+    void loadDirectusMunicipalityStatus(props.area.ars);
   }
 });
 
-watch(() => props.initialStateArs, (ars) => {
-  if (!isGermany.value) return;
-  if (!ars && selectedState.value) {
-    exitStateView();
-  } else if (ars && selectedState.value?.ars !== ars) {
-    const state = states.value.find((item) => item.ars === ars);
-    if (state) enterStateView(state);
-  }
-});
+watch(
+  () => props.initialStateArs,
+  (ars) => {
+    if (!isGermany.value) return;
+    if (!ars && selectedState.value) {
+      exitStateView();
+    } else if (ars && selectedState.value?.ars !== ars) {
+      const state = states.value.find((item) => item.ars === ars);
+      if (state) enterStateView(state);
+    }
+  },
+);
 </script>

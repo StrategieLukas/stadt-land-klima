@@ -21,38 +21,34 @@
       <LMarker
         v-if="markerIcons.get(stop.index)"
         :lat-lng="stop.point"
-        :icon="markerIcons.get(stop.index)"
+        v-bind="leafletMarkerProps(leafletMarkerIcon(markerIcons.get(stop.index)))"
         :z-index-offset="stop.index === activeIndex ? 1000 : 0"
         :options="{ title: `${stop.index + 1}. ${stop.name}`, alt: `${stop.index + 1}. ${stop.name}` }"
-        @click="emit('select', stop.index)"
+        v-on="{ click: () => emit('select', stop.index) }"
       />
     </template>
   </LMap>
 </template>
 
 <script setup lang="ts">
+// vue-leaflet remaps click listeners but omits their types. Owner: app maintainers.
+import { leafletMarkerIcon, leafletMarkerProps } from "~/shared/leafletMarker";
 import { computed, markRaw, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
-import type { DivIcon } from "leaflet";
+import type { DivIcon, Map as LeafletMap } from "leaflet";
 import type { TourPoint } from "~/shared/tour";
 import { pinColor, pointLatLng } from "~/shared/tour";
 
 type LatLng = [number, number];
 type MapPosition = { x: number; y: number; width: number; height: number };
-type LeafletMap = {
-  fitBounds: (bounds: LatLng[], options: object) => void;
-  flyTo: (center: LatLng, zoom: number, options: object) => void;
-  setView: (center: LatLng, zoom: number) => void;
-  project: (point: LatLng, zoom: number) => { x: number; y: number };
-  unproject: (point: [number, number], zoom: number) => LatLng;
-  latLngToContainerPoint: (point: LatLng) => { x: number; y: number };
-  getSize: () => { x: number; y: number };
-  invalidateSize: () => void;
-  on: (event: string, callback: () => void) => void;
-  off: (event: string, callback: () => void) => void;
-};
 
 const props = defineProps<{
-  stops: { id: string; slug?: string; title?: string; location?: string | null; geolocation?: TourPoint | null }[];
+  stops: {
+    id: string;
+    slug?: string | undefined;
+    title?: string | undefined;
+    location?: string | null | undefined;
+    geolocation?: TourPoint | null | undefined;
+  }[];
   activeIndex: number;
 }>();
 const emit = defineEmits<{
@@ -60,15 +56,17 @@ const emit = defineEmits<{
   (event: "position", position: MapPosition | null): void;
 }>();
 const { tileUrl, subdomains, attribution } = useCartoBasemap();
-const mapRef = ref<{ leafletObject?: LeafletMap } | null>(null);
-const divIconFactory = shallowRef<typeof import("leaflet")["divIcon"] | null>(null);
+const mapRef = ref<{ leafletObject?: LeafletMap | undefined } | null>(null);
+const divIconFactory = shallowRef<(typeof import("leaflet"))["divIcon"] | null>(null);
 const ready = ref(false);
 const reducedMotion = ref(false);
 
-const mappedStops = computed(() => props.stops.flatMap((stop, index) => {
-  const point = pointLatLng(stop.geolocation);
-  return point ? [{ id: stop.id, index, point, name: stop.location || stop.title || String(index + 1) }] : [];
-}));
+const mappedStops = computed(() =>
+  props.stops.flatMap((stop, index) => {
+    const point = pointLatLng(stop.geolocation);
+    return point ? [{ id: stop.id, index, point, name: stop.location || stop.title || String(index + 1) }] : [];
+  }),
+);
 const routePoints = computed<LatLng[]>(() => mappedStops.value.map((stop) => stop.point));
 const initialCenter = computed<LatLng>(() => routePoints.value[0] ?? [51.1657, 10.4515]);
 const mapOptions = { zoomControl: true, scrollWheelZoom: false, doubleClickZoom: false };
@@ -77,14 +75,14 @@ const mapOptions = { zoomControl: true, scrollWheelZoom: false, doubleClickZoom:
 const curvedRoute = computed<LatLng[]>(() => {
   const points = routePoints.value;
   if (points.length < 2) return points;
-  const curve: LatLng[] = [points[0]];
+  const curve: LatLng[] = [points[0]!];
   for (let index = 0; index < points.length - 1; index += 1) {
-    const previous = points[Math.max(0, index - 1)];
-    const current = points[index];
-    const next = points[index + 1];
-    const following = points[Math.min(points.length - 1, index + 2)];
-    const startTangent: LatLng = [(next[0] - previous[0]) * .18, (next[1] - previous[1]) * .18];
-    const endTangent: LatLng = [(following[0] - current[0]) * .18, (following[1] - current[1]) * .18];
+    const previous = points[Math.max(0, index - 1)]!;
+    const current = points[index]!;
+    const next = points[index + 1]!;
+    const following = points[Math.min(points.length - 1, index + 2)]!;
+    const startTangent: LatLng = [(next[0] - previous[0]) * 0.18, (next[1] - previous[1]) * 0.18];
+    const endTangent: LatLng = [(following[0] - current[0]) * 0.18, (following[1] - current[1]) * 0.18];
     for (let step = 1; step <= 12; step += 1) {
       const t = step / 12;
       const h00 = 2 * t ** 3 - 3 * t ** 2 + 1;
@@ -105,12 +103,17 @@ const markerIcons = computed(() => {
   if (!divIconFactory.value) return result;
   for (const stop of mappedStops.value) {
     const active = stop.index === props.activeIndex;
-    result.set(stop.index, markRaw(divIconFactory.value({
-      className: `tour-map-pin${active ? " tour-map-pin--active" : ""}`,
-      html: `<svg viewBox="0 0 80 110" aria-hidden="true"><path d="M40 2C19.013 2 2 19.013 2 40c0 23.3 38 67 38 67s38-43.7 38-67C78 19.013 60.987 2 40 2Z" fill="${pinColor(stop.index)}"/><circle cx="40" cy="39" r="14" fill="white"/></svg><span class="tour-map-pin__number">${String(stop.index + 1).padStart(2, "0")}</span>`,
-      iconSize: [48, 66],
-      iconAnchor: [24, 66],
-    })));
+    result.set(
+      stop.index,
+      markRaw(
+        divIconFactory.value({
+          className: `tour-map-pin${active ? " tour-map-pin--active" : ""}`,
+          html: `<svg viewBox="0 0 80 110" aria-hidden="true"><path d="M40 2C19.013 2 2 19.013 2 40c0 23.3 38 67 38 67s38-43.7 38-67C78 19.013 60.987 2 40 2Z" fill="${pinColor(stop.index)}"/><circle cx="40" cy="39" r="14" fill="white"/></svg><span class="tour-map-pin__number">${String(stop.index + 1).padStart(2, "0")}</span>`,
+          iconSize: [48, 66],
+          iconAnchor: [24, 66],
+        }),
+      ),
+    );
   }
   return result;
 });
@@ -118,7 +121,10 @@ const markerIcons = computed(() => {
 function reportActivePosition() {
   const map = mapRef.value?.leafletObject;
   const stop = mappedStops.value.find((item) => item.index === props.activeIndex);
-  if (!map || !stop) return emit("position", null);
+  if (!map || !stop) {
+    emit("position", null);
+    return;
+  }
   const point = map.latLngToContainerPoint(stop.point);
   const size = map.getSize();
   emit("position", { x: point.x, y: point.y, width: size.x, height: size.y });
@@ -128,7 +134,7 @@ function fitRoute() {
   const map = mapRef.value?.leafletObject;
   if (!map) return;
   if (routePoints.value.length > 1) map.fitBounds(routePoints.value, { padding: [70, 70], maxZoom: 9 });
-  else if (routePoints.value.length === 1) map.setView(routePoints.value[0], 9);
+  else if (routePoints.value.length === 1) map.setView(routePoints.value[0]!, 9);
   reportActivePosition();
 }
 
@@ -139,15 +145,18 @@ function refreshSize() {
 
 function focusStop(index: number) {
   const stop = mappedStops.value.find((item) => item.index === index);
-  if (!stop) return reportActivePosition();
+  if (!stop) {
+    reportActivePosition();
+    return;
+  }
   const map = mapRef.value?.leafletObject;
   if (!map) return;
   const zoom = 10;
   const point = map.project(stop.point, zoom);
-  const verticalOffset = map.getSize().y * (window.innerWidth <= 1000 ? .2 : .06);
+  const verticalOffset = map.getSize().y * (window.innerWidth <= 1000 ? 0.2 : 0.06);
   const center = map.unproject([point.x, point.y + verticalOffset], zoom);
   if (reducedMotion.value) map.setView(center, zoom);
-  else map.flyTo(center, zoom, { duration: .75 });
+  else map.flyTo(center, zoom, { duration: 0.75 });
 }
 
 function onReady() {
@@ -162,10 +171,13 @@ function onReady() {
   if (linkedStop >= 0) focusStop(linkedStop);
 }
 
-watch(() => props.activeIndex, (index) => {
-  if (!ready.value || index < 0) return;
-  focusStop(index);
-});
+watch(
+  () => props.activeIndex,
+  (index) => {
+    if (!ready.value || index < 0) return;
+    focusStop(index);
+  },
+);
 
 onMounted(async () => {
   const { divIcon } = await import("leaflet");
@@ -182,9 +194,36 @@ defineExpose({ fitRoute, refreshSize, focusStop });
 </script>
 
 <style>
-.tour-map-pin { border: 0; background: none; filter: drop-shadow(1px 3px 1px #18212780); }
-.tour-map-pin svg { display: block; width: 48px; height: 66px; }
-.tour-map-pin--active { filter: drop-shadow(1px 3px 2px #18212780); transform: scale(1.14); transform-origin: 50% 100%; }
-.tour-map-pin__number { position: absolute; top: 14px; left: 0; display: grid; place-items: center; width: 48px; height: 19px; color: #182127; font: 900 11px RobotoCondensed, sans-serif; }
-.tour-map-pin:focus-visible { outline: 3px solid var(--slk-text, #182127); outline-offset: 3px; }
+.tour-map-pin {
+  border: 0;
+  background: none;
+  filter: drop-shadow(1px 3px 1px #18212780);
+}
+.tour-map-pin svg {
+  display: block;
+  width: 48px;
+  height: 66px;
+}
+.tour-map-pin--active {
+  filter: drop-shadow(1px 3px 2px #18212780);
+  transform: scale(1.14);
+  transform-origin: 50% 100%;
+}
+.tour-map-pin__number {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 19px;
+  color: #182127;
+  font:
+    900 11px RobotoCondensed,
+    sans-serif;
+}
+.tour-map-pin:focus-visible {
+  outline: 3px solid var(--slk-text, #182127);
+  outline-offset: 3px;
+}
 </style>

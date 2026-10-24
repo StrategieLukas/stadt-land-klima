@@ -1,22 +1,14 @@
 <template>
-  <figure
-    :id="'block-' + uuid"
-    class="blokkli-block-image"
-    :class="[sizeClass]"
-  >
+  <figure :id="'block-' + uuid" class="blokkli-block-image" :class="[sizeClass]">
     <!-- Conditional link wrapper -->
-    <component
-      :is="linkTag"
-      v-bind="linkAttrs"
-      :class="options.linkType !== 'none' && !isEditing ? 'block' : ''"
-    >
+    <component :is="linkTag" v-bind="linkAttrs" :class="options.linkType !== 'none' && !isEditing ? 'block' : ''">
       <!-- v-blokkli-droppable:imageId enables drag-and-drop and media library selection -->
       <div v-blokkli-droppable:imageId class="relative">
         <SmartImg
           v-if="props.imageId"
           :asset-id="props.imageId"
           :alt="props.alt || ''"
-          img-class="w-full h-auto rounded"
+          img-class="w-full h-auto rounded-sm"
           :width="1200"
           :quality="80"
           fit="contain"
@@ -24,7 +16,7 @@
         <!-- Placeholder shown when no image is selected -->
         <div
           v-else
-          class="flex items-center justify-center bg-gray-100 rounded border-2 border-dashed border-gray-300 min-h-[12rem] text-gray-400"
+          class="flex min-h-48 items-center justify-center rounded-sm border-2 border-dashed border-gray-300 bg-gray-100 text-gray-400"
         >
           <span class="text-sm">Bild aus Medienbibliothek auswählen oder hierher ziehen</span>
         </div>
@@ -33,87 +25,93 @@
     <figcaption
       v-if="props.caption || isEditing"
       v-blokkli-editable:caption
-      class="text-sm text-gray mt-2 text-center italic"
+      class="mt-2 text-center text-sm text-gray italic"
       v-text="props.caption"
     />
   </figure>
 </template>
 
 <script setup lang="ts">
-import { resolveComponent } from 'vue'
-import { resolveBlokkliInternalLink } from '~/utils/blokkliLinks'
+import { resolveComponent } from "vue";
+import { resolveBlokkliInternalLink } from "~/utils/blokkliLinks";
 
-const { options, isEditing, uuid } = defineBlokkli({
-  bundle: 'image',
+const isEditing = import.meta.blokkliEditing;
+
+const { options, uuid } = defineBlokkli({
+  bundle: "image",
+  propsFieldMapping: {
+    caption: { name: "caption", type: "editable" },
+    imageId: { name: "imageId", type: "droppable" },
+  },
   options: {
     size: {
-      type: 'radios',
-      label: 'Größe',
-      default: 'full',
+      type: "radios",
+      label: "Größe",
+      default: "full",
       options: {
-        small: 'Klein (25%)',
-        medium: 'Mittel (50%)',
-        large: 'Groß (75%)',
-        full: 'Volle Breite',
+        small: "Klein (25%)",
+        medium: "Mittel (50%)",
+        large: "Groß (75%)",
+        full: "Volle Breite",
       },
     },
     linkType: {
-      type: 'radios',
-      label: 'Link-Typ',
-      default: 'none',
+      type: "radios",
+      label: "Link-Typ",
+      default: "none",
       options: {
-        none: 'Kein',
-        internal: 'Intern',
-        external: 'Extern',
+        none: "Kein",
+        internal: "Intern",
+        external: "Extern",
       },
     },
     link: {
-      type: 'text',
-      label: 'Link (Slug oder URL)',
-      default: '',
-      inputType: 'text',
+      type: "text",
+      label: "Link (Slug oder URL)",
+      default: "",
+      inputType: "text",
     },
   },
   editor: {
-    addBehaviour: 'no-form',
-    editTitle: () => 'Bild',
+    addBehaviour: "no-form",
+    editTitle: () => "Bild",
     mockProps: () => {
-      return { imageId: '', alt: '', caption: '' }
+      return { imageId: "", alt: "", caption: "" };
     },
   },
-})
+});
 
 const props = defineProps<{
-  imageId?: string
-  alt?: string
-  caption?: string
-}>()
+  imageId?: string | undefined;
+  alt?: string | undefined;
+  caption?: string | undefined;
+}>();
 
 const sizeClass = computed(() => {
   const map: Record<string, string> = {
-    small: 'max-w-xs mx-auto',
-    medium: 'max-w-md mx-auto',
-    large: 'max-w-3xl mx-auto',
-    full: 'max-w-full',
-  }
-  return map[options.value.size] || 'max-w-full'
-})
+    small: "max-w-xs mx-auto",
+    medium: "max-w-md mx-auto",
+    large: "max-w-3xl mx-auto",
+    full: "max-w-full",
+  };
+  return map[options.value.size] || "max-w-full";
+});
 
 const linkTag = computed(() => {
-  if (isEditing.value) return 'div'
-  if (options.value.linkType === 'external') return 'a'
-  if (options.value.linkType === 'internal') return resolveComponent('NuxtLink')
-  return 'div'
-})
+  if (isEditing) return "div";
+  if (options.value.linkType === "external") return "a";
+  if (options.value.linkType === "internal") return resolveComponent("NuxtLink");
+  return "div";
+});
 
 const linkAttrs = computed(() => {
-  if (isEditing.value || options.value.linkType === 'none') return {}
-  const lv = options.value.link || '#'
-  if (options.value.linkType === 'external') {
-    return { href: lv, target: '_blank', rel: 'noopener noreferrer' }
+  if (isEditing || options.value.linkType === "none") return {};
+  const lv = options.value.link || "#";
+  if (options.value.linkType === "external") {
+    return { href: lv, target: "_blank", rel: "noopener noreferrer" };
   }
-  return { to: resolveBlokkliInternalLink(lv) }
-})
+  return { to: resolveBlokkliInternalLink(lv) };
+});
 </script>
 
 <style scoped>

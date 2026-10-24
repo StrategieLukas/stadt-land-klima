@@ -22,7 +22,7 @@ import { computed } from "vue";
 
 const props = defineProps<{
   collectionCount: number;
-  areaName?: string;
+  areaName?: string | undefined;
 }>();
 
 const { $t } = useNuxtApp();

@@ -1,7 +1,7 @@
 <template>
   <div class="elections-flow min-h-screen bg-mild-white">
     <!-- Header -->
-    <div class="border-b border-solid-gray-10 bg-white shadow-sm">
+    <div class="border-b border-solid-gray-10 bg-white shadow-xs">
       <div class="mx-auto max-w-6xl px-4 py-4 text-center">
         <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
         <p v-if="electionData?.election" class="text-sm text-mid-gray">
@@ -11,7 +11,7 @@
     </div>
 
     <!-- Progress Bar -->
-    <div id="wahlcheck-progress-bar" class="bg-solid-ff-green-10 py-3 scroll-mt-0">
+    <div id="wahlcheck-progress-bar" class="scroll-mt-0 bg-solid-ff-green-10 py-3">
       <div class="mx-auto max-w-6xl px-4">
         <div class="flex items-center justify-between">
           <div v-for="(step, index) in steps" :key="step.id" class="flex items-center">
@@ -25,7 +25,7 @@
               >
                 {{ currentStep > index + 1 ? "✓" : index + 1 }}
               </div>
-              <span class="mt-1 whitespace-nowrap text-xs font-medium text-stats-dark">
+              <span class="mt-1 text-xs font-medium whitespace-nowrap text-stats-dark">
                 {{ step.label }}
               </span>
             </div>
@@ -62,7 +62,7 @@
       <!-- Not Found / Not Public -->
       <div
         v-else-if="!electionData?.election"
-        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
+        class="my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center text-orange-800"
       >
         <h2 class="mb-4 text-2xl font-bold">{{ $t("elections.no_public_election.title") }}</h2>
         <p class="mb-4">
@@ -82,7 +82,7 @@
           :questions="electionData.questions"
           :election="electionData.election"
           :localteam="electionData.localteam"
-          :userAnswers="userAnswers"
+          :user-answers="userAnswers"
           :initial-question-index="initialQuestionIndex"
           @next="handleQuestionsNext"
           @prev="handlePrev"
@@ -93,8 +93,8 @@
           v-else-if="currentStep === 2 && electionData"
           :key="2"
           :questions="electionData.questions"
-          :userAnswers="userAnswers"
-          :doubleWeightedQuestions="doubleWeightedQuestions"
+          :user-answers="userAnswers"
+          :double-weighted-questions="doubleWeightedQuestions"
           :election="electionData.election"
           @next="handleSummaryNext"
           @prev="handlePrev"
@@ -108,28 +108,33 @@
           :election="electionData.election"
           :candidates="electionData.candidates"
           :questions="electionData.questions"
-          :userAnswers="userAnswers"
-          :doubleWeightedQuestions="doubleWeightedQuestions"
-          :candidateAnswers="electionData.answers"
+          :user-answers="userAnswers"
+          :double-weighted-questions="doubleWeightedQuestions"
+          :candidate-answers="electionData.answers"
           @restart="handleRestart"
           @prev="handlePrev"
         />
       </Transition>
     </div>
-
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { WahlcheckCompletionRequest } from "~/shared/contracts/submissions";
 import { computed, ref, onMounted, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
+
+import { routeSlug } from "~/shared/routeValues";
+import { checkedWahlcheckState } from "~/shared/contracts/elections";
+import type { z } from "zod";
+import type { WahlcheckSchema } from "~/shared/contracts/elections";
+import type { UserAnswers } from "~/types/components/elections";
 
 const route = useRoute();
-const router = useRouter();
-const { $directus, $readItems, $readItem, $t } = useNuxtApp();
-const runtimeConfig = useRuntimeConfig();
-
-const municipalitySlug = route.params.municipalitySlug;
+const { $t } = useNuxtApp();
+const municipalitySlug = routeSlug(route.params.municipalitySlug);
+if (!municipalitySlug) throw createError({ statusCode: 404, statusMessage: "Not found" });
+definePageMeta({ key: (route) => route.path });
 
 // Step management
 const currentStep = ref(1);
@@ -141,19 +146,19 @@ const steps = [
 ];
 
 // User data
-const userAnswers = ref({}); // { questionId: responseValue (0-4) }
-const doubleWeightedQuestions = ref(new Set()); // Set of questionIds
+const userAnswers = ref<UserAnswers>({}); // { questionId: responseValue (0-4) }
+const doubleWeightedQuestions = ref(new Set<string>()); // Set of questionIds
 
 // Session storage key
 const sessionStorageKey = `wahlcheck_${municipalitySlug}`;
-const trackedCompletionIds = new Set();
+const trackedCompletionIds = new Set<string>();
 let completionTrackingPending = false;
 
-function completionStorageKey(electionId) {
+function completionStorageKey(electionId: string) {
   return `wahlcheck_completion_tracked_${electionId}`;
 }
 
-function wasCompletionTracked(electionId) {
+function wasCompletionTracked(electionId: string) {
   if (trackedCompletionIds.has(electionId)) {
     return true;
   }
@@ -165,7 +170,7 @@ function wasCompletionTracked(electionId) {
   }
 }
 
-function markCompletionTracked(electionId) {
+function markCompletionTracked(electionId: string) {
   trackedCompletionIds.add(electionId);
 
   try {
@@ -183,13 +188,9 @@ async function trackWahlcheckCompletion() {
 
   try {
     completionTrackingPending = true;
-    const directusUrl = runtimeConfig.public.clientDirectusUrl || "http://127.0.0.1:8081";
-    const token = runtimeConfig.public.directusToken;
-
-    await $fetch(`${directusUrl}/election-actions/complete`, {
+    await $fetch("/api/wahlcheck-complete", {
       method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      body: { election_id: electionId },
+      body: { electionId } satisfies WahlcheckCompletionRequest,
     });
 
     markCompletionTracked(electionId);
@@ -205,9 +206,15 @@ function loadFromSessionStorage() {
   try {
     const savedData = sessionStorage.getItem(sessionStorageKey);
     if (savedData) {
-      const parsed = JSON.parse(savedData);
-      userAnswers.value = parsed.userAnswers || {};
-      doubleWeightedQuestions.value = new Set(parsed.doubleWeightedQuestions || []);
+      const parsed = checkedWahlcheckState(
+        JSON.parse(savedData),
+        electionData.value?.election.id ?? "",
+        electionData.value?.questions.map((q) => q.id) ?? [],
+      );
+      if (parsed) {
+        userAnswers.value = parsed.answers;
+        doubleWeightedQuestions.value = new Set(parsed.doubleWeighted);
+      }
     }
   } catch (err) {
     console.error("Error loading from session storage:", err);
@@ -265,10 +272,15 @@ function checkForSharedResults() {
     const urlParams = new URLSearchParams(window.location.search);
     const shareParam = urlParams.get("share");
 
-    if (shareParam) {
+    if (shareParam && shareParam.length <= 20000 && urlParams.getAll("share").length === 1) {
       try {
         const decoded = decodeURIComponent(atob(shareParam));
-        const shareData = JSON.parse(decoded);
+        const shareData = checkedWahlcheckState(
+          JSON.parse(decoded),
+          electionData.value?.election.id ?? "",
+          electionData.value?.questions.map((q) => q.id) ?? [],
+        );
+        if (!shareData) return;
 
         if (shareData.answers) {
           userAnswers.value = shareData.answers;
@@ -297,8 +309,9 @@ function checkForSharedResults() {
 function saveToSessionStorage() {
   try {
     const dataToSave = {
-      userAnswers: userAnswers.value,
-      doubleWeightedQuestions: Array.from(doubleWeightedQuestions.value),
+      electionId: electionData.value?.election.id,
+      answers: userAnswers.value,
+      doubleWeighted: Array.from(doubleWeightedQuestions.value),
     };
     sessionStorage.setItem(sessionStorageKey, JSON.stringify(dataToSave));
   } catch (err) {
@@ -316,143 +329,48 @@ function clearSessionStorage() {
 }
 
 // Election data
-const electionData = ref(null);
+type PublicWahlcheck = z.output<typeof WahlcheckSchema>;
+const electionData = ref<
+  | (PublicWahlcheck & {
+      localteam: PublicWahlcheck["municipality"];
+      answers: {
+        candidate: string;
+        question: string;
+        response: 0 | 1 | 2 | 3 | 4 | null;
+        explanation: string | null;
+      }[];
+    })
+  | null
+>(null);
 const pending = ref(true);
 const error = ref(false);
 const errorMessage = ref("");
 
-// Load election data
+// Load election data from server API
 async function loadElectionData() {
   pending.value = true;
   error.value = false;
   errorMessage.value = "";
 
   try {
-    // Try to find the municipality by slug first
-    let municipalities = await $directus.request(
-      $readItems("municipalities", {
-        filter: {
-          slug: { _eq: municipalitySlug },
-        },
-        fields: ["localteam_id"],
-      }),
-    );
-
-    let localteams = [];
-
-    // If municipality found by slug, get the localteam_id and find the localteam
-    if (municipalities && municipalities.length > 0 && municipalities[0].localteam_id) {
-      localteams = await $directus.request(
-        $readItems("localteams", {
-          filter: {
-            id: { _eq: municipalities[0].localteam_id },
-          },
-          fields: ["*", "municipality_id.*"],
-        }),
-      );
-    }
-
-    // If no localteam found by municipality slug, try to find by localteam slug
-    if (!localteams || localteams.length === 0) {
-      localteams = await $directus.request(
-        $readItems("localteams", {
-          filter: {
-            slug: { _eq: municipalitySlug },
-          },
-          fields: ["*", "municipality_id.*"],
-        }),
-      );
-    }
-
-    // If still no localteam found, try to find by ID (in case the parameter is an ID)
-    if (!localteams || localteams.length === 0) {
-      localteams = await $directus.request(
-        $readItems("localteams", {
-          filter: {
-            id: { _eq: municipalitySlug },
-          },
-          fields: ["*", "municipality_id.*"],
-        }),
-      );
-    }
-
-    if (!localteams || localteams.length === 0) {
-      electionData.value = null;
-      pending.value = false;
-      return;
-    }
-
-    const localteam = localteams[0];
-
-    // Find the most recent public election for this localteam
-    const elections = await $directus.request(
-      $readItems("elections", {
-        filter: {
-          localteam: { _eq: localteam.id },
-          is_public: { _eq: true },
-        },
-        sort: ["-date_created"],
-        limit: 1,
-        fields: ["*"],
-      }),
-    );
-
-    if (!elections || elections.length === 0) {
-      electionData.value = null;
-      pending.value = false;
-      return;
-    }
-
-    const election = elections[0];
-
-    // Load questions for this election
-    const questions = await $directus.request(
-      $readItems("questions", {
-        filter: {
-          election: { _eq: election.id },
-          status: { _eq: "published" },
-        },
-        sort: ["date_created"],
-        limit: -1,
-        fields: ["*"],
-      }),
-    );
-
-    // Load all candidates so the results can also identify non-responders.
-    const candidates = await $directus.request(
-      $readItems("candidate", {
-        filter: {
-          election: { _eq: election.id },
-        },
-        limit: -1,
-        fields: ["*"],
-      }),
-    );
-
-    // Only responding candidates can contribute answers to the comparison.
-    const respondingCandidates = (candidates || []).filter((candidate) => candidate.has_answered === true);
-
-    // Load all answers for these candidates
-    let allAnswers = [];
-    if (respondingCandidates.length > 0 && questions && questions.length > 0) {
-      allAnswers = await $directus.request(
-        $readItems("answers", {
-          filter: {
-            candidate: { _in: respondingCandidates.map((candidate) => candidate.id) },
-            question: { _in: questions.map((q) => q.id) },
-          },
-          limit: -1,
-          fields: ["*"],
-        }),
-      );
-    }
+    const data = await $fetch(`/api/public/wahlcheck/${municipalitySlug}`);
 
     electionData.value = {
-      election,
-      localteam,
-      questions: questions || [],
-      candidates: candidates || [],
-      answers: allAnswers || [],
+      ...data,
+      election: data.election,
+      localteam: data.municipality,
+      questions: data.questions || [],
+      candidates: data.candidates || [],
+      answers:
+        data.candidates?.flatMap(
+          (c) =>
+            c.answers?.map((a) => ({
+              candidate: c.id,
+              question: a.question,
+              response: a.response,
+              explanation: a.explanation,
+            })) || [],
+        ) || [],
     };
   } catch (err) {
     console.error("Error loading election data:", err);
@@ -477,7 +395,7 @@ function scrollToProgress() {
 }
 
 // Handle step navigation
-function handleQuestionsNext(answers) {
+function handleQuestionsNext(answers: UserAnswers) {
   userAnswers.value = { ...answers };
   currentStep.value = 2;
   scrollToProgress();
@@ -515,7 +433,7 @@ function handleRestart() {
   scrollToProgress();
 }
 
-function toggleDoubleWeight(questionId) {
+function toggleDoubleWeight(questionId: string) {
   const newSet = new Set(doubleWeightedQuestions.value);
   if (newSet.has(questionId)) {
     newSet.delete(questionId);
@@ -526,8 +444,8 @@ function toggleDoubleWeight(questionId) {
 }
 
 // Load data on mount
-onMounted(() => {
-  loadElectionData();
+onMounted(async () => {
+  await loadElectionData();
   loadFromSessionStorage();
   checkForSharedResults();
   // Update shareable URL if we're already at step 3 (e.g., page refresh)
@@ -538,7 +456,7 @@ onMounted(() => {
 watch(
   () => route.params.municipalitySlug,
   () => {
-    loadElectionData();
+    void loadElectionData();
   },
 );
 
@@ -565,7 +483,9 @@ useHead({
 /* Phase Transitions */
 .step-fade-enter-active,
 .step-fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .step-fade-enter-from {

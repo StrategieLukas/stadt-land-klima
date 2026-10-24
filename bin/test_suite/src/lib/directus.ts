@@ -1,4 +1,4 @@
-import { assert } from './assert.js';
+import { assert } from "./assert.js";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -21,12 +21,12 @@ export class DirectusClient {
   }
 
   private url(path: string): URL {
-    const baseUrl = `${this.baseUrl.replace(/\/+$/, '')}/`;
-    return new URL(path.replace(/^\/+/, ''), baseUrl);
+    const baseUrl = `${this.baseUrl.replace(/\/+$/, "")}/`;
+    return new URL(path.replace(/^\/+/, ""), baseUrl);
   }
 
   async login(email: string, password: string): Promise<string> {
-    const response = await this.request<{ access_token: string }>('POST', '/auth/login', {
+    const response = await this.request<{ access_token: string }>("POST", "/auth/login", {
       body: { email, password },
       auth: false,
     });
@@ -46,9 +46,9 @@ export class DirectusClient {
     }
 
     const headers: Record<string, string> = {
-      Accept: 'application/json',
+      Accept: "application/json",
     };
-    if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+    if (options.body !== undefined) headers["Content-Type"] = "application/json";
     if (options.auth !== false && this.token) headers.Authorization = `Bearer ${this.token}`;
 
     const response = await fetch(url, {
@@ -61,15 +61,11 @@ export class DirectusClient {
     const parsed = text ? JSON.parse(text) : null;
 
     if (!response.ok) {
-      const message =
-        parsed?.errors?.[0]?.message ??
-        parsed?.error ??
-        parsed?.message ??
-        response.statusText;
+      const message = parsed?.errors?.[0]?.message ?? parsed?.error ?? parsed?.message ?? response.statusText;
       throw new Error(`${method} ${url.pathname}${url.search} failed with ${response.status}: ${message}`);
     }
 
-    if (parsed && typeof parsed === 'object' && 'data' in parsed) {
+    if (parsed && typeof parsed === "object" && "data" in parsed) {
       return parsed.data as T;
     }
 
@@ -82,38 +78,38 @@ export class DirectusClient {
       search: options.search,
     };
     if (options.filter) query.filter = JSON.stringify(options.filter);
-    if (options.fields) query.fields = options.fields.join(',');
-    if (options.sort) query.sort = options.sort.join(',');
+    if (options.fields) query.fields = options.fields.join(",");
+    if (options.sort) query.sort = options.sort.join(",");
 
-    return this.request<T[]>('GET', `/items/${collection}`, { query });
+    return this.request<T[]>("GET", `/items/${collection}`, { query });
   }
 
   async readItem<T>(collection: string, id: string | number, fields?: string[]): Promise<T> {
-    return this.request<T>('GET', `/items/${collection}/${id}`, {
-      query: fields ? { fields: fields.join(',') } : undefined,
+    return this.request<T>("GET", `/items/${collection}/${id}`, {
+      query: fields ? { fields: fields.join(",") } : undefined,
     });
   }
 
   async createItem<T>(collection: string, body: JsonRecord): Promise<T> {
-    return this.request<T>('POST', `/items/${collection}`, { body });
+    return this.request<T>("POST", `/items/${collection}`, { body });
   }
 
   async updateItem<T>(collection: string, id: string | number, body: JsonRecord): Promise<T> {
-    return this.request<T>('PATCH', `/items/${collection}/${id}`, { body });
+    return this.request<T>("PATCH", `/items/${collection}/${id}`, { body });
   }
 
   async deleteItem(collection: string, id: string | number): Promise<void> {
-    await this.request<null>('DELETE', `/items/${collection}/${id}`);
+    await this.request<null>("DELETE", `/items/${collection}/${id}`);
   }
 
   async importJsonItems(collection: string, items: JsonRecord[]): Promise<void> {
     const url = this.url(`/utils/import/${collection}`);
     const formData = new FormData();
-    formData.set('file', new Blob([JSON.stringify(items)], { type: 'application/json' }), 'ratings.json');
+    formData.set("file", new Blob([JSON.stringify(items)], { type: "application/json" }), "ratings.json");
     const headers: Record<string, string> = {};
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
 
-    const response = await fetch(url, { method: 'POST', headers, body: formData });
+    const response = await fetch(url, { method: "POST", headers, body: formData });
     const text = await response.text();
     if (!response.ok) {
       throw new Error(`POST ${url.pathname} failed with ${response.status}: ${text}`);
@@ -123,45 +119,40 @@ export class DirectusClient {
   async readUsers<T>(options: ReadOptions = {}): Promise<T[]> {
     const query: Record<string, string | number | undefined> = { limit: options.limit };
     if (options.filter) query.filter = JSON.stringify(options.filter);
-    if (options.fields) query.fields = options.fields.join(',');
-    return this.request<T[]>('GET', '/users', { query });
+    if (options.fields) query.fields = options.fields.join(",");
+    return this.request<T[]>("GET", "/users", { query });
   }
 
   async createUser<T>(body: JsonRecord): Promise<T> {
-    return this.request<T>('POST', '/users', { body });
+    return this.request<T>("POST", "/users", { body });
   }
 
   async updateUser<T>(id: string, body: JsonRecord): Promise<T> {
-    return this.request<T>('PATCH', `/users/${id}`, { body });
+    return this.request<T>("PATCH", `/users/${id}`, { body });
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.request<null>('DELETE', `/users/${id}`);
+    await this.request<null>("DELETE", `/users/${id}`);
   }
 
-  async uploadFile<T>(
-    filename: string,
-    contentType: string,
-    bytes: Uint8Array,
-    title: string,
-  ): Promise<T> {
-    const url = this.url('/files');
+  async uploadFile<T>(filename: string, contentType: string, bytes: Uint8Array, title: string): Promise<T> {
+    const url = this.url("/files");
     const formData = new FormData();
-    formData.set('title', title);
+    formData.set("title", title);
     const fileBytes = new Uint8Array(bytes);
     const fileBuffer = fileBytes.buffer.slice(
       fileBytes.byteOffset,
       fileBytes.byteOffset + fileBytes.byteLength,
     ) as ArrayBuffer;
-    formData.set('file', new Blob([fileBuffer], { type: contentType }), filename);
+    formData.set("file", new Blob([fileBuffer], { type: contentType }), filename);
 
     const headers: Record<string, string> = {
-      Accept: 'application/json',
+      Accept: "application/json",
     };
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
 
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: formData,
     });
@@ -170,11 +161,7 @@ export class DirectusClient {
     const parsed = text ? JSON.parse(text) : null;
 
     if (!response.ok) {
-      const message =
-        parsed?.errors?.[0]?.message ??
-        parsed?.error ??
-        parsed?.message ??
-        response.statusText;
+      const message = parsed?.errors?.[0]?.message ?? parsed?.error ?? parsed?.message ?? response.statusText;
       throw new Error(`POST ${url.pathname} failed with ${response.status}: ${message}`);
     }
 
@@ -187,11 +174,11 @@ export async function createAdminClient(baseUrl: string, env: Record<string, str
   const client = new DirectusClient(baseUrl, token || undefined);
 
   if (!token) {
-    assert(env.ADMIN_EMAIL, 'ADMIN_EMAIL missing in backend env file');
-    assert(env.ADMIN_PASSWORD, 'ADMIN_PASSWORD missing in backend env file');
+    assert(env.ADMIN_EMAIL, "ADMIN_EMAIL missing in backend env file");
+    assert(env.ADMIN_PASSWORD, "ADMIN_PASSWORD missing in backend env file");
     await client.login(env.ADMIN_EMAIL, env.ADMIN_PASSWORD);
   }
 
-  await client.request('GET', '/server/health', { auth: false });
+  await client.request("GET", "/server/health", { auth: false });
   return client;
 }

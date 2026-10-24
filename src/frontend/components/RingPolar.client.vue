@@ -1,15 +1,13 @@
-<template lang="">
+<template>
   <div class="slk-polar-ring h-full w-full">
     <svg
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
-      xmlns:xlink="http://www.w3.org/1999/xlink"
       x="0px"
       y="0px"
       class="h-full w-full"
       viewBox="0 0 320.3 320.3"
       style="enable-background: new 0 0 320.3 320.3"
-      xml:space="preserve"
     >
       <g id="Reifen">
         <path
@@ -1160,7 +1158,7 @@
     </svg>
   </div>
 </template>
-<script setup></script>
+<script setup lang="ts"></script>
 <style>
 .slk-polar-ring .st0 {
   fill: var(--slk-surface-muted);

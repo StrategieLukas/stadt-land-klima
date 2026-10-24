@@ -1,19 +1,11 @@
-/** @type {import("tailwindcss").Config} */
+/** Shared brand tokens and typography; explicitly loaded by assets/css/main.css.
+ * @type {import("tailwindcss").Config}
+ */
 module.exports = {
-  darkMode: ["class", '[data-theme="staedteChallengeDark"]'],
-  content: [
-    "./components/**/*.{js,vue,ts}",
-    "./layouts/**/*.vue",
-    "./pages/**/*.vue",
-    "./plugins/**/*.{js,ts}",
-    "./utils/**/*.{js,ts}",
-    "./nuxt.config.{js,ts}",
-    "./app.vue",
-  ],
   theme: {
     extend: {
       screens: {
-        xs: "420px",
+        xs: "26.25rem",
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
@@ -179,66 +171,5 @@ module.exports = {
         },
       },
     },
-  },
-  safelist: [
-    "bg-rating-na",
-    "bg-rating-na-light",
-    "bg-rating-na-very-light",
-    "bg-rating-0",
-    "bg-rating-0-light",
-    "bg-rating-0-very-light",
-    "bg-rating-1",
-    "bg-rating-1-light",
-    "bg-rating-1-very-light",
-    "bg-rating-2",
-    "bg-rating-2-light",
-    "bg-rating-2-very-light",
-    "bg-rating-3",
-    "bg-rating-3-light",
-    "bg-rating-3-very-light",
-    "bg-rating-4",
-    "bg-rating-4-light",
-    "bg-rating-4-very-light",
-    "border-rating-na",
-    "border-rating-0",
-    "border-rating-1",
-    "border-rating-2",
-    "border-rating-3",
-    "border-rating-4",
-    "text-rating-0",
-    "text-rating-1",
-    "text-rating-2",
-    "text-rating-3",
-    "text-rating-4",
-    "text-rating-na",
-  ],
-  plugins: [require("daisyui"), require("@tailwindcss/typography")],
-  daisyui: {
-    darkTheme: "staedteChallengeDark",
-    themes: [
-      {
-        staedteChallemgeTheme: {
-          primary: "#afca0b",
-          secondary: "#f27c00",
-          accent: "#00aee2",
-          neutral: "#707070",
-          "base-100": "#ffffff",
-          fontFamily: ["Inter", "sans"],
-        },
-      },
-      {
-        staedteChallengeDark: {
-          primary: "#afca0b",
-          secondary: "#f39200",
-          accent: "#53d7ff",
-          neutral: "#b8c2cc",
-          "base-100": "#17212b",
-          "base-200": "#101820",
-          "base-300": "#2a3947",
-          "base-content": "#e7edf1",
-          fontFamily: ["Inter", "sans"],
-        },
-      },
-    ],
   },
 };

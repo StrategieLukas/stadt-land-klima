@@ -30,8 +30,20 @@ permissions:
       localteam:
         _in:
           - $CURRENT_USER.localteams.localteam_id
-    validation: null
-    presets: null
+    validation:
+      _and:
+        - election:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id.elections.id
+        - salutation:
+            _nnull: true
+        - salutation:
+            _in:
+              - frau
+              - herr
+              - neutral
+    presets:
+      salutation: null
     fields:
       - id
       - name
@@ -146,7 +158,10 @@ permissions:
   - collection: elections
     action: create
     permissions: {}
-    validation: {}
+    validation:
+      localteam:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id
     presets: null
     fields:
       - descriptor
@@ -282,8 +297,11 @@ permissions:
       - notes
   - collection: questions
     action: create
-    permissions: null
-    validation: null
+    permissions: {}
+    validation:
+      election:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id.elections.id
     presets:
       localteam: "{{$CURRENT_USER.localteams[0].localteam_id}}"
     fields:

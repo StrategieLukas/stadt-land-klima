@@ -2,7 +2,7 @@
   <component
     :is="href ? 'a' : 'button'"
     v-bind="linkAttrs"
-    class="canonical-button inline-flex items-stretch rounded-md text-sm font-bold no-underline overflow-hidden whitespace-nowrap shadow-sm ring-1 ring-inset ring-white/20"
+    class="canonical-button inline-flex items-stretch overflow-hidden rounded-md text-sm font-bold whitespace-nowrap no-underline shadow-xs ring-1 ring-white/20 ring-inset"
     :class="[textClass, { 'canonical-button--auto-text': !textColor || textColor === 'auto' }]"
     :style="{ '--btn-color': colorHex }"
   >
@@ -10,48 +10,64 @@
     <span
       v-if="currentIconSvg"
       class="canonical-button__icon"
-      :class="iconSize === 'lg' ? 'flex-shrink-0 w-12 self-stretch flex items-center justify-center border-r-2 [&>svg]:h-7 [&>svg]:w-7' : 'flex-shrink-0 w-9 self-stretch flex items-center justify-center border-r-2 [&>svg]:h-5 [&>svg]:w-5'"
+      :class="
+        iconSize === 'lg'
+          ? 'flex w-12 shrink-0 items-center justify-center self-stretch border-r-2 [&>svg]:h-7 [&>svg]:w-7'
+          : 'flex w-9 shrink-0 items-center justify-center self-stretch border-r-2 [&>svg]:h-5 [&>svg]:w-5'
+      "
     >
+      <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
       <span
-        :class="iconSize === 'lg' ? 'h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full' : 'h-5 w-5 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full'"
+        :class="
+          iconSize === 'lg'
+            ? 'flex h-7 w-7 items-center justify-center [&>svg]:h-full [&>svg]:w-full'
+            : 'flex h-5 w-5 items-center justify-center [&>svg]:h-full [&>svg]:w-full'
+        "
         v-html="currentIconSvg"
       />
+      <!-- eslint-enable vue/no-v-html -->
     </span>
     <!-- Iconify icon (e.g. mdi:arrow-right) -->
     <span
       v-else-if="iconifySlug"
       class="canonical-button__icon"
-      :class="iconSize === 'lg' ? 'flex-shrink-0 w-12 self-stretch flex items-center justify-center border-r-2' : 'flex-shrink-0 w-9 self-stretch flex items-center justify-center border-r-2'"
+      :class="
+        iconSize === 'lg'
+          ? 'flex w-12 shrink-0 items-center justify-center self-stretch border-r-2'
+          : 'flex w-9 shrink-0 items-center justify-center self-stretch border-r-2'
+      "
     >
       <Icon :icon="iconifySlug" :class="iconSize === 'lg' ? 'h-7 w-7' : 'h-5 w-5'" />
     </span>
     <!-- Label -->
-    <span
-      class="flex-1 flex items-center justify-center"
-      :class="hasIcon ? 'py-2 pl-3 pr-4' : 'py-2 px-4'"
-    >{{ label }}</span>
+    <span class="flex flex-1 items-center justify-center" :class="hasIcon ? 'py-2 pr-4 pl-3' : 'px-4 py-2'">{{
+      label
+    }}</span>
   </component>
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { computed, useAttrs } from 'vue'
+import { Icon } from "@iconify/vue";
+import { computed, useAttrs } from "vue";
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
-  label: string
-  href?: string
-  iconSlug?: string
-  color?: string
-  textColor?: 'auto' | 'white' | 'black'
-  iconSize?: 'sm' | 'lg'
-  external?: boolean
-}>()
+  onClick?: ((event: MouseEvent) => void) | undefined;
+  disabled?: boolean | undefined;
+  label: string;
+  href?: string | undefined;
+  title?: string | undefined;
+  iconSlug?: string | undefined;
+  color?: string | undefined;
+  textColor?: "auto" | "white" | "black" | undefined;
+  iconSize?: "sm" | "lg" | undefined;
+  external?: boolean | undefined;
+}>();
 
-const attrs = useAttrs()
+const attrs = useAttrs();
 
-const svgFiles = import.meta.glob('@/assets/icons/*.svg', { as: 'raw', eager: true })
+const svgFiles = import.meta.glob("@/assets/icons/*.svg", { query: "?raw", import: "default", eager: true });
 
 /**
  * Like Blokkli Button's prepareIcon, but also strips <circle class="cls-1">
@@ -59,76 +75,79 @@ const svgFiles = import.meta.glob('@/assets/icons/*.svg', { as: 'raw', eager: tr
  * coloured button (the white envelope shows on the button background, not its own circle).
  */
 function prepareIconForButton(raw: string): string {
-  let svg = raw
-  svg = svg.replace(/<\?xml[^?]*\?>/g, '')
-  svg = svg.replace(/(<svg[^>]*?)\s+width="[^"]*"/g, '$1')
-  svg = svg.replace(/(<svg[^>]*?)\s+height="[^"]*"/g, '$1')
-  svg = svg.replace(/<rect[^>]*class="cls-[123]"[^/>]*\/>/g, '')
-  svg = svg.replace(/<rect[^>]*class="cls-[123]"[^>]*>[^<]*<\/rect>/g, '')
-  svg = svg.replace(/<circle[^>]*class="cls-1"[^/>]*\/>/g, '')
-  svg = svg.replace(/<circle[^>]*class="cls-1"[^>]*>[^<]*<\/circle>/g, '')
+  let svg = raw;
+  svg = svg.replace(/<\?xml[^?]*\?>/g, "");
+  svg = svg.replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1");
+  svg = svg.replace(/(<svg[^>]*?)\s+height="[^"]*"/g, "$1");
+  svg = svg.replace(/<rect[^>]*class="cls-[123]"[^/>]*\/>/g, "");
+  svg = svg.replace(/<rect[^>]*class="cls-[123]"[^>]*>[^<]*<\/rect>/g, "");
+  svg = svg.replace(/<circle[^>]*class="cls-1"[^/>]*\/>/g, "");
+  svg = svg.replace(/<circle[^>]*class="cls-1"[^>]*>[^<]*<\/circle>/g, "");
   // Remove st0 background circles (impact, invest, evaluation_criteria, politics icons)
-  svg = svg.replace(/<circle[^>]*class="st0"[^/>]*\/>/g, '')
-  svg = svg.replace(/<circle[^>]*class="st0"[^>]*>[^<]*<\/circle>/g, '')
-  svg = svg.replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, 'fill: currentColor')
-  svg = svg.replace(/stroke:\s*#[0-9a-fA-F]{3,6}/g, 'stroke: currentColor')
-  svg = svg.replace(/fill="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'fill="currentColor"')
-  svg = svg.replace(/stroke="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'stroke="currentColor"')
-  return svg
+  svg = svg.replace(/<circle[^>]*class="st0"[^/>]*\/>/g, "");
+  svg = svg.replace(/<circle[^>]*class="st0"[^>]*>[^<]*<\/circle>/g, "");
+  svg = svg.replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, "fill: currentColor");
+  svg = svg.replace(/stroke:\s*#[0-9a-fA-F]{3,6}/g, "stroke: currentColor");
+  svg = svg.replace(/fill="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'fill="currentColor"');
+  svg = svg.replace(/stroke="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'stroke="currentColor"');
+  return svg;
 }
 
 const iconMap: Record<string, string> = Object.fromEntries(
   Object.entries(svgFiles).map(([path, svg]) => {
-    const name = path.split('/').pop()?.replace('.svg', '') ?? ''
-    return [name, prepareIconForButton(svg as string)]
+    const name = path.split("/").pop()?.replace(".svg", "") ?? "";
+    return [name, prepareIconForButton(svg as string)];
   }),
-)
+);
 
 const currentIconSvg = computed(() => {
-  if (!props.iconSlug) return ''
-  return iconMap[props.iconSlug] ?? ''
-})
+  if (!props.iconSlug) return "";
+  return iconMap[props.iconSlug] ?? "";
+});
 
 const iconifySlug = computed(() => {
-  if (!props.iconSlug || iconMap[props.iconSlug]) return ''
-  return props.iconSlug
-})
+  if (!props.iconSlug || iconMap[props.iconSlug]) return "";
+  return props.iconSlug;
+});
 
-const hasIcon = computed(() => !!(currentIconSvg.value || iconifySlug.value))
+const hasIcon = computed(() => !!(currentIconSvg.value || iconifySlug.value));
 
 const hexMap: Record<string, string> = {
-  'green':        '#1da64a',
-  'dark-green':   '#339737',
-  'bright-green': '#AFCA0B',
-  'blue':         '#16bae7',
-  'dark':         '#006e94',
-  'gray':         '#505050',
-  'orange':       '#f39200',
-  'red':          '#e30613',
-  'yellow':       '#ffc80c',
-}
+  green: "#1da64a",
+  "dark-green": "#339737",
+  "bright-green": "#AFCA0B",
+  blue: "#16bae7",
+  dark: "#006e94",
+  gray: "#505050",
+  orange: "#f39200",
+  red: "#e30613",
+  yellow: "#ffc80c",
+};
 
-const colorHex = computed(() => hexMap[props.color ?? 'green'] ?? '#1da64a')
+const colorHex = computed(() => hexMap[props.color ?? "green"] ?? "#1da64a");
 const textClass = computed(() => {
-  const tc = props.textColor ?? 'auto'
-  if (tc === 'white') return 'text-white'
-  if (tc === 'black') return 'text-black'
-  return props.color === 'yellow' ? 'text-gray' : 'text-white'
-})
+  const tc = props.textColor ?? "auto";
+  if (tc === "white") return "text-white";
+  if (tc === "black") return "text-black";
+  return props.color === "yellow" ? "text-gray" : "text-white";
+});
 
 const linkAttrs = computed(() => {
-  const base: Record<string, unknown> = { ...attrs }
+  const base: Record<string, unknown> = { ...attrs };
+  if (props.onClick) base.onClick = props.onClick;
+  if (props.title !== undefined) base.title = props.title;
+  if (props.disabled !== undefined) base.disabled = props.disabled;
   if (props.href) {
-    base.href = props.href
+    base.href = props.href;
     if (props.external) {
-      base.target = '_blank'
-      base.rel = 'noopener noreferrer'
+      base.target = "_blank";
+      base.rel = "noopener noreferrer";
     }
   } else {
-    if (!base.type) base.type = 'button'
+    if (!base.type) base.type = "button";
   }
-  return base
-})
+  return base;
+});
 </script>
 
 <style scoped>

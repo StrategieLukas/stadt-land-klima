@@ -1,9 +1,11 @@
 #!/bin/bash
+set -eu
 
 cd /directus/cli
-npm install
+npm ci --include=dev --no-audit --no-fund
+npm run typecheck
 cd ..
 
 node /directus/cli.js bootstrap && \
-cd /directus/cli && npx tsx security/startupChecks.ts && cd .. && \
+cd /directus/cli && ./node_modules/.bin/tsx security/startupChecks.ts && cd .. && \
 node /directus/cli.js start

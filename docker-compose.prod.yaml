@@ -1,23 +1,57 @@
 services:
+  meilisearch:
+    deploy:
+      resources:
+        limits:
+          memory: "${SLK_MEILI_MEMORY_LIMIT:-1G}"
+          pids: 128
+  cache:
+    deploy:
+      resources:
+        limits:
+          memory: "${SLK_REDIS_MEMORY_LIMIT:-512M}"
+          pids: 64
   db:
+    deploy:
+      resources:
+        limits:
+          memory: "${SLK_DB_MEMORY_LIMIT:-2G}"
+          pids: 512
     restart: always
 
   directus:
+    deploy:
+      resources:
+        limits:
+          memory: "${SLK_DIRECTUS_MEMORY_LIMIT:-2G}"
+          pids: 256
     restart: unless-stopped
     ports:
-      - "9001:8055"
+      - "127.0.0.1:9001:8055"
     environment:
       SLK_ENV: production
+      WEBSOCKETS_ENABLED: "false"
+      MCP_ENABLED: "false"
+      AI_ENABLED: "true"
+      IMPORT_IP_DENY_LIST: "0.0.0.0,169.254.169.254,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128,fc00::/7,fe80::/10"
+      CORS_ORIGIN: "${SLK_ALLOWED_ORIGINS:-https://www.stadt-land-klima.de,https://stadt-land-klima.de}"
 
   frontend:
+    deploy:
+      resources:
+        limits:
+          memory: "${SLK_FRONTEND_MEMORY_LIMIT:-6G}"
+          pids: 512
     restart: unless-stopped
     ports:
-      - "9000:3000"
+      - "127.0.0.1:9000:3000"
     environment:
       SLK_ENV: production
+      TRUST_PROXY: "true"
 
   maintenance:
-    image: nginx:1.30.6-alpine
+    build:
+      context: ./docker/maintenance
     restart: unless-stopped
     ports:
       - "9090:80"

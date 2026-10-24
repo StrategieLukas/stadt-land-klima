@@ -1,9 +1,5 @@
 <template>
-  <div
-    ref="rootEl"
-    class="blokkli-block-carousel"
-    :id="'block-' + uuid"
-  >
+  <div :id="'block-' + uuid" ref="rootEl" class="blokkli-block-carousel">
     <!--
       Always full-bleed (breaks out of article max-width like the projects carousel).
       peek=true:  active slide centred with symmetric padding, adjacent slides visible on both sides.
@@ -13,9 +9,7 @@
     <div :class="!isEditing ? 'carousel-bleed' : ''">
       <div
         ref="scrollEl"
-        :class="isEditing
-          ? ''
-          : 'overflow-x-auto snap-x snap-mandatory scrollbar-hide'"
+        :class="isEditing ? '' : 'scrollbar-hide snap-x snap-mandatory overflow-x-auto'"
         :style="trackStyle"
         @scroll="onScroll"
       >
@@ -24,9 +18,7 @@
           name="slides"
           :list="props.slides || []"
           tag="div"
-          :class="isEditing
-            ? 'flex flex-col gap-4'
-            : ['carousel-slides flex', gapClass]"
+          :class="isEditing ? 'flex flex-col gap-4' : ['carousel-slides flex', gapClass]"
         />
       </div>
     </div>
@@ -34,26 +26,24 @@
     <!-- Controls: ← dots → in one row below the slides -->
     <div
       v-if="!isEditing && (options.showArrows || (options.showDots && dotCount > 1))"
-      class="flex items-center justify-center gap-3 mt-4"
+      class="mt-4 flex items-center justify-center gap-3"
     >
       <button
         v-if="options.showArrows"
-        class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full bg-white shadow transition-opacity"
-        :class="canScrollLeft ? 'opacity-100' : 'opacity-30 cursor-default'"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm transition-opacity"
+        :class="canScrollLeft ? 'opacity-100' : 'cursor-default opacity-30'"
         :aria-label="$t('generic.back')"
         @click="scrollBy(-1)"
       >
-        <Icon icon="mdi:chevron-left" class="w-5 h-5 text-gray" />
+        <Icon icon="mdi:chevron-left" class="h-5 w-5 text-gray" />
       </button>
 
-      <div v-if="options.showDots && dotCount > 1" class="flex items-center gap-1.5 flex-wrap justify-center">
+      <div v-if="options.showDots && dotCount > 1" class="flex flex-wrap items-center justify-center gap-1.5">
         <button
           v-for="i in dotCount"
           :key="i"
           class="rounded-full transition-all duration-200"
-          :class="currentDot === i - 1
-            ? [activeDotClass, 'w-3 h-3']
-            : [inactiveDotClass, 'w-2 h-2']"
+          :class="currentDot === i - 1 ? [activeDotClass, 'h-3 w-3'] : [inactiveDotClass, 'h-2 w-2']"
           :aria-label="`Slide ${i}`"
           @click="scrollToIndex(i - 1)"
         />
@@ -61,140 +51,145 @@
 
       <button
         v-if="options.showArrows"
-        class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full bg-white shadow transition-opacity"
-        :class="canScrollRight ? 'opacity-100' : 'opacity-30 cursor-default'"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm transition-opacity"
+        :class="canScrollRight ? 'opacity-100' : 'cursor-default opacity-30'"
         aria-label="Weiter"
         @click="scrollBy(1)"
       >
-        <Icon icon="mdi:chevron-right" class="w-5 h-5 text-gray" />
+        <Icon icon="mdi:chevron-right" class="h-5 w-5 text-gray" />
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import type { FieldListItem } from '#blokkli/types'
+import { Icon } from "@iconify/vue";
+import type { FieldListItem } from "#blokkli/types";
 
-const { options, isEditing, uuid } = defineBlokkli({
-  bundle: 'carousel',
+const isEditing = import.meta.blokkliEditing;
+
+const { options, uuid } = defineBlokkli({
+  bundle: "carousel",
+  propsFieldMapping: {
+    slides: { name: "slides", type: "field" },
+  },
   options: {
     peek: {
-      type: 'checkbox',
-      label: 'Aktive Folie zentrieren',
+      type: "checkbox",
+      label: "Aktive Folie zentrieren",
       default: true,
-      group: 'Folien',
+      group: "Folien",
     },
     slideWidth: {
-      type: 'radios',
-      label: 'Breite der Folien',
-      default: '100',
-      group: 'Folien',
+      type: "radios",
+      label: "Breite der Folien",
+      default: "100",
+      group: "Folien",
       options: {
-        '100': '1 Spalte (100%)',
-        '50': '2 Spalten (50%)',
-        '33': '3 Spalten (33%)',
-        '25': '4 Spalten (25%)',
+        "100": "1 Spalte (100%)",
+        "50": "2 Spalten (50%)",
+        "33": "3 Spalten (33%)",
+        "25": "4 Spalten (25%)",
       },
     },
     gap: {
-      type: 'radios',
-      label: 'Abstand',
-      default: 'medium',
-      group: 'Folien',
+      type: "radios",
+      label: "Abstand",
+      default: "medium",
+      group: "Folien",
       options: {
-        none: 'Kein',
-        small: 'Klein',
-        medium: 'Mittel',
-        large: 'Groß',
+        none: "Kein",
+        small: "Klein",
+        medium: "Mittel",
+        large: "Groß",
       },
     },
     accentColor: {
-      type: 'radios',
-      label: 'Akzentfarbe',
-      default: 'green',
-      displayAs: 'colors',
-      group: 'Navigation',
+      type: "radios",
+      label: "Akzentfarbe",
+      default: "green",
+      displayAs: "colors",
+      group: "Navigation",
       options: {
-        green: { label: 'Grün', hex: '#1da64a' },
-        blue: { label: 'Blau', hex: '#16bae7' },
-        dark: { label: 'Dunkelblau', hex: '#006e94' },
-        orange: { label: 'Orange', hex: '#f39200' },
+        green: { label: "Grün", hex: "#1da64a" },
+        blue: { label: "Blau", hex: "#16bae7" },
+        dark: { label: "Dunkelblau", hex: "#006e94" },
+        orange: { label: "Orange", hex: "#f39200" },
       },
     },
     showArrows: {
-      type: 'checkbox',
-      label: 'Navigationspfeile',
+      type: "checkbox",
+      label: "Navigationspfeile",
       default: true,
-      group: 'Navigation',
+      group: "Navigation",
     },
     showDots: {
-      type: 'checkbox',
-      label: 'Punkte-Navigation',
+      type: "checkbox",
+      label: "Punkte-Navigation",
       default: true,
-      group: 'Navigation',
+      group: "Navigation",
     },
     autoplay: {
-      type: 'radios',
-      label: 'Autoplay',
-      default: '0',
-      group: 'Navigation',
+      type: "radios",
+      label: "Autoplay",
+      default: "0",
+      group: "Navigation",
       options: {
-        '0': 'Aus',
-        '3': '3s',
-        '5': '5s',
-        '8': '8s',
-        '10': '10s',
+        "0": "Aus",
+        "3": "3s",
+        "5": "5s",
+        "8": "8s",
+        "10": "10s",
       },
     },
   },
   editor: {
-    addBehaviour: 'no-form',
-    editTitle: () => 'Karussell',
-    mockProps: () => { return { slides: [] } },
+    addBehaviour: "no-form",
+    editTitle: () => "Karussell",
+    mockProps: () => {
+      return { slides: [] };
+    },
   },
-})
+});
 
 const props = defineProps<{
-  slides?: FieldListItem[]
-}>()
+  slides?: FieldListItem[] | undefined;
+}>();
 
-const scrollEl = ref<HTMLElement | null>(null)
-const rootEl = ref<HTMLElement | null>(null)
-const articleWidth = ref(0)      // article column width (rootEl) — for slide sizing
-const scrollContainerWidth = ref(0) // actual scroll container width (100vw in bleed mode) — for centering
-const canScrollLeft = ref(false)
-const canScrollRight = ref(false)
-const currentDot = ref(0)
-let autoplayTimer: ReturnType<typeof setInterval> | null = null
-let resizeObserver: ResizeObserver | null = null
+const scrollEl = ref<HTMLElement | null>(null);
+const rootEl = ref<HTMLElement | null>(null);
+const articleWidth = ref(0); // article column width (rootEl) — for slide sizing
+const scrollContainerWidth = ref(0); // actual scroll container width (100vw in bleed mode) — for centering
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+const currentDot = ref(0);
+let autoplayTimer: ReturnType<typeof setInterval> | null = null;
+let resizeObserver: ResizeObserver | null = null;
 
-const slideCount = computed(() => props.slides?.length || 0)
+const slideCount = computed(() => props.slides?.length || 0);
 // One dot per slide
-const dotCount = computed(() => slideCount.value)
+const dotCount = computed(() => slideCount.value);
 
-const GAP_PX: Record<string, number> = { none: 0, small: 8, medium: 16, large: 32 }
+const GAP_PX: Record<string, number> = { none: 0, small: 8, medium: 16, large: 32 };
 const gapClass = computed(() => {
-  const map: Record<string, string> = { none: 'gap-0', small: 'gap-2', medium: 'gap-4', large: 'gap-8' }
-  return map[options.value.gap] || 'gap-4'
-})
+  const map: Record<string, string> = { none: "gap-0", small: "gap-2", medium: "gap-4", large: "gap-8" };
+  return map[options.value.gap] || "gap-4";
+});
 
 // Number of slides visible across the article column width.
-const nSlides = computed(() => Math.round(100 / (parseInt(options.value.slideWidth) || 100)))
+const nSlides = computed(() => Math.round(100 / (parseInt(options.value.slideWidth) || 100)));
 
 // Slide width in pixels: divide the article column width by n columns minus gaps.
 const slideWidthPx = computed(() => {
-  if (!articleWidth.value) return 300
-  const gap = GAP_PX[options.value.gap] ?? 16
-  const n = nSlides.value
-  return Math.round((articleWidth.value - gap * (n - 1)) / n)
-})
+  if (!articleWidth.value) return 300;
+  const gap = GAP_PX[options.value.gap] ?? 16;
+  const n = nSlides.value;
+  return Math.round((articleWidth.value - gap * (n - 1)) / n);
+});
 
 // Centre-padding: shift the active slide to the middle of the SCROLL CONTAINER
 // (which is 100vw in bleed mode, not the article column width).
-const peekPx = computed(() =>
-  Math.max(0, Math.round((scrollContainerWidth.value - slideWidthPx.value) / 2)),
-)
+const peekPx = computed(() => Math.max(0, Math.round((scrollContainerWidth.value - slideWidthPx.value) / 2)));
 
 // Applied to the scroll container.
 // Also sets --slide-w and --snap-align so they inherit to all descendants.
@@ -202,124 +197,130 @@ const peekPx = computed(() =>
 // peek=false: 1.5rem left-edge padding (aligns with article column), snap-align: start,
 //             scrollPaddingLeft so the browser's snap port matches our 1.5rem padding.
 const trackStyle = computed(() => {
-  if (isEditing || !scrollContainerWidth.value) return {}
-  const slideW = slideWidthPx.value + 'px'
+  if (isEditing || !scrollContainerWidth.value) return {};
+  const slideW = `${slideWidthPx.value}px`;
   if (!options.value.peek) {
     return {
-      '--slide-w': slideW,
-      '--snap-align': 'start',
-      paddingLeft: '1.5rem',
-      paddingRight: '1.5rem',
-      scrollPaddingLeft: '1.5rem',
-      boxSizing: 'border-box' as const,
-    }
+      "--slide-w": slideW,
+      "--snap-align": "start",
+      paddingLeft: "1.5rem",
+      paddingRight: "1.5rem",
+      scrollPaddingLeft: "1.5rem",
+      boxSizing: "border-box" as const,
+    };
   }
-  const p = peekPx.value + 'px'
+  const p = `${peekPx.value}px`;
   return {
-    '--slide-w': slideW,
-    '--snap-align': 'center',
+    "--slide-w": slideW,
+    "--snap-align": "center",
     paddingLeft: p,
     paddingRight: p,
-    boxSizing: 'border-box' as const,
-  }
-})
+    boxSizing: "border-box" as const,
+  };
+});
 
 const activeDotClass = computed(() => {
   const map: Record<string, string> = {
-    green: 'bg-ff-green',
-    blue: 'bg-light-blue',
-    dark: 'bg-stats-dark',
-    orange: 'bg-orange',
-  }
-  return map[options.value.accentColor] || 'bg-ff-green'
-})
+    green: "bg-ff-green",
+    blue: "bg-light-blue",
+    dark: "bg-stats-dark",
+    orange: "bg-orange",
+  };
+  return map[options.value.accentColor] || "bg-ff-green";
+});
 
 const inactiveDotClass = computed(() => {
   const map: Record<string, string> = {
-    green: 'bg-solid-ff-green-30',
-    blue: 'bg-solid-light-blue-30',
-    dark: 'bg-solid-stats-dark-30',
-    orange: 'bg-solid-orange-30',
-  }
-  return map[options.value.accentColor] || 'bg-solid-ff-green-30'
-})
+    green: "bg-solid-ff-green-30",
+    blue: "bg-solid-light-blue-30",
+    dark: "bg-solid-stats-dark-30",
+    orange: "bg-solid-orange-30",
+  };
+  return map[options.value.accentColor] || "bg-solid-ff-green-30";
+});
 
 // Distance to scroll in order to advance exactly one slide.
 // scrollToIndex(i) = i * scrollStep is mathematically correct given the padding approach.
 function getScrollStep(): number {
-  return slideWidthPx.value + (GAP_PX[options.value.gap] ?? 16)
+  return slideWidthPx.value + (GAP_PX[options.value.gap] ?? 16);
 }
 
 function onScroll() {
-  const el = scrollEl.value
-  if (!el) return
-  canScrollLeft.value = el.scrollLeft > 1
-  canScrollRight.value = el.scrollLeft < el.scrollWidth - el.clientWidth - 1
-  const step = getScrollStep()
-  currentDot.value = step > 0 ? Math.round(el.scrollLeft / step) : 0
+  const el = scrollEl.value;
+  if (!el) return;
+  canScrollLeft.value = el.scrollLeft > 1;
+  canScrollRight.value = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+  const step = getScrollStep();
+  currentDot.value = step > 0 ? Math.round(el.scrollLeft / step) : 0;
 }
 
 function scrollBy(direction: 1 | -1) {
-  const next = Math.max(0, Math.min(slideCount.value - 1, currentDot.value + direction))
-  scrollToIndex(next)
+  const next = Math.max(0, Math.min(slideCount.value - 1, currentDot.value + direction));
+  scrollToIndex(next);
 }
 
 function scrollToIndex(index: number) {
-  const el = scrollEl.value
-  if (!el) return
+  const el = scrollEl.value;
+  if (!el) return;
   // scrollLeft = i * step correctly centres slide i when peek padding is symmetric.
   // With scroll-snap-align: center and symmetric paddingLeft/paddingRight, the CSS
   // snap point for slide i IS i * step — no need for getBoundingClientRect.
-  el.scrollTo({ left: index * getScrollStep(), behavior: 'smooth' })
+  el.scrollTo({ left: index * getScrollStep(), behavior: "smooth" });
 }
 
 function updateContainerWidth() {
   // rootEl = article-flow element → used for slide sizing (column fractions)
-  if (rootEl.value) articleWidth.value = rootEl.value.clientWidth
+  if (rootEl.value) articleWidth.value = rootEl.value.clientWidth;
   // scrollEl = full-bleed 100vw container → used for centering padding
-  if (scrollEl.value) scrollContainerWidth.value = scrollEl.value.clientWidth
-  onScroll()
+  if (scrollEl.value) scrollContainerWidth.value = scrollEl.value.clientWidth;
+  onScroll();
 }
 
 function startAutoplay() {
-  stopAutoplay()
-  const seconds = parseInt(options.value.autoplay)
-  if (!seconds || isEditing) return
+  stopAutoplay();
+  const seconds = parseInt(options.value.autoplay);
+  if (!seconds || isEditing) return;
   autoplayTimer = setInterval(() => {
-    const next = currentDot.value + 1
-    scrollToIndex(next >= slideCount.value ? 0 : next)
-  }, seconds * 1000)
+    const next = currentDot.value + 1;
+    scrollToIndex(next >= slideCount.value ? 0 : next);
+  }, seconds * 1000);
 }
 
 function stopAutoplay() {
   if (autoplayTimer !== null) {
-    clearInterval(autoplayTimer)
-    autoplayTimer = null
+    clearInterval(autoplayTimer);
+    autoplayTimer = null;
   }
 }
 
-watch(() => options.value.autoplay, startAutoplay)
-watch(() => options.value.slideWidth, () => nextTick(updateContainerWidth))
-watch(() => options.value.peek, () => nextTick(updateContainerWidth))
+watch(() => options.value.autoplay, startAutoplay);
+watch(
+  () => options.value.slideWidth,
+  () => nextTick(updateContainerWidth),
+);
+watch(
+  () => options.value.peek,
+  () => nextTick(updateContainerWidth),
+);
 
 onMounted(() => {
-  updateContainerWidth()
-  startAutoplay()
-  if (typeof ResizeObserver !== 'undefined') {
-    resizeObserver = new ResizeObserver(updateContainerWidth)
+  updateContainerWidth();
+  startAutoplay();
+  if (typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver(updateContainerWidth);
     // rootEl tracks the article-column width (for slide sizing).
     // scrollEl tracks the full-bleed 100vw width (for centering padding).
     // Both must be observed: once the viewport exceeds the article max-width,
     // rootEl stops resizing so the observer would never fire for wider viewports.
-    if (rootEl.value) resizeObserver.observe(rootEl.value)
-    if (scrollEl.value) resizeObserver.observe(scrollEl.value)
+    if (rootEl.value) resizeObserver.observe(rootEl.value);
+    if (scrollEl.value) resizeObserver.observe(scrollEl.value);
   }
-})
+});
 
 onUnmounted(() => {
-  stopAutoplay()
-  resizeObserver?.disconnect()
-})
+  stopAutoplay();
+  resizeObserver?.disconnect();
+});
 </script>
 
 <style scoped>

@@ -6,11 +6,11 @@
         :name="inputName"
         type="checkbox"
         value="yes"
-        class="border-gray-300 checkbox checkbox-sm mt-1 shrink-0"
+        class="checkbox mt-1 shrink-0 border-gray-300 checkbox-sm"
         :required="isRequired"
         :disabled="isEditing"
       />
-      <label :for="inputId" class="text-gray-700 min-w-0 text-sm">
+      <label :for="inputId" class="min-w-0 text-sm text-gray-700">
         <span class="inline-flex min-w-0 items-start gap-1">
           <span class="min-w-0">
             <BlokkliField v-if="hasLabelBlocks || isEditing" name="label" :list="props.label || []" tag="span" />
@@ -24,7 +24,7 @@
     </div>
 
     <template v-else>
-      <label :for="inputId" class="text-gray-700 mb-1 block text-sm font-medium">
+      <label :for="inputId" class="mb-1 block text-sm font-medium text-gray-700">
         <span class="inline-flex min-w-0 items-start gap-1">
           <span class="min-w-0">
             <BlokkliField v-if="hasLabelBlocks || isEditing" name="label" :list="props.label || []" tag="span" />
@@ -42,7 +42,7 @@
         :name="inputName"
         rows="5"
         maxlength="5000"
-        class="textarea textarea-bordered w-full"
+        class="textarea w-full"
         :placeholder="placeholder"
         :required="isRequired"
         :disabled="isEditing"
@@ -52,7 +52,7 @@
         v-else-if="fieldType === 'select'"
         :id="inputId"
         :name="inputName"
-        class="select select-bordered w-full"
+        class="select w-full"
         :required="isRequired"
         :disabled="isEditing"
       >
@@ -66,7 +66,7 @@
         :name="inputName"
         :type="fieldType === 'email' ? 'email' : 'text'"
         maxlength="5000"
-        class="input input-bordered w-full"
+        class="input w-full"
         :placeholder="placeholder"
         :required="isRequired"
         :autocomplete="autocomplete || undefined"
@@ -80,13 +80,18 @@
 import type { FieldListItem } from "#blokkli/types";
 
 const props = defineProps<{
-  label?: FieldListItem[];
+  label?: FieldListItem[] | undefined;
 }>();
 
 const { $t } = useNuxtApp();
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing;
+
+const { options, uuid } = defineBlokkli({
   bundle: "form_field",
+  propsFieldMapping: {
+    label: { name: "label", type: "field" },
+  },
   options: {
     fieldType: {
       type: "radios",
@@ -147,30 +152,30 @@ const { options, isEditing, uuid } = defineBlokkli({
 });
 
 const fieldType = computed(() => {
-  const value = String((options.value as any)?.fieldType || "text");
+  const value = String(options.value.fieldType || "text");
   return ["text", "email", "textarea", "select", "checkbox"].includes(value) ? value : "text";
 });
 
-const isRequired = computed(() => (options.value as any)?.required === true);
-const placeholder = computed(() => String((options.value as any)?.placeholder || ""));
-const autocomplete = computed(() => String((options.value as any)?.autocomplete || "").trim());
+const isRequired = computed(() => options.value.required === true);
+const placeholder = computed(() => String(options.value.placeholder || ""));
+const autocomplete = computed(() => String(options.value.autocomplete || "").trim());
 const hasLabelBlocks = computed(() => Array.isArray(props.label) && props.label.length > 0);
 
 const choices = computed(() => {
-  return String((options.value as any)?.choices || "")
+  return String(options.value.choices || "")
     .split(/\r?\n/)
     .map((choice) => choice.trim())
     .filter(Boolean);
 });
 
 const inputName = computed(() => {
-  const configured = normalizeFieldName(String((options.value as any)?.fieldName || ""));
+  const configured = normalizeFieldName(String(options.value.fieldName || ""));
   return configured || `field_${uuid.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12)}`;
 });
 
 const inputId = computed(() => `form-field-${inputName.value}-${uuid}`);
 
-const widthClass = computed(() => ((options.value as any)?.width === "half" ? "sm:col-span-6" : "sm:col-span-12"));
+const widthClass = computed(() => (options.value.width === "half" ? "sm:col-span-6" : "sm:col-span-12"));
 
 function normalizeFieldName(value: string) {
   return value

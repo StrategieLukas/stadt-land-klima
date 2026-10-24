@@ -3,11 +3,11 @@
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center gap-2 py-12">
       <SlkFlowerSpinner :size="28" />
-      <span class="text-gray-500 text-sm">Daten werden geladen…</span>
+      <span class="text-sm text-gray-500">Daten werden geladen…</span>
     </div>
 
     <!-- Error -->
-    <div v-else-if="error" class="text-gray-400 px-4 py-8 text-center text-sm">
+    <div v-else-if="error" class="px-4 py-8 text-center text-sm text-gray-400">
       Für diese Kommune sind noch keine Daten vorhanden.
     </div>
 
@@ -15,27 +15,23 @@
       <!-- Row 1: KPI + Histogram -->
       <div v-if="kpiElement || histogramElements.length" class="mb-6 grid grid-cols-2 gap-4">
         <!-- KPI card -->
-        <div v-if="kpiElement" class="bg-gray-50 flex flex-col justify-center rounded-xl p-4">
-          <div class="text-4xl font-black tabular-nums leading-none" :style="{ color: kpiColor }">
+        <div v-if="kpiElement" class="flex flex-col justify-center rounded-xl bg-gray-50 p-4">
+          <div class="text-4xl leading-none font-black tabular-nums" :style="{ color: kpiColor }">
             {{ kpiDisplayValue }}
           </div>
-          <div v-if="kpiUnit" class="text-gray-500 mt-1 text-xs">
+          <div v-if="kpiUnit" class="mt-1 text-xs text-gray-500">
             {{ kpiUnit }}
             <template v-if="kpiElement.population_normalized"> / 1 000 Einw.</template>
           </div>
-          <div v-if="kpiLabel" class="text-gray-400 mt-1 text-xs leading-snug">
+          <div v-if="kpiLabel" class="mt-1 text-xs leading-snug text-gray-400">
             {{ kpiLabel }}
           </div>
         </div>
 
         <!-- Histograms (all of them) -->
         <template v-if="histogramElements.length">
-          <div
-            v-for="hist in histogramElements"
-            :key="hist.field ?? hist.label ?? hist.vegalite_spec"
-            class="min-h-[180px]"
-          >
-            <h4 class="text-gray-500 mb-2 text-xs font-semibold uppercase tracking-wide">Verteilung (alle Kommunen)</h4>
+          <div v-for="hist in histogramElements" :key="hist.plot_id" class="min-h-[180px]">
+            <h4 class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">Verteilung (alle Kommunen)</h4>
             <ClientOnly>
               <VegaChart
                 :spec="hist.vegalite_spec"
@@ -102,13 +98,13 @@
 
       <!-- Pipeline -->
       <div v-if="pipeline?.pipeline_steps?.length" class="mt-6">
-        <details class="border-gray-200 group rounded border">
+        <details class="group rounded-sm border border-gray-200">
           <summary
-            class="bg-gray-50 hover:bg-gray-100 flex cursor-pointer select-none items-center justify-between rounded px-4 py-3 transition-colors"
+            class="flex cursor-pointer items-center justify-between rounded-sm bg-gray-50 px-4 py-3 transition-colors select-none hover:bg-gray-100"
           >
-            <span class="text-gray-700 text-sm font-semibold">Datenpipeline</span>
+            <span class="text-sm font-semibold text-gray-700">Datenpipeline</span>
             <svg
-              class="text-gray-400 h-4 w-4 transition-transform group-open:rotate-180"
+              class="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -116,23 +112,23 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </summary>
-          <div class="space-y-3 px-4 pb-4 pt-2">
+          <div class="space-y-3 px-4 pt-2 pb-4">
             <div
               v-for="(step, idx) in pipeline.pipeline_steps"
-              :key="step.asset_key || idx"
+              :key="typeof step.asset_key === 'string' ? step.asset_key : idx"
               class="flex items-start gap-3"
             >
               <div
-                class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#006e94]/10 text-xs font-bold text-[#006e94]"
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#006e94]/10 text-xs font-bold text-[#006e94]"
               >
                 {{ idx + 1 }}
               </div>
               <div class="min-w-0">
-                <p class="text-gray-800 break-all font-mono text-sm">{{ step.asset_key }}</p>
-                <p v-if="step.last_materialized" class="text-gray-400 mt-0.5 text-xs">
+                <p class="font-mono text-sm break-all text-gray-800">{{ step.asset_key }}</p>
+                <p v-if="step.last_materialized" class="mt-0.5 text-xs text-gray-400">
                   Zuletzt aktualisiert: {{ formatDate(step.last_materialized) }}
                 </p>
-                <p v-if="step.description" class="text-gray-500 mt-0.5 text-xs">
+                <p v-if="step.description" class="mt-0.5 text-xs text-gray-500">
                   {{ step.description }}
                 </p>
               </div>
@@ -142,20 +138,28 @@
       </div>
 
       <!-- Description -->
-      <div v-if="collectionDescription" class="text-gray-600 mt-4 text-sm leading-relaxed">
+      <div v-if="collectionDescription" class="mt-4 text-sm leading-relaxed text-gray-600">
         {{ collectionDescription }}
       </div>
     </template>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { z } from "zod";
+import { SummarySchema, PipelineSchema } from "~/shared/contracts/slz";
+import { cloneVisualization, asRecord } from "~/shared/visualization";
+import type { PropType } from "vue";
+import type { Collection } from "~/types/slz-api";
+import type { GeoJsonObject } from "geojson";
+import type { Area } from "~/shared/contracts/search";
+
 import { ref, computed, watch } from "vue";
 import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
 const props = defineProps({
   collection: {
-    type: Object,
+    type: Object as PropType<Collection>,
     required: true,
   },
   ars: {
@@ -163,7 +167,7 @@ const props = defineProps({
     required: true,
   },
   municipalityName: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   baseUrl: {
@@ -171,37 +175,37 @@ const props = defineProps({
     required: true,
   },
   population: {
-    type: Number,
+    type: Number as PropType<number | null | undefined>,
     default: null,
   },
   exportUpdatedAt: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   exportAttribution: {
-    type: String,
+    type: String as PropType<string | undefined>,
     default: "",
   },
   // Legacy props kept for compatibility with existing call sites
-  areaBoundary: { type: Object, default: null },
-  nearbyAreas: { type: Array, default: () => [] },
-  hideMap: { type: Boolean, default: false },
+  areaBoundary: { type: Object as PropType<GeoJsonObject | null | undefined>, default: null },
+  nearbyAreas: { type: Array as PropType<Area[] | undefined>, default: () => [] },
+  hideMap: { type: Boolean as PropType<boolean | undefined>, default: false },
 });
 
 // State
 const loading = ref(false);
 const error = ref(false);
-const summary = ref(null);
-const pipeline = ref(null);
+const summary = ref<z.infer<typeof SummarySchema> | null>(null);
+const pipeline = ref<z.infer<typeof PipelineSchema> | null>(null);
 
 // Render element grouping
 const renderElements = computed(() => props.collection?.render_elements ?? []);
 
 const kpiElement = computed(() => renderElements.value.find((e) => e.type === "kpi") ?? null);
 
-function localizedStr(obj) {
+function localizedStr(obj: Record<string, string> | null | undefined) {
   if (!obj) return "";
-  return obj["de-DE"] || obj["en-US"] || "";
+  return obj["de-DE"] || "";
 }
 
 const kpiUnit = computed(() => localizedStr(kpiElement.value?.unit));
@@ -220,7 +224,7 @@ const timeSeriesElements = computed(() =>
 );
 
 // Map spec composition
-function injectAreaParam(url, ars) {
+function injectAreaParam(url: string, ars: string) {
   try {
     const u = new URL(url);
     u.searchParams.set("area", ars);
@@ -232,9 +236,10 @@ function injectAreaParam(url, ars) {
   }
 }
 
-function cloneWithArea(spec, ars) {
-  const s = JSON.parse(JSON.stringify(spec));
-  if (s.data?.url) s.data.url = injectAreaParam(s.data.url, ars);
+function cloneWithArea(spec: unknown, ars: string) {
+  const s = cloneVisualization(spec);
+  const data = asRecord(s.data);
+  if (typeof data?.url === "string") data.url = injectAreaParam(data.url, ars);
   return s;
 }
 
@@ -250,7 +255,7 @@ const combinedMapSpec = computed(() => {
   if (aggCount !== null && aggCount <= 1) return null;
 
   if (els.length === 1) {
-    return cloneWithArea(els[0].vegalite_spec, props.ars);
+    return cloneWithArea(els[0]!.vegalite_spec, props.ars);
   }
 
   const layers = els.map((el) => {
@@ -263,7 +268,7 @@ const combinedMapSpec = computed(() => {
     };
   });
 
-  const base = els[0].vegalite_spec;
+  const base = cloneVisualization(els[0]!.vegalite_spec);
   return {
     $schema: base.$schema ?? "https://vega.github.io/schema/vega-lite/v5.json",
     width: "container",
@@ -278,13 +283,13 @@ const kpiRawValue = computed(() => {
   if (!kpiElement.value || !summary.value?.aggregate) return null;
   const field = kpiElement.value.field;
   const agg = summary.value.aggregate;
-  return typeof agg[field] === "number" ? agg[field] : null;
+  return field && typeof agg[field] === "number" ? agg[field] : null;
 });
 
 const kpiValue = computed(() => {
   const raw = kpiRawValue.value;
   if (raw === null) return null;
-  if (kpiElement.value.population_normalized && props.population) {
+  if (kpiElement.value?.population_normalized && props.population) {
     return (raw / props.population) * 1000;
   }
   return raw;
@@ -335,16 +340,16 @@ async function loadData() {
     ]);
 
     if (summaryResult.status === "fulfilled") {
-      summary.value = summaryResult.value;
+      summary.value = SummarySchema.parse(summaryResult.value);
     }
     if (pipelineResult.status === "fulfilled") {
-      pipeline.value = pipelineResult.value;
+      pipeline.value = PipelineSchema.parse(pipelineResult.value);
     }
 
     if (renderElements.value.length > 0 && !summary.value) {
       error.value = true;
     }
-  } catch (_) {
+  } catch {
     error.value = true;
   } finally {
     loading.value = false;
@@ -362,7 +367,7 @@ watch(
 );
 
 // Formatting
-function formatDate(iso) {
+function formatDate(iso: string | undefined) {
   if (!iso) return "";
   try {
     return new Date(iso).toLocaleDateString("de-DE", {
@@ -370,7 +375,7 @@ function formatDate(iso) {
       month: "2-digit",
       year: "numeric",
     });
-  } catch (_) {
+  } catch {
     return iso;
   }
 }

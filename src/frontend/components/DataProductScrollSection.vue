@@ -1,17 +1,17 @@
 <template>
   <section
-    ref="sectionRef"
     :id="collection.id"
+    ref="sectionRef"
     :data-collection-id="collection.id"
     :data-sector-key="sectorKeyValue"
-    class="border-gray-100 overflow-visible border-t pb-6 pt-10"
+    class="overflow-visible border-t border-gray-100 pt-10 pb-6"
     :style="`scroll-margin-top: ${scrollMarginTop}px`"
   >
-    <div class="border-gray-200 overflow-hidden rounded-lg border bg-white shadow-sm">
+    <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs">
       <div
         class="grid min-h-[900px] overflow-hidden sm:min-h-[820px] xl:min-h-[540px] xl:grid-cols-12 xl:items-stretch"
       >
-        <div class="border-gray-200 flex min-h-0 flex-col overflow-hidden xl:col-span-5 xl:border-r">
+        <div class="flex min-h-0 flex-col overflow-hidden border-gray-200 xl:col-span-5 xl:border-r">
           <div
             class="group/cover relative flex min-h-[340px] flex-1 flex-col justify-end overflow-hidden bg-white xl:min-h-0"
           >
@@ -24,7 +24,7 @@
             />
             <span
               v-if="coverImageUrl && coverImageAttribution"
-              class="pointer-events-none absolute right-2 top-2 z-[1] max-w-[calc(100%-1rem)] truncate rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover/cover:opacity-100"
+              class="pointer-events-none absolute top-2 right-2 z-1 max-w-[calc(100%-1rem)] truncate rounded-sm bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 opacity-0 transition-opacity group-hover/cover:opacity-100 focus-within:opacity-100"
               :title="coverImageAttribution"
             >
               {{ coverImageAttribution }}
@@ -40,21 +40,21 @@
                 :style="{ color }"
               />
             </div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+            <div class="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent" />
             <div class="relative p-5 lg:p-6">
               <span
-                class="mb-3 inline-flex max-w-full items-center rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm"
+                class="mb-3 inline-flex max-w-full items-center rounded-full px-2.5 py-1 text-[11px] font-bold tracking-wide text-white uppercase shadow-xs"
                 :style="{ backgroundColor: color }"
               >
                 {{ sector }}
               </span>
-              <h2 class="text-3xl font-black leading-none text-white sm:text-4xl lg:text-5xl">
+              <h2 class="text-3xl leading-none font-black text-white sm:text-4xl lg:text-5xl">
                 {{ title }}
               </h2>
             </div>
           </div>
 
-          <div class="border-gray-200 flex-none border-t">
+          <div class="flex-none border-t border-gray-200">
             <KPICard
               v-if="kpi"
               :element="kpi"
@@ -64,7 +64,7 @@
               :population="population"
               flush
             />
-            <p v-else-if="description" class="text-gray-600 text-sm leading-relaxed">
+            <p v-else-if="description" class="text-sm leading-relaxed text-gray-600">
               {{ description }}
             </p>
           </div>
@@ -72,15 +72,15 @@
 
         <div class="min-h-[380px] sm:min-h-[480px] xl:col-span-7 xl:min-h-0">
           <div class="flex h-full flex-col overflow-hidden bg-white">
-            <div v-if="primaryVisual" class="border-gray-100 flex-none border-b px-4 py-2.5">
-              <p class="text-gray-900 text-sm font-bold leading-snug">{{ primaryVisualTitle }}</p>
-              <p v-if="primaryVisualSubtitle" class="text-gray-500 mt-1 line-clamp-2 text-xs leading-relaxed">
+            <div v-if="primaryVisual" class="flex-none border-b border-gray-100 px-4 py-2.5">
+              <p class="text-sm leading-snug font-bold text-gray-900">{{ primaryVisualTitle }}</p>
+              <p v-if="primaryVisualSubtitle" class="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">
                 {{ primaryVisualSubtitle }}
               </p>
             </div>
             <div
               v-if="renderLoading && !hasLoaded"
-              class="text-gray-500 flex min-h-0 flex-1 items-center justify-center gap-2 text-sm"
+              class="flex min-h-0 flex-1 items-center justify-center gap-2 text-sm text-gray-500"
             >
               <SlkFlowerSpinner :size="24" />
               Datenprodukt wird geladen…
@@ -121,14 +121,14 @@
               :collection-slug="collection.id"
               :base-url="baseUrl"
             />
-            <div v-else class="text-gray-400 bg-gray-50 flex min-h-0 flex-1 items-center justify-center text-sm">
+            <div v-else class="flex min-h-0 flex-1 items-center justify-center bg-gray-50 text-sm text-gray-400">
               Keine Kartenvisualisierung verfügbar.
             </div>
           </div>
         </div>
       </div>
 
-      <div class="border-gray-200 border-t p-4">
+      <div class="border-t border-gray-200 p-4">
         <DataProductJourneyCarousel
           v-if="hasLoaded && journeySteps.length"
           :steps="journeySteps"
@@ -141,39 +141,39 @@
           :export-attribution="exportAttribution"
         />
 
-        <div v-else-if="renderError" class="text-gray-400 text-sm">
+        <div v-else-if="renderError" class="text-sm text-gray-400">
           Weitere Visualisierungen konnten nicht geladen werden.
         </div>
 
         <div v-else>
           <div class="mb-3 flex items-center justify-between gap-3">
-            <div class="bg-gray-100 h-4 w-24 animate-pulse rounded" />
+            <div class="h-4 w-24 animate-pulse rounded-sm bg-gray-100" />
             <div class="flex items-center gap-2">
-              <div class="bg-gray-100 h-6 w-20 animate-pulse rounded" />
-              <div class="bg-gray-100 h-6 w-6 animate-pulse rounded" />
-              <div class="bg-gray-100 h-6 w-6 animate-pulse rounded" />
+              <div class="h-6 w-20 animate-pulse rounded-sm bg-gray-100" />
+              <div class="h-6 w-6 animate-pulse rounded-sm bg-gray-100" />
+              <div class="h-6 w-6 animate-pulse rounded-sm bg-gray-100" />
             </div>
           </div>
           <div class="grid gap-4 lg:grid-cols-2">
-            <div class="border-gray-100 overflow-hidden rounded-lg border bg-white">
-              <div class="border-gray-100 border-b p-4">
-                <div class="bg-gray-100 h-4 w-2/3 animate-pulse rounded" />
-                <div class="bg-gray-100 mt-2 h-3 w-4/5 animate-pulse rounded" />
+            <div class="overflow-hidden rounded-lg border border-gray-100 bg-white">
+              <div class="border-b border-gray-100 p-4">
+                <div class="h-4 w-2/3 animate-pulse rounded-sm bg-gray-100" />
+                <div class="mt-2 h-3 w-4/5 animate-pulse rounded-sm bg-gray-100" />
               </div>
-              <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
+              <div class="m-3 h-[220px] animate-pulse rounded-sm bg-gray-50" />
             </div>
-            <div class="border-gray-100 hidden overflow-hidden rounded-lg border bg-white lg:block">
-              <div class="border-gray-100 border-b p-4">
-                <div class="bg-gray-100 h-4 w-1/2 animate-pulse rounded" />
-                <div class="bg-gray-100 mt-2 h-3 w-3/4 animate-pulse rounded" />
+            <div class="hidden overflow-hidden rounded-lg border border-gray-100 bg-white lg:block">
+              <div class="border-b border-gray-100 p-4">
+                <div class="h-4 w-1/2 animate-pulse rounded-sm bg-gray-100" />
+                <div class="mt-2 h-3 w-3/4 animate-pulse rounded-sm bg-gray-100" />
               </div>
-              <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
+              <div class="m-3 h-[220px] animate-pulse rounded-sm bg-gray-50" />
             </div>
           </div>
         </div>
       </div>
 
-      <div class="border-gray-200 border-t p-4">
+      <div class="border-t border-gray-200 p-4">
         <AttributionBlock
           :summary="collectionSummary?.aggregate ?? null"
           :sources="collectionSummary?.source_attributions ?? collectionSummary?.sourceAttributions ?? []"
@@ -207,9 +207,9 @@ const props = defineProps<{
   collection: Collection;
   ars: string;
   baseUrl: string;
-  population?: number | null;
+  population?: number | null | undefined;
   scrollMarginTop: number;
-  areaName?: string;
+  areaName?: string | undefined;
 }>();
 
 const sectionRef = ref<HTMLElement | null>(null);
@@ -301,7 +301,7 @@ async function loadSectionData() {
       collectionDetails.value = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`, {
         timeout: 8000,
       }).then((data) => normalizeCollection(data));
-    } catch (_) {
+    } catch {
       collectionDetails.value = null;
     }
   } finally {
@@ -314,20 +314,20 @@ async function loadSectionData() {
       `${props.baseUrl}/api/collections/${props.collection.id}/summary/`,
       { params: { area: props.ars } },
     );
-  } catch (_) {
+  } catch {
     collectionSummary.value = null;
   }
 }
 
 onMounted(() => {
   if (!sectionRef.value || typeof IntersectionObserver === "undefined") {
-    loadSectionData();
+    void loadSectionData();
     return;
   }
   observer = new IntersectionObserver(
     (entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
-        loadSectionData();
+        void loadSectionData();
         observer?.disconnect();
         observer = null;
       }

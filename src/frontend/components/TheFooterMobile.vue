@@ -1,46 +1,48 @@
 <template>
   <!-- Social Media & Onboarding Section -->
   <div class="w-full bg-gray-100">
-  <div class="max-w-screen-xl mx-auto text-center py-8">
-    <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
-      <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
-    </NuxtLink>
-    <p class="mb-4">
-      {{ $t("generic.social_media.support_by_sharing") }}
-    </p>
-    <div class="flex items-center justify-center gap-6">
-      <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
-        <img src="~/assets/icons/icon_instagram.svg" alt="Instagram" class="h-12 w-12" />
-      </a>
-      <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" aria-label="LinkedIn">
-        <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
-      </a>
+    <div class="mx-auto max-w-(--breakpoint-xl) py-8 text-center">
+      <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
+        <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
+      </NuxtLink>
+      <p class="mb-4">
+        {{ $t("generic.social_media.support_by_sharing") }}
+      </p>
+      <div class="flex items-center justify-center gap-6">
+        <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
+          <img src="~/assets/icons/icon_instagram.svg" alt="Instagram" class="h-12 w-12" />
+        </a>
+        <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" aria-label="LinkedIn">
+          <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
+        </a>
+      </div>
+      <div class="mt-4 flex items-center justify-center gap-6">
+        <a href="https://whatsapp.com/channel/0029Vb8RAti2v1Ix7Yz7OM0a" target="_blank" aria-label="WhatsApp">
+          <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
+        </a>
+        <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
+          <img src="~/assets/icons/icon_telegram.svg" alt="Telegram" class="h-12 w-12" />
+        </a>
+        <a
+          href="https://signal.group/#CjQKIPtaXcn_-6q29ufg9BBFvz0figXXqFc1H-1CddW5rkjUEhCWGjAx0p2QVVrDx4zlURBA"
+          target="_blank"
+          aria-label="Signal"
+        >
+          <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
+        </a>
+      </div>
     </div>
-    <div class="mt-4 flex items-center justify-center gap-6">
-      <a href="https://whatsapp.com/channel/0029Vb8RAti2v1Ix7Yz7OM0a" target="_blank" aria-label="WhatsApp">
-        <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
-      </a>
-      <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
-        <img src="~/assets/icons/icon_telegram.svg" alt="Telegram" class="h-12 w-12" />
-      </a>
-      <a
-        href="https://signal.group/#CjQKIPtaXcn_-6q29ufg9BBFvz0figXXqFc1H-1CddW5rkjUEhCWGjAx0p2QVVrDx4zlURBA"
-        target="_blank"
-        aria-label="Signal"
-      >
-        <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
-      </a>
-    </div>
-  </div>
   </div>
 
   <!-- Main Footer -->
-  <footer class="footer-vertical footer relative isolate overflow-hidden bg-olive-green p-6 pb-[84px] text-white sm:pb-6">
+  <footer
+    class="relative isolate footer footer-vertical overflow-hidden bg-olive-green p-6 pb-[84px] text-white sm:pb-6"
+  >
     <img
       src="~/assets/images/Stadt-Land-Klima-Blume.svg"
       alt=""
       aria-hidden="true"
-      class="pointer-events-none absolute left-1/2 top-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 select-none brightness-0 invert opacity-[0.08]"
+      class="pointer-events-none absolute top-1/2 left-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.08] brightness-0 invert select-none"
     />
 
     <!-- Newsletter Signup -->
@@ -48,7 +50,7 @@
       <h3 class="mb-0.5 text-base font-bold">Newsletter</h3>
       <p class="mb-3 text-sm text-rating-4-very-light">{{ $t("newsletter.footer.description") }}</p>
       <div v-if="newsletterState === 'success'" class="flex items-center gap-2 text-sm font-medium">
-        <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path
             fill-rule="evenodd"
             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -63,38 +65,38 @@
           type="email"
           autocomplete="email"
           :placeholder="$t('newsletter.email.placeholder')"
-          class="placeholder-gray-600 w-full min-w-0 rounded-md px-3 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-white"
+          class="w-full min-w-0 rounded-md px-3 py-2 text-sm text-black placeholder-gray-600 focus:ring-2 focus:ring-white focus:outline-hidden"
           @keydown.enter.prevent="subscribeNewsletter"
         />
         <CanonicalButton
           :label="newsletterState === 'subscribing' ? '\u2026' : $t('newsletter.subscribe')"
           icon-slug="icon_newsletter_click"
           color="green"
-          class="w-full flex-shrink-0"
+          class="w-full shrink-0"
           :disabled="newsletterState === 'subscribing'"
           @click="subscribeNewsletter"
         />
       </div>
-      <p v-if="newsletterError" class="text-red-300 mt-1 text-xs">{{ newsletterError }}</p>
+      <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
     </div>
 
     <!-- Navigation Links: footer_columns -->
-    <div v-if="footerColumnsData.length > 0" class="relative z-10 mb-8 !block w-full">
+    <div v-if="footerColumnsData.length > 0" class="relative z-10 mb-8 block! w-full">
       <div class="grid grid-cols-1 gap-4 xs:grid-cols-2 xs:gap-6">
         <nav v-for="col in footerColumnsData" :key="col.id" class="flex flex-col gap-2">
           <h6 class="footer-title mb-2 text-sm font-bold text-white opacity-100">
             {{ navTitle(col) }}
           </h6>
           <template v-for="link in col.links" :key="link.id">
-            <NuxtLink v-if="link.link_type === 'page'" :to="'/' + link.page_slug" class="link-hover link text-sm">{{
+            <NuxtLink v-if="link.link_type === 'page'" :to="'/' + link.page_slug" class="link text-sm link-hover">{{
               navLabel(link)
             }}</NuxtLink>
             <a
               v-else
-              :href="link.external_url"
+              :href="link.external_url ?? undefined"
               :target="link.open_new_tab ? '_blank' : undefined"
               rel="noopener noreferrer"
-              class="link-hover link text-sm"
+              class="link text-sm link-hover"
               >{{ navLabel(link) }}</a
             >
           </template>
@@ -109,7 +111,7 @@
 
     <!-- Bottom Section: Logo, Buttons, Copyright -->
     <div class="relative z-10 flex w-full flex-col gap-6">
-      <div class="flex w-full flex-col items-center gap-4 pb-4 pt-2">
+      <div class="flex w-full flex-col items-center gap-4 pt-2 pb-4">
         <!-- Logo -->
         <NuxtLink to="/" class="flex justify-center">
           <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-16 w-auto dark:hidden" :alt="$t('logo.alt')" />
@@ -147,28 +149,32 @@
       </div>
     </div>
 
-    <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
+    <AuthLoginModal :is-open="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
   </footer>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { requestErrorMessage } from "~/shared/requestError";
+import type { PropType } from "vue";
+import type { NavigationItem } from "~/types/components/navigation";
+
 import { ref, computed, onMounted } from "vue";
 import DonateButton from "~/components/DonateButton.vue";
 import LoginButton from "~/components/LoginButton.vue";
 import AuthLoginModal from "~/components/AuthLoginModal.vue";
 import { useAuth } from "~/composables/useAuth";
-import translatedNavigationLabel from "~/shared/translatedNavigationLabel.js";
+import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 
-const { $t } = useNuxtApp();
+const { $translateDynamic, $t } = useNuxtApp();
 const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
 const route = useRoute();
-const navLabel = (item) => translatedNavigationLabel(item, $t);
-const navTitle = (item) => translatedNavigationLabel(item, $t, "title");
+const navLabel = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic);
+const navTitle = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "title");
 
 const props = defineProps({
   navItems: {
-    type: Array,
+    type: Array as PropType<NavigationItem[] | undefined>,
     default: () => [],
   },
 });
@@ -195,7 +201,7 @@ async function subscribeNewsletter() {
     newsletterState.value = "success";
   } catch (err) {
     newsletterState.value = "idle";
-    newsletterError.value = err?.data?.message ?? $t("newsletter.subscribe_failed");
+    newsletterError.value = requestErrorMessage(err, $t("newsletter.subscribe_failed"));
   }
 }
 
@@ -213,7 +219,7 @@ async function handleLogout() {
 }
 
 onMounted(() => {
-  initialize();
+  void initialize();
 });
 
 // Show onboarding link when not on home or mitmachen pages

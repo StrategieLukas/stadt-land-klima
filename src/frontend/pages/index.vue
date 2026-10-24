@@ -9,81 +9,68 @@
       :entity="page"
     >
       <template #default="{ isEditing }">
-        <article class="px-4 pb-8 max-w-4xl mx-auto w-full self-center">
+        <article class="mx-auto w-full max-w-4xl self-center px-4 pb-8">
           <!-- blökkli field: renders blocks when available -->
-          <BlokkliField
-            name="content"
-            :list="pageBlocks"
-          />
+          <BlokkliField name="content" :list="pageBlocks" />
 
           <!-- Fallback: render legacy HTML when no blocks and not editing -->
           <div
             v-if="!isEditing && pageBlocks.length === 0 && page.contents"
             class="prose"
-            v-html="page.contents"
+            v-html="sanitizeHtml(sanitizedContents)"
           />
         </article>
       </template>
     </BlokkliPageProvider>
-    <p v-else class="prose px-4 py-8 max-w-4xl mx-auto w-full self-center">
+    <p v-else class="mx-auto prose w-full max-w-4xl self-center px-4 py-8">
       {{ $t("page_not_found") }}
     </p>
   </div>
 </template>
-<script setup>
-import { readItems } from '@directus/sdk'
-import { useAuth } from '~/composables/useAuth'
-import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
-const { $directus, $readItems, $t } = useNuxtApp();
+<script setup lang="ts">
+import { useAuth } from "~/composables/useAuth";
+import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const { $t } = useNuxtApp();
 const { isAuthenticated, initialize } = useAuth();
-useBlockHashNavigation()
-const canEdit = ref(false)
+useBlockHashNavigation();
+const canEdit = ref(false);
 onMounted(() => {
-  initialize()
-  watchEffect(() => { canEdit.value = isAuthenticated.value })
-})
-
-const { data: indexPages } = await useAsyncData("indexPages", () => {
-  return $directus.request(
-    $readItems("pages", {
-      filter: { slug: { _eq: "index" } },
-      limit: 1,
-    }),
-  );
+  void initialize();
+  watchEffect(() => {
+    canEdit.value = isAuthenticated.value;
+  });
 });
-const page = computed(() => indexPages.value?.[0] || null);
 
-const blocksKey = getBlokkliDataKey('pages', String(page.value?.id || 'missing'))
+const { data: indexPageResult } = await useAsyncData("indexPage", () => {
+  return $fetch("/api/public/pages/index");
+});
+const page = computed(() => indexPageResult.value?.page || null);
+
+const blocksKey = getBlokkliDataKey("pages", String(page.value?.id || "missing"));
 
 // Load blocks by the immutable page ID. Slugs are routing labels and may change.
 const { data: blocksData } = await useAsyncData(
   blocksKey,
   async () => {
-    if (!page.value) return []
+    if (!page.value) return [];
     try {
-      const blocks = await $directus.request(
-        readItems('blocks', {
-          filter: {
-            entity_type: { _eq: 'pages' },
-            entity_uuid: { _eq: page.value.id },
-            field_name: { _eq: 'content' },
-            status: { _neq: 'archived' },
-          },
-          sort: ['sort_order'],
-        })
-      )
-      return mapBlokkliBlocks(blocks)
+      const result = await $fetch("/api/public/blocks", {
+        query: { entityUuid: page.value.id, bundle: "page" },
+      });
+      return mapBlokkliBlocks(result.blocks || []);
     } catch (error) {
-      console.error('[blokkli] Failed to load page blocks:', error)
-      throw error
+      console.error("[blokkli] Failed to load page blocks:", error);
+      throw error;
     }
   },
-  { watch: [page] }
-)
-const pageBlocks = computed(() => blocksData.value || [])
+  { watch: [page] },
+);
+const pageBlocks = computed(() => blocksData.value || []);
+const sanitizedContents = computed(() => sanitizeHtml(page.value?.contents));
 
 //MetaTags
-const title = computed(() => page.value ? page.value.name : $t("page_not_found"));
+const title = computed(() => (page.value ? page.value.name : $t("page_not_found")));
 
 //MetaTags
 useHead({

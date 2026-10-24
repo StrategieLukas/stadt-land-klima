@@ -15,7 +15,7 @@ services:
   cache:
     image: redis:8.10.2-alpine
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -45,6 +45,11 @@ services:
       DB_OPTIONS: "-c timezone=Europe/Berlin"
       # Published Blökkli content must not remain stale until the cache TTL expires.
       CACHE_AUTO_PURGE: "true"
+      # Pinned 11.17.4 has share-cache and resumable-upload advisories.
+      # Redis remains enabled for sessions, rate limits and synchronization.
+      CACHE_ENABLED: "false"
+      TUS_ENABLED: "false"
+      ASSETS_TRANSFORM_MAX_CONCURRENT: "${SLK_ASSET_TRANSFORM_CONCURRENCY:-8}"
     volumes:
       - ./src/directus/uploads:/directus/uploads
       - ./src/directus/dashboards/:/directus/dashboards
@@ -77,10 +82,11 @@ services:
         - "GID=${GID:-1000}"
     volumes:
       - ./src/frontend:/frontend
+      - ./src/directus/translations:/directus/translations:ro
     env_file:
       - ./src/frontend/.env
       - ./docker/meilisearch/.env
     networks:
       - default
     depends_on:
-    - directus
+      - directus

@@ -3,7 +3,7 @@
     <iframe
       :src="widgetUrl"
       :title="$t('donate.widget.iframe_title')"
-      class="block w-full rounded-md border border-solid-gray-20 bg-white shadow-sm"
+      class="block w-full rounded-md border border-solid-gray-20 bg-white shadow-xs"
       :height="height"
       loading="lazy"
       referrerpolicy="strict-origin-when-cross-origin"
@@ -13,7 +13,7 @@
       </a>
     </iframe>
 
-    <p class="mt-3 text-sm text-gray-500 dark:text-[var(--slk-text-muted)]">
+    <p class="mt-3 text-sm text-gray-500 dark:text-(--slk-text-muted)">
       <a
         :href="BETTERPLACE_PROJECT_URL"
         target="_blank"
@@ -31,7 +31,7 @@ import { BETTERPLACE_PROJECT_URL, getBetterplaceWidgetUrl } from "~/shared/donat
 
 const props = withDefaults(
   defineProps<{
-    height?: number;
+    height?: number | undefined;
   }>(),
   {
     height: 320,

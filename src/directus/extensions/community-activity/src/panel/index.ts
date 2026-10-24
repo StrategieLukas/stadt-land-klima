@@ -5,8 +5,7 @@ export default definePanel({
   id: "community-activity",
   name: "Lokalteam-Betreuung",
   icon: "monitoring",
-  description:
-    "Zeigt Lokalteam-Aktivität, Stillstand, auffällige Muster und Katalogübernahme.",
+  description: "Zeigt Lokalteam-Aktivität, Stillstand, auffällige Muster und Katalogübernahme.",
   component: PanelComponent,
   options: [
     {

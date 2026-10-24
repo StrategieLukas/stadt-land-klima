@@ -22,8 +22,12 @@ function replaceTag(element: HTMLElement, tagName: "strong" | "em"): void {
 }
 
 function normalizeSemanticMarkup(editable: HTMLElement): void {
-  editable.querySelectorAll<HTMLElement>("b").forEach((element) => replaceTag(element, "strong"));
-  editable.querySelectorAll<HTMLElement>("i").forEach((element) => replaceTag(element, "em"));
+  editable.querySelectorAll<HTMLElement>("b").forEach((element) => {
+    replaceTag(element, "strong");
+  });
+  editable.querySelectorAll<HTMLElement>("i").forEach((element) => {
+    replaceTag(element, "em");
+  });
 }
 
 function dispatchInput(editable: HTMLElement): void {
@@ -34,6 +38,7 @@ function dispatchInput(editable: HTMLElement): void {
 function runCommand(editable: HTMLElement, savedRange: Range | null, command: RichTextCommand): void {
   editable.focus();
   restoreSelection(savedRange);
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Native editing undo history still requires execCommand; Range mutations break editor undo.
   document.execCommand(command, false);
   dispatchInput(editable);
 }
@@ -86,7 +91,9 @@ export default defineNuxtPlugin((nuxtApp) => {
     button.title = label;
     button.setAttribute("aria-label", label);
     button.innerHTML = content;
-    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+    });
     button.addEventListener("click", (event) => {
       event.preventDefault();
       onActivate();
@@ -113,17 +120,19 @@ export default defineNuxtPlugin((nuxtApp) => {
     editable.addEventListener("mouseup", rememberSelection);
     editable.addEventListener("focus", rememberSelection);
 
-    addButton(toolbar, translate("blokkli.rich_text.bold"), "<strong>B</strong>", () =>
-      runCommand(editable, savedRange, "bold"),
-    );
-    addButton(toolbar, translate("blokkli.rich_text.italic"), "<em>I</em>", () =>
-      runCommand(editable, savedRange, "italic"),
-    );
+    addButton(toolbar, translate("blokkli.rich_text.bold"), "<strong>B</strong>", () => {
+      runCommand(editable, savedRange, "bold");
+    });
+    addButton(toolbar, translate("blokkli.rich_text.italic"), "<em>I</em>", () => {
+      runCommand(editable, savedRange, "italic");
+    });
     addButton(
       toolbar,
       translate("blokkli.rich_text.light"),
       '<span class="slk-rich-text-toolbar__light">L</span>',
-      () => toggleLightText(editable, savedRange),
+      () => {
+        toggleLightText(editable, savedRange);
+      },
     );
     addButton(toolbar, translate("blokkli.rich_text.link"), "&#128279;", () => {
       restoreSelection(savedRange);
@@ -133,15 +142,21 @@ export default defineNuxtPlugin((nuxtApp) => {
       if (!link) return;
       editable.focus();
       restoreSelection(savedRange);
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- Native editing undo history still requires execCommand; Range mutations break editor undo.
       document.execCommand("createLink", false, link);
       dispatchInput(editable);
     });
-    addButton(toolbar, translate("blokkli.rich_text.unlink"), '<span aria-hidden="true">&#128279;&#x0338;</span>', () =>
-      runCommand(editable, savedRange, "unlink"),
+    addButton(
+      toolbar,
+      translate("blokkli.rich_text.unlink"),
+      '<span aria-hidden="true">&#128279;&#x0338;</span>',
+      () => {
+        runCommand(editable, savedRange, "unlink");
+      },
     );
-    addButton(toolbar, translate("blokkli.rich_text.remove_format"), '<span aria-hidden="true">Tx</span>', () =>
-      runCommand(editable, savedRange, "removeFormat"),
-    );
+    addButton(toolbar, translate("blokkli.rich_text.remove_format"), '<span aria-hidden="true">Tx</span>', () => {
+      runCommand(editable, savedRange, "removeFormat");
+    });
 
     root.prepend(toolbar);
   }

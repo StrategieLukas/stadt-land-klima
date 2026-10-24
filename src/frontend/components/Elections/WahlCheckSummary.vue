@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Header -->
-    <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
+    <div class="rounded-xl border border-solid-gray-10 bg-white p-4 text-center shadow-list sm:p-8">
       <div class="mb-6">
         <ElectionsWahlCheckLogo
           :logo="election?.custom_logo"
@@ -11,26 +11,26 @@
           fallback-class="mx-auto h-auto w-full max-w-lg object-contain"
         />
       </div>
-      <h2 class="text-xl sm:text-2xl font-bold text-stats-dark mb-4">
-        {{ $t('elections.wahlcheck.summary.title') }}
+      <h2 class="mb-4 text-xl font-bold text-stats-dark sm:text-2xl">
+        {{ $t("elections.wahlcheck.summary.title") }}
       </h2>
-      <p class="text-mid-gray max-w-2xl mx-auto text-sm sm:text-base">
-        {{ $t('elections.wahlcheck.summary.description') }}
+      <p class="mx-auto max-w-2xl text-sm text-mid-gray sm:text-base">
+        {{ $t("elections.wahlcheck.summary.description") }}
       </p>
-      <p v-if="election" class="text-sm text-mid-gray mt-4">
-        <strong>{{ $t('elections.election') }}:</strong> {{ election.descriptor }}
+      <p v-if="election" class="mt-4 text-sm text-mid-gray">
+        <strong>{{ $t("elections.election") }}:</strong> {{ election.descriptor }}
       </p>
     </div>
 
     <!-- Answers Summary - Clickable List View for Double Weighting -->
-    <div class="space-y-2 max-w-4xl mx-auto">
+    <div class="mx-auto max-w-4xl space-y-2">
       <template v-for="(question, index) in questions" :key="question.id">
         <!-- Answered Question: Full tile clickable for double weighting -->
         <div
           v-if="userAnswers[question.id] !== undefined"
-          class="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-solid-gray-10 transition-all select-none cursor-pointer hover:border-solid-gray-40 hover:shadow-md flex items-center justify-between gap-3 sm:gap-4"
+          class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-solid-gray-10 bg-white p-3 shadow-xs transition-all select-none hover:border-solid-gray-40 hover:shadow-md sm:gap-4 sm:p-4"
           :class="{
-            'ring-2 ring-orange border-orange/40 bg-solid-orange-10/20': doubleWeightedQuestions.has(question.id),
+            'border-orange/40 bg-solid-orange-10/20 ring-2 ring-orange': doubleWeightedQuestions.has(question.id),
           }"
           role="button"
           tabindex="0"
@@ -39,31 +39,35 @@
           @keydown.enter.space.prevent="handleCardClick(question.id, $event)"
         >
           <!-- Question Number and Title -->
-          <div class="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
-            <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm">
+          <div class="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+            <span
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stats-dark text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm"
+            >
               {{ index + 1 }}
             </span>
             <div class="min-w-0 flex-1">
-              <h3 class="text-sm sm:text-base font-semibold text-black break-words hyphens-auto leading-snug">
+              <h3 class="text-sm leading-snug font-semibold wrap-break-word hyphens-auto text-black sm:text-base">
                 {{ question.title }}
               </h3>
             </div>
           </div>
 
           <!-- Indicators column: Answer score circle + 2x badge -->
-          <div class="flex-shrink-0 flex items-center gap-2 sm:gap-3">
+          <div class="flex shrink-0 items-center gap-2 sm:gap-3">
             <!-- User's Answer - Color circle indicator -->
-            <div class="flex-shrink-0">
-              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-md"
-                   :class="getRatingColor(userAnswers[question.id])"
-                   :title="getRatingLabel(userAnswers[question.id])"></div>
+            <div class="shrink-0">
+              <div
+                class="h-7 w-7 rounded-full shadow-md sm:h-8 sm:w-8"
+                :class="getRatingColor(userAnswers[question.id])"
+                :title="getRatingLabel(userAnswers[question.id])"
+              ></div>
             </div>
 
             <!-- Double Weight Toggle Checkbox (empty when unchecked, orange 2x circle when checked) -->
-            <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+            <div class="flex h-6 w-6 shrink-0 items-center justify-center">
               <input
                 type="checkbox"
-                class="checkbox checkbox-primary weight-toggle-checkbox"
+                class="weight-toggle-checkbox checkbox checkbox-primary"
                 :checked="doubleWeightedQuestions.has(question.id)"
                 :aria-label="$t('elections.wahlcheck.results.double_weighted')"
                 :title="$t('elections.wahlcheck.results.double_weighted')"
@@ -76,131 +80,152 @@
         <!-- Skipped Question: Non-clickable tile -->
         <div
           v-else
-          class="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-solid-gray-10 opacity-60 flex items-center justify-between gap-3 sm:gap-4"
+          class="flex items-center justify-between gap-3 rounded-lg border border-solid-gray-10 bg-white p-3 opacity-60 shadow-xs sm:gap-4 sm:p-4"
         >
-          <div class="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
-            <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm">
+          <div class="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+            <span
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stats-dark text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm"
+            >
               {{ index + 1 }}
             </span>
             <div class="min-w-0 flex-1">
-              <h3 class="text-sm sm:text-base font-semibold text-black break-words hyphens-auto leading-snug">
+              <h3 class="text-sm leading-snug font-semibold wrap-break-word hyphens-auto text-black sm:text-base">
                 {{ question.title }}
               </h3>
             </div>
           </div>
 
-          <div class="flex-shrink-0 flex items-center gap-2 sm:gap-3">
-            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-solid-gray-20 shadow-md flex-shrink-0" :title="$t('elections.wahlcheck.questions.skip')"></div>
-            <div class="w-6 h-6 flex-shrink-0"></div>
+          <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+            <div
+              class="h-7 w-7 shrink-0 rounded-full bg-solid-gray-20 shadow-md sm:h-8 sm:w-8"
+              :title="$t('elections.wahlcheck.questions.skip')"
+            ></div>
+            <div class="h-6 w-6 shrink-0"></div>
           </div>
         </div>
       </template>
     </div>
 
     <!-- Warning if all questions are skipped -->
-    <div v-if="answeredCount === 0" class="bg-solid-orange-10 border border-orange text-orange-700 p-4 rounded-xl">
-      <p class="font-bold flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+    <div v-if="answeredCount === 0" class="rounded-xl border border-orange bg-solid-orange-10 p-4 text-orange-700">
+      <p class="flex items-center gap-2 font-bold">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fill-rule="evenodd"
+            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
         </svg>
-        <span>{{ $t('elections.wahlcheck.summary.no_answers_warning_title') }}</span>
+        <span>{{ $t("elections.wahlcheck.summary.no_answers_warning_title") }}</span>
       </p>
       <p class="mt-2 text-sm">
-        {{ $t(isPartyElection ? 'elections.wahlcheck.summary.no_answers_warning_description_parties' : 'elections.wahlcheck.summary.no_answers_warning_description') }}
+        {{
+          $t(
+            isPartyElection
+              ? "elections.wahlcheck.summary.no_answers_warning_description_parties"
+              : "elections.wahlcheck.summary.no_answers_warning_description",
+          )
+        }}
       </p>
     </div>
 
     <!-- Navigation Buttons (Requirement 1) -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-8 pt-6 border-t border-solid-gray-10 gap-4">
-      <div class="text-xs sm:text-sm text-mid-gray text-center sm:text-left">
-        {{ $t('elections.wahlcheck.summary.answer_count', { ':answered': answeredCount, ':total': questions.length, ':weighted': doubleWeightedCount }) }}
+    <div
+      class="mt-8 flex flex-col gap-4 border-t border-solid-gray-10 pt-6 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="text-center text-xs text-mid-gray sm:text-left sm:text-sm">
+        {{
+          $t("elections.wahlcheck.summary.answer_count", {
+            ":answered": answeredCount,
+            ":total": questions.length,
+            ":weighted": doubleWeightedCount,
+          })
+        }}
       </div>
-      <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+      <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
         <button
           type="button"
+          class="btn flex-1 rounded-full btn-outline px-4 py-2 font-semibold btn-secondary sm:flex-initial sm:px-6"
           @click="$emit('prev')"
-          class="flex-1 sm:flex-initial btn btn-outline btn-secondary px-4 sm:px-6 py-2 rounded-full font-semibold"
         >
-          {{ $t('generic.back') }}
+          {{ $t("generic.back") }}
         </button>
         <button
           type="button"
+          class="btn flex-1 rounded-full px-4 py-2 font-semibold whitespace-nowrap text-white btn-primary sm:flex-initial sm:px-8"
           @click="$emit('next')"
-          class="flex-1 sm:flex-initial btn btn-primary px-4 sm:px-8 py-2 rounded-full font-semibold text-white whitespace-nowrap"
         >
-          {{ $t('elections.wahlcheck.summary.show_results') }}
+          {{ $t("elections.wahlcheck.summary.show_results") }}
         </button>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-import {
-  getWahlcheckAnswerLabel,
-  getWahlcheckRatingColor,
-} from '~/shared/wahlcheckAnswerOptions.js'
+<script setup lang="ts">
+import type { PropType } from "vue";
+import type { ElectionQuestion, UserAnswers, Election } from "~/types/components/elections";
 
-const { $t } = useNuxtApp()
+import { computed } from "vue";
+import { getWahlcheckAnswerLabel, getWahlcheckRatingColor } from "~/shared/wahlcheckAnswerOptions";
+
+const { $t } = useNuxtApp();
 
 const props = defineProps({
   questions: {
-    type: Array,
-    required: true
+    type: Array as PropType<ElectionQuestion[]>,
+    required: true,
   },
   userAnswers: {
-    type: Object,
-    required: true
+    type: Object as PropType<UserAnswers>,
+    required: true,
   },
   doubleWeightedQuestions: {
-    type: Set,
-    required: true
+    type: Set as PropType<Set<string>>,
+    required: true,
   },
   election: {
-    type: Object,
-    default: null
-  }
-})
+    type: Object as PropType<Election | null | undefined>,
+    default: null,
+  },
+});
 
-const emit = defineEmits(['next', 'prev', 'toggle-double-weight'])
-const isPartyElection = computed(() => props.election?.is_party_election === true)
+const emit = defineEmits<{ next: []; prev: []; "toggle-double-weight": [questionId: string] }>();
+const isPartyElection = computed(() => props.election?.is_party_election === true);
 
-function handleCardClick(questionId, event) {
-  if (event && event.target && (event.target.tagName === 'INPUT' || event.target.closest('input'))) {
-    return
+function handleCardClick(questionId: string, event: MouseEvent | KeyboardEvent) {
+  if (event && event.target instanceof Element && (event.target.tagName === "INPUT" || event.target.closest("input"))) {
+    return;
   }
   if (props.userAnswers[questionId] !== undefined) {
-    emit('toggle-double-weight', questionId)
+    emit("toggle-double-weight", questionId);
   }
 }
 
-function onCheckboxChange(questionId, event) {
-  emit('toggle-double-weight', questionId)
+function onCheckboxChange(questionId: string, _event: Event) {
+  emit("toggle-double-weight", questionId);
 }
 
-function getRatingColor(value) {
-  return getWahlcheckRatingColor(value)
+function getRatingColor(value: unknown) {
+  return getWahlcheckRatingColor(value);
 }
 
-function getRatingLabel(value) {
-  return getWahlcheckAnswerLabel(value, props.election, $t)
+function getRatingLabel(value: unknown) {
+  return getWahlcheckAnswerLabel(value, props.election, $t);
 }
 
 // Computed stats
 const answeredCount = computed(() => {
-  return Object.keys(props.userAnswers).filter(
-    key => props.userAnswers[key] !== undefined
-  ).length
-})
+  return Object.keys(props.userAnswers).filter((key) => props.userAnswers[key] !== undefined).length;
+});
 
 const doubleWeightedCount = computed(() => {
-  return props.doubleWeightedQuestions.size
-})
+  return props.doubleWeightedQuestions.size;
+});
 
-const skippedCount = computed(() => {
-  return props.questions.length - answeredCount.value
-})
+const _skippedCount = computed(() => {
+  return props.questions.length - answeredCount.value;
+});
 </script>
 
 <style scoped>
@@ -229,7 +254,9 @@ const skippedCount = computed(() => {
   background-color: #f39200 !important;
   background-image: none !important;
   border-color: #f39200 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .weight-toggle-checkbox:checked::after {

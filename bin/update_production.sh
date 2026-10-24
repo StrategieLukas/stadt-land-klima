@@ -79,6 +79,5 @@ git submodule update --recursive
 if [[ $NO_RESTART != true ]]; then
   "$SCRIPT_DIR/stop.sh"
   "$SCRIPT_DIR/build_production.sh" "${BUILD_OPTIONS[@]}"
-  "$SCRIPT_DIR/start_production.sh"
-  "$SCRIPT_DIR/import-all.sh"
+  "$SCRIPT_DIR/start_production.sh" --import
 fi

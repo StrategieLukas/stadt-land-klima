@@ -40,9 +40,7 @@ export async function up(knex) {
     );
 
     const migratedBlocks = result.rows?.length ?? 0;
-    console.info(
-      `[blokkli migration] ${entityTable}: migrated ${migratedBlocks} block rows to immutable entity IDs`,
-    );
+    console.info(`[blokkli migration] ${entityTable}: migrated ${migratedBlocks} block rows to immutable entity IDs`);
 
     await knex.raw(
       `

@@ -1,110 +1,216 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Blokkli: allow radio options inside a group dropdown to wrap to multiple
-   lines so long option lists (e.g. slkIcon with 24 entries) don't overflow. */
-.bk-blokkli-item-options-group-content .bk-blokkli-item-options-radios:not(.bk-is-color) {
-  flex-wrap: wrap;
-  max-width: 380px;
-  height: auto !important;
-  padding: 4px 8px;
-  gap: 2px;
+@import "tailwindcss" source(none);
+@config "../../tailwind.config.js";
+@source "../../components";
+@source "../../layouts";
+@source "../../pages";
+@source "../../app";
+@source "../../composables";
+@source "../../shared";
+@source "../../plugins";
+@source "../../utils";
+@source "../../app.vue";
+/* CMS/runtime ratings are assembled from values, so scanning templates alone is insufficient. */
+@source inline("bg-rating-{na,{0..4}}{,-light,-very-light,/10,/90}");
+@source inline("{border,text}-rating-{na,{0..4}}");
+@custom-variant dark (&:where([data-theme="staedteChallengeDark"], [data-theme="staedteChallengeDark"] *));
+@plugin "@tailwindcss/typography";
+@plugin "daisyui" {
+  themes: false;
 }
 
-/* Blokkli: keep the edit indicator button always visible in the top-right.
+@plugin "daisyui/theme" {
+  name: "staedteChallemgeTheme";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+  --color-primary: #afca0b;
+  --color-primary-content: oklch(15.8193% 0.036835 119.004755);
+  --color-secondary: oklch(70.7852% 0.176837 54.262506);
+  --color-secondary-content: oklch(14.157% 0.035367 54.262506);
+  --color-accent: oklch(70.1578% 0.137494 228.467351);
+  --color-accent-content: oklch(14.0316% 0.027499 228.467351);
+  --color-neutral: oklch(54.5169% 0 0);
+  --color-neutral-content: oklch(90.9034% 0 0);
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(93% 0 0);
+  --color-base-300: oklch(86% 0 0);
+  --color-base-content: oklch(20% 0 0);
+  --color-info: oklch(72.06% 0.191 231.6);
+  --color-info-content: oklch(0% 0 0);
+  --color-success: oklch(64.8% 0.15 160);
+  --color-success-content: oklch(0% 0 0);
+  --color-warning: oklch(84.71% 0.199 83.87);
+  --color-warning-content: oklch(0% 0 0);
+  --color-error: oklch(71.76% 0.221 22.18);
+  --color-error-content: oklch(0% 0 0);
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+  --card-p: 2rem;
+  --card-fs: 1rem;
+  --cardtitle-fs: 1.25rem;
+}
+
+@plugin "daisyui/theme" {
+  name: "staedteChallengeDark";
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+  --color-primary: #afca0b;
+  --color-primary-content: oklch(15.8193% 0.036835 119.004755);
+  --color-secondary: oklch(74.5048% 0.167441 64.787462);
+  --color-secondary-content: oklch(14.901% 0.033488 64.787462);
+  --color-accent: oklch(82.2615% 0.12611 221.719021);
+  --color-accent-content: oklch(16.4523% 0.025222 221.719021);
+  --color-neutral: oklch(80.9349% 0.017916 248.049494);
+  --color-neutral-content: oklch(16.187% 0.003583 248.049494);
+  --color-base-100: oklch(24.2972% 0.023967 248.84231);
+  --color-base-200: oklch(20.5022% 0.02001 248.830221);
+  --color-base-300: oklch(33.7465% 0.031694 247.019661);
+  --color-base-content: oklch(94.2702% 0.008408 236.563293);
+  --color-info: oklch(72.06% 0.191 231.6);
+  --color-info-content: oklch(0% 0 0);
+  --color-success: oklch(64.8% 0.15 160);
+  --color-success-content: oklch(0% 0 0);
+  --color-warning: oklch(84.71% 0.199 83.87);
+  --color-warning-content: oklch(0% 0 0);
+  --color-error: oklch(71.76% 0.221 22.18);
+  --color-error-content: oklch(0% 0 0);
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+  --card-p: 2rem;
+  --card-fs: 1rem;
+  --cardtitle-fs: 1.25rem;
+}
+
+/* DaisyUI 4 supplied currentColor as the site's base border color. Preserve
+   existing header/control contrast while explicit border utilities still win. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: currentColor;
+  }
+}
+
+@layer utilities {
+  /* Blokkli: allow radio options inside a group dropdown to wrap to multiple
+   lines so long option lists (e.g. slkIcon with 24 entries) don't overflow. */
+  .bk-blokkli-item-options-group-content .bk-blokkli-item-options-radios:not(.bk-is-color) {
+    flex-wrap: wrap;
+    max-width: 380px;
+    height: auto !important;
+    padding: 4px 8px;
+    gap: 2px;
+  }
+
+  /* Blokkli: keep the edit indicator button always visible in the top-right.
    The library default z-index (100) is below the site header when the search
    overlay opens (z-[10003]). Setting it above 10003 ensures the button is
    never covered by any site UI element. */
-.bk .bk-edit-indicator {
-  z-index: 10010 !important;
-}
+  .bk .bk-edit-indicator {
+    z-index: 10010 !important;
+  }
 
-/* Reserve scrollbar gutter so appearing/disappearing scrollbars don't change
+  /* Reserve scrollbar gutter so appearing/disappearing scrollbars don't change
    the viewport width and cause layout shifts on pages with dynamic content. */
-html {
-  scrollbar-gutter: stable;
-}
-
-/* Block hash navigation highlight */
-@keyframes block-highlight-pulse {
-  0% {
-    outline: 0 solid var(--slk-accent-green);
+  html {
+    scrollbar-gutter: stable;
   }
-  20% {
-    outline: 3px solid var(--slk-accent-green);
+
+  /* Block hash navigation highlight */
+  @keyframes block-highlight-pulse {
+    0% {
+      outline: 0 solid var(--slk-accent-green);
+    }
+    20% {
+      outline: 3px solid var(--slk-accent-green);
+    }
+    80% {
+      outline: 3px solid var(--slk-accent-green);
+    }
+    100% {
+      outline: 0 solid var(--slk-accent-green);
+    }
   }
-  80% {
-    outline: 3px solid var(--slk-accent-green);
+
+  [id^="block-"] {
+    scroll-margin-top: 4rem;
   }
-  100% {
-    outline: 0 solid var(--slk-accent-green);
+
+  .block-anchor-highlight {
+    animation: block-highlight-pulse 2s ease forwards;
   }
-}
 
-[id^="block-"] {
-  scroll-margin-top: 4rem;
-}
+  /* Formatting controls added to blökkli's markup editor. */
+  .slk-rich-text-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid rgb(var(--bk-theme-mono-300) / 1);
+    background: rgb(var(--bk-theme-mono-100) / 1);
+  }
 
-.block-anchor-highlight {
-  animation: block-highlight-pulse 2s ease forwards;
-}
+  .slk-rich-text-toolbar__button {
+    display: inline-flex;
+    min-width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(var(--bk-theme-mono-300) / 1);
+    border-radius: 0.25rem;
+    background: rgb(255 255 255 / 1);
+    color: rgb(var(--bk-theme-mono-900) / 1);
+    cursor: pointer;
+  }
 
-/* Formatting controls added to blökkli's markup editor. */
-.slk-rich-text-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid rgb(var(--bk-theme-mono-300) / 1);
-  background: rgb(var(--bk-theme-mono-100) / 1);
-}
+  .slk-rich-text-toolbar__button:hover,
+  .slk-rich-text-toolbar__button:focus-visible {
+    border-color: rgb(var(--bk-theme-accent-700) / 1);
+    color: rgb(var(--bk-theme-accent-800) / 1);
+  }
 
-.slk-rich-text-toolbar__button {
-  display: inline-flex;
-  min-width: 2rem;
-  height: 2rem;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgb(var(--bk-theme-mono-300) / 1);
-  border-radius: 0.25rem;
-  background: rgb(255 255 255 / 1);
-  color: rgb(var(--bk-theme-mono-900) / 1);
-  cursor: pointer;
-}
+  .slk-rich-text-toolbar__light,
+  .slk-text-light {
+    font-weight: 300;
+  }
 
-.slk-rich-text-toolbar__button:hover,
-.slk-rich-text-toolbar__button:focus-visible {
-  border-color: rgb(var(--bk-theme-accent-700) / 1);
-  color: rgb(var(--bk-theme-accent-800) / 1);
-}
+  /* Meilisearch highlight marks in search results */
+  mark {
+    background-color: #bbf7d0;
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
 
-.slk-rich-text-toolbar__light,
-.slk-text-light {
-  font-weight: 300;
-}
+  .has-long-links a {
+    word-break: break-all;
+  }
 
-/* Meilisearch highlight marks in search results */
-mark {
-  background-color: #bbf7d0;
-  color: inherit;
-  border-radius: 2px;
-  padding: 0 1px;
-}
+  a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
 
-.has-long-links a {
-  word-break: break-all;
-}
-
-a {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.collapse-plus > .collapse-title::after {
-  font-size: 1.5rem;
-  line-height: 0.5rem;
-  right: 1rem;
+  .collapse-plus > .collapse-title::after {
+    font-size: 1.5rem;
+    line-height: 0.5rem;
+    right: 1rem;
+  }
 }
 
 @layer base {
@@ -350,7 +456,7 @@ html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
   --slk-filter-panel-bg: var(--slk-orange-tint);
   --slk-filter-accent: var(--slk-orange);
   --slk-filter-active-bg: var(--slk-orange);
-  --slk-filter-active-text: theme("colors.gray");
+  --slk-filter-active-text: var(--color-gray);
   --slk-filter-inactive-bg: var(--slk-surface);
   --slk-filter-inactive-text: var(--slk-text);
   --slk-filter-inactive-border: var(--slk-orange);
@@ -401,9 +507,9 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-lime {
   --slk-filter-hover-bg: #263f28;
 }
 html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
-  --slk-filter-accent: theme("colors.rating-1-light");
+  --slk-filter-accent: var(--color-rating-1-light);
   --slk-filter-active-text: #101820;
-  --slk-filter-inactive-text: theme("colors.rating-1-light");
+  --slk-filter-inactive-text: var(--color-rating-1-light);
 }
 
 .slk-filter-panel,
@@ -811,12 +917,18 @@ html[data-theme="staedteChallengeDark"] :where(.project-page, article) :where(h1
 html[data-theme="staedteChallengeDark"]
   .prose
   :where(p, li, blockquote, td, dd, figcaption):not(:where(.not-prose, .not-prose *)),
-html[data-theme="staedteChallengeDark"] :where(.project-page, article) :where(p, li, span, dd, figcaption):not(:where(.canonical-button, .canonical-button *)) {
+html[data-theme="staedteChallengeDark"]
+  :where(.project-page, article)
+  :where(p, li, span, dd, figcaption):not(:where(.canonical-button, .canonical-button *)) {
   color: var(--slk-text) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .prose :where(a):not(:where(.not-prose, .not-prose *, .canonical-button, .canonical-button *)),
-html[data-theme="staedteChallengeDark"] :where(.project-page, article) a:not(:where(.canonical-button, .canonical-button *)) {
+html[data-theme="staedteChallengeDark"]
+  .prose
+  :where(a):not(:where(.not-prose, .not-prose *, .canonical-button, .canonical-button *)),
+html[data-theme="staedteChallengeDark"]
+  :where(.project-page, article)
+  a:not(:where(.canonical-button, .canonical-button *)) {
   color: var(--slk-blue) !important;
 }
 
@@ -903,6 +1015,7 @@ html[data-theme="staedteChallengeDark"] .bg-rating-na-light {
 html[data-theme="staedteChallengeDark"] .bg-white\/10,
 html[data-theme="staedteChallengeDark"] .bg-white\/15,
 html[data-theme="staedteChallengeDark"] .bg-white\/50,
+html[data-theme="staedteChallengeDark"] .bg-white\/75,
 html[data-theme="staedteChallengeDark"] .bg-white\/80,
 html[data-theme="staedteChallengeDark"] .bg-white\/85,
 html[data-theme="staedteChallengeDark"] .bg-white\/90,
@@ -931,84 +1044,84 @@ html[data-theme="staedteChallengeDark"] .bg-gray\/80 {
 }
 
 html[data-theme="staedteChallengeDark"] .bg-light-green\/10 {
-  background-color: theme("colors.solid-light-green-10") !important;
+  background-color: var(--color-solid-light-green-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-light-green\/15 {
-  background-color: theme("colors.solid-light-green-15") !important;
+  background-color: var(--color-solid-light-green-15) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-light-green\/20,
 html[data-theme="staedteChallengeDark"] .bg-primary\/20 {
-  background-color: theme("colors.solid-light-green-20") !important;
+  background-color: var(--color-solid-light-green-20) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#AFCA0B\]\/30,
 html[data-theme="staedteChallengeDark"] .bg-\[\#afca0b\]\/30,
 html[data-theme="staedteChallengeDark"] .bg-light-green\/30 {
-  background-color: theme("colors.solid-light-green-30") !important;
+  background-color: var(--color-solid-light-green-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#1da64a\]\/5,
 html[data-theme="staedteChallengeDark"] .bg-ff-green\/5 {
-  background-color: theme("colors.solid-ff-green-05") !important;
+  background-color: var(--color-solid-ff-green-05) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#1da64a\]\/10,
 html[data-theme="staedteChallengeDark"] .bg-ff-green\/10 {
-  background-color: theme("colors.solid-ff-green-10") !important;
+  background-color: var(--color-solid-ff-green-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-ff-green\/20 {
-  background-color: theme("colors.solid-ff-green-20") !important;
+  background-color: var(--color-solid-ff-green-20) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-ff-green\/30 {
-  background-color: theme("colors.solid-ff-green-30") !important;
+  background-color: var(--color-solid-ff-green-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-ff-green\/80 {
-  background-color: theme("colors.solid-ff-green-80") !important;
+  background-color: var(--color-solid-ff-green-80) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-green\/10 {
-  background-color: theme("colors.solid-green-10") !important;
+  background-color: var(--color-solid-green-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-olive-green\/10 {
-  background-color: theme("colors.solid-olive-green-10") !important;
+  background-color: var(--color-solid-olive-green-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-olive-green\/20 {
-  background-color: theme("colors.solid-olive-green-20") !important;
+  background-color: var(--color-solid-olive-green-20) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-rating-3\/50 {
-  background-color: theme("colors.solid-light-green-50") !important;
+  background-color: var(--color-solid-light-green-50) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-rating-4\/10 {
-  background-color: theme("colors.solid-rating-4-10") !important;
+  background-color: var(--color-solid-rating-4-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-light-blue\/30 {
-  background-color: theme("colors.solid-light-blue-30") !important;
+  background-color: var(--color-solid-light-blue-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-stats-dark\/30 {
-  background-color: theme("colors.solid-stats-dark-30") !important;
+  background-color: var(--color-solid-stats-dark-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-stats-light\/50 {
-  background-color: theme("colors.solid-stats-light-50") !important;
+  background-color: var(--color-solid-stats-light-50) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#006e94\]\/5 {
-  background-color: theme("colors.solid-stats-dark-05") !important;
+  background-color: var(--color-solid-stats-dark-05) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#006e94\]\/10 {
-  background-color: theme("colors.solid-stats-dark-10") !important;
+  background-color: var(--color-solid-stats-dark-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-blue-50,
@@ -1043,35 +1156,35 @@ html[data-theme="staedteChallengeDark"] .to-indigo-50 {
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#6b7280\]\/10 {
-  background-color: theme("colors.solid-blue-gray-10") !important;
+  background-color: var(--color-solid-blue-gray-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#6b7280\]\/25 {
-  background-color: theme("colors.solid-blue-gray-25") !important;
+  background-color: var(--color-solid-blue-gray-25) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#6b7280\]\/35 {
-  background-color: theme("colors.solid-blue-gray-35") !important;
+  background-color: var(--color-solid-blue-gray-35) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-orange\/10 {
-  background-color: theme("colors.solid-orange-10") !important;
+  background-color: var(--color-solid-orange-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-orange\/30 {
-  background-color: theme("colors.solid-orange-30") !important;
+  background-color: var(--color-solid-orange-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-\[\#fffbeb\]\/40 {
-  background-color: theme("colors.solid-amber50-40") !important;
+  background-color: var(--color-solid-amber50-40) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-red\/5 {
-  background-color: theme("colors.solid-red-05") !important;
+  background-color: var(--color-solid-red-05) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-red\/10 {
-  background-color: theme("colors.solid-red-10") !important;
+  background-color: var(--color-solid-red-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-neutral,
@@ -1095,23 +1208,23 @@ html[data-theme="staedteChallengeDark"] .text-gray-300 {
 }
 
 html[data-theme="staedteChallengeDark"] .text-gray\/40 {
-  color: theme("colors.solid-gray-40") !important;
+  color: var(--color-solid-gray-40) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-gray\/50 {
-  color: theme("colors.solid-gray-50") !important;
+  color: var(--color-solid-gray-50) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-gray\/60 {
-  color: theme("colors.solid-gray-60") !important;
+  color: var(--color-solid-gray-60) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-gray\/80 {
-  color: theme("colors.solid-gray-80") !important;
+  color: var(--color-solid-gray-80) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-black\/50 {
-  color: theme("colors.solid-black-50") !important;
+  color: var(--color-solid-black-50) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-green,
@@ -1139,19 +1252,19 @@ html[data-theme="staedteChallengeDark"] .text-indigo-800 {
 }
 
 html[data-theme="staedteChallengeDark"] .text-stats-dark\/60 {
-  color: theme("colors.solid-stats-dark-60") !important;
+  color: var(--color-solid-stats-dark-60) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-stats-dark\/80 {
-  color: theme("colors.solid-stats-dark-80") !important;
+  color: var(--color-solid-stats-dark-80) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-rating-4\/60 {
-  color: theme("colors.solid-rating-4-60") !important;
+  color: var(--color-solid-rating-4-60) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-rating-4\/90 {
-  color: theme("colors.solid-rating-4-90") !important;
+  color: var(--color-solid-rating-4-90) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .text-orange,
@@ -1182,7 +1295,7 @@ html[data-theme="staedteChallengeDark"] .text-white\/50,
 html[data-theme="staedteChallengeDark"] .text-white\/60,
 html[data-theme="staedteChallengeDark"] .text-white\/70,
 html[data-theme="staedteChallengeDark"] .text-white\/80 {
-  color: theme("colors.white") !important;
+  color: var(--color-white) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .placeholder-gray-400::placeholder,
@@ -1218,67 +1331,67 @@ html[data-theme="staedteChallengeDark"] .border-yellow-200 {
 }
 
 html[data-theme="staedteChallengeDark"] .border-gray\/10 {
-  border-color: theme("colors.solid-gray-10") !important;
+  border-color: var(--color-solid-gray-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-gray\/20 {
-  border-color: theme("colors.solid-gray-20") !important;
+  border-color: var(--color-solid-gray-20) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-gray\/30 {
-  border-color: theme("colors.solid-gray-30") !important;
+  border-color: var(--color-solid-gray-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-gray\/60 {
-  border-color: theme("colors.solid-gray-60") !important;
+  border-color: var(--color-solid-gray-60) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-\[\#16BAE7\]\/20 {
-  border-color: theme("colors.solid-light-blue-20") !important;
+  border-color: var(--color-solid-light-blue-20) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-\[\#16BAE7\]\/60 {
-  border-color: theme("colors.solid-light-blue-60") !important;
+  border-color: var(--color-solid-light-blue-60) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-\[\#AFCA0B\]\/20,
 html[data-theme="staedteChallengeDark"] .border-green\/20 {
-  border-color: theme("colors.solid-light-green-20") !important;
+  border-color: var(--color-solid-light-green-20) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-\[\#AFCA0B\]\/30,
 html[data-theme="staedteChallengeDark"] .border-light-green\/30 {
-  border-color: theme("colors.solid-light-green-30") !important;
+  border-color: var(--color-solid-light-green-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-light-green\/40 {
-  border-color: theme("colors.solid-light-green-40") !important;
+  border-color: var(--color-solid-light-green-40) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-light-blue\/30 {
-  border-color: theme("colors.solid-light-blue-30") !important;
+  border-color: var(--color-solid-light-blue-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-ff-green\/20 {
-  border-color: theme("colors.solid-ff-green-20") !important;
+  border-color: var(--color-solid-ff-green-20) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-ff-green\/30 {
-  border-color: theme("colors.solid-ff-green-30") !important;
+  border-color: var(--color-solid-ff-green-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-stats-dark\/20 {
-  border-color: theme("colors.solid-stats-dark-20") !important;
+  border-color: var(--color-solid-stats-dark-20) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-olive-green\/30 {
-  border-color: theme("colors.solid-olive-green-30") !important;
+  border-color: var(--color-solid-olive-green-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .border-white\/20,
 html[data-theme="staedteChallengeDark"] .border-white\/25,
 html[data-theme="staedteChallengeDark"] .border-white\/30 {
-  border-color: theme("colors.white") !important;
+  border-color: var(--color-white) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .ring-gray-200 {
@@ -1286,12 +1399,12 @@ html[data-theme="staedteChallengeDark"] .ring-gray-200 {
 }
 
 html[data-theme="staedteChallengeDark"] .ring-light-green\/30 {
-  --tw-ring-color: theme("colors.solid-light-green-30") !important;
+  --tw-ring-color: var(--color-solid-light-green-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .ring-white\/20,
 html[data-theme="staedteChallengeDark"] .ring-white\/25 {
-  --tw-ring-color: theme("colors.white") !important;
+  --tw-ring-color: var(--color-white) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
@@ -1309,19 +1422,19 @@ html[data-theme="staedteChallengeDark"] .hover\:bg-white:hover {
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:bg-light-green\/10:hover {
-  background-color: theme("colors.solid-light-green-10") !important;
+  background-color: var(--color-solid-light-green-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:bg-ff-green\/5:hover {
-  background-color: theme("colors.solid-ff-green-05") !important;
+  background-color: var(--color-solid-ff-green-05) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:bg-ff-green\/10:hover {
-  background-color: theme("colors.solid-ff-green-10") !important;
+  background-color: var(--color-solid-ff-green-10) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:bg-gray\/5:hover {
-  background-color: theme("colors.solid-gray-05") !important;
+  background-color: var(--color-solid-gray-05) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:bg-white\/15:hover,
@@ -1334,11 +1447,11 @@ html[data-theme="staedteChallengeDark"] .hover\:border-gray-300:hover {
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:border-ff-green\/30:hover {
-  border-color: theme("colors.solid-ff-green-30") !important;
+  border-color: var(--color-solid-ff-green-30) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:border-\[\#16BAE7\]\/60:hover {
-  border-color: theme("colors.solid-light-blue-60") !important;
+  border-color: var(--color-solid-light-blue-60) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:text-gray-900:hover,
@@ -1349,11 +1462,11 @@ html[data-theme="staedteChallengeDark"] .hover\:text-gray-600:hover {
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:text-white\/80:hover {
-  color: theme("colors.white") !important;
+  color: var(--color-white) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .hover\:text-primary\/70:hover {
-  color: theme("colors.solid-light-green-70") !important;
+  color: var(--color-solid-light-green-70) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .kbd {
@@ -1384,21 +1497,15 @@ html[data-theme="staedteChallengeDark"]
   background-color: var(--slk-green-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.bg-solid-very-light-blue-60, .bg-solid-stats-light-50) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.bg-solid-very-light-blue-60, .bg-solid-stats-light-50) {
   background-color: var(--slk-blue-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.bg-solid-gray-05, .bg-solid-gray-10) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.bg-solid-gray-05, .bg-solid-gray-10) {
   background-color: var(--slk-surface-subdued) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.bg-solid-gray-20, .bg-solid-gray-30) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.bg-solid-gray-20, .bg-solid-gray-30) {
   background-color: var(--slk-surface-muted) !important;
 }
 
@@ -1434,21 +1541,15 @@ html[data-theme="staedteChallengeDark"]
   border-color: var(--slk-blue) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.text-solid-gray-50, .text-solid-gray-60) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.text-solid-gray-50, .text-solid-gray-60) {
   color: var(--slk-text-muted) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.text-solid-rating-4-60, .text-solid-rating-4-90) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.text-solid-rating-4-60, .text-solid-rating-4-90) {
   color: var(--slk-success-text) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.text-solid-stats-dark-60, .text-solid-stats-dark-80) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.text-solid-stats-dark-60, .text-solid-stats-dark-80) {
   color: var(--slk-blue) !important;
 }
 

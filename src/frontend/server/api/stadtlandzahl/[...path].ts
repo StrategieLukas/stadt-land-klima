@@ -1,3 +1,5 @@
+import type { H3Event } from "h3";
+import { rateLimit } from "../../utils/rateLimit";
 const REQUEST_HEADERS_TO_REMOVE = [
   "accept-encoding",
   "authorization",
@@ -34,43 +36,56 @@ function isJson(contentType: string | null): boolean {
   return Boolean(contentType && (contentType.includes("application/json") || contentType.includes("+json")));
 }
 
-function getIncomingHeaders(event: any): Headers {
+function getIncomingHeaders(event: H3Event): Headers {
   const headers = new Headers();
-  const incoming = event.node?.req?.headers ?? event.req?.headers;
-
-  if (incoming instanceof Headers) return new Headers(incoming);
-  for (const [name, value] of Object.entries(incoming ?? {})) {
+  for (const [name, value] of Object.entries(event.node.req.headers)) {
     if (Array.isArray(value)) {
       for (const item of value) headers.append(name, item);
-    } else if (value !== undefined) {
-      headers.set(name, String(value));
-    }
+    } else if (value !== undefined) headers.set(name, value);
   }
   return headers;
 }
 
-async function readIncomingBody(event: any): Promise<Uint8Array | undefined> {
-  if (typeof event.request?.arrayBuffer === "function") {
-    return new Uint8Array(await event.request.arrayBuffer());
+async function readIncomingBody(event: H3Event): Promise<Uint8Array> {
+  const chunks: Buffer[] = [];
+  let bytes = 0;
+  for await (const chunk of event.node.req as AsyncIterable<Buffer | string>) {
+    bytes += Buffer.byteLength(chunk);
+    if (bytes > 65536) throw createError({ statusCode: 413, statusMessage: "Render request too large" });
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
-  if (typeof event.req?.arrayBuffer === "function") {
-    return new Uint8Array(await event.req.arrayBuffer());
-  }
+  return Buffer.concat(chunks);
+}
 
-  const request = event.node?.req ?? event.req;
-  if (!request?.on) return undefined;
+// Only allow safe HTTP methods — reject write methods before reading body.
+const ALLOWED_METHODS = new Set(["GET", "HEAD", "POST"]);
 
-  return await new Promise<Uint8Array>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    request.on("data", (chunk: Buffer | string) => {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    });
-    request.on("end", () => resolve(Buffer.concat(chunks)));
-    request.on("error", reject);
-  });
+// Route allowlist: only proxy to known upstream API paths.
+const ALLOWED_UPSTREAM_PREFIXES = [
+  "/api/areas",
+  "/api/histograms",
+  "/api/collections",
+  "/api/manifests",
+  "/api/renders",
+  "/api/render",
+  "/api/search",
+  "/api/health",
+];
+
+function isUpstreamAllowed(path: string): boolean {
+  return ALLOWED_UPSTREAM_PREFIXES.some((prefix) => path === prefix || path.startsWith(prefix + "/"));
 }
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, "stadtlandzahl"))) {
+    throw createError({ statusCode: 429, statusMessage: "Too many requests" });
+  }
+  const method = (event.method ?? event.node?.req?.method ?? "GET").toUpperCase();
+  if (!ALLOWED_METHODS.has(method)) {
+    throw createError({ statusCode: 405, statusMessage: "Method not allowed" });
+  }
+
   const proxyPrefix = "/api/stadtlandzahl";
   // event.req.url is relative in this project's Nitro/H3 runtime, while
   // event.path consistently contains the path and query string.
@@ -79,6 +94,14 @@ export default defineEventHandler(async (event) => {
   const upstreamPath = requestUrl.pathname.startsWith(proxyPrefix)
     ? requestUrl.pathname.slice(proxyPrefix.length) || "/"
     : "/";
+
+  if (!isUpstreamAllowed(upstreamPath)) {
+    throw createError({ statusCode: 403, statusMessage: "Upstream route not allowed" });
+  }
+
+  if (method === "POST" && !/^\/api\/(?:render\/?|collections\/[^/]+\/render\/?)$/.test(upstreamPath)) {
+    throw createError({ statusCode: 405, statusMessage: "Only read-only render POST requests are allowed" });
+  }
   const requestHeaders = getIncomingHeaders(event);
   for (const header of REQUEST_HEADERS_TO_REMOVE) requestHeaders.delete(header);
 
@@ -90,7 +113,6 @@ export default defineEventHandler(async (event) => {
   const authorization = getStadtlandzahlAuthorization();
   if (authorization) requestHeaders.set("authorization", authorization);
 
-  const method = event.method ?? event.node?.req?.method ?? "GET";
   const hasBody = !["GET", "HEAD"].includes(method.toUpperCase());
   const body = hasBody ? await readIncomingBody(event) : undefined;
 
@@ -101,7 +123,7 @@ export default defineEventHandler(async (event) => {
       upstreamResponse = await fetch(target, {
         method,
         headers: requestHeaders,
-        body,
+        ...(body ? { body: Uint8Array.from(body) } : {}),
         redirect: "manual",
       });
       break;

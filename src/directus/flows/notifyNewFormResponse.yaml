@@ -12,6 +12,19 @@ options:
   collections:
     - form_responses
 operations:
+  - name: Escape Notification HTML
+    key: escape_form_response_html
+    type: exec
+    position_x: 1
+    position_y: 1
+    resolve_key: send_form_response_email
+    options:
+      code: |-
+        module.exports = async function(data) {
+          const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
+          const payload = data.$trigger.payload;
+          return Object.fromEntries(['form_title', 'page_path', 'sender_name', 'sender_email', 'response_summary'].map(key => [key, escape(payload[key])]));
+        };
   - name: Send Notification Email
     key: send_form_response_email
     type: mail
@@ -24,10 +37,10 @@ operations:
       subject: "Neue Formularantwort: {{$trigger.payload.form_title}}"
       body: <p>Über ein öffentliches Formular wurde eine neue Antwort
         eingereicht.</p><p><strong>Formular:</strong>
-        {{$trigger.payload.form_title}}</p><p><strong>Seite:</strong>
-        {{$trigger.payload.page_path}}</p><p><strong>Absender:in:</strong>
-        {{$trigger.payload.sender_name}}</p><p><strong>E-Mail:</strong>
-        {{$trigger.payload.sender_email}}</p><p><strong>Antwort:</strong></p><pre>{{$trigger.payload.response_summary}}</pre>
+        {{escape_form_response_html.form_title}}</p><p><strong>Seite:</strong>
+        {{escape_form_response_html.page_path}}</p><p><strong>Absender:in:</strong>
+        {{escape_form_response_html.sender_name}}</p><p><strong>E-Mail:</strong>
+        {{escape_form_response_html.sender_email}}</p><p><strong>Antwort:</strong></p><pre>{{escape_form_response_html.response_summary}}</pre>
       type: wysiwyg
   - name: Should Send Copy
     key: condition_send_form_response_copy
@@ -57,6 +70,6 @@ operations:
       subject: "Kopie deiner Formularantwort an Stadt.Land.Klima!: {{$trigger.payload.form_title}}"
       body: <p>Vielen Dank für deine Nachricht. Dies ist die gewünschte
         Kopie deiner Formularantwort.</p><p><strong>Formular:</strong>
-        {{$trigger.payload.form_title}}</p><p><strong>Antwort:</strong></p><pre>{{$trigger.payload.response_summary}}</pre>
+        {{escape_form_response_html.form_title}}</p><p><strong>Antwort:</strong></p><pre>{{escape_form_response_html.response_summary}}</pre>
       type: wysiwyg
-operation_key: send_form_response_email
+operation_key: escape_form_response_html

@@ -1,15 +1,32 @@
 name: notifyAdminNewLocalteam
 icon: email
 color: null
-description: Send admin notification email when a new localteam registers
-  (called via webhook from frontend server)
+description: Send admin notifications through an authenticated administrator
+  request from the frontend server
 status: active
 trigger: webhook
 accountability: all
 options:
+  async: false
+  error_on_reject: true
   method: POST
   return: null
 operations:
+  - name: Require Authenticated Administrator
+    key: require_admin_notification_auth
+    type: condition
+    position_x: 1
+    position_y: 1
+    resolve_key: send_admin_email_op
+    options:
+      filter:
+        _and:
+          - $accountability:
+              user:
+                _nnull: true
+          - $accountability:
+              admin:
+                _eq: true
   - name: Send Admin Email
     key: send_admin_email_op
     type: mail
@@ -21,4 +38,4 @@ operations:
       subject: "{{$trigger.body.subject}}"
       body: "{{$trigger.body.body}}"
       type: wysiwyg
-operation_key: send_admin_email_op
+operation_key: require_admin_notification_auth

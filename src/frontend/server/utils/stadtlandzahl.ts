@@ -28,7 +28,7 @@ function parseBaseUrl(value: string | undefined, name: string): URL | null {
 }
 
 function getConfig(): StadtlandzahlRuntimeConfig {
-  return useRuntimeConfig() as StadtlandzahlRuntimeConfig;
+  return useRuntimeConfig();
 }
 
 export function getStadtlandzahlBaseUrls(): URL[] {
@@ -49,7 +49,9 @@ export function getStadtlandzahlBaseUrls(): URL[] {
 }
 
 export function getStadtlandzahlBaseUrl(): URL {
-  return getStadtlandzahlBaseUrls()[0];
+  const base = getStadtlandzahlBaseUrls()[0];
+  if (!base) throw createError({ statusCode: 500, statusMessage: "Stadtlandzahl URL is missing" });
+  return base;
 }
 
 export function getStadtlandzahlAuthorization(): string | undefined {
@@ -80,7 +82,7 @@ export function resolveStadtlandzahlUrl(
     if (Array.isArray(value)) {
       for (const item of value) url.searchParams.append(key, String(item));
     } else {
-      url.searchParams.set(key, String(value));
+      url.searchParams.set(key, typeof value === "string" ? value : JSON.stringify(value));
     }
   }
 
@@ -107,7 +109,7 @@ export function rewriteStadtlandzahlUrl(value: string): string {
 
 export function rewriteStadtlandzahlPayload<T>(value: T): T {
   if (typeof value === "string") return rewriteStadtlandzahlUrl(value) as T;
-  if (Array.isArray(value)) return value.map((item) => rewriteStadtlandzahlPayload(item)) as T;
+  if (Array.isArray(value)) return (value as unknown[]).map((item) => rewriteStadtlandzahlPayload(item)) as T;
   if (!value || typeof value !== "object") return value;
 
   const rewritten: Record<string, unknown> = {};
@@ -117,7 +119,15 @@ export function rewriteStadtlandzahlPayload<T>(value: T): T {
   return rewritten as T;
 }
 
-export async function fetchStadtlandzahl<T>(path: string, options: Record<string, any> = {}): Promise<T> {
+export async function fetchStadtlandzahl(
+  path: string,
+  options: {
+    params?: Record<string, unknown>;
+    query?: Record<string, unknown>;
+    headers?: HeadersInit;
+    timeout?: number;
+  } = {},
+): Promise<unknown> {
   const { params, query, headers: suppliedHeaders, ...fetchOptions } = options;
   const headers = new Headers(suppliedHeaders);
   const authorization = getStadtlandzahlAuthorization();
@@ -128,7 +138,7 @@ export async function fetchStadtlandzahl<T>(path: string, options: Record<string
   for (const baseUrl of getStadtlandzahlBaseUrls()) {
     const url = resolveStadtlandzahlUrl(path, params ?? query, baseUrl);
     try {
-      const data = await $fetch<T>(url.toString(), {
+      const data: unknown = await $fetch(url.toString(), {
         ...fetchOptions,
         headers,
       });

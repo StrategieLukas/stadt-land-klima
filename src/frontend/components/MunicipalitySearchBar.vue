@@ -1,14 +1,16 @@
 <template>
   <!-- Search Bar and map toggle-->
-  <div class="z-[9999] flex items-end space-x-4">
+  <div class="z-9999 flex items-end space-x-4">
     <!-- Search Bar -->
     <form class="relative overflow-visible" @submit.prevent>
-      <div class="form-control">
-        <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
+      <div class="flex flex-col">
+        <label for="search-input" class="flex items-center justify-between px-1 py-2">{{
+          $t("municipalities_search.label")
+        }}</label>
         <input
           id="search-input"
           v-model="q"
-          class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96 rounded-full"
+          class="input w-64 max-w-full rounded-full bg-white pr-12 input-primary sm:w-96"
           name="q"
           type="text"
           autocomplete="off"
@@ -22,15 +24,15 @@
 
       <div
         v-if="visibleSuggestions.length && searchFocused"
-        class="absolute left-0 right-0 top-24 w-full z-50"
         ref="dropdown"
+        class="absolute top-24 right-0 left-0 z-50 w-full"
       >
-        <ul class="menu dropdown-content rounded-box w-full bg-base-100 p-2 shadow">
+        <ul class="menu dropdown-content w-full rounded-box bg-base-100 p-2 shadow-sm">
           <NuxtLink
             v-for="(suggestion, index) in visibleSuggestions"
             :key="index"
             :to="suggestion.url"
-            class="block w-full p-2 hover:bg-solid-light-green-20 rounded cursor-pointer"
+            class="block w-full cursor-pointer rounded-sm p-2 hover:bg-solid-light-green-20"
             @click="handleSuggestionClick"
           >
             {{ suggestion.label }}
@@ -41,27 +43,35 @@
 
     <!-- Map/List toggle -->
     <button
-      :class="{'invisible': route.path !== '/municipalities'}"
+      :class="{ invisible: route.path !== '/municipalities' }"
       :aria-hidden="route.path !== '/municipalities'"
+      class="flex h-12 w-12 items-center justify-center rounded-md text-base-100 hover:bg-gray-100"
       @click="toggleView"
-      class="flex items-center justify-center w-12 h-12 rounded-md text-base-100 hover:bg-gray-100"
     >
-      <span v-html="isMapView ? listViewIcon : mapViewIcon" class="w-12 h-12 flex-none"></span>
+      <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
+      <span class="h-12 w-12 flex-none" v-html="isMapView ? listViewIcon : mapViewIcon"></span>
+      <!-- eslint-enable vue/no-v-html -->
     </button>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from "vue";
+import type { Municipality } from "~/types/components/municipality";
 
 // Search bar logic
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRouter } from 'vue-router';
+import { computed, ref, onMounted, onBeforeUnmount, watch } from "vue";
+import { useRouter } from "vue-router";
+
+// Map toggle logic
+import mapViewIcon from "~/assets/icons/icon_map_view.svg?raw";
+import listViewIcon from "~/assets/icons/icon_list_view.svg?raw";
 
 const { $t } = useNuxtApp();
 
 const props = defineProps({
   municipalities: {
-    type: Array,
+    type: Array as PropType<Municipality[]>,
     required: true,
   },
   label: {
@@ -74,9 +84,8 @@ const props = defineProps({
   },
 });
 
-
-const dropdown = ref(null)
-const q = ref('');
+const dropdown = ref<HTMLElement | null>(null);
+const q = ref("");
 const searchFocused = ref(false);
 const focusedIndex = ref(-1);
 const router = useRouter();
@@ -98,15 +107,14 @@ function onInput() {
   focusedIndex.value = -1;
 }
 
-
-function goTo(url) {
-  q.value = '';
+function goTo(url: string) {
+  q.value = "";
   focusedIndex.value = -1;
   searchFocused.value = false;
-  router.push(url);
+  void router.push(url);
 }
 
-function moveFocus(direction) {
+function moveFocus(direction: number) {
   const max = visibleSuggestions.value.length - 1;
   focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + direction));
 }
@@ -116,53 +124,45 @@ function goToFocused() {
   if (suggestion) goTo(suggestion.url);
 }
 
-watch(() => document.activeElement, (el) => {
-  if (!el || el.id !== 'search-input') searchFocused.value = false;
-});
-
+watch(
+  () => document.activeElement,
+  (el) => {
+    if (!el || el.id !== "search-input") searchFocused.value = false;
+  },
+);
 
 function handleSuggestionClick() {
-  q.value = '';
-  searchFocused.value = false
+  q.value = "";
+  searchFocused.value = false;
   focusedIndex.value = -1;
 }
 
-function handleClickOutside(event) {
-  if (
-    dropdown.value &&
-    !dropdown.value.contains(event.target) &&
-    !event.target.closest('form')
-  ) {
-    searchFocused.value = false
+function handleClickOutside(event: MouseEvent) {
+  if (!(event.target instanceof Element)) return;
+  if (dropdown.value && !dropdown.value.contains(event.target) && !event.target.closest("form")) {
+    searchFocused.value = false;
   }
 }
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
+  document.addEventListener("click", handleClickOutside);
+});
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+  document.removeEventListener("click", handleClickOutside);
+});
 
-
-
-// Map toggle logic
-import mapViewIcon from '~/assets/icons/icon_map_view.svg?raw';
-import listViewIcon from '~/assets/icons/icon_list_view.svg?raw';
-
-
-const isMapView = computed(() => route.query.view === 'map');
+const isMapView = computed(() => route.query.view === "map");
 
 const toggleView = () => {
-  const newView = isMapView.value ? 'list' : 'map';
+  const newView = isMapView.value ? "list" : "map";
 
-  if (route.path !== '/municipalities') {
+  if (route.path !== "/municipalities") {
     // If not on the municipalities page, navigate there with the view query
-    router.push({ path: '/municipalities', query: { ...route.query, view: newView } });
+    void router.push({ path: "/municipalities", query: { ...route.query, view: newView } });
   } else {
     // If already on the municipalities page, just update the query param
-    router.push({ query: { ...route.query, view: newView } });
+    void router.push({ query: { ...route.query, view: newView } });
   }
 };
 </script>

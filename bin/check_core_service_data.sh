@@ -15,15 +15,16 @@ for service in db meilisearch; do
       expected="$CORE_MEILI_VERSION"
     fi
   else
-    # Check Linux bind mounts even when the old container was removed.
-    filename="db/PG_VERSION"
-    expected="$CORE_DB_MAJOR"
-    if [[ "$service" == meilisearch ]]; then filename="meilisearch/data.ms/VERSION"; expected="$CORE_MEILI_VERSION"; fi
-    version=""
-    if [[ -d docker/data && ( "$service" != db || "${1:-production}" != mac ) ]]; then
-      version="$(docker run --rm --network none --entrypoint sh \
-        --mount "type=bind,source=$PWD/docker/data,target=/storage,readonly" "$CORE_DB_IMAGE" \
-        -ec 'if [ -f "/storage/$1" ]; then cat "/storage/$1"; fi' sh "$filename")"
+    destination=/var/lib/postgresql/data; filename=PG_VERSION; expected="$CORE_DB_MAJOR"
+    if [[ "$service" == meilisearch ]]; then destination=/meili_data; filename=data.ms/VERSION; expected="$CORE_MEILI_VERSION"; fi
+    mount="$(core_configured_mount "$service" "$destination")"
+    # A fresh checkout may not have a bind directory yet. Existing storage is
+    # always inspected, including macOS/default and custom named volumes.
+    if [[ "$mount" == bind\|* ]]; then
+      IFS='|' read -r _ source _ <<< "$mount"
+      if [[ ! -d "$source" ]]; then version=""; else version="$(core_storage_version "$mount" "$filename")"; fi
+    else
+      version="$(core_storage_version "$mount" "$filename")"
     fi
   fi
   if [[ -n "$version" && "$version" != "$expected" ]]; then

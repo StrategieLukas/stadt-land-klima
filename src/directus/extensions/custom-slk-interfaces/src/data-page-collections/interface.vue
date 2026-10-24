@@ -9,33 +9,19 @@
     </p>
 
     <div class="toolbar">
-      <input
-        v-model="search"
-        type="search"
-        placeholder="Datenprodukte suchen"
-        aria-label="Datenprodukte suchen"
-      />
-      <button type="button" :disabled="loading" @click="loadCatalog">
-        Aktualisieren
-      </button>
+      <input v-model="search" type="search" placeholder="Datenprodukte suchen" aria-label="Datenprodukte suchen" />
+      <button type="button" :disabled="loading" @click="loadCatalog">Aktualisieren</button>
     </div>
 
     <p v-if="loading" class="hint">Datenprodukte werden geladen …</p>
     <p v-else-if="loadError" class="error">
-      Die Datenprodukte konnten nicht geladen werden. Gespeicherte IDs bleiben
-      erhalten.
+      Die Datenprodukte konnten nicht geladen werden. Gespeicherte IDs bleiben erhalten.
     </p>
     <p v-if="warning" class="error">{{ warning }}</p>
-    <p v-if="includeOnly && !selectedIds.length" class="error">
-      Wähle mindestens ein Datenprodukt aus.
-    </p>
+    <p v-if="includeOnly && !selectedIds.length" class="error">Wähle mindestens ein Datenprodukt aus.</p>
 
     <div v-if="filteredCollections.length" class="collection-list">
-      <label
-        v-for="collection in filteredCollections"
-        :key="collection.id"
-        class="collection-row"
-      >
+      <label v-for="collection in filteredCollections" :key="collection.id" class="collection-row">
         <input
           type="checkbox"
           :checked="selectedIds.includes(collection.id)"
@@ -47,21 +33,13 @@
         >
       </label>
     </div>
-    <p v-else-if="!loading && !loadError" class="hint">
-      Keine passenden Datenprodukte gefunden.
-    </p>
+    <p v-else-if="!loading && !loadError" class="hint">Keine passenden Datenprodukte gefunden.</p>
 
     <div v-if="missingIds.length" class="missing">
       <p class="hint">Gespeicherte IDs, die derzeit nicht im Katalog stehen:</p>
       <div v-for="id in missingIds" :key="id" class="missing-row">
         <code>{{ id }}</code>
-        <button
-          type="button"
-          :disabled="disabled"
-          @click="toggleCollection(id)"
-        >
-          Entfernen
-        </button>
+        <button type="button" :disabled="disabled" @click="toggleCollection(id)">Entfernen</button>
       </div>
     </div>
   </div>
@@ -81,9 +59,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ (event: "input", value: string[]): void }>();
 const api = inject<Api>("api");
-const values = inject<Ref<Record<string, unknown>> | Record<string, unknown>>(
-  "values",
-);
+const values = inject<Ref<Record<string, unknown>> | Record<string, unknown>>("values");
 
 const collections = ref<CatalogEntry[]>([]);
 const loading = ref(false);
@@ -101,22 +77,14 @@ const selectedIds = computed(() => {
       return [];
     }
   }
-  return Array.isArray(value)
-    ? value.filter((id): id is string => typeof id === "string")
-    : [];
+  return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : [];
 });
-const knownIds = computed(
-  () => new Set(collections.value.map((entry) => entry.id)),
-);
-const missingIds = computed(() =>
-  selectedIds.value.filter((id) => !knownIds.value.has(id)),
-);
+const knownIds = computed(() => new Set(collections.value.map((entry) => entry.id)));
+const missingIds = computed(() => selectedIds.value.filter((id) => !knownIds.value.has(id)));
 const filteredCollections = computed(() => {
   const query = search.value.trim().toLocaleLowerCase();
   return collections.value.filter(
-    (entry) =>
-      !query ||
-      `${entry.title} ${entry.id}`.toLocaleLowerCase().includes(query),
+    (entry) => !query || `${entry.title} ${entry.id}`.toLocaleLowerCase().includes(query),
   );
 });
 
@@ -147,11 +115,7 @@ function toggleCollection(id: string, event?: Event) {
     if (event?.target instanceof HTMLInputElement) event.target.checked = true;
     return;
   }
-  if (
-    !includeOnly.value &&
-    collections.value.length &&
-    collections.value.every((entry) => next.includes(entry.id))
-  ) {
+  if (!includeOnly.value && collections.value.length && collections.value.every((entry) => next.includes(entry.id))) {
     warning.value = "Mindestens ein Datenprodukt muss sichtbar bleiben.";
     if (event?.target instanceof HTMLInputElement) event.target.checked = false;
     return;

@@ -9,13 +9,13 @@
       v-for="language in languages"
       :key="language.locale"
       type="button"
-      class="inline-flex min-w-0 items-center rounded font-bold transition-colors"
+      class="inline-flex min-w-0 items-center rounded-sm font-bold transition-colors"
       :class="[sizeClasses, selectedLocale === language.locale ? themeClasses.active : themeClasses.inactive]"
       :aria-label="$t(language.labelKey)"
       :aria-pressed="selectedLocale === language.locale"
       @click="changeLanguage(language.locale)"
     >
-      <Icon :icon="language.icon" :ssr="true" aria-hidden="true" class="h-3 w-4 flex-shrink-0 ring-1 ring-black/15" />
+      <Icon :icon="language.icon" :ssr="true" :ariaHidden="true" class="h-3 w-4 shrink-0 ring-1 ring-black/15" />
       <span class="uppercase">{{ language.shortLabel }}</span>
     </button>
   </div>
@@ -53,8 +53,8 @@ addIcon("flag:it-4x3", {
 
 const props = withDefaults(
   defineProps<{
-    size?: "default" | "compact";
-    variant?: "footer" | "header";
+    size?: "default" | "compact" | undefined;
+    variant?: "footer" | "header" | undefined;
   }>(),
   {
     size: "default",
@@ -70,14 +70,13 @@ const themeClasses = computed(() => {
   if (props.variant === "header") {
     return {
       active: "bg-olive-green text-white",
-      inactive:
-        "text-[var(--slk-text-muted)] hover:bg-[var(--slk-surface-subdued)] hover:text-[var(--slk-text-strong)]",
-      wrapper: "bg-[var(--slk-surface)] ring-[var(--slk-border)]",
+      inactive: "text-(--slk-text-muted) hover:bg-(--slk-surface-subdued) hover:text-(--slk-text-strong)",
+      wrapper: "bg-(--slk-surface) ring-(--slk-border)",
     };
   }
 
   return {
-    active: "bg-white text-olive-green shadow-sm",
+    active: "bg-white text-olive-green shadow-xs",
     inactive: "text-white hover:bg-green",
     wrapper: "bg-olive-green ring-white",
   };

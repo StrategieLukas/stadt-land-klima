@@ -1,4 +1,5 @@
 import type { H3Event } from "h3";
+import { rateLimit } from "../../utils/rateLimit";
 
 type DirectusEventResponse = {
   data?: CalendarEvent[];
@@ -16,7 +17,17 @@ type CalendarEvent = {
   title: string;
 };
 
-const EVENT_FIELDS = ["id", "title", "slug", "description", "start_date", "end_date", "date_only", "location", "event_category"] as const;
+const EVENT_FIELDS = [
+  "id",
+  "title",
+  "slug",
+  "description",
+  "start_date",
+  "end_date",
+  "date_only",
+  "location",
+  "event_category",
+] as const;
 const ICS_LINE_ENDING = "\r\n";
 
 function escapeIcsText(value: string): string {
@@ -61,14 +72,19 @@ function formatIcsDate(value: string | Date): string {
 
 function formatIcsBerlinDay(value: Date): string {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit",
+    timeZone: "Europe/Berlin",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).formatToParts(value);
   const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
   return `${part("year")}${part("month")}${part("day")}`;
 }
 
 function nextIcsDay(value: string): string {
-  const date = new Date(Date.UTC(Number(value.slice(0, 4)), Number(value.slice(4, 6)) - 1, Number(value.slice(6, 8)) + 1));
+  const date = new Date(
+    Date.UTC(Number(value.slice(0, 4)), Number(value.slice(4, 6)) - 1, Number(value.slice(6, 8)) + 1),
+  );
   return date.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
@@ -101,7 +117,7 @@ function safeFileName(value: string): string {
 
 function buildEventUrl(eventSlug: string, requestOrigin: string): string {
   const config = useRuntimeConfig();
-  const baseUrl = String(config.appPublicUrl || requestOrigin).replace(/\/$/, "");
+  const baseUrl = (config.appPublicUrl || requestOrigin).replace(/\/$/, "");
   return `${baseUrl}/events/${encodeURIComponent(eventSlug)}`;
 }
 
@@ -172,7 +188,8 @@ function buildIcs(eventItem: CalendarEvent, eventUrl: string): string {
   ];
 
   if (eventItem.date_only) {
-    const finalDay = end && !Number.isNaN(end.getTime()) && end > start ? formatIcsBerlinDay(end) : formatIcsBerlinDay(start);
+    const finalDay =
+      end && !Number.isNaN(end.getTime()) && end > start ? formatIcsBerlinDay(end) : formatIcsBerlinDay(start);
     lines.push(`DTEND;VALUE=DATE:${nextIcsDay(finalDay)}`);
   } else if (end && !Number.isNaN(end.getTime()) && end.getTime() > start.getTime()) {
     lines.push(`DTEND:${formatIcsDate(end)}`);
@@ -194,6 +211,10 @@ function buildIcs(eventItem: CalendarEvent, eventUrl: string): string {
 }
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, "event-ics"))) {
+    throw createError({ statusCode: 429, statusMessage: "Too many requests" });
+  }
   const slug = getCalendarSlug(event);
 
   if (!slug) {
@@ -201,14 +222,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig();
-  const directusUrl =
-    (config.directusServerUrl as string) || (config.public.serverDirectusUrl as string) || "http://directus:8055";
-  const directusToken = config.public.directusToken as string | undefined;
+  const directusUrl = config.directusServerUrl || config.public.serverDirectusUrl || "http://directus:8055";
+  const directusToken = config.directusFrontendServerToken as string | undefined;
   let response: DirectusEventResponse;
 
   try {
     response = await $fetch<DirectusEventResponse>(`${directusUrl}/items/events`, {
-      headers: directusToken ? { Authorization: `Bearer ${directusToken}` } : undefined,
+      ...(directusToken ? { headers: { Authorization: `Bearer ${directusToken}` } } : {}),
       params: {
         filter: JSON.stringify({ slug: { _eq: slug }, status: { _eq: "published" } }),
         limit: 1,

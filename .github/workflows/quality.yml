@@ -1,0 +1,62 @@
+name: Quality checks
+on:
+  schedule:
+    - cron: "37 8 * * 1"
+  pull_request:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+      - name: Install locked tools and extension dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --prefix src/frontend
+          npm ci --prefix src/directus/cli
+          npm ci --prefix bin/test_suite
+          npm ci --prefix docker/directus/security-patches --ignore-scripts
+          for package in src/directus/extensions/*/package-lock.json; do
+            npm ci --prefix "$(dirname "$package")" --ignore-scripts
+          done
+      - name: Strict checking, lint and formatting
+        run: |
+          npm --prefix src/frontend run typecheck
+          npm --prefix src/frontend run lint
+          npm --prefix src/frontend run lintExtensions
+          npm --prefix src/frontend run format:check
+          npm --prefix src/directus/cli run typecheck
+          npm --prefix bin/test_suite run typecheck
+      - name: Fast regressions without application credentials
+        run: npm --prefix bin/test_suite run test:unit
+      - name: Build every maintained Directus extension
+        shell: bash
+        run: |
+          set -euo pipefail
+          for package in src/directus/extensions/*/package-lock.json; do
+            npm --prefix "$(dirname "$package")" run build
+          done
+      - name: Build and check pinned Directus image
+        run: |
+          docker build -t slk-directus-security:ci docker/directus
+          SLK_SECURITY_IMAGE=slk-directus-security:ci npm --prefix bin/test_suite run audit:directus-image:reviewed -- "$RUNNER_TEMP/directus-image-audit"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
+        with:
+          name: directus-image-audit
+          path: ${{ runner.temp }}/directus-image-audit
+          retention-days: 14

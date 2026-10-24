@@ -1,20 +1,20 @@
-<template lang="">
+<template>
   <!-- Content when municipality data is available -->
   <div>
     <!-- Mobile: Single column layout -->
     <div class="block w-full flex-col justify-center lg:hidden">
       <div class="mb-8">
-        <ItemRanking :municipalityScore="municipalityScore" />
+        <ItemRanking :municipality-score="municipalityScore" />
       </div>
       <div class="mb-4">
-        <div role="tablist" class="slk-chart-tabs tabs-boxed tabs w-fit">
+        <div role="tablist" class="slk-chart-tabs tabs tabs-box w-fit">
           <a
             role="tab"
             class="tab gap-1.5"
             :class="{ 'tab-active': activeTab === 'polar' }"
             @click="activeTab = 'polar'"
           >
-            <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
               <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
               <line x1="12" y1="2" x2="12" y2="22" />
@@ -29,7 +29,7 @@
             :class="{ 'tab-active': activeTab === 'treemap' }"
             @click="activeTab = 'treemap'"
           >
-            <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="2" width="9" height="20" rx="1" />
               <rect x="13" y="2" width="9" height="9" rx="1" />
               <rect x="13" y="13" width="9" height="9" rx="1" />
@@ -51,16 +51,16 @@
           <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
           <p
             v-if="activeTab === 'treemap'"
-            class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+            class="mx-auto mt-3 text-center text-xs text-gray-500 italic"
             style="max-width: 50vw"
           >
             {{ $t("municipality.chart.treemap.description") }}
           </p>
         </div>
       </div>
-      <p class="mb-4 mt-0 text-center text-xs">
+      <p class="mt-0 mb-4 text-center text-xs">
         <ClientOnly>
-          {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
+          {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? "", $locale) }}
         </ClientOnly>
       </p>
 
@@ -70,13 +70,13 @@
 
       <!-- Mobile: Infos zur Kommune -->
       <div class="mb-4">
-        <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore" />
+        <DetailMunicipalityQuickInfoDesktop :municipality-score="municipalityScore" />
       </div>
 
       <!-- Mobile: Participate Section -->
       <div
         v-if="municipality.public_contact"
-        class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+        class="collapse-plus collapse mb-4 rounded-xs p-2 px-0 shadow-list md:px-2"
       >
         <input type="checkbox" name="sectors-accordion" autocomplete="off" />
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
@@ -86,14 +86,14 @@
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="md.render(municipality.public_contact)"></div>
+          <div class="has-long-links prose" v-html="sanitizeHtml(sanitizedPublicContact)"></div>
         </div>
       </div>
 
       <!-- Mobile: Statistics Section Link -->
       <NuxtLink
         :to="`/data/${municipality.ars}`"
-        class="slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
+        class="slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
       >
         <img
           src="~/assets/icons/icon_evaluation_criteria.svg"
@@ -111,7 +111,7 @@
       <!-- Mobile: Kommunalwahl Question Generation Link -->
       <NuxtLink
         :to="`/elections/${municipality.slug}`"
-        class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
+        class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
       >
         <img
           src="~/assets/icons/icon_politics.svg"
@@ -133,13 +133,13 @@
         </h3>
       </NuxtLink>
 
-      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector" />
+      <DetailMunicipalitySectorCards :municipality-score="municipalityScore" :ratings-by-sector="ratingsBySector" />
 
       <!-- Mobile: Associated Projects Link -->
       <NuxtLink
         v-if="municipalityProjects && municipalityProjects.length > 0"
         :to="{ path: '/projects', query: { municipality: municipality.name } }"
-        class="mt-4 flex items-center gap-3 rounded-sm bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
+        class="mt-4 flex items-center gap-3 rounded-xs bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
       >
         <img src="~/assets/icons/icon_approved.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
         <h3 class="font-heading text-h2">
@@ -154,17 +154,17 @@
       <!-- Left Column: Main content (2/3 width) -->
       <div class="lg:col-span-2">
         <div class="mb-8">
-          <item-ranking :municipalityScore="municipalityScore" />
+          <item-ranking :municipality-score="municipalityScore" />
         </div>
         <div class="mb-4">
-          <div role="tablist" class="slk-chart-tabs tabs-boxed tabs w-fit">
+          <div role="tablist" class="slk-chart-tabs tabs tabs-box w-fit">
             <a
               role="tab"
               class="tab gap-1.5"
               :class="{ 'tab-active': activeTab === 'polar' }"
               @click="activeTab = 'polar'"
             >
-              <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
                 <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
                 <line x1="12" y1="2" x2="12" y2="22" />
@@ -179,7 +179,7 @@
               :class="{ 'tab-active': activeTab === 'treemap' }"
               @click="activeTab = 'treemap'"
             >
-              <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="2" width="9" height="20" rx="1" />
                 <rect x="13" y="2" width="9" height="9" rx="1" />
                 <rect x="13" y="13" width="9" height="9" rx="1" />
@@ -201,14 +201,14 @@
             <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
             <p
               v-if="activeTab === 'polar'"
-              class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+              class="mx-auto mt-3 text-center text-xs text-gray-500 italic"
               style="max-width: 50vw"
             >
               {{ $t("municipality.chart.polar.description") }}
             </p>
             <p
               v-else-if="activeTab === 'treemap'"
-              class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+              class="mx-auto mt-3 text-center text-xs text-gray-500 italic"
               style="max-width: 50vw"
             >
               {{ $t("municipality.chart.treemap.description") }}
@@ -222,34 +222,42 @@
         <!-- Notice about current developments, if it exists -->
         <div
           v-if="municipality.overall_status_comment"
-          class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+          class="collapse-plus collapse mb-4 rounded-xs p-2 px-0 shadow-list md:px-2"
         >
           <input type="checkbox" name="sectors-accordion" autocomplete="off" />
           <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
-            <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-            <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+            <img
+              src="~/assets/icons/icon_info.svg"
+              alt=""
+              class="slk-sector-detail-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18"
+            />
+            <img
+              src="~/assets/icons/icon_info-dark.svg"
+              alt=""
+              class="slk-sector-detail-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
+            />
             <h2 class="font-heading text-h2 leading-none text-green">
               {{ $t("municipality.overall_status_heading") }}
             </h2>
           </div>
           <div class="collapse-content px-2 md:px-4">
-            <div class="has-long-links prose" v-html="md.render(municipality.overall_status_comment)"></div>
+            <div class="has-long-links prose" v-html="sanitizeHtml(sanitizedOverallStatusComment)"></div>
           </div>
         </div>
 
-        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector" />
+        <DetailMunicipalitySectorCards :municipality-score="municipalityScore" :ratings-by-sector="ratingsBySector" />
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
       <div class="pb-4 lg:col-span-1">
         <div class="sticky top-24 space-y-6">
           <!-- Municipality Quick Info -->
-          <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore" />
+          <DetailMunicipalityQuickInfoDesktop :municipality-score="municipalityScore" />
 
           <!-- Statistics Section Link -->
           <NuxtLink
             :to="municipality.ars ? `/data/${municipality.ars}` : '/data'"
-            class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
+            class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
           >
             <img
               src="~/assets/icons/icon_evaluation_criteria.svg"
@@ -267,7 +275,7 @@
           <!-- Kommunalwahl Question Generation Link -->
           <NuxtLink
             :to="`/elections/${municipality.slug}`"
-            class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
+            class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
           >
             <img
               src="~/assets/icons/icon_politics.svg"
@@ -290,7 +298,7 @@
           </NuxtLink>
 
           <!-- Participate Section -->
-          <div v-if="municipality?.public_contact" class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2">
+          <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-xs p-2 shadow-list md:px-2">
             <input type="checkbox" name="contact-accordion" autocomplete="off" />
             <div class="collapse-title flex items-center gap-3 px-2 md:px-4">
               <img src="~/assets/icons/icon_team.svg" class="h-6 w-6 opacity-60" />
@@ -299,21 +307,26 @@
               </h3>
             </div>
             <div class="collapse-content px-2 md:px-4">
-              <div
-                class="has-long-links prose prose-sm max-w-none"
-                v-html="md.render(municipality.public_contact)"
-              ></div>
+              <div class="has-long-links prose prose-sm max-w-none" v-html="sanitizeHtml(sanitizedPublicContact)"></div>
             </div>
           </div>
 
           <!-- Associated Projects -->
           <div
             v-if="municipalityProjects && municipalityProjects.length > 0"
-            class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2"
+            class="collapse-plus collapse rounded-xs p-2 shadow-list md:px-2"
           >
             <div class="mb-4 flex items-center gap-3 p-3">
-              <img src="~/assets/icons/icon_invest.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60" />
-              <img src="~/assets/icons/icon_invest-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-6 w-6 opacity-60" />
+              <img
+                src="~/assets/icons/icon_invest.svg"
+                alt=""
+                class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60"
+              />
+              <img
+                src="~/assets/icons/icon_invest-dark.svg"
+                alt=""
+                class="slk-sector-detail-icon slk-theme-icon--dark h-6 w-6 opacity-60"
+              />
               <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
             </div>
             <div class="space-y-4">
@@ -322,25 +335,34 @@
                 :key="project.id"
                 :slug="project.slug"
                 :title="project.title"
-                :municipality_name="project.municipality_name"
-                :state="project.state"
-                :abstract="project.abstract"
-                :author="project.author"
-                :date="new Date(project.date_created)"
-                :image_id="project.image"
+                :municipality_name="project.municipality_name ?? undefined"
+                :state="project.state ?? undefined"
+                :abstract="project.abstract ?? undefined"
+                :author="project.author ?? undefined"
+                :date="project.date"
+                :image_id="project.image_id ?? undefined"
+                :image_is_raster="project.image_is_raster ?? undefined"
                 :organisation="project.organisation"
               />
             </div>
           </div>
 
           <!-- Last Update Info -->
-          <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
-            <div class="text-gray-600 flex items-center gap-2 text-sm">
-              <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-4 w-4 opacity-60" />
-              <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-4 w-4 opacity-60" />
+          <div v-if="municipality?.date_updated" class="rounded-xs p-2 shadow-list md:px-4">
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+              <img
+                src="~/assets/icons/icon_info.svg"
+                alt=""
+                class="slk-sector-detail-icon slk-theme-icon--light h-4 w-4 opacity-60"
+              />
+              <img
+                src="~/assets/icons/icon_info-dark.svg"
+                alt=""
+                class="slk-sector-detail-icon slk-theme-icon--dark h-4 w-4 opacity-60"
+              />
               <ClientOnly>
                 <span>{{
-                  $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale)
+                  $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? "", $locale)
                 }}</span>
               </ClientOnly>
             </div>
@@ -351,10 +373,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Project } from "~/types/components/content";
+import type { MunicipalityScore, RatingsBySector } from "~/types/components/municipality";
+
+import type { PropType } from "vue";
+
 import { ref, onMounted, computed } from "vue";
 import lodash from "lodash";
 import MarkdownIt from "markdown-it";
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
+
+import { isRaster, formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
 
 const md = new MarkdownIt({
   html: false, // XSS safety
@@ -362,22 +392,20 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils.js";
-
 const municipalElectionYear = computed(() => {
   return getStateMunicipalElectionYear(municipality?.state);
 });
 
-const { range } = lodash;
-const { $t, $locale, $directus, $readItems } = useNuxtApp();
+const _range = lodash.range.bind(lodash);
+const { $t, $locale } = useNuxtApp();
 
 const props = defineProps({
   municipalityScore: {
-    type: Object,
+    type: Object as PropType<MunicipalityScore>,
     required: true,
   },
   ratingsBySector: {
-    type: Object,
+    type: Object as PropType<RatingsBySector>,
     required: true,
   },
 });
@@ -386,11 +414,16 @@ const municipalityScore = props.municipalityScore;
 const municipality = municipalityScore.municipality;
 const subScores = createSubScoreObject(municipalityScore);
 
+const sanitizedPublicContact = computed(() => sanitizeHtml(md.render(municipality.public_contact ?? "")));
+const sanitizedOverallStatusComment = computed(() =>
+  sanitizeHtml(md.render(municipality.overall_status_comment ?? "")),
+);
+
 // Tab state
 const activeTab = ref("polar");
 
 // Fetch projects associated with this municipality
-const municipalityProjects = ref([]);
+const municipalityProjects = ref<Project[]>([]);
 const loadingProjects = ref(false);
 
 // Defensive check for municipality data
@@ -410,62 +443,16 @@ async function fetchMunicipalityProjects() {
 
   loadingProjects.value = true;
   try {
-    const articles = await $directus.request(
-      $readItems("articles", {
-        fields: [
-          "id",
-          "slug",
-          "title",
-          "image",
-          "abstract",
-          "author",
-          "date_created",
-          "municipality_name",
-          "state",
-          "organisation",
-        ],
-        filter: {
-          municipality_name: { _eq: municipality.name },
-        },
-        sort: "-date_created",
-        limit: 5, // Limit to 5 most recent projects
-      }),
-    );
-
-    // Get organisation details if articles have organisations
-    const orgIds = [
-      ...new Set(
-        articles
-          .map((article) => {
-            const org = article.organisation;
-            if (org == null) return null;
-            return typeof org === "object" ? org.key : org;
-          })
-          .filter((id) => id != null),
-      ),
-    ];
-
-    let organisations = [];
-    if (orgIds.length > 0) {
-      organisations = await $directus.request(
-        $readItems("organisations", {
-          fields: ["id", "name", "logo", "link"],
-          filter: { id: { _in: orgIds } },
-        }),
-      );
-    }
-
-    const orgMap = new Map(organisations.map((org) => [org.id, org]));
-
-    municipalityProjects.value = articles.map((article) => {
-      const orgRaw = article.organisation;
-      if (orgRaw == null) return { ...article, organisation: null };
-      const orgId = typeof orgRaw === "object" ? orgRaw.key : orgRaw;
-      return {
-        ...article,
-        organisation: orgMap.get(orgId) || null,
-      };
+    const { articles } = await $fetch("/api/public/articles", {
+      query: { municipality: municipality.name, limit: 5, sort: "-date_created" },
     });
+    municipalityProjects.value = articles.map((article) => ({
+      ...article,
+      date: article.date_created,
+      image_id: article.image?.id ?? null,
+      image_is_raster: isRaster(article.image?.type),
+      measures: article.measures?.flatMap((link) => (link.measures_id ? [link.measures_id] : [])) ?? [],
+    }));
   } catch (err) {
     console.error("❌ Failed to fetch municipality projects:", err);
     municipalityProjects.value = [];
@@ -474,8 +461,8 @@ async function fetchMunicipalityProjects() {
   }
 }
 
-function createSubScoreObject(municipalityScore) {
-  const temp = {};
+function createSubScoreObject(municipalityScore: MunicipalityScore) {
+  const temp: Record<string, number> = {};
   for (const [key, value] of Object.entries(municipalityScore)) {
     if (key.includes("score")) {
       temp[key] = Number(value);

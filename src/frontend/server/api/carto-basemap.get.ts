@@ -1,3 +1,4 @@
+import { rateLimit } from "../utils/rateLimit";
 const RASTER_TILE = /^\/(light_all|dark_all)\/(\d{1,2})\/(\d{1,10})\/(\d{1,10})(@2x)?\.png$/;
 const SPRITE = /^\/gl\/(?:positron-gl-style|dark-matter-gl-style|voyager-gl-style)\/sprite(?:@2x)?\.(?:png|json)$/;
 const GLYPH = /^\/fonts\/([^/]{1,160})\/(\d{1,6})-(\d{1,6})\.pbf$/;
@@ -21,7 +22,7 @@ function cartoAsset(path: string): { host: string; contentType: string } | null 
   if (glyph) {
     let fontstack: string;
     try {
-      fontstack = decodeURIComponent(glyph[1]);
+      fontstack = decodeURIComponent(glyph[1] ?? "");
     } catch {
       return null;
     }
@@ -33,6 +34,10 @@ function cartoAsset(path: string): { host: string; contentType: string } | null 
 }
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, "carto-basemap"))) {
+    throw createError({ statusCode: 429, statusMessage: "Too many requests" });
+  }
   const requestUrl = new URL(event.path ?? "/", "http://carto-proxy.local");
   if (requestUrl.searchParams.size !== 1) {
     throw createError({ statusCode: 404, statusMessage: "Basemap asset not found" });

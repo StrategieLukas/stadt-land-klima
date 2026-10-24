@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full px-4 sm:px-8 py-8 pb-16">
+  <div class="w-full px-4 py-8 pb-16 sm:px-8">
     <header class="mb-10">
       <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("organisation.title") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">
@@ -8,12 +8,12 @@
     </header>
 
     <h2 class="mb-2 font-heading text-3xl font-bold text-gray">{{ $t("organisation.teams.title") }}</h2>
-    <p class="mb-8 text-sm italic text-gray">{{ $t("organisation.teams.bubble_hint") }}</p>
+    <p class="mb-8 text-sm text-gray italic">{{ $t("organisation.teams.bubble_hint") }}</p>
 
-    <div class="flex flex-col lg:flex-row gap-8 items-start">
+    <div class="flex flex-col items-start gap-8 lg:flex-row">
       <!-- ── Bubble chart ─────────────────────────────────────────────────────── -->
       <!-- Widths use scoped CSS (not Tailwind arbitrary values) so they survive prod builds -->
-      <div ref="svgWrapperRef" class="org-svg-wrapper flex-shrink-0">
+      <div ref="svgWrapperRef" class="org-svg-wrapper shrink-0">
         <svg
           viewBox="140 5 620 555"
           class="w-full select-none"
@@ -62,7 +62,7 @@
             v-for="team in TEAMS"
             :key="'label-' + team.id"
             :x="team.cx"
-            :y="team.cy - (team.lines.length - 1) * team.lineHeight / 2"
+            :y="team.cy - ((team.lines.length - 1) * team.lineHeight) / 2"
             text-anchor="middle"
             dominant-baseline="middle"
             :font-size="team.fontSize"
@@ -71,12 +71,9 @@
             class="org-label-text"
             style="pointer-events: none"
           >
-            <tspan
-              v-for="(line, i) in team.lines"
-              :key="i"
-              :x="team.cx"
-              :dy="i === 0 ? 0 : team.lineHeight"
-            >{{ line }}</tspan>
+            <tspan v-for="(line, i) in team.lines" :key="i" :x="team.cx" :dy="i === 0 ? 0 : team.lineHeight">
+              {{ line }}
+            </tspan>
           </text>
 
           <!-- Transparent hit area so labels don't block clicks -->
@@ -100,63 +97,68 @@
       <div class="org-detail-panel" :class="svgHeight > 0 ? 'lg:overflow-y-auto' : ''" :style="panelStyle">
         <template v-if="activeTeam">
           <!-- Popover card -->
-          <div id="team-detail-panel" class="rounded-lg overflow-hidden border border-[var(--slk-border)] shadow-md mb-6">
+          <div id="team-detail-panel" class="mb-6 overflow-hidden rounded-lg border border-(--slk-border) shadow-md">
             <!-- Header -->
             <div
               class="px-4 py-3"
               :style="{ background: teamTint(activeTeam.color, 0.13), borderBottom: '2px solid ' + activeTeam.color }"
             >
-              <h2 class="font-bold text-[15px] text-gray">{{ activeTeam.label }}</h2>
+              <h2 class="text-[15px] font-bold text-gray">{{ activeTeam.label }}</h2>
               <a
                 v-if="activeTeam.email"
                 :href="'mailto:' + activeTeam.email"
-                class="mt-0.5 text-xs hover:underline block"
+                class="mt-0.5 block text-xs hover:underline"
                 :style="{ color: 'var(--slk-blue)' }"
-              >{{ activeTeam.email }}</a>
+                >{{ activeTeam.email }}</a
+              >
             </div>
 
             <!-- Task list -->
-            <div class="bg-[var(--slk-surface)] px-4 py-3">
-              <ul class="text-sm leading-relaxed space-y-1 text-[var(--slk-text)] list-disc list-inside">
+            <div class="bg-(--slk-surface) px-4 py-3">
+              <ul class="list-inside list-disc space-y-1 text-sm leading-relaxed text-(--slk-text)">
                 <li v-for="task in activeTeam.tasks" :key="task">{{ task }}</li>
               </ul>
             </div>
 
             <!-- Members footer: small clickable avatars (replaces name strip) -->
-            <div class="px-4 py-3 border-t border-[var(--slk-border)]">
+            <div class="border-t border-(--slk-border) px-4 py-3">
               <div v-if="filteredMembers.length" class="flex flex-wrap gap-3">
                 <button
                   v-for="member in filteredMembers"
                   :key="'strip-' + member.id"
                   type="button"
-                  class="flex flex-col items-center gap-1 cursor-pointer group focus:outline-none"
-                  @click="scrollToMember(member.id, activeTeam.color)"
+                  class="group flex cursor-pointer flex-col items-center gap-1 focus:outline-hidden"
                   :title="memberFullName(member)"
+                  @click="scrollToMember(member.id, activeTeam.color)"
                 >
                   <div
-                    class="w-10 h-10 rounded-full overflow-hidden border-2 group-hover:scale-110 transition-transform"
+                    class="h-10 w-10 overflow-hidden rounded-full border-2 transition-transform group-hover:scale-110"
                     :style="{ borderColor: activeTeam.color }"
                   >
                     <SmartImg
                       v-if="member.avatar"
-                      :assetId="member.avatar"
-                      :isRaster="true"
+                      :asset-id="member.avatar"
+                      :is-raster="true"
                       :width="40"
                       :height="40"
-                      imgClass="w-full h-full object-cover"
+                      img-class="w-full h-full object-cover"
                     />
                     <div
                       v-else
-                      class="w-full h-full flex items-center justify-center"
+                      class="flex h-full w-full items-center justify-center"
                       :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
                     >
-                      <span class="font-bold text-xs" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
+                      <span class="text-xs font-bold" :style="{ color: activeTeam.color }">{{
+                        initials(member.first_name, member.last_name)
+                      }}</span>
                     </div>
                   </div>
-                  <span class="text-[10px] leading-tight text-center text-[var(--slk-text-muted)] max-w-[48px] truncate">{{ member.first_name }}</span>
+                  <span class="max-w-[48px] truncate text-center text-[10px] leading-tight text-(--slk-text-muted)">{{
+                    member.first_name
+                  }}</span>
                 </button>
               </div>
-              <p v-else class="text-sm italic text-[var(--slk-text-subtle)]">{{ $t("organisation.no_members") }}</p>
+              <p v-else class="text-sm text-(--slk-text-subtle) italic">{{ $t("organisation.no_members") }}</p>
             </div>
           </div>
         </template>
@@ -164,10 +166,10 @@
         <!-- No-selection placeholder — min-height matches SVG height to keep page height stable -->
         <div
           v-else
-          class="flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-[var(--slk-border)] text-[var(--slk-text-muted)] gap-3"
+          class="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-(--slk-border) text-center text-(--slk-text-muted)"
           :style="placeholderStyle"
         >
-          <svg class="w-10 h-10 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-10 w-10 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -182,36 +184,36 @@
 
     <!-- ── All members list (below chart) ─────────────────────────────────── -->
     <div v-if="members && members.length" class="mt-12">
-      <h2 class="text-h2 font-bold mb-6 text-gray">{{ $t("organisation.all_members") }}</h2>
+      <h2 class="mb-6 text-h2 font-bold text-gray">{{ $t("organisation.all_members") }}</h2>
 
       <!-- Active-team members first (coloured border highlight) -->
       <template v-if="activeTeam && filteredMembers.length">
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
+        <div class="mb-6 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
           <div
             v-for="member in filteredMembers"
-            :key="'all-active-' + member.id"
             :id="'member-' + member.id"
-          class="flex flex-col bg-[var(--slk-surface)] rounded-xl overflow-hidden shadow-sm border-2"
+            :key="'all-active-' + member.id"
+            class="flex flex-col overflow-hidden rounded-xl border-2 bg-(--slk-surface) shadow-xs"
             :style="{ borderColor: activeTeam.color }"
-            style="transition: box-shadow 0.1s;"
+            style="transition: box-shadow 0.1s"
           >
-            <div class="relative aspect-square bg-[var(--slk-surface-subdued)] overflow-hidden flex-shrink-0">
+            <div class="relative aspect-square shrink-0 overflow-hidden bg-(--slk-surface-subdued)">
               <template v-if="member.avatar">
                 <!-- Blurred fill layer keeps the container looking full at any aspect ratio -->
                 <SmartImg
-                  :assetId="member.avatar"
-                  :isRaster="true"
+                  :asset-id="member.avatar"
+                  :is-raster="true"
                   :width="320"
                   :height="320"
-                  imgClass="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
+                  img-class="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
                 />
                 <!-- Main image: contain so the face is never cropped -->
                 <SmartImg
-                  :assetId="member.avatar"
-                  :isRaster="true"
+                  :asset-id="member.avatar"
+                  :is-raster="true"
                   :width="320"
                   :height="320"
-                  imgClass="absolute inset-0 w-full h-full object-contain"
+                  img-class="absolute inset-0 w-full h-full object-contain"
                 />
               </template>
               <div
@@ -219,43 +221,51 @@
                 class="absolute inset-0 flex items-center justify-center"
                 :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
               >
-                <span class="font-bold text-3xl" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
+                <span class="text-3xl font-bold" :style="{ color: activeTeam.color }">{{
+                  initials(member.first_name, member.last_name)
+                }}</span>
               </div>
             </div>
-            <div class="p-4 flex flex-col gap-2 flex-1">
-              <p class="font-bold text-[var(--slk-text-strong)] leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
-              <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="member.bio" />
+            <div class="flex flex-1 flex-col gap-2 p-4">
+              <p class="leading-snug font-bold text-(--slk-text-strong)">
+                {{ member.first_name }} {{ member.last_name }}
+              </p>
+              <div
+                v-if="member.bio"
+                class="prose prose-sm max-w-none text-sm text-(--slk-text-muted)"
+                v-html="sanitizeHtml(member.bio)"
+              />
             </div>
           </div>
         </div>
-        <hr class="border-[var(--slk-border)] mb-6" />
+        <hr class="mb-6 border-(--slk-border)" />
       </template>
 
       <!-- All other members (alphabetically by last name) -->
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
         <div
           v-for="member in otherMembers"
-          :key="'all-other-' + member.id"
           :id="'member-' + member.id"
-          class="flex flex-col bg-[var(--slk-surface)] rounded-xl border border-[var(--slk-border)] shadow-sm overflow-hidden"
+          :key="'all-other-' + member.id"
+          class="flex flex-col overflow-hidden rounded-xl border border-(--slk-border) bg-(--slk-surface) shadow-xs"
         >
-          <div class="relative aspect-square bg-[var(--slk-surface-subdued)] overflow-hidden flex-shrink-0">
+          <div class="relative aspect-square shrink-0 overflow-hidden bg-(--slk-surface-subdued)">
             <template v-if="member.avatar">
               <!-- Blurred fill layer -->
               <SmartImg
-                :assetId="member.avatar"
-                :isRaster="true"
+                :asset-id="member.avatar"
+                :is-raster="true"
                 :width="320"
                 :height="320"
-                imgClass="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
+                img-class="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
               />
               <!-- Main image: contain so the face is never cropped -->
               <SmartImg
-                :assetId="member.avatar"
-                :isRaster="true"
+                :asset-id="member.avatar"
+                :is-raster="true"
                 :width="320"
                 :height="320"
-                imgClass="absolute inset-0 w-full h-full object-contain"
+                img-class="absolute inset-0 w-full h-full object-contain"
               />
             </template>
             <div
@@ -263,12 +273,20 @@
               class="absolute inset-0 flex items-center justify-center"
               :style="{ background: memberPlaceholderGradient(memberColor(member)) }"
             >
-              <span class="font-bold text-3xl" :style="{ color: memberColor(member) }">{{ initials(member.first_name, member.last_name) }}</span>
+              <span class="text-3xl font-bold" :style="{ color: memberColor(member) }">{{
+                initials(member.first_name, member.last_name)
+              }}</span>
             </div>
           </div>
-          <div class="p-4 flex flex-col gap-2 flex-1">
-            <p class="font-bold text-[var(--slk-text-strong)] leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
-            <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="member.bio" />
+          <div class="flex flex-1 flex-col gap-2 p-4">
+            <p class="leading-snug font-bold text-(--slk-text-strong)">
+              {{ member.first_name }} {{ member.last_name }}
+            </p>
+            <div
+              v-if="member.bio"
+              class="prose prose-sm max-w-none text-sm text-(--slk-text-muted)"
+              v-html="sanitizeHtml(member.bio)"
+            />
           </div>
         </div>
       </div>
@@ -276,107 +294,164 @@
   </div>
 </template>
 
-<script setup>
-const { $directus, $readItems, $t } = useNuxtApp()
-const { isDark } = useTheme()
+<script setup lang="ts">
+import type { TeamMember } from "~/shared/contracts/content";
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const { $t } = useNuxtApp();
+const { isDark } = useTheme();
 
-useHead({ title: $t('organisation') })
+useHead({ title: $t("organisation") });
 // ── SVG layout — coordinates from the original Illustrator SVG ──────────────
 // These are purely geometric/layout values that never need to change via CMS.
 // Label, email, color and tasks come from the organisation_teams Directus collection.
 const TEAM_LAYOUT = [
-  { id: 'lokalteams', lineKeys: ['organisation.team.lokalteams.line1', 'organisation.team.lokalteams.line2'], cx: 527.2, cy: 81.7, r: 72, fontSize: 20, lineHeight: 24 },
-  { id: 'technik', lineKeys: ['organisation.team.technik.line1'], cx: 351, cy: 143.5, r: 72, fontSize: 20, lineHeight: 24 },
-  { id: 'steuerkreis', lineKeys: ['organisation.team.steuerkreis.line1'], cx: 458.8, cy: 198.4, r: 89.7, fontSize: 20, lineHeight: 24 },
-  { id: 'massnahmen', lineKeys: ['organisation.team.massnahmen.line1'], cx: 365, cy: 270.4, r: 72, fontSize: 20, lineHeight: 24 },
-  { id: 'kommunikation', lineKeys: ['organisation.team.kommunikation.line1', 'organisation.team.kommunikation.line2', 'organisation.team.kommunikation.line3'], cx: 531.6, cy: 276.2, r: 72, fontSize: 16, lineHeight: 19 },
-  { id: 'vorstand', lineKeys: ['organisation.team.vorstand.line1', 'organisation.team.vorstand.line2'], cx: 458.8, cy: 447.3, r: 72, fontSize: 20, lineHeight: 24 },
-  { id: 'kassenwart', lineKeys: ['organisation.team.kassenwart.line1'], cx: 548, cy: 468, r: 52, fontSize: 17, lineHeight: 22 },
-]
+  {
+    id: "lokalteams",
+    lineKeys: ["organisation.team.lokalteams.line1", "organisation.team.lokalteams.line2"],
+    cx: 527.2,
+    cy: 81.7,
+    r: 72,
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  {
+    id: "technik",
+    lineKeys: ["organisation.team.technik.line1"],
+    cx: 351,
+    cy: 143.5,
+    r: 72,
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  {
+    id: "steuerkreis",
+    lineKeys: ["organisation.team.steuerkreis.line1"],
+    cx: 458.8,
+    cy: 198.4,
+    r: 89.7,
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  {
+    id: "massnahmen",
+    lineKeys: ["organisation.team.massnahmen.line1"],
+    cx: 365,
+    cy: 270.4,
+    r: 72,
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  {
+    id: "kommunikation",
+    lineKeys: [
+      "organisation.team.kommunikation.line1",
+      "organisation.team.kommunikation.line2",
+      "organisation.team.kommunikation.line3",
+    ],
+    cx: 531.6,
+    cy: 276.2,
+    r: 72,
+    fontSize: 16,
+    lineHeight: 19,
+  },
+  {
+    id: "vorstand",
+    lineKeys: ["organisation.team.vorstand.line1", "organisation.team.vorstand.line2"],
+    cx: 458.8,
+    cy: 447.3,
+    r: 72,
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  {
+    id: "kassenwart",
+    lineKeys: ["organisation.team.kassenwart.line1"],
+    cx: 548,
+    cy: 468,
+    r: 52,
+    fontSize: 17,
+    lineHeight: 22,
+  },
+] as const;
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
-const { data: members } = await useAsyncData('org-members', () =>
-  $fetch('/api/org-members')
-)
+const { data: members } = await useAsyncData("org-members", () => $fetch("/api/org-members"));
 
-const { data: cmsTeams } = await useAsyncData('org-teams', () =>
-  $directus.request($readItems('organisation_teams', { sort: ['sort'], limit: -1 }))
-)
+const { data: cmsTeams } = await useAsyncData("org-teams", () => $fetch("/api/public/organisation-teams"));
 
 // Merge SVG layout with CMS data; fall back to sensible defaults when CMS is unavailable
 const TEAMS = computed(() =>
-  TEAM_LAYOUT.map(layout => {
-    const cms = cmsTeams.value?.find(t => t.team_key === layout.id)
-    const lines = layout.lineKeys.map(key => $t(key))
+  TEAM_LAYOUT.map((layout) => {
+    const cms = cmsTeams.value?.find((t) => t.team_key === layout.id);
+    const lines = layout.lineKeys.map((key) => $t(key));
     return {
       ...layout,
       lines,
-      label: cms?.label ?? lines.join(' '),
-      email: cms?.email ?? '',
-      color: cms?.color ?? '#9d9d9c',
+      label: cms?.label ?? lines.join(" "),
+      email: cms?.email ?? "",
+      color: cms?.color ?? "#9d9d9c",
       tasks: Array.isArray(cms?.tasks) ? cms.tasks : [],
-    }
-  })
-)
-
+    };
+  }),
+);
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const activeTeamId = ref(null)
+const activeTeamId = ref<string | null>(null);
 
-function selectTeam(id) {
-  activeTeamId.value = activeTeamId.value === id ? null : id
+function selectTeam(id: string) {
+  activeTeamId.value = activeTeamId.value === id ? null : id;
 }
 
 // ── Hash-based navigation (from search results) ────────────────────────────
-const route = useRoute()
+const route = useRoute();
 
-function handleHash(hash) {
-  if (!hash) return
-  if (hash.startsWith('#team-')) {
-    const teamId = hash.slice('#team-'.length)
-    activeTeamId.value = teamId
-    nextTick(() => {
-      document.getElementById('team-detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  } else if (hash.startsWith('#member-')) {
-    const memberId = hash.slice('#member-'.length)
-    const member = members.value?.find(m => m.id === memberId)
-    const color = member ? memberColor(member) : '#16bae7'
-    scrollToMember(memberId, color)
+function handleHash(hash: string) {
+  if (!hash) return;
+  if (hash.startsWith("#team-")) {
+    const teamId = hash.slice("#team-".length);
+    activeTeamId.value = teamId;
+    void nextTick(() => {
+      document.getElementById("team-detail-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  } else if (hash.startsWith("#member-")) {
+    const memberId = hash.slice("#member-".length);
+    const member = members.value?.find((m) => m.id === memberId);
+    const color = member ? memberColor(member) : "#16bae7";
+    scrollToMember(memberId, color);
   }
 }
 
-watch(() => route.hash, handleHash)
+watch(() => route.hash, handleHash);
 
 const activeTeam = computed(() =>
-  activeTeamId.value ? TEAMS.value.find(t => t.id === activeTeamId.value) ?? null : null
-)
+  activeTeamId.value ? (TEAMS.value.find((t) => t.id === activeTeamId.value) ?? null) : null,
+);
 
-const byLastName = (a, b) => (a.last_name ?? '').localeCompare(b.last_name ?? '', 'de')
+const byLastName = (a: TeamMember, b: TeamMember) => (a.last_name ?? "").localeCompare(b.last_name ?? "", "de");
 
 // Members in the active team
 const filteredMembers = computed(() => {
-  if (!members.value || !activeTeamId.value) return []
-  const seen = new Set()
+  if (!members.value || !activeTeamId.value) return [];
+  const seen = new Set();
   return members.value
-    .filter(m => {
-      if (!Array.isArray(m.slk_team) || !m.slk_team.includes(activeTeamId.value)) return false
-      if (seen.has(m.id)) return false
-      seen.add(m.id)
-      return true
+    .filter((m) => {
+      if (!Array.isArray(m.slk_team) || !m.slk_team.some((team) => team === activeTeamId.value)) return false;
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      return true;
     })
-    .sort(byLastName)
-})
+    .sort(byLastName);
+});
 
 // All other members (not in active team), sorted by last name
 const otherMembers = computed(() => {
-  if (!members.value) return []
-  const activeIds = new Set(filteredMembers.value.map(m => m.id))
-  return members.value.filter(m => !activeIds.has(m.id)).sort(byLastName)
-})
+  if (!members.value) return [];
+  const activeIds = new Set(filteredMembers.value.map((m) => m.id));
+  return members.value.filter((m) => !activeIds.has(m.id)).sort(byLastName);
+});
 
-function memberFullName(member) {
-  return [member.first_name, member.last_name].filter(Boolean).join(' ')
+function memberFullName(member: TeamMember) {
+  return [member.first_name, member.last_name].filter(Boolean).join(" ");
 }
 
 // ── Layout stability: lock panel height to SVG height ───────────────────────
@@ -385,92 +460,104 @@ function memberFullName(member) {
 // → SVG resizes → visible jitter. We track the SVG wrapper height with a
 // ResizeObserver and use it as the panel's max-height (and placeholder's
 // min-height) so the row height is always exactly equal to the SVG height.
-const svgWrapperRef = ref(null)
-const svgHeight = ref(0)
-const isLg = ref(false)
+const svgWrapperRef = ref<HTMLElement | null>(null);
+const svgHeight = ref(0);
+const isLg = ref(false);
 
-let _resizeObs = null
-let _mq = null
-const _onMqChange = (e) => { isLg.value = e.matches }
+let _resizeObs: ResizeObserver | null = null;
+let _mq: MediaQueryList | null = null;
+const _onMqChange = (e: MediaQueryListEvent) => {
+  isLg.value = e.matches;
+};
 
 onMounted(() => {
-  _mq = window.matchMedia('(min-width: 1024px)')
-  isLg.value = _mq.matches
-  _mq.addEventListener('change', _onMqChange)
+  _mq = window.matchMedia("(min-width: 1024px)");
+  isLg.value = _mq.matches;
+  _mq.addEventListener("change", _onMqChange);
 
   if (svgWrapperRef.value) {
     _resizeObs = new ResizeObserver(([entry]) => {
-      svgHeight.value = entry.contentRect.height
-    })
-    _resizeObs.observe(svgWrapperRef.value)
+      svgHeight.value = entry?.contentRect.height ?? 0;
+    });
+    _resizeObs.observe(svgWrapperRef.value);
   }
 
   // Handle deep-link from search results
-  if (route.hash) handleHash(route.hash)
-})
+  if (route.hash) handleHash(route.hash);
+});
 
 onUnmounted(() => {
-  _resizeObs?.disconnect()
-  _mq?.removeEventListener('change', _onMqChange)
-})
+  _resizeObs?.disconnect();
+  _mq?.removeEventListener("change", _onMqChange);
+});
 
 // Only apply height constraints on the lg+ breakpoint (column layout on mobile
 // should scroll freely).
-const panelStyle = computed(() =>
-  isLg.value && svgHeight.value > 0
-    ? { maxHeight: svgHeight.value + 'px' }
-    : {}
-)
+const panelStyle = computed(() => (isLg.value && svgHeight.value > 0 ? { maxHeight: `${svgHeight.value}px` } : {}));
 
 const placeholderStyle = computed(() =>
-  isLg.value && svgHeight.value > 0
-    ? { minHeight: svgHeight.value + 'px' }
-    : { minHeight: '220px' }
-)
+  isLg.value && svgHeight.value > 0 ? { minHeight: `${svgHeight.value}px` } : { minHeight: "220px" },
+);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function initials(first, last) {
-  return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
+function initials(first: string | null, last: string | null) {
+  return `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase();
 }
 
 // Picks the colour of the member's first team, falls back to a neutral teal
-function memberColor(member) {
-  const firstTeamId = Array.isArray(member.slk_team) ? member.slk_team[0] : null
-  return TEAMS.value.find(t => t.id === firstTeamId)?.color ?? '#16bae7'
+function memberColor(member: TeamMember) {
+  const firstTeamId = Array.isArray(member.slk_team) ? member.slk_team[0] : null;
+  return TEAMS.value.find((t) => t.id === firstTeamId)?.color ?? "#16bae7";
 }
 
-function normalizeHex(hex) {
-  return /^#[0-9a-f]{6}$/i.test(hex ?? '') ? hex : '#16bae7'
+function normalizeHex(hex: string | null | undefined) {
+  return /^#[0-9a-f]{6}$/i.test(hex ?? "") ? (hex ?? "#16bae7") : "#16bae7";
 }
 
-function blendHex(hex, alpha, background) {
-  const bg = background ?? (isDark.value ? '#17212b' : '#ffffff')
-  const fg = normalizeHex(hex).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
-  const bgArr = normalizeHex(bg).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
+function blendHex(hex: string, alpha: number, background?: string) {
+  const bg = background ?? (isDark.value ? "#17212b" : "#ffffff");
+  const fg = normalizeHex(hex)
+    .slice(1)
+    .match(/.{2}/g)!
+    .map((value) => parseInt(value, 16));
+  const bgArr = normalizeHex(bg)
+    .slice(1)
+    .match(/.{2}/g)!
+    .map((value) => parseInt(value, 16));
   return `#${fg
-    .map((value, index) => Math.round(value * alpha + bgArr[index] * (1 - alpha)).toString(16).padStart(2, '0'))
-    .join('')}`
+    .map((value, index) =>
+      Math.round(value * alpha + (bgArr[index] ?? 0) * (1 - alpha))
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
 }
 
-function teamTint(color, alpha) {
-  return blendHex(color, alpha)
+function teamTint(color: string, alpha: number) {
+  return blendHex(color, alpha);
 }
 
-function memberPlaceholderGradient(color) {
-  return `linear-gradient(135deg, ${blendHex(color, 0.33)} 0%, ${blendHex(color, 0.13)} 50%, ${blendHex(color, 0.27)} 100%)`
+function memberPlaceholderGradient(color: string) {
+  return `linear-gradient(135deg, ${blendHex(color, 0.33)} 0%, ${blendHex(color, 0.13)} 50%, ${blendHex(color, 0.27)} 100%)`;
 }
 
-function scrollToMember(id, color) {
-  const el = document.getElementById('member-' + id)
-  if (!el) return
+function scrollToMember(id: string, color: string) {
+  const el = document.getElementById("member-" + id);
+  if (!el) return;
   // Set the ring color as a CSS custom property so the keyframe picks it up
-  el.style.setProperty('--highlight-color-strong', blendHex(color ?? '#16bae7', 0.7))
-  el.style.setProperty('--highlight-color-soft', blendHex(color ?? '#16bae7', 0.35))
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  el.classList.remove('member-highlight')
-  void el.offsetWidth
-  el.classList.add('member-highlight')
-  el.addEventListener('animationend', () => el.classList.remove('member-highlight'), { once: true })
+  el.style.setProperty("--highlight-color-strong", blendHex(color ?? "#16bae7", 0.7));
+  el.style.setProperty("--highlight-color-soft", blendHex(color ?? "#16bae7", 0.35));
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  el.classList.remove("member-highlight");
+  el.getBoundingClientRect();
+  el.classList.add("member-highlight");
+  el.addEventListener(
+    "animationend",
+    () => {
+      el.classList.remove("member-highlight");
+    },
+    { once: true },
+  );
 }
 </script>
 
@@ -484,26 +571,42 @@ function scrollToMember(id, color) {
   margin-right: auto;
 }
 @media (min-width: 640px) {
-  .org-svg-wrapper { width: 80%; }
+  .org-svg-wrapper {
+    width: 80%;
+  }
 }
 @media (min-width: 768px) {
-  .org-svg-wrapper { width: 65%; }
+  .org-svg-wrapper {
+    width: 65%;
+  }
 }
 @media (min-width: 1024px) {
-  .org-svg-wrapper { width: 55%; margin-left: 0; margin-right: 0; }
+  .org-svg-wrapper {
+    width: 55%;
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 
 .org-detail-panel {
   width: 100%;
 }
 @media (min-width: 1024px) {
-  .org-detail-panel { width: 45%; }
+  .org-detail-panel {
+    width: 45%;
+  }
 }
 
 @keyframes memberHighlight {
-  0%   { box-shadow: 0 0 0 0 var(--highlight-color-strong, #16bae7); }
-  30%  { box-shadow: 0 0 0 8px var(--highlight-color-soft, #16bae7); }
-  100% { box-shadow: 0 0 0 0 transparent; }
+  0% {
+    box-shadow: 0 0 0 0 var(--highlight-color-strong, #16bae7);
+  }
+  30% {
+    box-shadow: 0 0 0 8px var(--highlight-color-soft, #16bae7);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 .member-highlight {
   animation: memberHighlight 1.2s ease-out;

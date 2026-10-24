@@ -1,7 +1,7 @@
 <template>
-  <div class="left-4 top-4 z-[1000] rounded bg-white p-2 shadow">
+  <div class="top-4 left-4 z-1000 rounded-sm bg-white p-2 shadow-sm">
     <label class="flex items-center gap-2 text-sm font-medium">
-      <input type="checkbox" v-model="showMunicipalitiesWithUnfinishedRating" class="toggle toggle-sm" />
+      <input v-model="showMunicipalitiesWithUnfinishedRating" type="checkbox" class="toggle toggle-sm" />
       {{ $t("map.showUnfinishedRatings") }}
     </label>
   </div>
@@ -10,20 +10,20 @@
     <div class="relative z-0 h-[75svh] w-full">
       <LMap
         v-if="clientReady"
+        ref="mapRef"
         :zoom="6"
         :center="[51.1657, 10.4515]"
         style="height: 100%; width: 100%"
-        @ready="onMapReady"
-        ref="mapRef"
         class="h-full w-full"
+        @ready="onMapReady"
       >
         <LTileLayer :key="tileUrl" :url="tileUrl" :attribution="attribution" :subdomains="subdomains" :max-zoom="20" />
 
         <!-- Germany border -->
-        <LGeoJson :geojson="germanyPolygon" :options="germanyStyle" />
+        <LGeoJson :geojson="germanyPolygon ?? []" :options="germanyStyle" />
 
         <!-- State borders -->
-        <LGeoJson :geojson="statePolygons" :options="stateStyle" />
+        <LGeoJson :geojson="statePolygons ?? []" :options="stateStyle" />
 
         <!-- Global grey mask -->
         <LRectangle
@@ -31,18 +31,21 @@
             [-90, -180],
             [90, 180],
           ]"
-          :path-options="maskStyle"
+          :fill-color="maskStyle.fillColor"
+          :fill-opacity="maskStyle.fillOpacity"
+          :weight="maskStyle.weight"
+          :interactive="maskStyle.interactive"
         />
 
         <!-- Germany cover to reveal map underneath -->
-        <LGeoJson :geojson="germanyPolygon" :options="germanyCoverStyle" />
+        <LGeoJson :geojson="germanyPolygon ?? []" :options="germanyCoverStyle" />
 
         <!-- Municipality markers -->
         <LMarker
           v-for="s in filteredMunicipalityScores"
           :key="s.municipality.slug"
-          :lat-lng="[s.municipality.lat, s.municipality.lon]"
-          :icon="getCustomIcon(s)"
+          :lat-lng="[s.municipality.lat!, s.municipality.lon!]"
+          v-bind="leafletMarkerProps(leafletMarkerIcon(getCustomIcon(s)))"
         >
           <LPopup>
             <div class="space-y-1 text-sm">
@@ -50,7 +53,7 @@
               <template v-if="isMunicipalityScoreComplete(s)">
                 <div>Score: {{ Number(s.score_total).toFixed(2) }}</div>
                 <NuxtLink
-                  :to="{ path: `/municipalities/${s.municipality.slug}`, query: { v: props.catalogVersion.name } }"
+                  :to="{ path: `/municipalities/${s.municipality.slug}`, query: { v: props.catalogVersion?.name } }"
                   class="text-blue-600 underline hover:text-blue-800"
                 >
                   {{ $t("map.icon.popup.goToRanking") }}
@@ -70,32 +73,39 @@
   </ClientOnly>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { leafletMarkerIcon, leafletMarkerProps } from "~/shared/leafletMarker";
+import type { Map as LeafletMap, Control, DivIcon as LeafletDivIcon } from "leaflet";
+import { parseGeoData } from "~/shared/contracts/geometry";
+import type { PropType } from "vue";
+import type { MunicipalityScore } from "~/types/components/municipality";
+import type { Catalog } from "~/shared/contracts/search";
+
 import { ref, computed, watch, onMounted } from "vue";
 import { LMap, LTileLayer, LMarker, LPopup, LGeoJson, LRectangle } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import germanyGeoJson from "~/assets/germany-polygon.json?raw";
 import germanyStatesGeoJson from "~/assets/germany-state-borders.json?raw";
-import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing.js";
+import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 
 const { $t } = useNuxtApp();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
 const props = defineProps({
-  municipalityScores: { type: Array, default: () => [] },
-  catalogVersion: { required: true },
+  municipalityScores: { type: Array as PropType<MunicipalityScore[] | undefined>, default: () => [] },
+  catalogVersion: { type: null as unknown as PropType<Catalog | null>, required: true },
 });
 
 const showMunicipalitiesWithUnfinishedRating = ref(false);
 const clientReady = ref(false);
-const leaflet = ref(null);
-let DivIcon = null;
-let mapInstance = null;
-let legendControl = null;
+const leaflet = shallowRef<typeof import("leaflet") | null>(null);
+let DivIcon: typeof LeafletDivIcon | null = null;
+let mapInstance: LeafletMap | null = null;
+let legendControl: Control | null = null;
 const PinSvg = ref("");
 
-const germanyPolygon = JSON.parse(germanyGeoJson);
-const statePolygons = JSON.parse(germanyStatesGeoJson);
+const germanyPolygon = parseGeoData(germanyGeoJson);
+const statePolygons = parseGeoData(germanyStatesGeoJson);
 
 const germanyStyle = {
   color: "#1E3A8A",
@@ -161,21 +171,21 @@ watch([showMunicipalitiesWithUnfinishedRating, filteredMunicipalityScores], () =
   }
 });
 
-function shouldShow(municipalityScore) {
+function shouldShow(municipalityScore: MunicipalityScore) {
   return showMunicipalitiesWithUnfinishedRating.value
-    ? municipalityScore.percentage_rated > 0
+    ? Number(municipalityScore.percentage_rated) > 0
     : isMunicipalityScoreComplete(municipalityScore);
 }
 
-function onMapReady(map) {
+function onMapReady(map: LeafletMap) {
   mapInstance = map;
   addLegend(map);
 }
 
-function addLegend(map) {
+function addLegend(map: LeafletMap) {
   if (!leaflet.value) return;
   const L = leaflet.value;
-  legendControl = L.control({ position: "topright" });
+  legendControl = new L.Control({ position: "topright" });
   legendControl.onAdd = () => {
     const div = L.DomUtil.create("div", "bg-white rounded-lg shadow-lg p-3 m-2 space-y-1 text-sm");
     const lines = [
@@ -200,9 +210,9 @@ function addLegend(map) {
   legendControl.addTo(map);
 }
 
-function getCustomIcon(municipalityScore) {
-  if (!DivIcon || !PinSvg.value) return null;
-  const score_total = municipalityScore.score_total;
+function getCustomIcon(municipalityScore: MunicipalityScore) {
+  if (!DivIcon || !PinSvg.value) return undefined;
+  const score_total = Number(municipalityScore.score_total);
   let cssClass = "rating-na";
   if (isMunicipalityScoreComplete(municipalityScore)) {
     if (score_total < 20) cssClass = "rating-0";

@@ -1,5 +1,5 @@
 <template>
-  <div class="relative" ref="containerRef">
+  <div ref="containerRef" class="relative">
     <!-- Trigger button: styled like ThemeToggle -->
     <button
       type="button"
@@ -112,7 +112,7 @@ const localeShortMap: Record<string, string> = {
 const currentLocaleShort = ref("DE");
 onMounted(() => {
   try {
-    const nuxt = useNuxtApp() as unknown as { $locale?: string };
+    const nuxt = useNuxtApp() as unknown as { $locale?: string | undefined };
     const locale = nuxt.$locale ?? "";
     currentLocaleShort.value = localeShortMap[locale] ?? (locale.slice(0, 2).toUpperCase() || "DE");
   } catch {
@@ -130,8 +130,12 @@ function handleOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => document.addEventListener("click", handleOutside, true));
-onUnmounted(() => document.removeEventListener("click", handleOutside, true));
+onMounted(() => {
+  document.addEventListener("click", handleOutside, true);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", handleOutside, true);
+});
 </script>
 
 <style scoped>
