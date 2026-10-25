@@ -1,229 +1,263 @@
-import { readItems, updateItem } from "@directus/sdk";
-import readline from "readline";
+import { readItems, updateItems } from "@directus/sdk";
+import { createInterface } from "node:readline/promises";
+import { z } from "zod";
 import createDirectusClient from "../shared/createDirectusClient.ts";
-import { errorMessage } from "../shared/models.ts";
 
-/**
- * Migrate ratings between two measure catalog versions (oldVersion → newVersion)
- *
- * @param {string} oldVersion - e.g. "beta"
- * @param {string} newVersion - e.g. "v1.0"
- */
-async function migrateRatings(oldVersion: string | undefined, newVersion: string | undefined) {
-  if (!oldVersion || !newVersion) {
-    console.error("❌ Missing arguments: migrateRatings(oldVersion, newVersion)");
-    console.error("Example: migrateRatings('beta', 'v1.0')");
-    process.exit(1);
-  }
+const idSchema = z.string().min(1);
+const catalogSchema = z.object({ id: idSchema, name: z.string().min(1) });
+const measureSchema = z.object({
+  id: idSchema,
+  measure_id: z.string().min(1),
+  must_be_rated_again: z.boolean().nullable(),
+});
+const ratingSchema = z.object({
+  id: idSchema,
+  localteam_id: idSchema,
+  status: z.enum(["published", "draft", "archived"]),
+  internal_note: z.string().nullable(),
+  current_progress: z.string().nullable(),
+  source: z.string().nullable(),
+  applicable: z.boolean().nullable(),
+  why_not_applicable: z.string().nullable(),
+  rating: z.union([z.number().finite(), z.string().regex(/^-?\d+(\.\d+)?$/)]).nullable(),
+});
+type Rating = z.infer<typeof ratingSchema>;
+type RatingUpdate = Partial<Omit<Rating, "id" | "localteam_id">>;
+export const SUPERSEDED_RATING_UPDATE = Object.freeze({ status: "draft" as const });
 
-  const client = createDirectusClient<{
-    measure_catalog: { id: string; name: string }[];
-    measures: {
-      id: string;
-      measure_id: string;
-      catalog_version: string;
-      status: string;
-      must_be_rated_again: boolean;
-    }[];
-    ratings_measures: {
-      id: string;
-      localteam_id: string;
-      measure_id: string;
-      internal_note: string | null;
-      status: string;
-      applicable: boolean | null;
-      why_not_applicable: string | null;
-      rating: number | null;
-      current_progress: number | null;
-      source: string | null;
-    }[];
-  }>();
-
-  // Check if user input refers to valid versions
-  console.log("📥 Fetching measure catalog versions...");
-
-  // ✅ Validate both catalog versions exist in measure_catalog
-  const catalogs = await client.request(
-    readItems("measure_catalog", {
-      filter: { name: { _in: [oldVersion, newVersion] } },
-      fields: ["id", "name"],
-    }),
-  );
-
-  const oldCatalog = catalogs.find((c) => c.name === oldVersion);
-  const newCatalog = catalogs.find((c) => c.name === newVersion);
-
-  if (!oldCatalog || !newCatalog) {
-    console.error(
-      `❌ Version(s) not found in measure_catalog: missing ${[
-        !oldCatalog ? oldVersion : "",
-        !newCatalog ? newVersion : "",
-      ]
-        .filter(Boolean)
-        .join(", ")}`,
-    );
-    process.exit(1);
-  }
-
-  console.log(
-    `📚 Found catalog entries: ${oldCatalog.name} (id=${oldCatalog.id}), ${newCatalog.name} (id=${newCatalog.id})`,
-  );
-
-  // Safety confirmation
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  const confirm = await new Promise((resolve) => {
-    rl.question(
-      `⚠️  This will copy ratings from "${oldVersion}" → "${newVersion}".\n` +
-        `Are you absolutely sure you want to continue? (yes/no): `,
-      (answer) => resolve(answer.trim().toLowerCase()),
-    );
-  });
-  rl.close();
-
-  if (confirm !== "yes") {
-    console.log("🛑 Aborted by user.");
-    process.exit(0);
-  }
-
-  console.log(`\n🚀 Starting migration: ${oldVersion} → ${newVersion}`);
-  const startTime = Date.now();
-
-  try {
-    console.log("📥 Fetching measures...");
-    const [oldMeasures, newMeasures] = await Promise.all([
-      client.request(
-        readItems("measures", {
-          filter: {
-            catalog_version: { _eq: oldCatalog.id },
-            status: { _eq: "published" },
-          },
-          fields: ["id", "measure_id"],
-          limit: -1,
-        }),
-      ),
-      client.request(
-        readItems("measures", {
-          filter: {
-            catalog_version: { _eq: newCatalog.id },
-            status: { _eq: "published" },
-          },
-          fields: ["id", "measure_id", "must_be_rated_again"],
-          limit: -1,
-        }),
-      ),
-    ]);
-
-    console.log(`📊 Measures loaded: ${oldMeasures.length} (${oldVersion}) | ${newMeasures.length} (${newVersion})`);
-
-    // Build lookup maps and find common measure_ids
-    const oldMap = new Map(oldMeasures.map((m) => [m.measure_id, m]));
-    const newMap = new Map(newMeasures.map((m) => [m.measure_id, m]));
-    const commonMeasureIds = [...oldMap.keys()].filter((id) => newMap.has(id));
-
-    console.log(
-      `🔗 Found ${commonMeasureIds.length} measures existing in both catalogs:\n  ${commonMeasureIds.join(", ")}`,
-    );
-
-    let updatedCount = 0;
-
-    // Process each shared measure
-    for (const measureId of commonMeasureIds) {
-      const oldMeasure = oldMap.get(measureId);
-      const newMeasure = newMap.get(measureId);
-      if (!oldMeasure || !newMeasure) throw new Error(`Missing matched measure: ${measureId}`);
-
-      console.log(`\n➡️ Processing measure "${measureId}".`);
-
-      // Load ratings for both versions
-      const oldRatings = await client.request(
-        readItems("ratings_measures", {
-          filter: { measure_id: { _eq: oldMeasure.id } },
-          fields: [
-            "id",
-            "localteam_id",
-            "internal_note",
-            "status",
-            "applicable",
-            "why_not_applicable",
-            "rating",
-            "current_progress",
-            "source",
-          ],
-          limit: -1,
-        }),
-      );
-
-      const newRatings = await client.request(
-        readItems("ratings_measures", {
-          filter: { measure_id: { _eq: newMeasure.id } },
-          fields: ["id", "localteam_id"],
-          limit: -1,
-        }),
-      );
-
-      console.log(`   🧮 ${oldRatings.length} old → ${newRatings.length} new ratings`);
-      if (oldRatings.length != newRatings.length) {
-        console.warn("Amount of new and old ratings should be identical, were some manually deleted?");
-      }
-
-      if (oldRatings.length === 0 || newRatings.length === 0) continue;
-
-      const newByLocalteam = new Map(newRatings.map((r) => [r.localteam_id, r]));
-      const mustBeRatedAgain = !!newMeasure.must_be_rated_again;
-
-      if (mustBeRatedAgain) {
-        console.log(`\n Measure "${measureId}" must be rated again, so only copying over internal note...`);
-      } else {
-        console.log(`\n Measure "${measureId}" must NOT be rated again, so copying over the entire rating info...`);
-      }
-
-      let updatedForThisMeasure = 0;
-      let hasLoggedDetailedError = false;
-
-      for (const oldRating of oldRatings) {
-        const target = newByLocalteam.get(oldRating.localteam_id);
-        if (!target) continue;
-
-        const updateData = mustBeRatedAgain
-          ? { internal_note: oldRating.internal_note }
-          : {
-              internal_note: oldRating.internal_note,
-              status: oldRating.status,
-              applicable: oldRating.applicable,
-              why_not_applicable: oldRating.why_not_applicable,
-              rating: oldRating.rating,
-              current_progress: oldRating.current_progress,
-              source: oldRating.source,
-            };
-
-        try {
-          await client.request(updateItem("ratings_measures", target.id, updateData));
-          updatedCount++;
-          updatedForThisMeasure++;
-        } catch (err) {
-          // Log the first error in full detail, but not repeats
-          if (!hasLoggedDetailedError) {
-            console.log(err);
-            console.log(updateData);
-            hasLoggedDetailedError = true;
-          }
-
-          console.error(`   ❌ Failed to update rating for localteam ${oldRating.localteam_id}: ${errorMessage(err)}`);
-        }
-      }
-
-      console.log(`   ✅ Updated ${updatedForThisMeasure} ratings for measure "${measureId}"`);
-    }
-
-    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`\n🎉 Migration complete: ${updatedCount} ratings updated in ${elapsed}s`);
-  } catch (err) {
-    console.error("❌ Migration failed:", err);
-    process.exit(1);
-  }
+export function buildNewRatingUpdate(oldRating: Rating, mustBeRatedAgain: boolean): RatingUpdate {
+  const preservedText = {
+    internal_note: oldRating.internal_note,
+    current_progress: oldRating.current_progress,
+    source: oldRating.source,
+  };
+  if (mustBeRatedAgain) return preservedText;
+  return {
+    ...preservedText,
+    status: oldRating.status,
+    applicable: oldRating.applicable,
+    why_not_applicable: oldRating.why_not_applicable,
+    rating: oldRating.rating,
+  };
 }
 
-export default migrateRatings;
+export interface RatingMigrationStore {
+  catalogs(versions: string[]): Promise<unknown>;
+  measures(catalogId: string): Promise<unknown>;
+  ratings(measureId: string): Promise<unknown>;
+  /** Apply only if the full rating still matches this snapshot; throw on conflict. */
+  update(snapshot: Rating, patch: RatingUpdate): Promise<void>;
+}
+
+function uniqueBy<T>(rows: T[], key: (row: T) => string, label: string): Map<string, T> {
+  const result = new Map<string, T>();
+  for (const row of rows) {
+    const value = key(row);
+    if (result.has(value)) throw new Error(`Ambiguous ${label}; no migration was started.`);
+    result.set(value, row);
+  }
+  return result;
+}
+
+function matches(rating: Rating, patch: RatingUpdate): boolean {
+  return Object.entries(patch).every(([key, value]) => rating[key as keyof Rating] === value);
+}
+
+function isEmpty(rating: Rating): boolean {
+  return (
+    rating.status === "draft" &&
+    rating.applicable !== false &&
+    rating.rating === null &&
+    [rating.internal_note, rating.current_progress, rating.source, rating.why_not_applicable].every(
+      (value) => !value?.trim(),
+    )
+  );
+}
+
+/** Preflight all matches before writing. Copies and retirement use optimistic concurrency checks. */
+export async function migrateRatingVersions(store: RatingMigrationStore, oldVersion: string, newVersion: string) {
+  if (!oldVersion.trim() || !newVersion.trim() || oldVersion === newVersion) {
+    throw new Error("Choose two distinct, nonempty catalog versions.");
+  }
+  const catalogs = uniqueBy(
+    catalogSchema.array().parse(await store.catalogs([oldVersion, newVersion])),
+    (row) => row.name,
+    "catalog versions",
+  );
+  const oldCatalog = catalogs.get(oldVersion);
+  const newCatalog = catalogs.get(newVersion);
+  if (!oldCatalog || !newCatalog || oldCatalog.id === newCatalog.id) {
+    throw new Error("Both distinct catalog versions must exist.");
+  }
+  const oldMeasures = uniqueBy(
+    measureSchema.array().parse(await store.measures(oldCatalog.id)),
+    (row) => row.measure_id,
+    "source measure identifiers",
+  );
+  const newMeasures = uniqueBy(
+    measureSchema.array().parse(await store.measures(newCatalog.id)),
+    (row) => row.measure_id,
+    "destination measure identifiers",
+  );
+  const plan: { source: Rating; target: Rating; patch: RatingUpdate; alreadyCopied: boolean }[] = [];
+  let skipped = 0;
+  for (const [key, sourceMeasure] of oldMeasures) {
+    const targetMeasure = newMeasures.get(key);
+    if (!targetMeasure) continue;
+    const sources = uniqueBy(
+      ratingSchema.array().parse(await store.ratings(sourceMeasure.id)),
+      (row) => row.localteam_id,
+      "source local team ratings",
+    );
+    const targets = uniqueBy(
+      ratingSchema.array().parse(await store.ratings(targetMeasure.id)),
+      (row) => row.localteam_id,
+      "destination local team ratings",
+    );
+    for (const source of sources.values()) {
+      if (source.status === "archived") {
+        skipped++;
+        continue;
+      }
+      const target = targets.get(source.localteam_id);
+      if (!target || target.id === source.id)
+        throw new Error("Missing or invalid destination rating; no migration was started.");
+      const patch = buildNewRatingUpdate(source, targetMeasure.must_be_rated_again === true);
+      const alreadyCopied = matches(target, patch);
+      // A rerun sees a drafted source. Never downgrade a populated destination's status or rating.
+      if (source.status === "draft" && !isEmpty(target) && matches(target, buildNewRatingUpdate(source, true))) {
+        skipped++;
+        continue;
+      }
+      if (!isEmpty(target) && !alreadyCopied) {
+        throw new Error("Destination contains different work; no migration was started.");
+      }
+      plan.push({ source, target, patch, alreadyCopied });
+    }
+  }
+  let copied = 0;
+  let drafted = 0;
+  for (const { source, target, patch, alreadyCopied } of plan) {
+    try {
+      // Even an identical target is checked again before retiring the source.
+      await store.update(target, alreadyCopied ? { status: target.status } : patch);
+      copied++;
+      if (source.status !== "draft") {
+        await store.update(source, SUPERSEDED_RATING_UPDATE);
+        drafted++;
+      }
+    } catch {
+      // Provider errors can include research and tokens. Report only safe IDs and recovery state.
+      throw new Error(
+        `Migration stopped at source ${source.id}, destination ${target.id}. ` +
+          `${copied} copies confirmed, ${drafted} sources drafted. Review these records before retrying.`,
+      );
+    }
+  }
+  return { copied, drafted, skipped };
+}
+
+function directusStore(): RatingMigrationStore {
+  const client = createDirectusClient<{
+    measure_catalog: z.infer<typeof catalogSchema>[];
+    measures: (z.infer<typeof measureSchema> & { catalog_version: string; status: string })[];
+    ratings_measures: (Rating & { measure_id: string })[];
+  }>();
+  const ratingFields = [
+    "id",
+    "localteam_id",
+    "status",
+    "internal_note",
+    "current_progress",
+    "source",
+    "applicable",
+    "why_not_applicable",
+    "rating",
+  ] as const;
+  // Explicit pages also work when the API's maximum page size is below our requested size.
+  async function pages<T>(read: (offset: number) => Promise<T[]>): Promise<T[]> {
+    const result: T[] = [];
+    for (let offset = 0; ;) {
+      const rows = await read(offset);
+      if (!rows.length) return result;
+      result.push(...rows);
+      offset += rows.length;
+    }
+  }
+  return {
+    catalogs: (versions) =>
+      pages((offset) =>
+        client.request(
+          readItems("measure_catalog", {
+            fields: ["id", "name"],
+            filter: { name: { _in: versions } },
+            sort: ["id"],
+            limit: 100,
+            offset,
+          }),
+        ),
+      ),
+    measures: (catalogId) =>
+      pages((offset) =>
+        client.request(
+          readItems("measures", {
+            fields: ["id", "measure_id", "must_be_rated_again"],
+            filter: { catalog_version: { _eq: catalogId }, status: { _eq: "published" } },
+            sort: ["id"],
+            limit: 100,
+            offset,
+          }),
+        ),
+      ),
+    ratings: (measureId) =>
+      pages((offset) =>
+        client.request(
+          readItems("ratings_measures", {
+            fields: [...ratingFields],
+            filter: { measure_id: { _eq: measureId } },
+            sort: ["id"],
+            limit: 100,
+            offset,
+          }),
+        ),
+      ),
+    async update(snapshot, patch) {
+      const conditions = Object.entries(snapshot).map(([key, value]) => ({
+        [key]: value === null ? { _null: true } : { _eq: value },
+      }));
+      const updated = await client.request(
+        updateItems(
+          "ratings_measures",
+          {
+            filter: { _and: conditions },
+          },
+          patch,
+          { fields: ["id"] },
+        ),
+      );
+      if (updated.length !== 1 || updated[0]?.id !== snapshot.id) throw new Error("Rating changed during migration.");
+    },
+  };
+}
+
+export default async function migrateRatings(oldVersion: string | undefined, newVersion: string | undefined) {
+  if (!oldVersion || !newVersion || oldVersion === newVersion)
+    throw new Error("Provide two distinct catalog versions.");
+  const prompt = createInterface({ input: process.stdin, output: process.stdout });
+  let answer: string;
+  try {
+    answer = await prompt.question(
+      `Copy ratings from "${oldVersion}" to "${newVersion}" and draft successfully copied sources? (yes/no): `,
+    );
+  } finally {
+    prompt.close();
+  }
+  if (answer.trim().toLowerCase() !== "yes") {
+    console.info("Migration cancelled.");
+    return;
+  }
+  const summary = await migrateRatingVersions(directusStore(), oldVersion, newVersion);
+  console.info(
+    `Migration finished: ${summary.copied} copies confirmed, ${summary.drafted} sources drafted, ${summary.skipped} skipped.`,
+  );
+}

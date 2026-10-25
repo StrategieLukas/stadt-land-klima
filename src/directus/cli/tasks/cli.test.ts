@@ -84,11 +84,15 @@ after(async () => {
 });
 
 async function command(...args: string[]) {
+  return runCommand(args);
+}
+async function runCommand(args: string[], input?: string) {
   const child = spawn(process.execPath, [join(root, "index.mjs"), ...args], {
     cwd: directory,
     env: environment,
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["pipe", "pipe", "pipe"],
   });
+  child.stdin.end(input);
   let output = "";
   child.stdout.on("data", (chunk) => {
     output += String(chunk);
@@ -632,4 +636,76 @@ test("translation export rejects unsafe language path segments before creating f
   const result = await command("export:translations", join(directory, "safe-translation-export"), "--force");
   assert.notEqual(result.code, 0);
   assert.match(result.output, /safe path segment/);
+});
+
+test("rating migration uses paged SDK reads and snapshot-filtered updates; failed copies never draft sources", async () => {
+  for (const failure of ["none", "upstream", "conflict"]) {
+    const source = {
+      id: "source",
+      localteam_id: "team",
+      status: "published",
+      internal_note: "Research",
+      current_progress: "Umgesetzt",
+      source: "https://example.org/evidence",
+      applicable: true,
+      why_not_applicable: null,
+      rating: "1",
+    };
+    const target = {
+      ...source,
+      id: "target",
+      status: "draft",
+      internal_note: null,
+      current_progress: null,
+      source: null,
+      rating: null,
+    };
+    reset((call) => {
+      if (call.method === "GET") {
+        const offset = Number(call.url.searchParams.get("offset"));
+        assert.equal(call.url.searchParams.get("limit"), "100");
+        assert.equal(call.url.searchParams.get("sort"), "id");
+        if (offset) return { data: [] };
+        if (call.path === "/items/measure_catalog")
+          return {
+            data: [
+              { id: "old", name: "beta" },
+              { id: "new", name: "v1" },
+            ],
+          };
+        const filter = call.url.searchParams.get("filter") ?? "";
+        if (call.path === "/items/measures") {
+          const old = filter.includes('"old"');
+          return { data: [{ id: old ? "old-measure" : "new-measure", measure_id: "1.1", must_be_rated_again: false }] };
+        }
+        return { data: [filter.includes("old-measure") ? source : target] };
+      }
+      assert.equal(call.method, "PATCH");
+      assert.equal(call.path, "/items/ratings_measures");
+      const payload = call.body;
+      const data = RecordSchema.parse(payload.data);
+      const query = RecordSchema.parse(payload.query);
+      const conditions = RecordSchema.parse(query.filter)._and;
+      assert.ok(Array.isArray(conditions));
+      const isTarget = JSON.stringify(conditions).includes('"target"');
+      const snapshot = isTarget ? target : source;
+      assert.deepEqual(
+        conditions,
+        Object.entries(snapshot).map(([key, value]) => ({
+          [key]: value === null ? { _null: true } : { _eq: value },
+        })),
+      );
+      if (isTarget) {
+        assert.equal(data.current_progress, "Umgesetzt");
+        assert.equal(data.source, source.source);
+        if (failure === "upstream") return { status: 500, errors: [{ message: "private provider credential" }] };
+        if (failure === "conflict") return { data: [] };
+      } else assert.deepEqual(data, { status: "draft" });
+      return { data: [{ id: snapshot.id }] };
+    });
+    const result = await runCommand(["migrate", "beta", "v1"], "yes\n");
+    assert.equal(result.code === 0, failure === "none", result.output);
+    assert.doesNotMatch(result.output, /private provider credential/);
+    assert.equal(requests.filter((call) => call.method === "PATCH").length, failure === "none" ? 2 : 1);
+  }
 });

@@ -48,29 +48,20 @@ const overpassSchema = z.object({
     .max(8),
 });
 const climateRegionSchema = z.object({
-  data: z
-    .object({
-      allAdministrativeAreas: z
-        .object({
-          edges: z
-            .array(
-              z.object({
-                node: z
-                  .object({
-                    ars: z.string().regex(ARS_PATTERN),
-                    climateRegionTypeData: z
-                      .object({ klimaraumtypName: z.string().trim().max(255).nullable() })
-                      .nullish(),
-                  })
-                  .nullable(),
-              }),
-            )
-            .max(5),
-        })
-        .nullable(),
-    })
-    .nullish(),
-  errors: z.array(z.unknown()).max(100).optional(),
+  type: z.literal("FeatureCollection"),
+  numberMatched: z.number().int().nonnegative(),
+  numberReturned: z.number().int().nonnegative(),
+  features: z
+    .array(
+      z.object({
+        type: z.literal("Feature"),
+        properties: z.object({
+          area_ars: z.string().regex(ARS_PATTERN),
+          klimaraumtyp_name: z.string().trim().max(255).nullable(),
+        }),
+      }),
+    )
+    .max(2),
 });
 
 type Municipality = z.infer<typeof municipalitySchema>;
@@ -264,21 +255,14 @@ async function resolveArs(
 
 async function resolveClimateRegionType(ars: string, config: ResolverConfig): Promise<string | null> {
   if (!config.apiBaseUrl) return null;
-  const response = await requestJson(`${config.apiBaseUrl}/graphql/`, config, climateRegionSchema, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `query MunicipalityClimateRegion($ars: String!) {
-        allAdministrativeAreas(ars: $ars, first: 5) {
-          edges { node { ars climateRegionTypeData { klimaraumtypName } } }
-        }
-      }`,
-      variables: { ars },
-    }),
-  });
-  if (response.errors?.length) throw new Error("Climate-region GraphQL query failed");
-  const node = response.data?.allAdministrativeAreas?.edges.find((edge) => edge.node?.ars === ars)?.node;
-  return node?.climateRegionTypeData?.klimaraumtypName || null;
+  const url = new URL(`${config.apiBaseUrl}/api/collections/climate-region-type/items/`);
+  url.searchParams.set("area", ars);
+  url.searchParams.set("limit", "2");
+  const response = await requestJson(url.href, config, climateRegionSchema);
+  // Never assign a different municipality, an ambiguous edition, or a truncated result.
+  if (response.numberMatched !== 1 || response.numberReturned !== 1 || response.features.length !== 1) return null;
+  const feature = response.features[0]!;
+  return feature.properties.area_ars === ars ? feature.properties.klimaraumtyp_name || null : null;
 }
 
 function needsResolution(municipality: Municipality): boolean {

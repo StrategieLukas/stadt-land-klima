@@ -13,7 +13,7 @@ not require upgrading Directus.
 
 Set the server-only variables documented in `src/directus/.env.example`:
 
-- `SLZ_API_BASE_URL`: Stadt-Land-Zahl origin for area search and GraphQL.
+- `SLZ_API_BASE_URL`: Stadt-Land-Zahl origin for area search and the OGC Collections API.
 - `SLZ_NOMINATIM_URL`: optional self-hosted Nominatim base URL.
 - `SLZ_OVERPASS_URL`: optional self-hosted Overpass interpreter endpoint.
 - `SLZ_BASIC_AUTH_USER` and `SLZ_BASIC_AUTH_PASSWORD`: optional credentials for the
@@ -31,8 +31,11 @@ with German result names, avoiding the deprecated `search.php` endpoint.
 Area search requires one exact, reasonable municipality match. The fallback
 search includes the municipality's state and Germany, then checks matching OSM
 objects in one Overpass request. Ambiguous or malformed identifiers stay unresolved.
-The GraphQL result must match the exact ARS and contain a climate-region name of
-at most 255 characters. Requests time out after eight seconds and responses are
+The OGC `climate-region-type` collection is queried at
+`/api/collections/climate-region-type/items/?area=<ARS>&limit=2`. Its GeoJSON
+`properties.area_ars` must match the exact ARS; `properties.klimaraumtyp_name`
+must contain a name of at most 255 characters. Empty, ambiguous, malformed or
+truncated feature collections stay unresolved. No GraphQL endpoint is used. Requests time out after eight seconds and responses are
 limited to 1 MiB. Batches read 100 rows at a time; overlapping jobs and lookups are
 coalesced within the Directus process. Errors are logged without upstream bodies
 or credentials.

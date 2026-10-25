@@ -34,9 +34,10 @@ const env = {
   SLZ_BASIC_AUTH_PASSWORD: "private-credential",
 };
 const climate = (value = "Mittelgebirgsvorland", code = ars) => ({
-  data: {
-    allAdministrativeAreas: { edges: [{ node: { ars: code, climateRegionTypeData: { klimaraumtypName: value } } }] },
-  },
+  type: "FeatureCollection",
+  numberMatched: 1,
+  numberReturned: 1,
+  features: [{ type: "Feature", properties: { area_ars: code, klimaraumtyp_name: value } }],
 });
 
 /** Replace only Knex transport; retain production validation, matching and conditional writes. */
@@ -124,13 +125,16 @@ test("resolves an exact unique reasonable area and its checked climate region wi
         ],
       });
     }
-    assert.equal(JSON.parse(String(options?.body)).variables.ars, ars);
+    assert.equal(url.searchParams.get("area"), ars);
+    assert.equal(url.searchParams.get("limit"), "2");
+    assert.equal(options?.method ?? "GET", "GET");
+    assert.equal(options?.body, undefined);
     return Response.json(climate(" Mittelgebirgsvorland "));
   });
   await resolveMunicipalityById("city", f.context);
   assert.equal(f.rows[0]!.ars, ars);
   assert.equal(f.rows[0]!.climate_region_type, "Mittelgebirgsvorland");
-  assert.deepEqual(requests, ["/api/search/areas/", "/graphql/"]);
+  assert.deepEqual(requests, ["/api/search/areas/", "/api/collections/climate-region-type/items/"]);
 });
 
 test("Nominatim uses state and country; one bounded Overpass query requires matching element IDs and unique ARS", async (t) => {
@@ -139,7 +143,7 @@ test("Nominatim uses state and country; one bounded Overpass query requires matc
   t.mock.method(globalThis, "fetch", async (input: string | URL | Request, options?: RequestInit) => {
     const url = new URL(String(input));
     if (url.hostname === "areas.example") {
-      if (url.pathname === "/graphql/") return Response.json(climate());
+      if (url.pathname === "/api/collections/climate-region-type/items/") return Response.json(climate());
       return Response.json({ results: [] });
     }
     if (url.hostname === "names.example") {
@@ -203,6 +207,16 @@ test("preserves existing values, rejects mismatched/oversized climate data and n
   response = climate("x".repeat(256));
   await resolveMunicipalityById("city", f.context);
   assert.deepEqual(f.writes, []);
+  for (const invalid of [
+    { ...climate(), numberMatched: 2 },
+    { ...climate(), numberReturned: 0 },
+    { ...climate(), features: [] },
+    { ...climate(), features: [...climate().features, ...climate().features] },
+  ]) {
+    response = invalid;
+    await resolveMunicipalityById("city", f.context);
+    assert.deepEqual(f.writes, []);
+  }
   response = { errors: [{ message: "private-credential provider detail" }] };
   await resolveMunicipalityById("city", f.context);
   assert.deepEqual(f.writes, []);

@@ -250,3 +250,23 @@ To test changes:
 Install with `npm ci --include=dev`. `npm run typecheck` enforces strict NodeNext checking and source inclusion; `npm run build` runs that gate. `npm test` adds isolated command and failure-gate tests without live services. `npm run test:integration` and `npm run test:tour-migration` require the disposable local Directus/database environment and must be run serially with other CMS fixture suites. Import/export orchestration and container startup reject compiler failures before administrative writes/startup.
 
 The executable remains `index.mjs`; implementation and internal imports are TypeScript loaded by the existing tsx runtime. Source directories must exist, operation references must resolve, and flow operations/dashboard panels must include their required layout coordinates. Legacy development-token provisioning is disabled in production. See `DIRECTUS_CLI_TYPES_REVIEW.md` for verification and deployment details.
+
+## Migrating rating catalogues
+
+`node index.mjs migrate <old> <new>` prompts before copying ratings between
+published measures with the same stable measure identifier and local team. For
+measures requiring a new rating, it carries only internal notes, current progress
+and sources; otherwise it carries the full assessment. A source becomes a draft
+only after the matching destination copy is confirmed.
+
+Back up the database first. The migration checks all matches before writes and
+refuses missing or ambiguous destinations and conflicting existing work. Archived
+sources remain unchanged. Updates check the original rating snapshots to detect
+edits during the migration. A failure stops the run and reports safe record IDs
+and confirmed counts; review those records before retrying. A retry preserves
+populated destinations with the same research when their sources are already
+drafts. There is no cross-request transaction: an interrupted run can leave a
+confirmed destination copy with its source still published, which a retry can
+finish if the destination still matches. Keep editing paused during migration.
+
+Run `npm test` for compiler, source-coverage, migration regression and CLI gates.
