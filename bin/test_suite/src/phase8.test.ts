@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from "node:fs";
@@ -179,6 +180,8 @@ test("StadtLandZahl proxy forwards Node request bytes while replacing credential
     Buffer,
     Uint8Array,
     require: (id: string) => {
+      const logging = loggingModule(id);
+      if (logging) return logging;
       assert.equal(id, "../../utils/rateLimit");
       return { rateLimit: async () => true };
     },

@@ -14,5 +14,5 @@ export default defineEventHandler(async (event) => {
   const body = CandidateAnswersRequestSchema.safeParse(await readRequestBody(event));
   if (!body.success) throw createError({ statusCode: 400 });
   // Existing candidate/election/deadline authorization also checks token revocation on every write.
-  return saveCandidateAnswers(session.data.accessToken, body.data);
+  return saveCandidateAnswers(session.data.accessToken, body.data, event);
 });

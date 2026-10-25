@@ -1,3 +1,4 @@
+import { extensionLog, extensionError } from "../../shared/securityLogger.ts";
 import type { ApiExtensionContext, SchemaOverview } from "@directus/types";
 
 type Logger = ApiExtensionContext["logger"];
@@ -81,10 +82,6 @@ export async function calculateScores(
   { municipalityIds = null, catalogVersionId }: CalculateScoresParams,
   { services, getSchema, logger }: Context,
 ): Promise<void> {
-  logger.info(
-    `Recalculating scores for ${municipalityIds?.length ? municipalityIds.length : "all"} municipalities and catalogVersion: ${catalogVersionId}`,
-  );
-
   const schema = await getSchema();
 
   const ratingsService = new services.ItemsService("ratings_measures", {
@@ -133,20 +130,13 @@ export async function calculateScores(
     })) as Municipality[];
 
     if (!municipalities?.length) {
-      logger.info(`[calculateScores] No municipalities to process.`);
       return;
     }
 
-    logger.info(
-      `[calculateScores] Processing ${municipalities.length} municipalities for catalog ${catalogVersionId}.`,
-    );
-
     for (const municipality of municipalities) {
       const localteamId = municipality.localteam_id;
-      if (!localteamId) {
-        logger.warn(`[calculateScores] Municipality "${municipality.name}" has no localteam_id, skipping.`);
-        continue;
-      }
+      // Most municipalities do not have an editorial team yet; this is expected.
+      if (!localteamId) continue;
 
       // Fetch all approved, published ratings for this municipality + catalog version.
       // We do NOT filter by applicability or rating so score math can skip not-applicable measures
@@ -251,15 +241,14 @@ export async function calculateScores(
       if (scoreRecord?.id) {
         await municipalityScoresService.updateOne(scoreRecord.id, scoresToPush);
       } else {
-        logger.warn(
-          `[calculateScores] No municipality_scores record found for "${municipality.name}" (catalogVersion=${catalogVersionId}). Scores not saved.`,
-        );
+        extensionLog(logger, "warn", "directus.scores.record_missing", {
+          municipalityId: municipality.id,
+          catalogId: catalogVersionId,
+        });
       }
     }
-
-    logger.info(`[calculateScores] Completed calculations for catalog ${catalogVersionId}.`);
   } catch (e: unknown) {
-    logger.error(e);
+    extensionError(logger, "app.hook-calc-score-and-ranks.calculateScores.calculateScores.failed", e);
     throw e;
   }
 }

@@ -186,6 +186,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../../shared/securityLog";
+
 import { useRoute } from "vue-router";
 import { parseGeoCenter, parseGeoData } from "~/shared/contracts/geometry";
 import { ref, computed, onMounted } from "vue";
@@ -278,7 +280,7 @@ onMounted(async () => {
 
     municipalities.value = await $stadtlandzahlAPI.fetchMunicipalitiesInRegion(ars!, areaData?.level ?? 2);
   } catch (e) {
-    console.error("Error loading region:", e);
+    clientFailure("app.pages.regions._ars_.failed", e);
   } finally {
     loadingMunicipalities.value = false;
   }

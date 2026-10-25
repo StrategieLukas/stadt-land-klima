@@ -1,3 +1,5 @@
+import { ActionValidationError } from "../validationError.ts";
+import { extensionLog } from "../../../shared/securityLogger.ts";
 import crypto from "node:crypto";
 import type { Accountability, ApiExtensionContext } from "@directus/types";
 import { HtmlValidate } from "html-validate";
@@ -336,7 +338,7 @@ async function validateCandidateEmailHtml(html: string): Promise<void> {
   const missing = requiredElements.filter(([needle]) => !lowerHtml.includes(needle)).map(([, label]) => label);
 
   if (missing.length > 0) {
-    throw new Error(`Die HTML-Vorlage ist unvollständig. Es fehlen: ${missing.join(", ")}.`);
+    throw new ActionValidationError(`Die HTML-Vorlage ist unvollständig. Es fehlen: ${missing.join(", ")}.`);
   }
 
   const report = await htmlValidator.validateString(html);
@@ -350,7 +352,7 @@ async function validateCandidateEmailHtml(html: string): Promise<void> {
       return `${position}${message.message}`;
     });
 
-  throw new Error(`Die HTML-Vorlage ist ungültig. ${messages.join(" ")}`);
+  throw new ActionValidationError(`Die HTML-Vorlage ist ungültig. ${messages.join(" ")}`);
 }
 
 function candidateDisplayName(candidate: Candidate): string {
@@ -418,13 +420,11 @@ function formatFailure(summary: CandidateMailSummary): string {
 async function ensureAccessTokens<TCandidate extends Candidate>(
   candidates: TCandidate[],
   candidateSvc: InstanceType<Services["ItemsService"]>,
-  logger: Logger,
+  __logger: Logger,
 ): Promise<TCandidate[]> {
   const needsToken = candidates.filter((c) => !c.access_token);
 
   if (needsToken.length > 0) {
-    logger.info(`[send-candidate-mails] Generating tokens for ${needsToken.length} candidate(s)`);
-
     await Promise.all(
       needsToken.map(async (c) => {
         const token = crypto.randomUUID();
@@ -492,50 +492,48 @@ export default {
     })) as Election | null;
 
     if (!election) {
-      throw new Error(`Election with ID "${election_id}" not found.`);
+      throw new ActionValidationError(`Election with ID "${election_id}" not found.`);
     }
 
     const municipalityName = election.localteam?.municipality_name;
     const mailConfiguration = getMailConfiguration(election, mail_type);
-    const logPrefix = test_mode ? `test-candidate-${mail_type}-mail` : `send-candidate-${mail_type}-mails`;
-    logger.info(
-      `[${logPrefix}] Starting for election "${election.descriptor ?? election_id}", municipality: "${municipalityName ?? "unknown"}"`,
-    );
 
     // -----------------------------------------------------------------------
     // 2. Pre-flight checks
     // -----------------------------------------------------------------------
 
     if (!election.response_cutoff_date) {
-      throw new Error(
+      throw new ActionValidationError(
         "Please set a response cutoff date (response_cutoff_date) on the election before sending invitations.",
       );
     }
 
     if (mail_type !== "invitation" && !election.already_sent_mails) {
-      throw new Error(
+      throw new ActionValidationError(
         "Die Einladungs-E-Mails müssen versendet worden sein, bevor diese E-Mails versendet werden können.",
       );
     }
 
     if (!test_mode && mail_type !== "invitation" && election[mailConfiguration.sentFlag]) {
-      throw new Error(`${mailConfiguration.label} wurde bereits versendet.`);
+      throw new ActionValidationError(`${mailConfiguration.label} wurde bereits versendet.`);
     }
 
     const candidateEmailTemplate = mailConfiguration.template;
     if (!candidateEmailTemplate) {
-      throw new Error(
+      throw new ActionValidationError(
         `Die HTML-Vorlage für die ${mailConfiguration.label} ist leer. Es wurden keine E-Mails versendet.`,
       );
     }
 
     const candidateEmailSubjectTemplate = mailConfiguration.subject;
     if (!candidateEmailSubjectTemplate) {
-      throw new Error(`Der Betreff für die ${mailConfiguration.label} ist leer. Es wurden keine E-Mails versendet.`);
+      throw new ActionValidationError(
+        `Der Betreff für die ${mailConfiguration.label} ist leer. Es wurden keine E-Mails versendet.`,
+      );
     }
 
     if (/[\r\n]/.test(candidateEmailSubjectTemplate)) {
-      throw new Error(
+      throw new ActionValidationError(
         "Der Betreff für Kandidierenden-E-Mails darf keinen Zeilenumbruch enthalten. Es wurden keine E-Mails versendet.",
       );
     }
@@ -562,7 +560,7 @@ export default {
     const unknownHtmlPlaceholders = unresolvedPlaceholders(previewHtml);
 
     if (unknownHtmlPlaceholders.length > 0) {
-      throw new Error(
+      throw new ActionValidationError(
         `Die HTML-Vorlage enthält unbekannte Platzhalter: ${uniqueValues(unknownHtmlPlaceholders).join(", ")}. Es wurden keine E-Mails versendet.`,
       );
     }
@@ -574,7 +572,7 @@ export default {
     );
 
     if (unsupportedSubjectPlaceholders.length > 0) {
-      throw new Error(
+      throw new ActionValidationError(
         `Der E-Mail-Betreff enthält nicht unterstützte Platzhalter: ${unsupportedSubjectPlaceholders.join(", ")}. Es wurden keine E-Mails versendet.`,
       );
     }
@@ -583,13 +581,15 @@ export default {
     const unknownSubjectPlaceholders = unresolvedPlaceholders(previewSubject);
 
     if (unknownSubjectPlaceholders.length > 0) {
-      throw new Error(
+      throw new ActionValidationError(
         `Der E-Mail-Betreff enthält unbekannte Platzhalter: ${uniqueValues(unknownSubjectPlaceholders).join(", ")}. Es wurden keine E-Mails versendet.`,
       );
     }
 
     if (!previewSubject) {
-      throw new Error("Der konfigurierte E-Mail-Betreff ergibt einen leeren Wert. Es wurden keine E-Mails versendet.");
+      throw new ActionValidationError(
+        "Der konfigurierte E-Mail-Betreff ergibt einen leeren Wert. Es wurden keine E-Mails versendet.",
+      );
     }
 
     const [questions, candidates] = await Promise.all([
@@ -606,17 +606,21 @@ export default {
     ]);
 
     if (questions.length < MIN_QUESTIONS) {
-      throw new Error(`Only ${questions.length} published question(s) found; at least ${MIN_QUESTIONS} are required.`);
+      throw new ActionValidationError(
+        `Only ${questions.length} published question(s) found; at least ${MIN_QUESTIONS} are required.`,
+      );
     }
 
     if (candidates.length < MIN_CANDIDATES) {
-      throw new Error(`Only ${candidates.length} candidate(s) found; at least ${MIN_CANDIDATES} are required.`);
+      throw new ActionValidationError(
+        `Only ${candidates.length} candidate(s) found; at least ${MIN_CANDIDATES} are required.`,
+      );
     }
 
     const eligibleCandidates = candidates.filter((candidate) => isEligibleCandidate(candidate, mail_type));
 
     if (eligibleCandidates.length === 0) {
-      throw new Error(mailConfiguration.emptyRecipientsMessage);
+      throw new ActionValidationError(mailConfiguration.emptyRecipientsMessage);
     }
 
     const sent: CandidateMailSummary[] = [];
@@ -644,10 +648,6 @@ export default {
 
     const selectedCandidate = test_mode ? eligibleCandidates[crypto.randomInt(eligibleCandidates.length)]! : undefined;
     const candidatesToSend = selectedCandidate ? [selectedCandidate] : sendableCandidates;
-
-    logger.info(
-      `[${logPrefix}] Pre-flight passed: ${questions.length} questions, ${candidates.length} candidates, ${eligibleCandidates.length} eligible, ${candidatesToSend.length} selected, ${skipped.length} skipped`,
-    );
 
     // -----------------------------------------------------------------------
     // 3. Ensure all candidates have stable access tokens
@@ -713,13 +713,21 @@ export default {
         });
 
         sent.push(summarizeCandidate({ ...candidate, email: recipient }));
-        logger.info(`[${logPrefix}] Sent email prepared for candidate ${candidate.id} to ${recipient}`);
+        extensionLog(logger, "info", "directus.election.mail_sent", {
+          resource: "candidate",
+          resourceId: candidate.id,
+          outcome: "success",
+        });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         const failedCandidate = summarizeCandidate({ ...candidate, email: recipient }, message);
-        const detail = `Failed to send to ${recipient}: ${message}`;
-        logger.error(`[${logPrefix}] ${detail}`);
+
         failed.push(failedCandidate);
+        extensionLog(logger, "error", "directus.election.mail_delivery_failed", {
+          resource: "candidate",
+          resourceId: candidate.id,
+          outcome: "failed",
+        });
       }
     }
 
@@ -731,7 +739,7 @@ export default {
     if (!test_mode && sent.length > 0) {
       await electionSvc.updateOne(election_id, { [mailConfiguration.sentFlag]: true });
     } else if (!test_mode) {
-      logger.warn(`[${logPrefix}] No mails were delivered; not marking ${mailConfiguration.sentFlag}.`);
+      extensionLog(logger, "warn", "app.election-check.send-candidate-mails.api.degraded");
     }
 
     const updatedElection = (await electionSvc.readOne(election_id, {
@@ -744,8 +752,12 @@ export default {
     })) as Record<string, unknown>;
 
     const errors = failed.map(formatFailure);
-
-    logger.info(`[${logPrefix}] Finished: ${sent.length} sent, ${failed.length} failed, ${skipped.length} skipped`);
+    extensionLog(logger, "info", "directus.election.mail_batch_completed", {
+      resource: "elections",
+      resourceId: election_id,
+      count: sent.length,
+      outcome: failed.length ? "failed" : "success",
+    });
 
     return {
       success: failed.length === 0 && sent.length > 0,

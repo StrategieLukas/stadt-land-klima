@@ -1,3 +1,4 @@
+import { extensionLog, extensionError } from "../../shared/securityLogger.ts";
 import { Meilisearch } from "meilisearch";
 import type { ApiExtensionContext } from "@directus/types";
 
@@ -312,8 +313,13 @@ export default (
   async function upsert(doc: SearchDoc): Promise<void> {
     try {
       await index.addDocuments([doc]);
+      extensionLog(logger, "info", "directus.search.upsert_queued", {
+        resource: "search_documents",
+        count: 1,
+        outcome: "success",
+      });
     } catch (e: any) {
-      logger.error("[search-index] upsert failed:", e?.message ?? e);
+      extensionError(logger, "app.hook-search-index.index.upsert.failed", e);
     }
   }
 
@@ -325,10 +331,15 @@ export default (
   async function remove(id: string): Promise<void> {
     try {
       await index.deleteDocument(id);
+      extensionLog(logger, "info", "directus.search.removal_queued", {
+        resource: "search_documents",
+        count: 1,
+        outcome: "success",
+      });
     } catch (e: any) {
       // Meilisearch returns "document_not_found" for missing docs — not a real error.
       if (e?.code !== "document_not_found") {
-        logger.error("[search-index] delete failed:", e?.message ?? e);
+        extensionError(logger, "app.hook-search-index.index.remove.failed", e);
       }
     }
   }
@@ -403,7 +414,7 @@ export default (
         await remove(`block_${row.uuid}`);
       }
     } catch (e: any) {
-      logger.error("[search-index] removeBlocksForPage failed:", e?.message ?? e);
+      extensionError(logger, "app.hook-search-index.index.removeBlocksForPage.failed", e);
     }
   }
 
@@ -435,7 +446,7 @@ export default (
           const row = await fetchBlockRow(key, database);
           if (row) await syncBlock(row, database);
         } catch (e: any) {
-          logger.error(`[search-index] post-commit block sync failed: ${e?.message ?? String(e)}`);
+          extensionError(logger, "app.hook-search-index.index.failed", e);
         }
       }
     },
@@ -445,7 +456,7 @@ export default (
     if (collection !== "blocks") return;
     const blockKey: string | number | undefined = payload?.uuid ?? key;
     if (blockKey == null) {
-      logger.warn("[search-index] blocks create: payload missing uuid and key, skipping");
+      extensionLog(logger, "warn", "app.hook-search-index.index.degraded");
       return;
     }
     // Re-fetch from DB so we have all fields, not just what was in the create payload.
@@ -453,7 +464,7 @@ export default (
       const row = await fetchBlockRow(blockKey, database);
       if (row) await syncBlock(row, database);
     } catch (e: any) {
-      logger.error(`[search-index] blocks create fetch failed: ${e?.message ?? String(e)}`);
+      extensionError(logger, "app.hook-search-index.index.failed", e);
     }
   });
 
@@ -464,7 +475,7 @@ export default (
         const row = await fetchBlockRow(key, database);
         if (row) await syncBlock(row, database);
       } catch (e: any) {
-        logger.error(`[search-index] blocks update fetch failed: ${e?.message ?? String(e)}`);
+        extensionError(logger, "app.hook-search-index.index.failed", e);
       }
     }
   });
@@ -529,7 +540,7 @@ export default (
           for (const block of blocks) await syncBlock(block as BlockRow, database);
         }
       } catch (e: any) {
-        logger.error("[search-index] pages update fetch failed:", e?.message ?? e);
+        extensionError(logger, "app.hook-search-index.index.failed", e);
       }
     }
   });
@@ -578,7 +589,7 @@ export default (
           if (doc) await upsert(doc);
         }
       } catch (e: any) {
-        logger.error("[search-index] events update fetch failed:", e?.message ?? e);
+        extensionError(logger, "app.hook-search-index.index.failed", e);
       }
     }
   });
@@ -621,7 +632,7 @@ export default (
           if (doc) await upsert(doc);
         }
       } catch (e: any) {
-        logger.error("[search-index] articles update fetch failed:", e?.message ?? e);
+        extensionError(logger, "app.hook-search-index.index.failed", e);
       }
     }
   });
@@ -655,7 +666,7 @@ export default (
         if (!rows[0]) continue;
         await upsert(buildMeasureDoc(rows[0] as Measure));
       } catch (e: any) {
-        logger.error("[search-index] measures update fetch failed:", e?.message ?? e);
+        extensionError(logger, "app.hook-search-index.index.failed", e);
       }
     }
   });
@@ -697,7 +708,7 @@ export default (
           if (doc) await upsert(doc);
         }
       } catch (e: any) {
-        logger.error("[search-index] users update fetch failed:", e?.message ?? e);
+        extensionError(logger, "app.hook-search-index.index.failed", e);
       }
     }
   });

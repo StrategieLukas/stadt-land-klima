@@ -67,6 +67,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic, clientFailure } from "../shared/securityLog";
+
 import type { Map as LeafletMap, LatLngBoundsExpression } from "leaflet";
 import type { PropType } from "vue";
 import { DataMapSchema } from "~/shared/contracts/dataMap";
@@ -156,8 +158,6 @@ const fetchMapData = async () => {
     const baseUrl = config.public.stadtlandzahlBaseUrl;
     const apiUrl = `${baseUrl}/api/areas/${props.ars}/maps/${props.dataProductType}/`;
 
-    console.log("DataProductMap: Fetching from", apiUrl);
-
     const response = await fetch(apiUrl);
 
     if (!response.ok) {
@@ -165,7 +165,6 @@ const fetchMapData = async () => {
     }
 
     const data = DataMapSchema.parse(await response.json());
-    console.log("DataProductMap: Data received:", data);
 
     state.value = { status: "ready", data };
 
@@ -174,7 +173,7 @@ const fetchMapData = async () => {
       fitToBounds(data.bounds);
     }
   } catch (err) {
-    console.error("DataProductMap: Error fetching map data:", err);
+    clientFailure("app.components.DataProductMap.failed", err);
     state.value = { status: "error", message: $t("stats.map.error_loading") };
   }
 };
@@ -189,8 +188,8 @@ const fitToBounds = (bounds: LatLngBoundsExpression | null | undefined) => {
       padding: [20, 20],
       maxZoom: 15,
     });
-  } catch (error) {
-    console.warn("Could not fit map to bounds:", error);
+  } catch {
+    clientDiagnostic("app.components.DataProductMap.degraded", "warn");
   }
 };
 

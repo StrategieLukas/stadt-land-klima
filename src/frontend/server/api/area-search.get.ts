@@ -1,3 +1,4 @@
+import { requestFailure } from "../utils/securityLogging";
 import { queryChoice, queryText } from "~/server/utils/publicQuery";
 import { z } from "zod";
 import { parseCms } from "~/server/utils/parseCms";
@@ -114,7 +115,7 @@ export default defineEventHandler(async (event) => {
       return await fetchFromRest({ q });
     }
   } catch (err) {
-    console.error("[area-search] failed:", err);
+    requestFailure(event, "app.server.api.area-search.get.failed", err);
     return [];
   }
 });

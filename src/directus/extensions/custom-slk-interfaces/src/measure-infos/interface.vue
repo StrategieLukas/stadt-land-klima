@@ -83,6 +83,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../../../../../frontend/shared/securityLog";
+
 import { ref, computed, watch, inject, getCurrentInstance, type Ref } from "vue";
 import DOMPurify from "dompurify";
 
@@ -200,7 +202,7 @@ async function ensureMeasureLoaded(): Promise<void> {
       parentItem = await fetchParentItem(pk);
       municipalityName.value = extractMunicipalityName(parentItem);
     } catch (err) {
-      console.error("[MeasurePreview] Error fetching parent item:", err);
+      clientFailure("app.custom-slk-interfaces.measure-infos.interface.ensureMeasureLoaded.failed", err);
       municipalityName.value = null;
       if (props.field !== measureField.value) {
         measureData.value = {};
@@ -263,7 +265,7 @@ async function fetchMeasure(id: string | number): Promise<void> {
     const response = await api.get(`/items/measures/${id}`, { params: { fields } });
     measureData.value = (response?.data?.data as Record<string, unknown>) ?? {};
   } catch (err) {
-    console.error("[MeasurePreview] Error fetching measure:", err);
+    clientFailure("app.custom-slk-interfaces.measure-infos.interface.fetchMeasure.failed", err);
     error.value = (err as Error)?.message || "Failed to fetch measure";
     measureData.value = {};
   } finally {

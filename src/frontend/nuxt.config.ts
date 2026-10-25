@@ -171,6 +171,16 @@ export default defineNuxtConfig({
       stadtlandzahlBaseUrl: "/api/stadtlandzahl",
     },
   },
+  hooks: {
+    "app:resolve"(app) {
+      // Nuxt's development overlay forwards raw browser messages/stacks over HMR
+      // and prints them on the server. Fixed security diagnostics replace it.
+      app.plugins = app.plugins.filter(
+        (plugin) =>
+          !/\/nuxt\/dist\/app\/plugins\/dev-error-overlay\.client(?:\.js)?$/.test(plugin.src.replaceAll("\\", "/")),
+      );
+    },
+  },
   devtools: {
     enabled:
       process.env.NODE_ENV !== "production" &&
@@ -208,6 +218,7 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
+    errorHandler: fileURLToPath(new URL("./server/errorHandler.ts", import.meta.url)),
     preset: "node-server",
     rollupConfig: {
       plugins: [

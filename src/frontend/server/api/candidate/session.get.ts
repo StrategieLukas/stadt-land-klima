@@ -7,5 +7,5 @@ export default defineEventHandler(async (event) => {
   setResponseHeader(event, "Cache-Control", "private, no-store");
   const session = await candidateSession(event);
   if (!session.data.accessToken) throw createError({ statusCode: 401 });
-  return { data: await candidateRead(session.data.accessToken), csrf: session.data.csrf };
+  return { data: await candidateRead(session.data.accessToken, event), csrf: session.data.csrf };
 });

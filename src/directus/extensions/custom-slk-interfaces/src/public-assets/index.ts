@@ -1,3 +1,4 @@
+import { extensionLog } from "../../../shared/securityLogger.ts";
 import type { HookConfig, ApiExtensionContext } from "@directus/types";
 
 type Database = ApiExtensionContext["database"];
@@ -13,10 +14,11 @@ async function moveToPublicFolder(fileId: string, database: Database, logError: 
   }
 
   await database("directus_files").where({ id: fileId }).update({ folder: folder.id });
+  return true;
 }
 
 const publicAssetsHook: HookConfig = ({ action }, { logger }) => {
-  action("files.upload", async ({ key, payload }, { database }) => {
+  action("files.upload", async ({ key, payload }, { database, accountability }) => {
     if (
       typeof key !== "string" ||
       typeof payload?.type !== "string" ||
@@ -26,7 +28,16 @@ const publicAssetsHook: HookConfig = ({ action }, { logger }) => {
       return;
     }
 
-    await moveToPublicFolder(key, database, (message) => logger.error(message));
+    const moved = await moveToPublicFolder(key, database, () =>
+      extensionLog(logger, "error", "directus.asset.public_folder_missing"),
+    );
+    if (moved)
+      extensionLog(logger, "info", "directus.asset.public_folder_assigned", {
+        userId: accountability?.user,
+        resource: "directus_files",
+        resourceId: key,
+        outcome: "success",
+      });
   });
 };
 

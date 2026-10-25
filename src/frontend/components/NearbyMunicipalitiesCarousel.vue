@@ -152,6 +152,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic, clientFailure } from "../shared/securityLog";
+
 // vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
 import { z } from "zod";
 import type { Map as LeafletMap } from "leaflet";
@@ -222,8 +224,8 @@ const fitBoundsToGeoArea = async (ars: string, geoArea: GeoData | null) => {
     if (bounds.isValid()) {
       leafletMap.fitBounds(bounds, { padding: [20, 20], maxZoom: 12 });
     }
-  } catch (err) {
-    console.warn("Could not fit bounds for nearby map:", err);
+  } catch {
+    clientDiagnostic("app.components.NearbyMunicipalitiesCarousel.degraded", "warn");
   }
 };
 
@@ -330,7 +332,7 @@ onMounted(async () => {
       nearbyAreas.value = areas;
     }
   } catch (err) {
-    console.error("NearbyMunicipalitiesCarousel: failed to fetch nearby municipalities", err);
+    clientFailure("app.components.NearbyMunicipalitiesCarousel.failed", err);
   } finally {
     loading.value = false;
     loaded.value = true;

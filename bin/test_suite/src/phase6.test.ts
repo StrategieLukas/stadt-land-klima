@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -42,6 +43,8 @@ function load(path: string, dependencies: Row = {}, globals: Row = {}): Row {
   });
   const requireModule = (id: string): unknown => {
     if (id in dependencies) return dependencies[id];
+    const logging = loggingModule(id);
+    if (logging) return logging;
     if (id === "h3") return h3;
     if (id.endsWith("/rateLimit")) return { rateLimit: async () => true };
     if (["zod", "sanitize-html", "node:crypto"].includes(id)) return frontend(id);

@@ -1,3 +1,4 @@
+import { requestFailure } from "../../utils/securityLogging";
 import type { H3Event } from "h3";
 import { rateLimit } from "../../utils/rateLimit";
 
@@ -236,7 +237,7 @@ export default defineEventHandler(async (event) => {
       },
     });
   } catch (error) {
-    console.error("[events.ics] Failed to load event:", error);
+    requestFailure(event, "app.server.api.events._slug_.ics.get.failed", error);
     throw createError({ statusCode: 502, statusMessage: "Calendar could not be generated" });
   }
 

@@ -16,6 +16,7 @@ export interface RateLimitPreset {
 }
 
 export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
+  "client-event": { max: 5, windowSeconds: 60 },
   "editor-login": { max: 10, windowSeconds: 60 },
   "editor-session": { max: 120, windowSeconds: 60 },
   "editor-logout": { max: 30, windowSeconds: 60 },

@@ -1,3 +1,5 @@
+import { ActionValidationError } from "../validationError.ts";
+import { extensionLog } from "../../../shared/securityLogger.ts";
 import type { Accountability, ApiExtensionContext } from "@directus/types";
 
 type GetSchema = ApiExtensionContext["getSchema"];
@@ -125,15 +127,12 @@ async function resolveCatalogVersionId(
   ]);
 
   const currentFrontendCatalogId = frontendCatalogs[0]?.id ?? null;
-  logger.info(`[generate-questions] Current frontend catalog: ${currentFrontendCatalogId ?? "none"}`);
-  logger.info(`[generate-questions] Municipality scores found: ${allScores.length}`);
 
   const sufficientlyRated = allScores.filter((s) => (s.percentage_rated ?? 0) > 80);
-  logger.info(`[generate-questions] Scores with percentage_rated > 80: ${sufficientlyRated.length}`);
 
   if (sufficientlyRated.length === 0) {
     const fallback = allScores[0]?.catalog_version?.id ?? null;
-    logger.warn(`[generate-questions] No well-rated scores; falling back to most recent catalog: ${fallback}`);
+    extensionLog(logger, "warn", "app.election-check.generate-questions.api.resolveCatalogVersionId.degraded");
     return fallback;
   }
 
@@ -143,7 +142,6 @@ async function resolveCatalogVersionId(
     : null;
 
   if (frontendMatch) {
-    logger.info(`[generate-questions] Matched frontend catalog version: ${frontendMatch.catalog_version?.id}`);
     return frontendMatch.catalog_version?.id ?? null;
   }
 
@@ -151,7 +149,7 @@ async function resolveCatalogVersionId(
   const withCatalog = sufficientlyRated.filter((s) => s.catalog_version?.id);
   const selected = withCatalog[0] ?? sufficientlyRated[0];
   const resolved = selected?.catalog_version?.id ?? null;
-  logger.info(`[generate-questions] Using most recent well-rated catalog version: ${resolved}`);
+
   return resolved;
 }
 
@@ -199,8 +197,6 @@ export default {
     const sysAcc = { ...accountability, admin: true };
     const { ItemsService } = services;
 
-    logger.info(`[generate-questions] Starting for election_id: ${election_id}`);
-
     // -----------------------------------------------------------------------
     // 1. Load election
     // -----------------------------------------------------------------------
@@ -211,7 +207,7 @@ export default {
     })) as Election | null;
 
     if (!election) {
-      throw new Error(`Election with ID "${election_id}" not found.`);
+      throw new ActionValidationError(`Election with ID "${election_id}" not found.`);
     }
 
     const localteamId =
@@ -220,10 +216,8 @@ export default {
         : election.localteam;
 
     if (!localteamId) {
-      throw new Error(`Election "${election_id}" has no associated local team.`);
+      throw new ActionValidationError(`Election "${election_id}" has no associated local team.`);
     }
-
-    logger.info(`[generate-questions] Election: "${election.descriptor ?? election_id}", localteam: ${localteamId}`);
 
     // -----------------------------------------------------------------------
     // 2. Resolve catalog version (via municipality → scores)
@@ -237,14 +231,13 @@ export default {
     })) as Array<{ id: string | number }>;
 
     const municipalityId = municipalities[0]?.id ?? null;
-    logger.info(`[generate-questions] Municipality: ${municipalityId ?? "none"}`);
 
     const catalogVersionId = municipalityId
       ? await resolveCatalogVersionId(municipalityId, services, schema, sysAcc, logger)
       : null;
 
     if (!catalogVersionId) {
-      logger.warn("[generate-questions] No catalog version resolved; fetching without catalog filter.");
+      extensionLog(logger, "warn", "app.election-check.generate-questions.api.degraded");
     }
 
     // -----------------------------------------------------------------------
@@ -264,10 +257,8 @@ export default {
       limit: -1,
     })) as Rating[];
 
-    logger.info(`[generate-questions] Ratings fetched: ${ratings.length}`);
-
     if (ratings.length === 0) {
-      throw new Error(`No applicable ratings found for local team ${localteamId}.`);
+      throw new ActionValidationError(`No applicable ratings found for local team ${localteamId}.`);
     }
 
     const measureIdentifiers = [
@@ -280,7 +271,6 @@ export default {
     })) as MeasureTemplate[];
 
     const templateMap = new Map(templates.map((t) => [t.measure_id, t]));
-    logger.info(`[generate-questions] Templates fetched: ${templates.length}`);
 
     // -----------------------------------------------------------------------
     // 4. Score, deduplicate, pick top 10
@@ -301,11 +291,8 @@ export default {
 
     const top10 = [...deduped.values()].sort(compareByPriorityThenDifficulty).slice(0, 10);
 
-    logger.info(`[generate-questions] Eligible after dedup: ${deduped.size}, taking top ${top10.length}`);
-    logger.info(`[generate-questions] Top measure IDs: ${top10.map((s) => s.measure.measure_id).join(", ")}`);
-
     if (top10.length === 0) {
-      logger.warn(`[generate-questions] No valid measures found for election ${election_id}`);
+      extensionLog(logger, "warn", "app.election-check.generate-questions.api.degraded");
       return {
         success: false,
         count: 0,
@@ -327,7 +314,6 @@ export default {
     })) as Array<{ id: string | number }>;
 
     if (existing.length > 0) {
-      logger.info(`[generate-questions] Deleting ${existing.length} existing questions`);
       await questionsSvc.deleteMany(existing.map((q) => q.id));
     }
 
@@ -347,8 +333,6 @@ export default {
     const updatedElection = (await electionSvc.readOne(election_id, {
       fields: ["already_generated_questions", "already_sent_mails"],
     })) as Record<string, unknown>;
-
-    logger.info(`[generate-questions] Created ${created.length} question(s) for election ${election_id}`);
 
     return {
       success: true,

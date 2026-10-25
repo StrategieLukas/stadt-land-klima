@@ -1,3 +1,4 @@
+import { systemLog } from "../utils/securityLogging";
 import { collectSearchSnapshot, createSearchCms } from "../utils/searchSnapshot";
 import { reconcileSearchIndex, searchReadiness } from "../utils/searchReconciliation";
 import type { SiteContentDoc } from "../utils/extractContent";
@@ -34,14 +35,14 @@ export default defineNitroPlugin(async () => {
       });
       const task = await ms.tasks.waitForTask(settings.taskUid);
       if (task.status !== "succeeded") throw new Error("Search settings task failed");
-      const { docs, counts } = await collectSearchSnapshot(directus);
+      const { docs } = await collectSearchSnapshot(directus);
       await reconcileSearchIndex(index, (uid) => ms.tasks.waitForTask(uid), docs);
       searchReadiness.ready = true;
+      systemLog("info", "nuxt.search.reconciled", { count: docs.length, outcome: "success" });
       nextRun = Date.now() + healthyInterval;
-      console.info("[reindex] Reconciled public search:", counts);
     } catch {
       nextRun = Date.now() + 30_000;
-      console.error("[reindex] Reconciliation failed; public search remains unavailable");
+      systemLog("error", "app.server.plugins.reindex.failed");
     } finally {
       g.__slkReindexRunning = false;
     }

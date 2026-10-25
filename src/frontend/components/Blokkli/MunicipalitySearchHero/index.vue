@@ -54,6 +54,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic } from "../../../shared/securityLog";
+
 import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 import { onMounted, ref, computed } from "vue";
 
@@ -287,9 +289,9 @@ onMounted(async () => {
       .filter((m) => m.id && m.name);
 
     wordItems.value = buildCloudLayout(flat);
-  } catch (e) {
+  } catch {
     // Silently degrade — the search bar still works without the word cloud
-    console.warn("[MunicipalitySearchHero] Could not load municipality word cloud", e);
+    clientDiagnostic("app.components.Blokkli.MunicipalitySearchHero.index.degraded", "warn");
   }
 });
 </script>

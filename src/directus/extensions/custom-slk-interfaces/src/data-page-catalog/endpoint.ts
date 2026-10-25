@@ -1,3 +1,4 @@
+import { extensionError } from "../../../shared/securityLogger.ts";
 import type { Request, Response, Router } from "express";
 import { getDataPageCatalog } from "./catalog";
 
@@ -20,7 +21,7 @@ export default {
         const collections = await getDataPageCatalog(env.DATA_PAGE_CATALOG_BASE_URL);
         return res.json({ collections });
       } catch (error) {
-        logger.error("[data-page-catalog] Failed to load collections", error);
+        extensionError(logger, "app.custom-slk-interfaces.data-page-catalog.endpoint.failed", error);
         return res.status(502).json({ error: "Collection catalog unavailable" });
       }
     });

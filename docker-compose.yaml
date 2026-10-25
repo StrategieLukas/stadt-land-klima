@@ -45,6 +45,10 @@ services:
       DB_OPTIONS: "-c timezone=Europe/Berlin"
       # Published Blökkli content must not remain stale until the cache TTL expires.
       CACHE_AUTO_PURGE: "true"
+      # Replaced by the security-audit hook: no query strings, headers, bodies or IPs.
+      LOGGER_HTTP_AUTO_LOGGING: "false"
+      LOG_STYLE: "raw"
+      LOG_LEVEL: "info"
       # Pinned 11.17.4 has share-cache and resumable-upload advisories.
       # Redis remains enabled for sessions, rate limits and synchronization.
       CACHE_ENABLED: "false"

@@ -374,6 +374,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../shared/securityLog";
+
 import type { Project } from "~/types/components/content";
 import type { MunicipalityScore, RatingsBySector } from "~/types/components/municipality";
 
@@ -454,7 +456,7 @@ async function fetchMunicipalityProjects() {
       measures: article.measures?.flatMap((link) => (link.measures_id ? [link.measures_id] : [])) ?? [],
     }));
   } catch (err) {
-    console.error("❌ Failed to fetch municipality projects:", err);
+    clientFailure("app.components.DetailMunicipality.fetchMunicipalityProjects.failed", err);
     municipalityProjects.value = [];
   } finally {
     loadingProjects.value = false;

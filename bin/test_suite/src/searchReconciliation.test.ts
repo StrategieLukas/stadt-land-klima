@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -26,7 +27,7 @@ function load(name: string, dependencies: Row = {}, globals: Row = {}): Row {
       process: { env: {} },
       setInterval: () => 1,
       clearInterval() {},
-      require: (id: string) => (id in dependencies ? dependencies[id] : require(id)),
+      require: (id: string) => (id in dependencies ? dependencies[id] : (loggingModule(id) ?? require(id))),
       ...globals,
     },
   );

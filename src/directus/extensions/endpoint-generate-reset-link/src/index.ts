@@ -1,3 +1,4 @@
+import { extensionDiagnostic } from "../../shared/securityLogger.ts";
 import jwt from "jsonwebtoken";
 import type { Request, Response, Router } from "express";
 import type { ApiExtensionContext } from "@directus/types";
@@ -17,6 +18,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 interface DirectusUser {
+  id: string;
   email: string;
   password: string;
 }
@@ -58,11 +60,11 @@ export default {
       try {
         user =
           (await database("directus_users")
-            .select("email", "password")
+            .select("id", "email", "password")
             .where({ email: email.trim().toLowerCase(), status: "active" })
             .first()) ?? null;
-      } catch (err) {
-        console.error("[generate-reset-link] Database error:", err);
+      } catch {
+        extensionDiagnostic("error", "app.endpoint-generate-reset-link.index.failed");
         return res.status(500).json({ error: "Internal server error" });
       }
 
@@ -80,6 +82,11 @@ export default {
         { expiresIn: "1d", issuer: "directus" },
       );
 
+      extensionDiagnostic("info", "directus.auth.reset_link_issued", {
+        resource: "directus_users",
+        resourceId: user.id,
+        outcome: "success",
+      });
       const base = env.PUBLIC_URL.replace(/\/$/, "");
       return res.json({ url: `${base}/admin/reset-password?token=${token}` });
     });

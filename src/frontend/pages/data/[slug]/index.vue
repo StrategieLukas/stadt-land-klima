@@ -335,6 +335,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic } from "../../../shared/securityLog";
+
 import { parseGeoCenter } from "~/shared/contracts/geometry";
 import { asRecord } from "~/shared/visualization";
 import { CollectionsResponseSchema } from "~/shared/contracts/slz";
@@ -541,8 +543,8 @@ async function loadNearbyAreasForCurrentArea() {
               timeout: 8000,
             });
             return { ...nearbyArea, ...withGeo };
-          } catch (error) {
-            console.warn(`Could not load geometry for nearby area ${nearbyArea.ars}:`, error);
+          } catch {
+            clientDiagnostic("app.pages.data._slug_.index.loadNearbyAreasForCurrentArea.degraded", "warn");
             return null;
           }
         }),

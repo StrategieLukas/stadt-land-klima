@@ -14,7 +14,6 @@ import type { ScorePublication } from "~/shared/domain";
  *       directusMuniBySlug, slzArea, slzPending, directusMuniByArs, previewAuthorized })
  *
  *   // Debug in browser devtools:
- *   //   console.log(pageView.value)
  */
 
 import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";

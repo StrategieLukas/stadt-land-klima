@@ -66,6 +66,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic } from "../shared/securityLog";
+
 import { checkedVisualizationSpec, safeVisualizationLoader } from "~/shared/visualizationSafety";
 import type { View } from "vega";
 import { cloneVisualization, asRecord, displayScalar } from "~/shared/visualization";
@@ -190,8 +192,8 @@ async function render() {
     vegaView = result.view;
     renderedSize = measureChartSize();
     exportReady.value = true;
-  } catch (e) {
-    console.warn("[VegaChart] render error:", e);
+  } catch {
+    clientDiagnostic("app.components.VegaChart.render.degraded", "warn");
     renderError.value = true;
     exportReady.value = false;
   } finally {
@@ -270,8 +272,8 @@ async function resizeVegaView() {
   renderedSize = nextSize;
   try {
     await vegaView.width(nextSize.width).height(nextSize.height).resize().runAsync();
-  } catch (e) {
-    console.warn("[VegaChart] resize error, re-rendering:", e);
+  } catch {
+    clientDiagnostic("app.components.VegaChart.resizeVegaView.degraded", "warn");
     void render();
   }
 }
@@ -287,8 +289,8 @@ async function downloadPng() {
     const exportCanvas = await drawExportCanvas(canvas);
     const blob = await canvasToBlob(exportCanvas);
     downloadBlob(blob, "image/png", `${baseFilename.value}.png`);
-  } catch (e) {
-    console.warn("[VegaChart] PNG export error:", e);
+  } catch {
+    clientDiagnostic("app.components.VegaChart.downloadPng.degraded", "warn");
   }
 }
 
@@ -326,8 +328,8 @@ async function downloadData() {
       "application/json;charset=utf-8",
       `${baseFilename.value}-spec.json`,
     );
-  } catch (e) {
-    console.warn("[VegaChart] data export error:", e);
+  } catch {
+    clientDiagnostic("app.components.VegaChart.downloadData.degraded", "warn");
   }
 }
 

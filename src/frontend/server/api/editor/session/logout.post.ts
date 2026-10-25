@@ -1,3 +1,4 @@
+import { requestLog } from "../../../utils/securityLogging";
 import { createError, defineEventHandler, setResponseHeader } from "h3";
 import { readEditorSession, revokeEditorSession } from "../../../utils/editorSession";
 import { rateLimit } from "../../../utils/rateLimit";
@@ -13,5 +14,6 @@ export default defineEventHandler(async (event) => {
   } catch {
     /* Local revocation is authoritative even when the CMS is offline. */
   }
+  requestLog(event, "info", "nuxt.auth.logout", { outcome: "success" });
   return { success: true };
 });

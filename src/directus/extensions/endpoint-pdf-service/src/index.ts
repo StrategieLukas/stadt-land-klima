@@ -1,3 +1,4 @@
+import { extensionDiagnostic } from "../../shared/securityLogger.ts";
 import path from "path";
 import { execFile } from "child_process";
 import { promisify } from "util";
@@ -149,8 +150,8 @@ function createTypstWorkspace(
     cleaned = true;
     try {
       rmSync(requestDir, { recursive: true, force: true });
-    } catch (err) {
-      console.error("[pdf-service] Failed to delete temp directory:", requestDir, err);
+    } catch {
+      extensionDiagnostic("error", "app.endpoint-pdf-service.index.createTypstWorkspace.failed");
     }
   };
 
@@ -268,7 +269,7 @@ async function compilePdf(
     timeout: PDF_COMPILE_TIMEOUT_MS,
     killSignal: "SIGKILL",
   });
-  if (result.stderr.length) console.warn("[pdf-service] Typst warnings:", result.stderr.toString());
+  if (result.stderr.length) extensionDiagnostic("warn", "app.endpoint-pdf-service.index.compilePdf.degraded");
   return result.stdout;
 }
 
@@ -317,7 +318,7 @@ function makeRouteHandler(
         res.status(err.status).send(err.message);
         return;
       }
-      console.error("[pdf-service] Error fetching municipality data:", err);
+      extensionDiagnostic("error", "app.endpoint-pdf-service.index.makeRouteHandler.failed");
       res.status(500).send("Server error: failed to fetch municipality data");
       return;
     }
@@ -325,8 +326,8 @@ function makeRouteHandler(
     let typstDir: string;
     try {
       typstDir = resolveTypstDir();
-    } catch (err) {
-      console.error("[pdf-service] Typst directory resolution failed:", err);
+    } catch {
+      extensionDiagnostic("error", "app.endpoint-pdf-service.index.makeRouteHandler.failed");
       res.status(500).send("PDF generation failed");
       return;
     }
@@ -334,8 +335,8 @@ function makeRouteHandler(
     try {
       const { pdf, filename } = await buildPdf(data, req, typstDir);
       sendPdf(res, pdf, filename);
-    } catch (err) {
-      console.error("[pdf-service] Typst compilation error:", err);
+    } catch {
+      extensionDiagnostic("error", "app.endpoint-pdf-service.index.makeRouteHandler.failed");
       res.status(500).send("PDF generation failed");
     }
   };
@@ -377,8 +378,6 @@ export default {
     router.post(
       "/elections/:slug/:version",
       makeRouteHandler(ItemsService, getSchema, async ([municipalityScore, sortedMeasures], req, typstDir) => {
-        console.log("[pdf-service] Elections PDF requested for:", req.params.slug);
-
         const rawMeasureText: MeasureText[] = req.body.measure_text ?? [];
         const measureText = withPlainTextDescriptions(rawMeasureText);
 

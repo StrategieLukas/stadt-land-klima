@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { webcrypto } from "node:crypto";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -41,6 +42,8 @@ function loadModule(path: string, dependencies: Record<string, unknown>, globals
       module,
       exports: module.exports,
       require: (id: string) => {
+        const logging = loggingModule(id);
+        if (logging && !(id in dependencies)) return logging;
         assert.ok(id in dependencies, `Unexpected dependency: ${id}`);
         return dependencies[id];
       },

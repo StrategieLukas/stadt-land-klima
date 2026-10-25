@@ -25,6 +25,7 @@ const questionPublicFields = ["id", "title", "thesis", "background_information",
 const answerPublicFields = ["id", "response", "explanation", "candidate", "question"];
 
 export async function verifyCandidateAccessToken(accessToken: string) {
+  if (!z.uuid().safeParse(accessToken).success) return null;
   const client = createDirectusServerClient();
   const candidates = await client
     .request(

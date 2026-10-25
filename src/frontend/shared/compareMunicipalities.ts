@@ -18,7 +18,6 @@ function similarityScore(m1: ComparableMunicipality, m2: ComparableMunicipality)
   // 1. Population similarity (proportional ratio) - Max Score: 2
   const popRatio = Number(m1.population) / Number(m2.population);
   const populationScore = Number.isFinite(popRatio) && popRatio > 0 ? 2 / (Math.abs(Math.log2(popRatio)) + 1) : 0;
-  // console.log("Population Ratio", m1.name, m2.name, popRatio, populationScore);
 
   // 2. Distance score (exponential decay from 30km) - Max Score: 1
   let distanceScore;
@@ -35,16 +34,8 @@ function similarityScore(m1: ComparableMunicipality, m2: ComparableMunicipality)
     const distance = haversine(m1Loc.lat, m1Loc.lon, m2Loc.lat, m2Loc.lon);
     const decayRate = Math.log(2) / 170; // halves every 170km past 30km
     distanceScore = distance <= 30 ? 1 : Math.exp(-decayRate * (distance - 30));
-    // console.log("Distance between", m1.name, m2.name, distance, distanceScore);
   } else {
-    // If geodata is missing, then log a warning and use a plausible default value
-    if (!m1Loc) {
-      console.warn(`Die Geodaten von der Kommune "${m1.name ?? "unknown"}" fehlen`);
-    }
-    if (!m2Loc) {
-      console.warn(`Die Geodaten von der Kommune "${m2.name ?? "unknown"}" fehlen`);
-    }
-    // This is roughly the average score you would expect if you picked random municipalities, I guess?
+    // Missing geodata uses the existing neutral fallback.
     distanceScore = 0.2;
   }
 
@@ -76,7 +67,6 @@ function similarityScore(m1: ComparableMunicipality, m2: ComparableMunicipality)
         0.05;
 
   // Final score
-  // console.log("Similiary scores:", populationScore, distanceScore, stateBonus, partyBonus);
   return populationScore + distanceScore + stateBonus + partyBonus;
 }
 

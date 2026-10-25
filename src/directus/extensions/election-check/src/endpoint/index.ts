@@ -1,3 +1,5 @@
+import { ActionValidationError } from "../validationError.ts";
+import { extensionLog, extensionError } from "../../../shared/securityLogger.ts";
 import generateQuestions from "../generate-questions/api.js";
 import sendCandidateMails from "../send-candidate-mails/api.js";
 import type { Accountability, ApiExtensionContext } from "@directus/types";
@@ -83,7 +85,7 @@ function makeActionHandler<TResult>(
       return res.json(result);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      ctx.logger.error(`[election-actions] ${name} failed for election ${election_id}: ${message}`);
+      extensionError(ctx.logger, "app.election-check.endpoint.index.makeActionHandler.failed", err);
       const status =
         typeof (err as { status?: unknown })?.status === "number" ? (err as { status: number }).status : 500;
       return res.status(status).json({ error: message });
@@ -124,10 +126,15 @@ function makeCompletionHandler(ctx: ActionContext) {
         return res.status(404).json({ error: "Public election not found" });
       }
 
+      extensionLog(ctx.logger, "info", "directus.election.completion_recorded", {
+        resource: "elections",
+        resourceId: electionId,
+        outcome: "success",
+      });
       return res.json({ success: true });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      ctx.logger.error(`[election-actions] complete failed for election ${electionId}: ${message}`);
+      extensionError(ctx.logger, "app.election-check.endpoint.index.makeCompletionHandler.failed", err);
       const status =
         typeof (err as { status?: unknown })?.status === "number" ? (err as { status: number }).status : 500;
       return res.status(status).json({ error: message });
@@ -157,11 +164,11 @@ async function requestReview(
   })) as ElectionForReview | null;
 
   if (!election) {
-    throw new Error(`Election with ID "${electionId}" not found.`);
+    throw new ActionValidationError(`Election with ID "${electionId}" not found.`);
   }
 
   if (!election.already_generated_questions) {
-    throw new Error("Thesen müssen vor der Review-Anfrage generiert werden.");
+    throw new ActionValidationError("Thesen müssen vor der Review-Anfrage generiert werden.");
   }
 
   if (election.review_requested) {
@@ -199,14 +206,15 @@ async function requestReview(
         .filter(Boolean)
         .join("\n"),
     });
+    extensionLog(logger, "info", "directus.election.review_mail_sent", {
+      resource: "elections",
+      resourceId: electionId,
+      outcome: "success",
+    });
   } catch (err) {
     if (env.SLK_ENV === "development") {
       emailSent = false;
-      logger.warn(
-        `[request-review] Failed to send review request email in development: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
+      extensionLog(logger, "warn", "app.election-check.endpoint.index.requestReview.degraded");
     } else {
       await electionSvc.updateOne(electionId, { review_requested: false });
       throw err;
@@ -216,8 +224,6 @@ async function requestReview(
   const updatedElection = (await electionSvc.readOne(electionId, {
     fields: ["review_requested"],
   })) as Record<string, unknown>;
-
-  logger.info(`[request-review] Review requested for election ${electionId}; recipient: ${recipient}`);
 
   return {
     success: true,

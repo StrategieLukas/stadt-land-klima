@@ -1,3 +1,4 @@
+import { extensionLog, extensionError } from "../../shared/securityLogger.ts";
 import type { Request, Response, Router } from "express";
 import type { EndpointConfig } from "@directus/types";
 
@@ -139,7 +140,7 @@ export default {
     const ACCESS_KEY: string | undefined = env["UNSPLASH_ACCESS_KEY"] || process.env.UNSPLASH_ACCESS_KEY;
 
     if (!ACCESS_KEY) {
-      logger.error("[unsplash] UNSPLASH_ACCESS_KEY is not set – all requests will be rejected");
+      extensionLog(logger, "warn", "directus.unsplash.not_configured");
       router.use((_req: Request, res: Response<ApiError>) => {
         res.status(503).json({ error: "Unsplash integration is not configured" });
       });
@@ -186,8 +187,8 @@ export default {
           });
 
           if (!response.ok) {
-            const text = await response.text();
-            logger.warn(`[unsplash] upstream search returned ${response.status}: ${text}`);
+            await response.body?.cancel();
+            extensionLog(logger, "warn", "app.endpoint-unsplash.index.degraded");
             return res.status(response.status).json({ error: "Upstream error from Unsplash" });
           }
 
@@ -217,7 +218,7 @@ export default {
           });
         } catch (err: unknown) {
           const isTimeout = err instanceof Error && err.name === "TimeoutError";
-          logger.error("[unsplash] search error:", err);
+          extensionError(logger, "app.endpoint-unsplash.index.failed", err);
           return res
             .status(isTimeout ? 504 : 500)
             .json({ error: isTimeout ? "Upstream request timed out" : "Upstream request failed" });
@@ -264,9 +265,9 @@ export default {
             signal: timeoutSignal(FETCH_TIMEOUT_MS),
           });
           return res.json({ ok: true });
-        } catch (err: unknown) {
+        } catch {
           // Non-fatal – attribution ping failed but we must not block the user
-          logger.warn("[unsplash] trigger-download failed (non-fatal):", err);
+          extensionLog(logger, "warn", "app.endpoint-unsplash.index.degraded");
           return res.json({ ok: false });
         }
       },

@@ -1,3 +1,4 @@
+import { extensionLog, extensionError } from "../../../shared/securityLogger.ts";
 import { isEmpty } from "lodash-es";
 import { createError } from "@directus/errors";
 import type { LocalTeam, DirectusUser, Role, MailTemplateData, OperationContext } from "../types";
@@ -76,8 +77,6 @@ export default {
       throw new LocalteamAccessError();
     }
 
-    context.logger.info(`${fullName} invited ${email} to localteam "${localteam.municipality_name}".`);
-
     if (!isEmpty(existingUser)) {
       // User already exists — only allow if they already carry the expected role.
       if (existingUser!.role !== targetRole.id) {
@@ -86,7 +85,7 @@ export default {
 
       // TODO: if a user can belong to multiple localteams, add the M2M
       // relationship entry here instead of returning silently.
-      context.logger.info(`User ${email} already exists with the correct role. No action taken.`);
+
       return;
     }
 
@@ -98,14 +97,12 @@ export default {
     // `${PUBLIC_URL}/admin/accept-invite` link and appends the invite token.
     const url = usersService.inviteUrl(email);
 
-    await usersService.createOne({
+    const invitedUserId = await usersService.createOne({
       email,
       role: targetRole.id,
       status: "invited",
       localteams: [{ localteam_id }],
     });
-
-    context.logger.info(`Created new user ${email} with status "invited".`);
 
     const mailData: MailTemplateData = {
       url,
@@ -123,18 +120,19 @@ export default {
           data: mailData,
         },
       });
-      context.logger.info(`Invitation email sent to ${email}.`);
+      extensionLog(context.logger, "info", "directus.editor.invitation_sent", {
+        resource: "directus_users",
+        resourceId: invitedUserId,
+        outcome: "success",
+      });
     } catch (error) {
       // Use context.env instead of process.env — idiomatic in Directus extensions
       // and works correctly inside sandboxed operations.
       if (context.env["SLK_ENV"] !== "development") {
-        context.logger.error(`Failed to send invitation email to ${email}: ${error}`);
+        extensionError(context.logger, "app.editor-manager.add-editor.api.failed", error);
         throw error;
       } else {
-        context.logger.warn(
-          `Failed to send invitation email to ${email}. ` +
-            `This is expected in development where no mail server is configured.`,
-        );
+        extensionLog(context.logger, "warn", "app.editor-manager.add-editor.api.degraded");
       }
     }
   },

@@ -594,6 +594,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../../shared/securityLog";
+
 import type { PropType } from "vue";
 import type {
   Election,
@@ -1052,7 +1054,7 @@ function encodeShareableData() {
 
     return encoded;
   } catch (error) {
-    console.error("Error encoding shareable data:", error);
+    clientFailure("app.components.Elections.WahlCheckResults.encodeShareableData.failed", error);
     return null;
   }
 }
@@ -1082,7 +1084,7 @@ function _copyShareableLink() {
       alert($t("elections.wahlcheck.results.share.copied"));
     })
     .catch((err: unknown) => {
-      console.error("Error copying share link:", err);
+      clientFailure("app.components.Elections.WahlCheckResults._copyShareableLink.failed", err);
       alert($t("elections.wahlcheck.results.share.copy_error"));
     });
 }
@@ -1093,7 +1095,7 @@ function _decodeShareableData(encodedString: string) {
     const decoded = decodeURIComponent(atob(encodedString));
     return JSON.parse(decoded) as unknown;
   } catch (error) {
-    console.error("Error decoding shareable data:", error);
+    clientFailure("app.components.Elections.WahlCheckResults._decodeShareableData.failed", error);
     return null;
   }
 }

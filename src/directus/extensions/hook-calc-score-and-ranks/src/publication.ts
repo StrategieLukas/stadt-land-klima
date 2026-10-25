@@ -1,3 +1,4 @@
+import { extensionLog } from "../../shared/securityLogger.ts";
 import { createError } from "@directus/errors";
 import type { ApiExtensionContext, Accountability } from "@directus/types";
 import { randomBytes } from "node:crypto";
@@ -140,45 +141,26 @@ export async function logPublication(
   try {
     const options = { schema: await context.getSchema(), accountability: admin };
     const actorId = event?.accountability?.user ?? null;
-    const actor = actorId
-      ? await new context.services.ItemsService<{ email: string | null }>("directus_users", options).readOne(actorId, {
-          fields: ["email"],
-        })
-      : null;
     const ids = meta.keys ?? (meta.key === undefined ? [] : [meta.key]);
     const rows = await new context.services.ItemsService("municipality_scores", options).readByQuery({
       filter: { id: { _in: ids } },
-      fields: [
-        "id",
-        "published",
-        "preview_enabled",
-        "percentage_rated",
-        "municipality.id",
-        "municipality.name",
-        "catalog_version.id",
-        "catalog_version.name",
-      ],
+      fields: ["id", "published", "preview_enabled", "percentage_rated", "municipality.id", "catalog_version.id"],
       limit: -1,
     });
     for (const row of rows)
-      context.logger.info(
-        {
-          event: "municipality.publication.updated",
-          actorId,
-          actorEmail: actor?.email ?? null,
-          scoreId: row.id,
-          municipality: row.municipality,
-          catalog: row.catalog_version,
-          percentageRated: row.percentage_rated,
-          published: row.published,
-          previewEnabled: row.preview_enabled,
-          changes: Object.fromEntries(
-            ["published", "preview_enabled"].filter((key) => key in patch).map((key) => [key, patch[key]]),
-          ),
-        },
-        "Municipality publication/preview state updated",
-      );
+      extensionLog(context.logger, "info", "municipality.publication.updated", {
+        userId: actorId,
+        resource: "municipality_scores",
+        resourceId: row.id,
+        municipalityId: row.municipality?.id,
+        catalogId: row.catalog_version?.id,
+        percentageRated: Number(row.percentage_rated),
+        published: row.published,
+        previewEnabled: row.preview_enabled,
+        changedFields: Object.keys(patch).filter((field) => field === "published" || field === "preview_enabled"),
+        outcome: "success",
+      });
   } catch {
-    context.logger.warn("Publication log enrichment failed; native Directus activity retains the mutation audit.");
+    extensionLog(context.logger, "warn", "municipality.publication.log_enrichment_failed");
   }
 }

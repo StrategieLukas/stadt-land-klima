@@ -1,3 +1,4 @@
+import { requestLog } from "../utils/securityLogging";
 import { WahlcheckCompletionRequestSchema } from "~/shared/contracts/submissions";
 import { createError, defineEventHandler } from "h3";
 import { useRuntimeConfig } from "#imports";
@@ -40,5 +41,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 502, statusMessage: "Completion tracking failed" });
   }
 
+  requestLog(event, "info", "nuxt.election.completion_recorded", {
+    resource: "elections",
+    resourceId: electionId,
+    outcome: "success",
+  });
   return { success: true };
 });

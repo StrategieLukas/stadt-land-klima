@@ -1,3 +1,4 @@
+import { extensionError } from "../../../shared/securityLogger.ts";
 import type { Request, Response, Router } from "express";
 import type { ApiExtensionContext } from "@directus/types";
 
@@ -665,9 +666,7 @@ export default {
           },
         });
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logger?.error(`[community-activity] Failed to build summary: ${message}`);
-        console.error("[community-activity] Failed to build summary:", error);
+        extensionError(logger, "app.community-activity.endpoint.index.failed", error);
         return res.status(500).json({ error: "Dashboard konnte nicht geladen werden." });
       }
     });

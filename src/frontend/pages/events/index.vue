@@ -174,6 +174,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic } from "../../shared/securityLog";
+
 import type { PublicEvent } from "~/shared/contracts/content";
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
@@ -198,8 +200,8 @@ const { data: eventsResult } = await useAsyncData("events-list", async () => {
       query: { excludeInternal: "true", limit: "-1", sort: "start_date" },
     });
     return result;
-  } catch (e) {
-    console.warn("[events] Failed to load events:", e instanceof Error ? e.message : "Request failed");
+  } catch {
+    clientDiagnostic("app.pages.events.index.degraded", "warn");
     return { events: [] };
   }
 });

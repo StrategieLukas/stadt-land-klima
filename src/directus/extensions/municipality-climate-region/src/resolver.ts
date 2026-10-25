@@ -1,3 +1,4 @@
+import { extensionLog } from "../../shared/securityLogger.ts";
 import type { ApiExtensionContext } from "@directus/types";
 import { z } from "zod";
 
@@ -209,7 +210,7 @@ async function resolveArs(
       );
       if (ars) return ars;
     } catch {
-      logger.warn(`[municipality-climate-region] Area search failed for municipality ${municipality.id}`);
+      extensionLog(logger, "warn", "app.municipality-climate-region.resolver.resolveArs.degraded");
     }
   }
   if (!config.nominatimUrl || !config.overpassUrl) return null;
@@ -248,7 +249,7 @@ async function resolveArs(
         .map((element) => element.tags?.["de:regionalschluessel"]),
     );
   } catch {
-    logger.warn(`[municipality-climate-region] Nominatim/Overpass lookup failed for municipality ${municipality.id}`);
+    extensionLog(logger, "warn", "app.municipality-climate-region.resolver.resolveArs.degraded");
     return null;
   }
 }
@@ -285,9 +286,7 @@ async function resolveMunicipality(
       const climateRegion = await resolveClimateRegionType(ars, config);
       if (climateRegion) update.climate_region_type = climateRegion;
     } catch {
-      context.logger.warn(
-        `[municipality-climate-region] Climate region lookup failed for municipality ${municipality.id}`,
-      );
+      extensionLog(context.logger, "warn", "app.municipality-climate-region.resolver.resolveMunicipality.degraded");
     }
   }
   if (Object.keys(update).length) {
@@ -303,6 +302,12 @@ async function resolveMunicipality(
       })
       .update(update);
     if (!affected) return { arsResolved: false, climateRegionResolved: false, unresolved: true };
+    extensionLog(context.logger, "info", "directus.municipality.enriched", {
+      resource: "municipalities",
+      resourceId: municipality.id,
+      changedFields: Object.keys(update),
+      outcome: "success",
+    });
   }
   return {
     arsResolved: !!update.ars,
@@ -373,13 +378,18 @@ async function runBatch(context: ResolverContext): Promise<ResolutionSummary> {
         if (result.unresolved) summary.unresolved++;
       } catch {
         summary.failed++;
-        context.logger.error(`[municipality-climate-region] Resolution failed for municipality ${municipality.id}`);
+        extensionLog(context.logger, "error", "app.municipality-climate-region.resolver.runBatch.failed");
       }
     }
     cursor = rows.at(-1)!.id;
     if (rows.length < PAGE_SIZE) break;
   }
-  context.logger.info(`[municipality-climate-region] Resolution finished: ${JSON.stringify(summary)}`);
+
+  extensionLog(context.logger, "info", "directus.municipality.backfill_completed", {
+    resource: "municipalities",
+    count: summary.arsResolved + summary.climateRegionResolved,
+    outcome: summary.failed ? "failed" : "success",
+  });
   return summary;
 }
 

@@ -48,6 +48,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic } from "../shared/securityLog";
+
 import { checkedMapStyle, visualizationUrl } from "~/shared/visualizationSafety";
 import { asRecord } from "~/shared/visualization";
 import { parseGeoData } from "~/shared/contracts/geometry";
@@ -169,11 +171,11 @@ async function renderMap() {
       })();
     });
 
-    map.on("error", (event) => {
-      console.warn("[MapLibreRenderElement] map error:", event?.error ?? event);
+    map.on("error", (_event) => {
+      clientDiagnostic("app.components.MapLibreRenderElement.renderMap.degraded", "warn");
     });
-  } catch (err) {
-    console.warn("[MapLibreRenderElement] render error:", err);
+  } catch {
+    clientDiagnostic("app.components.MapLibreRenderElement.renderMap.degraded", "warn");
     error.value = true;
     loading.value = false;
   }
@@ -226,8 +228,8 @@ async function downloadPng() {
     const exportCanvas = await drawExportCanvas(canvas);
     const blob = await canvasToBlob(exportCanvas);
     downloadBlob(blob, "image/png", `${baseFilename.value}.png`);
-  } catch (err) {
-    console.warn("[MapLibreRenderElement] PNG export error:", err);
+  } catch {
+    clientDiagnostic("app.components.MapLibreRenderElement.downloadPng.degraded", "warn");
   }
 }
 
@@ -239,8 +241,8 @@ async function downloadData() {
     const text = await response.text();
     const contentType = response.headers.get("content-type") || "application/geo+json;charset=utf-8";
     downloadBlob(text, contentType, `${baseFilename.value}-data.geojson`);
-  } catch (err) {
-    console.warn("[MapLibreRenderElement] data export error:", err);
+  } catch {
+    clientDiagnostic("app.components.MapLibreRenderElement.downloadData.degraded", "warn");
   }
 }
 
@@ -649,7 +651,7 @@ async function featureDataForBounds() {
     return (await response.json()) as unknown;
   } catch (err: unknown) {
     if ((err instanceof Error ? err.name : undefined) !== "AbortError")
-      console.warn("[MapLibreRenderElement] feature bounds fetch error:", err);
+      clientDiagnostic("app.components.MapLibreRenderElement.featureDataForBounds.degraded", "warn");
     return null;
   }
 }
@@ -688,7 +690,7 @@ async function loadDensitySource() {
       });
   } catch (err: unknown) {
     if ((err instanceof Error ? err.name : undefined) !== "AbortError")
-      console.warn("[MapLibreRenderElement] density fetch error:", err);
+      clientDiagnostic("app.components.MapLibreRenderElement.loadDensitySource.degraded", "warn");
   }
 }
 
@@ -852,8 +854,8 @@ async function featureDataForExport() {
     const response = await fetch(resolvedFeatureApiUrl.value);
     if (!response.ok) return null;
     return (await response.json()) as unknown;
-  } catch (err) {
-    console.warn("[MapLibreRenderElement] feature export fetch error:", err);
+  } catch {
+    clientDiagnostic("app.components.MapLibreRenderElement.featureDataForExport.degraded", "warn");
     return null;
   }
 }

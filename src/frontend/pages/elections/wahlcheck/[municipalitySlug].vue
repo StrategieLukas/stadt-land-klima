@@ -120,6 +120,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic, clientFailure } from "../../../shared/securityLog";
+
 import type { WahlcheckCompletionRequest } from "~/shared/contracts/submissions";
 import { computed, ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
@@ -194,8 +196,8 @@ async function trackWahlcheckCompletion() {
     });
 
     markCompletionTracked(electionId);
-  } catch (err) {
-    console.warn("Could not record Wahlcheck completion:", err);
+  } catch {
+    clientDiagnostic("app.pages.elections.wahlcheck._municipalitySlug_.trackWahlcheckCompletion.degraded", "warn");
   } finally {
     completionTrackingPending = false;
   }
@@ -217,7 +219,7 @@ function loadFromSessionStorage() {
       }
     }
   } catch (err) {
-    console.error("Error loading from session storage:", err);
+    clientFailure("app.pages.elections.wahlcheck._municipalitySlug_.loadFromSessionStorage.failed", err);
   }
 }
 
@@ -258,7 +260,7 @@ function updateShareableUrl() {
     const newUrl = `${window.location.pathname}?share=${encoded}`;
     window.history.replaceState({}, "", newUrl);
   } catch (error) {
-    console.error("Error updating shareable URL:", error);
+    clientFailure("app.pages.elections.wahlcheck._municipalitySlug_.updateShareableUrl.failed", error);
   }
 }
 
@@ -297,11 +299,11 @@ function checkForSharedResults() {
           currentStep.value = 3;
         }
       } catch (error) {
-        console.error("Error decoding shared results:", error);
+        clientFailure("app.pages.elections.wahlcheck._municipalitySlug_.checkForSharedResults.failed", error);
       }
     }
   } catch (error) {
-    console.error("Error checking for shared results:", error);
+    clientFailure("app.pages.elections.wahlcheck._municipalitySlug_.checkForSharedResults.failed", error);
   }
 }
 
@@ -315,7 +317,7 @@ function saveToSessionStorage() {
     };
     sessionStorage.setItem(sessionStorageKey, JSON.stringify(dataToSave));
   } catch (err) {
-    console.error("Error saving to session storage:", err);
+    clientFailure("app.pages.elections.wahlcheck._municipalitySlug_.saveToSessionStorage.failed", err);
   }
 }
 
@@ -324,7 +326,7 @@ function clearSessionStorage() {
   try {
     sessionStorage.removeItem(sessionStorageKey);
   } catch (err) {
-    console.error("Error clearing session storage:", err);
+    clientFailure("app.pages.elections.wahlcheck._municipalitySlug_.clearSessionStorage.failed", err);
   }
 }
 
@@ -373,7 +375,7 @@ async function loadElectionData() {
         ) || [],
     };
   } catch (err) {
-    console.error("Error loading election data:", err);
+    clientFailure("app.pages.elections.wahlcheck._municipalitySlug_.loadElectionData.failed", err);
     error.value = true;
     errorMessage.value = $t("elections.loading_error.description");
   } finally {

@@ -213,7 +213,6 @@ const chartOptions: ChartOptions<"treemap"> = {
           return item.measure_name;
         },
         label: function (context) {
-          // console.log("Tooltip context:", context);
           // if (context.type !== 'data') {
           //   return 'transparent';
           // }

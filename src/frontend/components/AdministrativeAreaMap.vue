@@ -10,6 +10,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic } from "../shared/securityLog";
+
 // vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
 import type { Map as LeafletMap } from "leaflet";
 import type { PropType } from "vue";
@@ -96,8 +98,8 @@ const fitBoundsToGeoArea = async () => {
         maxZoom: 16, // Prevent zooming too close for small areas
       });
     }
-  } catch (error) {
-    console.warn("Could not fit bounds to geoArea:", error);
+  } catch {
+    clientDiagnostic("app.components.AdministrativeAreaMap.degraded", "warn");
   }
 };
 

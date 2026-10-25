@@ -58,6 +58,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../shared/securityLog";
+
 import type { ChartOptions, ChartEvent, ActiveElement } from "chart.js";
 import {
   legacyHistogramValue,
@@ -177,24 +179,10 @@ const getDarkerColor = (color: string) => {
 
 // Calculate histogram bins and chart data
 const chartData = computed(() => {
-  console.log("=== CHART DATA COMPUTED START ===");
-  console.log("histogramApiData.value:", histogramApiData.value);
-  console.log("histogramApiData.value type:", typeof histogramApiData.value);
-  console.log("Is histogramApiData.value null?", histogramApiData.value === null);
-  console.log("histogramApiData.value?.bin_edges:", histogramApiData.value?.bin_edges);
-  console.log("histogramApiData.value?.bin_counts:", histogramApiData.value?.bin_counts);
-  console.log("histogramData (legacy):", histogramData.value?.length);
-
   // New API format with bin_edges and bin_counts
   if (histogramApiData.value?.bin_edges && histogramApiData.value?.bin_counts) {
     const binEdges = histogramApiData.value.bin_edges;
     const histogram = histogramApiData.value.bin_counts;
-
-    console.log("✓ Using new API format");
-    console.log("Bin edges length:", binEdges.length);
-    console.log("Histogram length:", histogram.length);
-    console.log("First 5 bin edges:", binEdges.slice(0, 5));
-    console.log("First 5 histogram values:", histogram.slice(0, 5));
 
     // Create labels from bin edges
     const labels = [];
@@ -278,10 +266,6 @@ const chartData = computed(() => {
     })
     .filter((v): v is number => v != null && Number.isFinite(v));
 
-  console.log("Processed values:", values.slice(0, 10)); // Log first 10 values
-  console.log("Values length:", values.length);
-  console.log("Min/Max:", Math.min(...values), Math.max(...values));
-
   if (!values.length) return null;
 
   // Sort values to find percentiles
@@ -297,8 +281,6 @@ const chartData = computed(() => {
   const p95Value = sortedValues[p95Index]!;
   const absoluteMin = sortedValues[0]!;
   const absoluteMax = sortedValues[totalCount - 1]!;
-
-  console.log("Percentiles - 5%:", p5Value, "95%:", p95Value, "Absolute min/max:", absoluteMin, absoluteMax);
 
   // Create bins for middle 90%
   let mainBinCount = Math.min(18, Math.max(3, Math.ceil(Math.sqrt(totalCount * 0.9)))); // Leave room for 2 extreme bins
@@ -534,17 +516,6 @@ const chartOptions = computed<ChartOptions<"bar">>(() => ({
   onClick: handleClick,
 }));
 
-// Helper function to get nested object values
-function getNestedValue(obj: unknown, path: string | undefined): unknown {
-  return (path ?? "")
-    .split(".")
-    .reduce<unknown>(
-      (current, key) =>
-        current && typeof current === "object" ? (current as Record<string, unknown>)[key] : undefined,
-      obj,
-    );
-}
-
 // Format values for display
 function formatValue(value: number | null | undefined) {
   if (value === null || value === undefined) return "-";
@@ -570,45 +541,11 @@ function _closeModal() {
 async function fetchData() {
   loading.value = true;
   try {
-    console.log("Fetching histogram data for:", props.dataType, props.attributeName);
     const data = await $stadtlandzahlAPI.fetchHistogramData(props.dataType ?? "", props.attributeName ?? "");
-    console.log("Raw histogram data:", data);
-    console.log("Data length:", data?.length);
-
-    // Log sample values
-    if (data?.length > 0) {
-      const sampleItem = data[0]!;
-      console.log("Sample item:", sampleItem);
-
-      let sampleValue;
-      switch (props.dataType) {
-        case "solar_power_data":
-          sampleValue = legacyHistogramValue(sampleItem, "solarPowerData", props.attributeName ?? "");
-          break;
-        case "wind_power_data":
-          sampleValue = legacyHistogramValue(sampleItem, "windPowerData", props.attributeName ?? "");
-          break;
-        case "ev_charging_data":
-          sampleValue = legacyHistogramValue(sampleItem, "evChargingData", props.attributeName ?? "");
-          break;
-        case "cycleway_infrastructure_data":
-          sampleValue = legacyHistogramValue(sampleItem, "cyclewayInfrastructureData", props.attributeName ?? "");
-          break;
-        case "public_transport_score_data":
-          sampleValue = legacyHistogramValue(sampleItem, "publicTransportScoreData", props.attributeName ?? "");
-          break;
-        case undefined:
-        default:
-          sampleValue = getNestedValue(sampleItem, props.attributeName);
-      }
-
-      console.log("Sample value:", sampleValue);
-      console.log("Trying to extract:", `${props.dataType}Data.${props.attributeName}`);
-    }
 
     histogramData.value = data;
   } catch (error) {
-    console.error("Error fetching histogram data:", error);
+    clientFailure("app.components.DataHistogramLegacy.fetchData.failed", error);
     histogramData.value = [];
   } finally {
     loading.value = false;

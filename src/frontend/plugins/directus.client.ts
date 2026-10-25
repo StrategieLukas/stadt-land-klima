@@ -1,3 +1,4 @@
+import { clientDiagnostic } from "../shared/securityLog";
 import { defineNuxtPlugin, useCookie, useRuntimeConfig, useState } from "#app";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode";
 import createTranslator from "~/shared/createTranslator";
@@ -17,7 +18,7 @@ export default defineNuxtPlugin(async () => {
       const response = await $fetch("/api/public/translations", { query: { language: locale } });
       state.value = TranslationsSchema.parse(response.translations);
     } catch {
-      console.warn("[directus.client] Translations unavailable");
+      clientDiagnostic("app.plugins.directus.client.degraded", "warn");
     }
   }
   const translator = createTranslator(state.value);

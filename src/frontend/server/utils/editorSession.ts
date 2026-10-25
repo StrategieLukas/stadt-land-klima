@@ -1,3 +1,4 @@
+import { setLogActor } from "./securityLogging";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { createError, getHeader, useSession, type H3Event } from "h3";
 import { z } from "zod";
@@ -84,9 +85,11 @@ export async function readEditorSession(event: H3Event, mutation = false) {
   }
   const parsed = Session.safeParse(value);
   if (!parsed.success) throw createError({ statusCode: 401 });
+  setLogActor(event, parsed.data.user.id);
   return { cookie, sid, session: parsed.data };
 }
 export async function openEditorSession(event: H3Event, session: EditorSession) {
+  setLogActor(event, session.user.id);
   const cookie = await editorCookie(event);
   if (cookie.data.sid) await revokeEditorSession(cookie.data.sid);
   const sid = randomBytes(32).toString("hex"),
