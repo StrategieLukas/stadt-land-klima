@@ -18,6 +18,14 @@ export async function runMunicipalityDisclosureFlow(runner: TestRunner, fixture:
     "preview_token",
     "creator_verified",
   ]);
+  const member = await fixture.admin.request<{ verified: boolean }>("GET", `/users/${fixture.localteamMember.id}`, {
+    query: { fields: "verified" },
+  });
+  const scores = await fixture.admin.readItems<{ id: string; preview_enabled: boolean }>("municipality_scores", {
+    filter: { municipality: { _eq: fixture.municipality.id }, catalog_version: { hidden: { _neq: true } } },
+    fields: ["id", "preview_enabled"],
+    limit: -1,
+  });
   const originalTeam = await fixture.admin.readItem<Record<string, unknown>>("localteams", fixture.localteam.id, [
     "internal_comment",
   ]);
@@ -47,6 +55,9 @@ export async function runMunicipalityDisclosureFlow(runner: TestRunner, fixture:
       redirect: "manual",
     });
   try {
+    await fixture.admin.updateUser(fixture.localteamMember.id, { verified: true });
+    for (const score of scores)
+      await fixture.localteamMember.client.updateItem("municipality_scores", score.id, { preview_enabled: true });
     await fixture.admin.updateItem("municipalities", fixture.municipality.id, {
       description: draftText,
       creator_verified: false,
@@ -292,6 +303,12 @@ export async function runMunicipalityDisclosureFlow(runner: TestRunner, fixture:
       assertNoDisclosure(await response.text(), hiddenAlways, "Revoked preview response");
     });
   } finally {
+    await fixture.admin.updateUser(fixture.localteamMember.id, { verified: true });
+    for (const score of scores)
+      await fixture.localteamMember.client.updateItem("municipality_scores", score.id, {
+        preview_enabled: score.preview_enabled,
+      });
+    await fixture.admin.updateUser(fixture.localteamMember.id, { verified: member.verified });
     await fixture.admin.updateItem("municipalities", fixture.municipality.id, original);
     await fixture.admin.updateItem("localteams", fixture.localteam.id, originalTeam);
     // Both teams contain runId; TestFixture.cleanup removes their dependent

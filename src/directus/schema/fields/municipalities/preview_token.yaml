@@ -3,20 +3,14 @@ field: preview_token
 type: string
 meta:
   collection: municipalities
-  conditions:
-    - hidden: true
-      name: Hide if Admin verified
-      rule:
-        _and:
-          - creator_verified:
-              _eq: true
+  conditions: null
   display: raw
   display_options: null
   field: preview_token
   group: null
   hidden: false
   interface: input
-  note: Zufälliges Token für die Vorschau-URL nicht-verifizierter Gemeinden.
+  note: Geheimes Token für die Vorschau-URL. Die Vorschau muss für die gewählte Katalogversion freigegeben sein.
   options:
     trim: true
   readonly: true

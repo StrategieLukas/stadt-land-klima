@@ -1,5 +1,3 @@
 language: it-IT
 key: directus.interfaces.municipality_scores_publisher.unverified.message
-value: Il tuo account non è ancora verificato. Le valutazioni del catalogo
-  possono essere pubblicate solo dopo che un amministratore ha verificato il tuo
-  account.
+value: "Il tuo account non è ancora verificato. La verifica è una semplice misura anti-spam. Solo le persone verificate possono pubblicare valutazioni o abilitare anteprime. È sufficiente che il tuo account sia verificato; non devi essere amministratore del team locale. Scrivi a info@stadt-land-klima.de per far verificare il tuo account."

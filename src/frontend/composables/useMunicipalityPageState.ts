@@ -83,6 +83,8 @@ export function useMunicipalityPageState({
     const score = unref(directusData)?.municipalityScore;
     // ── A: Directus score record exists ──────────────────────────────────────
     if (score) {
+      // Server authorization takes precedence over public completeness/legacy locks.
+      if (unref(previewAuthorized)) return PAGE_VIEWS.RATED_DRAFT;
       // The selected catalog score decides whether the public detail matches the ranking.
       if (isMunicipalityScoreComplete(score)) {
         return unref(selectedCatalogVersion).isCurrentFrontend ? PAGE_VIEWS.RATED_COMPLETE : PAGE_VIEWS.RATED_OUTDATED;

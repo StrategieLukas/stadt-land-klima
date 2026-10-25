@@ -1,4 +1,3 @@
 language: de-DE
 key: directus.interfaces.municipality_scores_publisher.unverified.message
-value: Dein Account ist noch nicht verifiziert. Katalogbewertungen können erst
-  veröffentlicht werden, wenn ein Admin deinen Account verifiziert hat.
+value: "Dein Account ist noch nicht verifiziert. Die Verifizierung ist eine einfache Anti-Spam-Maßnahme. Nur verifizierte Personen können Bewertungen veröffentlichen oder die Vorschau freigeben. Es genügt, dass dein eigener Account verifiziert ist; du musst nicht Lokalteam-Admin sein. Schreibe bitte eine E-Mail an info@stadt-land-klima.de, damit wir deinen Account verifizieren können."

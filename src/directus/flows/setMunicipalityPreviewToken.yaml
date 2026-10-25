@@ -1,9 +1,8 @@
 name: setMunicipalityPreviewToken
 icon: key
 color: null
-description: Sets a random preview_token on unverified municipalities if none
-  exists yet.
-status: active
+description: Retired legacy flow. Managed by the TypeScript score hook; kept inactive for deployment reconciliation.
+status: inactive
 trigger: event
 accountability: all
 options:
@@ -20,27 +19,5 @@ operations:
     position_x: 1
     position_y: 1
     options:
-      code: >
-        module.exports = async function({ $trigger, services, getSchema,
-        accountability }) {
-          const schema = await getSchema();
-          accountability.admin = true;
-          const ItemsService = services.ItemsService;
-          const municipalityService = new ItemsService('municipalities', { schema, accountability });
-          const keys = $trigger.keys || ($trigger.key ? [$trigger.key] : []);
-          if (!keys.length) return;
-
-          for (const key of keys) {
-            const municipality = await municipalityService.readOne(key, {
-              fields: ['id', 'creator_verified', 'preview_token'],
-            });
-            if (!municipality || municipality.creator_verified === true || municipality.preview_token) continue;
-
-            const randomHex = () => Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-            const token = randomHex();
-            await municipalityService.updateOne(key, {
-              preview_token: token,
-            });
-          }
-        };
+      code: "module.exports = async function() { return null; };"
 operation_key: set_preview_token

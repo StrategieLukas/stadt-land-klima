@@ -18,7 +18,9 @@
   ],
   "author": "your-name",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "@directus/errors": "3.0.0"
+  },
   "devDependencies": {
     "@directus/extensions-sdk": "18.0.6",
     "@directus/types": "^18.0.0",

@@ -43,6 +43,7 @@ const municipalityFields = [
 const scoreFields = [
   "id",
   "published",
+  "preview_enabled",
   "percentage_rated",
   "score_total",
   "score_max",
@@ -166,6 +167,9 @@ export async function loadMunicipalityPageData(
     )
     .then(cmsRows);
   const score = parseCms(z.array(ScoreSchema), scores)[0];
+  if (previewAuthorized && score?.preview_enabled !== true) {
+    throw createError({ statusCode: 404, statusMessage: "Preview not enabled" });
+  }
   if (!score) return result;
 
   const [details, measures, ratings] = await Promise.all([

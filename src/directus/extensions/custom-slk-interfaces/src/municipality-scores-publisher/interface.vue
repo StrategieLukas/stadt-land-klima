@@ -31,6 +31,7 @@
         <div role="columnheader">{{ $t("directus.interfaces.municipality_scores_publisher.column.score") }}</div>
         <div role="columnheader">{{ $t("directus.interfaces.municipality_scores_publisher.column.rated") }}</div>
         <div role="columnheader">{{ $t("directus.interfaces.municipality_scores_publisher.column.published") }}</div>
+        <div role="columnheader">{{ $t("directus.interfaces.municipality_scores_publisher.column.preview") }}</div>
       </div>
 
       <div v-for="row in sortedScores" :key="row.id" class="scores-row" role="row">
@@ -46,9 +47,10 @@
           <input
             type="checkbox"
             :checked="row.published === true"
-            :disabled="disabled || row.saving || !canTogglePublished(row)"
+            :disabled="disabled || row.saving"
+            data-publication-control="published"
             @input.stop
-            @change.stop="onPublishInput(row, $event)"
+            @change.stop="onStateInput(row, 'published', $event)"
           />
           <span>
             {{
@@ -57,6 +59,31 @@
                 : $t("directus.interfaces.municipality_scores_publisher.boolean.no")
             }}
           </span>
+        </label>
+        <label class="publish-cell" role="cell">
+          <input
+            type="checkbox"
+            :checked="row.preview_enabled === true"
+            :disabled="disabled || row.saving"
+            data-publication-control="preview_enabled"
+            @input.stop
+            @change.stop="onStateInput(row, 'preview_enabled', $event)"
+          />
+          <span>{{
+            row.preview_enabled
+              ? $t("directus.interfaces.municipality_scores_publisher.boolean.yes")
+              : $t("directus.interfaces.municipality_scores_publisher.boolean.no")
+          }}</span>
+          <a
+            v-if="row.preview_enabled && previewLink(row)"
+            :href="previewLink(row)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-button"
+            @click.stop
+          >
+            {{ $t("directus.interfaces.municipality_scores_publisher.preview.open") }}
+          </a>
         </label>
       </div>
     </div>
@@ -72,11 +99,11 @@
         <div class="modal-header">
           <v-icon name="lock" />
           <strong id="municipality-scores-publisher-unverified-title">
-            {{ $t("directus.interfaces.municipality_scores_publisher.unverified.title") }}
+            {{ $t("directus.interfaces.municipality_scores_publisher.state_error.title") }}
           </strong>
         </div>
         <p id="municipality-scores-publisher-unverified-message">
-          {{ $t("directus.interfaces.municipality_scores_publisher.unverified.message") }}
+          {{ $t(dialogMessageKey) }}
         </p>
         <div class="modal-actions">
           <button type="button" class="primary-button" @click="closeUnverifiedDialog">
@@ -123,6 +150,7 @@ type ScoreRow = {
   score_max: string | number | null;
   percentage_rated: string | number | null;
   published: boolean | null;
+  preview_enabled: boolean;
   saving?: boolean;
 };
 
@@ -139,11 +167,12 @@ const api = inject<Api>("api");
 const loading = ref(false);
 const errorKey: Ref<string | null> = ref(null);
 const scores: Ref<ScoreRow[]> = ref([]);
+const previewUrl = ref<string | null>(null);
 const currentUserVerified: Ref<boolean | null> = ref(null);
 const verificationLoading = ref(false);
 const showUnverifiedDialog = ref(false);
 let currentUserVerificationPromise: Promise<boolean> | null = null;
-const MIN_PUBLISH_PERCENTAGE = 95;
+const dialogMessageKey = ref("directus.interfaces.municipality_scores_publisher.unverified.message");
 
 const sortedScores = computed(() => {
   return [...scores.value].sort((a, b) => {
@@ -183,6 +212,7 @@ async function loadScores(): Promise<void> {
     const fields = [
       "id",
       "published",
+      "preview_enabled",
       "score_total",
       "score_points",
       "score_max",
@@ -195,6 +225,7 @@ async function loadScores(): Promise<void> {
     ].join(",");
     const response = await api.get<ScoreRow[]>(`/items/municipality_scores?filter=${filter}&fields=${fields}&limit=-1`);
     scores.value = response.data?.data ?? [];
+    await loadPreviewUrl();
   } catch (err) {
     console.error("[MunicipalityScoresPublisher] Failed to load scores:", err);
     errorKey.value = "directus.interfaces.municipality_scores_publisher.error_loading";
@@ -204,48 +235,93 @@ async function loadScores(): Promise<void> {
   }
 }
 
-async function onPublishInput(row: ScoreRow, event: Event): Promise<void> {
-  const input = event.target as HTMLInputElement;
-  const previous = row.published === true;
-
-  if (!canSetPublished(row, input.checked)) {
-    input.checked = previous;
-    return;
+async function loadPreviewUrl(): Promise<void> {
+  previewUrl.value = null;
+  if (!api || !props.primaryKey) return;
+  try {
+    // Reuse Directus' operator-configured website URL and only this editor-owned token.
+    const [municipality, collection] = await Promise.all([
+      api.get<{ slug?: string; preview_token?: string }>(
+        `/items/municipalities/${props.primaryKey}?fields=slug,preview_token`,
+      ),
+      api.get<{ meta?: { preview_url?: string } }>("/collections/municipalities"),
+    ]);
+    const slug = municipality.data?.data?.slug;
+    const token = municipality.data?.data?.preview_token;
+    const template = collection.data?.data?.meta?.preview_url;
+    if (!slug || !token || !template) return;
+    const url = new URL(
+      template
+        .replaceAll("{{slug}}", encodeURIComponent(slug))
+        .replaceAll("{{preview_token}}", encodeURIComponent(token)),
+    );
+    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) return;
+    previewUrl.value = url.href;
+  } catch {
+    // Preview-link metadata must not prevent publication or its explanatory dialogs.
+    previewUrl.value = null;
   }
-
-  if (!(await ensureCurrentUserIsVerified())) {
-    input.checked = previous;
-    showUnverifiedDialog.value = true;
-    return;
-  }
-
-  await setPublished(row, input.checked);
 }
 
-async function setPublished(row: ScoreRow, published: boolean): Promise<void> {
-  if (!api || props.disabled || row.saving || !canSetPublished(row, published)) return;
+function previewLink(row: ScoreRow): string | undefined {
+  const catalog = normalizeCatalog(row.catalog_version);
+  if (!previewUrl.value || !catalog?.name) return;
+  const url = new URL(previewUrl.value);
+  url.searchParams.set("v", catalog.name);
+  return url.href;
+}
 
-  const previous = row.published === true;
-  row.published = published;
+type PublicationField = "published" | "preview_enabled";
+
+function showStateError(key: string): void {
+  dialogMessageKey.value = `directus.interfaces.municipality_scores_publisher.${key}`;
+  showUnverifiedDialog.value = true;
+}
+
+function responseErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object" || !("response" in error)) return;
+  const response = error.response;
+  if (!response || typeof response !== "object" || !("data" in response)) return;
+  const data = response.data;
+  if (!data || typeof data !== "object" || !("errors" in data) || !Array.isArray(data.errors)) return;
+  const extensions: unknown = data.errors[0]?.extensions;
+  if (extensions && typeof extensions === "object" && "code" in extensions && typeof extensions.code === "string")
+    return extensions.code;
+}
+
+async function onStateInput(row: ScoreRow, field: PublicationField, event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement;
+  const previous = row[field] === true;
+  const requested = input.checked;
+  input.checked = previous;
+  if (!api || props.disabled || row.saving) return;
   row.saving = true;
-  errorKey.value = null;
-
   try {
-    await api.patch(`/items/municipality_scores/${row.id}`, { published });
-  } catch (err) {
-    console.error("[MunicipalityScoresPublisher] Failed to update publication state:", err);
-    row.published = previous;
-    errorKey.value = "directus.interfaces.municipality_scores_publisher.error_saving";
+    // Re-read verification for every action, including disabling; the server rechecks it too.
+    if (!(await ensureCurrentUserIsVerified())) {
+      showStateError("unverified.message");
+      return;
+    }
+    row[field] = requested;
+    input.checked = requested;
+    await api.patch(`/items/municipality_scores/${row.id}`, { [field]: requested });
+  } catch (error) {
+    row[field] = previous;
+    input.checked = previous;
+    const code = responseErrorCode(error);
+    showStateError(
+      code === "ACCOUNT_NOT_VERIFIED"
+        ? "unverified.message"
+        : code === "RATINGS_INCOMPLETE"
+          ? "incomplete.message"
+          : "error_saving",
+    );
   } finally {
     row.saving = false;
   }
 }
 
 async function ensureCurrentUserIsVerified(): Promise<boolean> {
-  if (currentUserVerified.value !== null) {
-    return currentUserVerified.value === true;
-  }
-
   if (!api) {
     return false;
   }
@@ -310,18 +386,6 @@ function catalogStatusLabelKey(row: ScoreRow): string {
 function catalogLabel(row: ScoreRow): string {
   const catalog = normalizeCatalog(row.catalog_version);
   return catalog?.name || String(row.catalog_version || row.id);
-}
-
-function canTogglePublished(row: ScoreRow): boolean {
-  return row.published === true || hasMinimumPublishPercentage(row);
-}
-
-function canSetPublished(row: ScoreRow, published: boolean): boolean {
-  return !published || hasMinimumPublishPercentage(row);
-}
-
-function hasMinimumPublishPercentage(row: ScoreRow): boolean {
-  return parseNumber(row.percentage_rated) >= MIN_PUBLISH_PERCENTAGE;
 }
 
 function formatScore(row: ScoreRow): string {
@@ -432,7 +496,10 @@ function parseNumber(value: string | number | null): number {
   align-items: center;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(180px, 1fr) minmax(80px, 120px) minmax(90px, 120px) minmax(120px, 160px);
+  grid-template-columns: minmax(180px, 1fr) minmax(80px, 120px) minmax(90px, 120px) minmax(120px, 160px) minmax(
+      120px,
+      160px
+    );
   padding: 12px;
 }
 

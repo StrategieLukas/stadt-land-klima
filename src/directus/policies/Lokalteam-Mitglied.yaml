@@ -109,7 +109,6 @@ permissions:
       - notice-kcc40f
       - links-g1sxxi
       - image
-      - creator_verified
       - preview_token
       - municipality_type
       - climate_region_type
@@ -150,6 +149,7 @@ permissions:
       - municipality
       - catalog_version
       - published
+      - preview_enabled
       - score_total
       - score_points
       - score_max
@@ -169,3 +169,4 @@ permissions:
     presets: null
     fields:
       - published
+      - preview_enabled

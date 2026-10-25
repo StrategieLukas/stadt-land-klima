@@ -1048,6 +1048,11 @@ export async function runRatingWahlcheckFlow(
   });
 
   await runner.step("Ratings: preview is token-protected and not part of the public ranking", async () => {
+    await fixture.admin.updateUser(fixture.localteamAdmin.id, { verified: true });
+    await fixture.localteamAdmin.client.updateItem("municipality_scores", (await currentScore(fixture)).id, {
+      preview_enabled: true,
+    });
+    await fixture.admin.updateUser(fixture.localteamAdmin.id, { verified: false });
     await assertRankingVisibility(browser, fixture, currentCatalogName, false);
 
     const context = await newContext(browser);
@@ -1076,46 +1081,6 @@ export async function runRatingWahlcheckFlow(
     }
   });
 
-  await runner.step("Ratings: administrator verification propagates without publishing the preview", async () => {
-    await fixture.admin.updateUser(fixture.localteamAdmin.id, { verified: true });
-    const verifiedMunicipality = await waitFor(
-      "municipality creator_verified=true after localteam admin verification",
-      async () => {
-        const municipality = await fixture.admin.readItem<{ creator_verified?: boolean | null }>(
-          "municipalities",
-          fixture.municipality.id,
-          ["creator_verified"],
-        );
-        return municipality.creator_verified === true ? municipality : false;
-      },
-      { timeoutMs: 15_000, intervalMs: 500 },
-    );
-    assertEqual(
-      verifiedMunicipality.creator_verified,
-      true,
-      "Verifying the localteam admin must update the municipality verification flag",
-    );
-
-    await fixture.admin.updateUser(fixture.localteamAdmin.id, { verified: false });
-    const resetMunicipality = await waitFor(
-      "municipality creator_verified=false after localteam admin de-verification",
-      async () => {
-        const municipality = await fixture.admin.readItem<{ creator_verified?: boolean | null }>(
-          "municipalities",
-          fixture.municipality.id,
-          ["creator_verified"],
-        );
-        return municipality.creator_verified === false ? municipality : false;
-      },
-      { timeoutMs: 15_000, intervalMs: 500 },
-    );
-    assertEqual(
-      resetMunicipality.creator_verified,
-      false,
-      "Removing the localteam admin verification must reset the municipality verification flag",
-    );
-  });
-
   await runner.step("Ratings: unverified localteam member cannot publish via Directus checkbox", async () => {
     const context = await newContext(browser);
     const page = await context.newPage();
@@ -1128,11 +1093,11 @@ export async function runRatingWahlcheckFlow(
       );
       await gotoDirectusContent(page, fixture.config.backendUrl, "municipalities", fixture.municipality.id);
       await clickScoreCheckbox(page, currentCatalogName);
-      await page.getByText("Account nicht verifiziert").waitFor({ state: "visible", timeout: 20_000 });
+      await page.getByText("Freigabe nicht möglich").waitFor({ state: "visible", timeout: 20_000 });
       // Escape must work even when focus has left the interface root.
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
       await page.keyboard.press("Escape");
-      await page.getByText("Account nicht verifiziert").waitFor({ state: "hidden" });
+      await page.getByText("Freigabe nicht möglich").waitFor({ state: "hidden" });
       const score = await currentScore(fixture);
       assertEqual(score.published, false, "Unverified checkbox click must not publish score");
     } finally {
@@ -1143,17 +1108,6 @@ export async function runRatingWahlcheckFlow(
   await runner.step("Ratings: verified localteam member can publish and unpublish via Directus checkbox", async () => {
     await fixture.admin.updateUser(fixture.localteamMember.id, { verified: true });
     await fixture.refreshUserClients();
-
-    const municipality = await fixture.admin.readItem<{ creator_verified?: boolean | null }>(
-      "municipalities",
-      fixture.municipality.id,
-      ["creator_verified"],
-    );
-    assertEqual(
-      municipality.creator_verified,
-      false,
-      "A verified person must be able to publish even when the localteam admin preview flag is false",
-    );
 
     const context = await newContext(browser);
     const page = await context.newPage();

@@ -1,0 +1,3 @@
+language: en-GB
+key: directus.interfaces.municipality_scores_publisher.incomplete.message
+value: "Publishing requires 100% of measures to be rated or marked not applicable and approved. A verified person can enable the preview through the private preview link at any completion percentage."

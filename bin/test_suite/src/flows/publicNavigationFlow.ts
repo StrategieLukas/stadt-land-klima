@@ -114,7 +114,6 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
     const score = await create("municipality_scores", {
       municipality: fixture.municipality.id,
       catalog_version: catalog.id,
-      published: true,
       percentage_rated: 100,
       score_total: 75,
     });

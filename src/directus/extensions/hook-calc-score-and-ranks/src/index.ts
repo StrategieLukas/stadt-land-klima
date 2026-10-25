@@ -1,4 +1,11 @@
 import type { ApiExtensionContext, SchemaOverview } from "@directus/types";
+import {
+  changesPublication,
+  enforcePublication,
+  ensurePreviewToken,
+  logPublication,
+  type PublicationEventContext,
+} from "./publication.ts";
 import { calculateScores } from "./calculateScores.ts";
 
 type Logger = ApiExtensionContext["logger"];
@@ -6,7 +13,7 @@ type Schema = SchemaOverview;
 type Services = ApiExtensionContext["services"];
 
 interface HookContext {
-  action: (event: string, handler: (meta: any, ctx?: unknown) => Promise<void>) => void;
+  action: (event: string, handler: (meta: any, ctx?: PublicationEventContext) => Promise<void>) => void;
   filter: (event: string, handler: (...args: any[]) => any) => void;
   schedule: (cron: string, handler: () => Promise<void>) => void;
 }
@@ -15,19 +22,10 @@ interface ServiceContext {
   services: Services;
   getSchema: () => Promise<Schema>;
   logger: Logger;
-}
-
-interface Accountability {
-  admin?: boolean;
-  user?: number | string | null;
-}
-
-interface FilterContext {
-  accountability?: Accountability | null;
+  event?: PublicationEventContext | undefined;
 }
 
 const adminAccountability = { admin: true, role: null, roles: [], user: null, app: false, ip: null };
-const unverifiedPublishError = "Your account must be verified before publishing municipality scores.";
 
 type RankedMunicipalityScore = {
   id: number | string;
@@ -405,51 +403,6 @@ const syncAllMunicipalityScores = async ({ services, getSchema, logger }: Servic
   logger.info("[syncAllMunicipalityScores] Initial sync completed successfully.");
 };
 
-const payloadChangesPublished = (payload: unknown): boolean => {
-  return (
-    payload !== null &&
-    typeof payload === "object" &&
-    !Array.isArray(payload) &&
-    Object.prototype.hasOwnProperty.call(payload, "published")
-  );
-};
-
-const enforceVerifiedPublisher = async (
-  payload: unknown,
-  meta: any,
-  eventContext: FilterContext | undefined,
-  serviceContext: ServiceContext,
-): Promise<unknown> => {
-  if (meta?.collection !== "municipality_scores" || !payloadChangesPublished(payload)) {
-    return payload;
-  }
-
-  const accountability = eventContext?.accountability ?? null;
-
-  if (!accountability?.user) {
-    if (accountability?.admin === true) {
-      return payload;
-    }
-
-    throw new Error(unverifiedPublishError);
-  }
-
-  const schema = await serviceContext.getSchema();
-  const usersService = new serviceContext.services.ItemsService("directus_users", {
-    schema,
-    accountability: adminAccountability,
-  });
-  const user = (await usersService.readOne(accountability.user, { fields: ["verified"] })) as {
-    verified?: boolean | null;
-  };
-
-  if (user?.verified !== true) {
-    throw new Error(unverifiedPublishError);
-  }
-
-  return payload;
-};
-
 const captureMeasureSnapshots = async (meta: any, serviceContext: ServiceContext): Promise<void> => {
   if (meta?.collection !== "measures") return;
 
@@ -482,50 +435,6 @@ const captureMeasureSnapshots = async (meta: any, serviceContext: ServiceContext
       catalogVersionId: normalizeRelationId(measure.catalog_version ?? null),
     });
   }
-};
-
-const syncCreatorVerified = async (meta: any, { services, getSchema, logger }: ServiceContext): Promise<void> => {
-  if (meta?.collection !== "directus_users") return;
-  if (!payloadHasAnyField(meta.payload, ["verified"])) return;
-
-  const verified = meta.payload.verified;
-  if (typeof verified !== "boolean") return;
-
-  const userIds = getEventKeys(meta);
-  if (!userIds.length) return;
-
-  const schema = await getSchema();
-  const localteamService = new services.ItemsService("localteams", {
-    schema,
-    accountability: adminAccountability,
-  });
-  const municipalityService = new services.ItemsService("municipalities", {
-    schema,
-    accountability: adminAccountability,
-  });
-
-  const localteams = (await localteamService.readByQuery({
-    filter: { admin_id: { _in: userIds } },
-    fields: ["id"],
-    limit: -1,
-  })) as Array<{ id: number | string }>;
-  if (!localteams.length) return;
-
-  const localteamIds = localteams.map((localteam) => localteam.id);
-  const municipalities = (await municipalityService.readByQuery({
-    filter: { localteam_id: { _in: localteamIds } },
-    fields: ["id"],
-    limit: -1,
-  })) as Array<{ id: number | string }>;
-
-  for (const municipality of municipalities) {
-    await municipalityService.updateOne(municipality.id, { creator_verified: verified });
-  }
-
-  logger.info(
-    `[syncCreatorVerified] Set creator_verified=${verified} for ${municipalities.length} municipality(s) ` +
-      "managed by updated user(s).",
-  );
 };
 
 /** ---------- Event Handlers ---------- **/
@@ -690,7 +599,7 @@ const handleMeasuresDeleted = async (meta: any, ctx: ServiceContext): Promise<vo
 };
 
 const handleMunicipalityScoreUpdated = async (meta: any, ctx: ServiceContext): Promise<void> => {
-  if (!Object.prototype.hasOwnProperty.call(meta.payload ?? {}, "published")) return;
+  if (!changesPublication(meta.payload)) return;
 
   const scoreIds: Array<number | string> = meta.key ? [meta.key] : Array.isArray(meta.keys) ? meta.keys : [];
 
@@ -730,24 +639,27 @@ const handleMunicipalityScoreUpdated = async (meta: any, ctx: ServiceContext): P
   ];
 
   for (const municipalityId of municipalityIds) {
+    if (meta.payload.preview_enabled === true) await ensurePreviewToken(municipalityId, ctx);
     await syncMunicipalityPublicationStatus({ municipalityId }, ctx);
   }
 
   for (const catalogVersionId of catalogVersionIds) {
+    await calculateScores({ catalogVersionId, municipalityIds }, ctx);
     await updateRanks({ catalogVersionId }, ctx);
   }
+  await logPublication(meta, ctx.event, ctx);
 };
 
 /** ---------- Safe wrapper for diagnostic logging ---------- **/
 
 const safeCall =
   (fnName: string, extensionContext: ServiceContext, fn: (meta: any, ctx: ServiceContext) => Promise<void>) =>
-  async (meta: any): Promise<void> => {
+  async (meta: any, event?: PublicationEventContext): Promise<void> => {
     try {
       if (!meta?.collection) {
         extensionContext.logger.warn(`[HOOK:${fnName}] meta missing or malformed: ${JSON.stringify(meta)}`);
       }
-      await fn(meta, extensionContext);
+      await fn(meta, { ...extensionContext, event });
     } catch (err: unknown) {
       const e = err as Error;
       extensionContext.logger.error(`[HOOK:${fnName}] Caught error: ${e?.message}`);
@@ -770,8 +682,12 @@ export default ({ action, filter }: HookContext, extensionContext: ServiceContex
 
   filter("items.update", async (payload, meta, eventContext) => {
     await captureMeasureSnapshots(meta, extensionContext);
-    return enforceVerifiedPublisher(payload, meta, eventContext, extensionContext);
+    return enforcePublication(payload, meta, eventContext, extensionContext);
   });
+
+  filter("items.create", (payload, meta, eventContext) =>
+    enforcePublication(payload, meta, eventContext, extensionContext),
+  );
 
   filter("items.delete", async (keys, meta) => {
     await captureMeasureSnapshots({ ...meta, keys }, extensionContext);
@@ -783,6 +699,7 @@ export default ({ action, filter }: HookContext, extensionContext: ServiceContex
     safeCall("items.create", extensionContext, async (meta, ctx) => {
       switch (meta.collection) {
         case "municipalities":
+          if (meta.key !== undefined) await ensurePreviewToken(meta.key, ctx);
           return handleMunicipalityCreated(meta, ctx);
         case "measures":
           return handleMeasuresCreatedOrUpdated({ ...meta, event: "create" }, ctx);
@@ -818,15 +735,6 @@ export default ({ action, filter }: HookContext, extensionContext: ServiceContex
       if (meta.collection === "measures") {
         return handleMeasuresDeleted(meta, ctx);
       }
-    }),
-  );
-
-  // directus_users emits users.update, not items.update. Keep this separate
-  // from publication authorization: creator_verified only controls previews.
-  action(
-    "users.update",
-    safeCall("users.update", extensionContext, async (meta, ctx) => {
-      await syncCreatorVerified(meta, ctx);
     }),
   );
 };

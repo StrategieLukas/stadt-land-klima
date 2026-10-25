@@ -59,6 +59,7 @@ export const MeasureSchema = z.object({
 export const ScoreSchema = z.object({
   id: z.string(),
   published: z.boolean().nullable(),
+  preview_enabled: z.boolean().optional().default(false),
   percentage_rated: NumericSchema,
   score_total: NumericSchema,
   score_max: NumericSchema,

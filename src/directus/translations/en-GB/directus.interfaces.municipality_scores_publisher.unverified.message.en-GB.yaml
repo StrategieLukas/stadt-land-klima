@@ -1,4 +1,3 @@
 language: en-GB
 key: directus.interfaces.municipality_scores_publisher.unverified.message
-value: Your account is not verified yet. Catalog scores can only be published
-  after an admin has verified your account.
+value: "Your account is not verified yet. Verification is a simple anti-spam feature. Only verified people can publish ratings or enable previews. Your own account must be verified; you do not need to be the local-team administrator. Please email info@stadt-land-klima.de so we can verify your account."
