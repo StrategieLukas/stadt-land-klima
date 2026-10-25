@@ -22,7 +22,7 @@ export interface NavigationPage {
   slug: string;
   name: string;
   sort_order?: number | null | undefined;
-  icon_svg?: string | undefined;
+  icon_svg?: string | null | undefined;
   label?: string | null | undefined;
   translation_key?: string | null | undefined;
 }

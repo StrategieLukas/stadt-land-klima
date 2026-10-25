@@ -55,6 +55,7 @@ defineOptions({ inheritAttrs: false });
 const props = defineProps<{
   onClick?: ((event: MouseEvent) => void) | undefined;
   disabled?: boolean | undefined;
+  type?: "button" | "submit" | "reset" | undefined;
   label: string;
   href?: string | undefined;
   title?: string | undefined;
@@ -144,7 +145,7 @@ const linkAttrs = computed(() => {
       base.rel = "noopener noreferrer";
     }
   } else {
-    if (!base.type) base.type = "button";
+    if (!base.type) base.type = props.type ?? "button";
   }
   return base;
 });

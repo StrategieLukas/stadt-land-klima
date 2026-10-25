@@ -16,6 +16,7 @@ import { attachVisualizationData, cloneVisualization } from "../../../src/fronte
 import { DataMapSchema } from "../../../src/frontend/shared/contracts/dataMap.js";
 import { requestErrorData, requestErrorMessage, captchaEventData } from "../../../src/frontend/shared/requestError.js";
 import { resolveBlokkliInternalLink } from "../../../src/frontend/utils/blokkliLinks.js";
+import { BETTERPLACE_PROJECT_URL, getBetterplaceWidgetUrl } from "../../../src/frontend/shared/donation.js";
 
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 // The harness executes the actual SFC script/template with Vue, without a browser/server per assertion.
@@ -112,6 +113,50 @@ test("persisted editor button outline variants keep their border and contrast af
       assert.match(html, /class="[^"]*\bbg-ff-green\b/);
       assert.doesNotMatch(html, /border-2 border-ff-green/);
     }
+  }
+});
+
+test("donation iframe SSR has no raw-text child markup and keeps the visible fallback link outside the frame", async () => {
+  const html = await render(
+    "BetterplaceDonationWidget.vue",
+    {},
+    {},
+    {
+      "~/shared/donation": { BETTERPLACE_PROJECT_URL, getBetterplaceWidgetUrl },
+    },
+  );
+  const { parseDocument, DomUtils } = frontend(
+    "htmlparser2",
+  ) as typeof import("../../../src/frontend/node_modules/htmlparser2/dist/index.js");
+  const dom = parseDocument(html);
+  const frame = DomUtils.getElementsByTagName("iframe", dom.children, true)[0];
+  assert.ok(frame);
+  assert.equal(
+    DomUtils.textContent(frame),
+    "",
+    "HTML parses iframe children as raw text, which cannot hydrate a Vue anchor child",
+  );
+  assert.equal(frame.attribs.src, getBetterplaceWidgetUrl("de-DE"));
+  const paragraph = DomUtils.getElementsByTagName("p", dom.children, true)[0];
+  assert.ok(paragraph);
+  const fallback = DomUtils.getElementsByTagName("a", paragraph.children, true)[0];
+  assert.equal(fallback?.attribs.href, BETTERPLACE_PROJECT_URL);
+  assert.equal(fallback?.attribs.rel, "noopener noreferrer");
+});
+
+test("published absolute HTTP links remain valid while executable and credential-bearing URLs are rejected", () => {
+  const ranking = "https://www.stadt-land-klima.de/municipalities?v=v1.0&view=map";
+  assert.equal(resolveBlokkliInternalLink(ranking), ranking);
+  assert.equal(resolveBlokkliInternalLink("measures"), "/measures");
+  assert.equal(resolveBlokkliInternalLink("#section"), "#section");
+  assert.equal(resolveBlokkliInternalLink("?v=v1.0"), "?v=v1.0");
+  for (const unsafe of [
+    "javascript:alert(1)",
+    "data:text/html,unsafe",
+    "https://user:password@example.org",
+    "http://",
+  ]) {
+    assert.equal(resolveBlokkliInternalLink(unsafe), "#");
   }
 });
 

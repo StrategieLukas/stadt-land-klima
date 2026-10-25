@@ -83,6 +83,7 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       status: "published",
       catalog_version: catalog.id,
       description_about: "Public regression measure description",
+      description_evaluation_criteria: "<ul>\n<li>First criterion</li>\n<li>Second criterion</li>\n</ul>",
     });
     await create("measures", {
       slug: `${slug}-buildings`,
@@ -225,6 +226,8 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       slug,
       status: "published",
       contents: "",
+      menus: ["dock"],
+      icon_svg: '<svg viewBox="0 0 24 24" width="142" height="142"><path d="M0 0h24v24z" /></svg>',
     });
     const privatePage = await create("pages", {
       name: `Private page ${config.runId}`,
@@ -311,6 +314,22 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       props: { blocks: [{ uuid: nestedChartUuid, bundle: "vega_chart", props: { query: chartQuery }, options: {} }] },
       options: {},
       status: "published",
+    });
+
+    await runner.step("Mobile dock: published CMS menu assignments and icons survive the public DTO", async () => {
+      const mobile = await newContext(browser, { viewport: { width: 390, height: 844 } });
+      try {
+        const page = await mobile.newPage();
+        await page.goto(`${config.frontendUrl}/tools`, { waitUntil: "domcontentloaded" });
+        await waitForHydration(page);
+        const link = page.locator(".slk-dock button").filter({ hasText: `Public blocks ${config.runId}` });
+        const icon = await link.locator("svg").boundingBox();
+        assert(icon && icon.width > 0 && icon.width <= 48, "CMS SVG must render inside its dock icon slot");
+        await link.click();
+        await page.waitForURL((url) => url.pathname === `/${slug}`);
+      } finally {
+        await mobile.close();
+      }
     });
 
     await runner.step("Public reads: catalog measures, projections, comparisons and publication gates", async () => {
@@ -648,6 +667,12 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         );
         await page.locator(`a[href^="/measures/${slug}?"]`).first().click();
         await page.getByRole("heading", { name: firstTitle, exact: true }).waitFor();
+        assert(
+          (await page
+            .locator("#section-criteria .prose")
+            .evaluate((element) => getComputedStyle(element).whiteSpace)) === "normal",
+          "HTML criterion lists must not preserve source indentation as blank lines",
+        );
         await page.getByText("Public regression measure description", { exact: false }).first().waitFor();
         await page.locator("#section-history svg rect").first().waitFor();
         await page.locator(`a[href*="v=${slug}-second"]`).first().click();

@@ -159,8 +159,21 @@ try {
   assert.match(log, /GET \/municipalities\/example HTTP/);
   assert.doesNotMatch(log, /synthetic-private-query|synthetic-private-referrer|synthetic-token|deep=/);
 
+  // Nuxt/Blökkli preloads more chunks than the dynamic page burst permits.
+  const assets = await Promise.all(Array.from({ length: 180 }, (_, index) => fetch(`/_nuxt/chunk-${index}.js`)));
+  assert.ok(
+    assets.every((response) => response.status === 200),
+    "Normal chunk bursts must not be throttled",
+  );
+  assert.equal((await fetch("/")).status, 200, "Static downloads must not consume the dynamic page budget");
+  const pages: number[] = [];
+  for (let index = 0; index < 30; index++) {
+    pages.push(...(await Promise.all(Array.from({ length: 5 }, () => fetch("/")))).map((response) => response.status));
+  }
+  assert.ok(pages.includes(429), "Dynamic pages must remain rate limited");
+
   console.log(
-    "Nginx: opaque/encoded deep blocked, bracket queries preserved, WebSocket rejected, forged proxy headers replaced, security headers and private referrer policies verified.",
+    "Nginx: deep/GraphQL/hash/WebSocket guards, trusted headers, private logs/referrers, 180-chunk bursts and independent dynamic-page throttling verified.",
   );
 } finally {
   if (process.env.TEST_KEEP_NGINX_FIXTURE === "1") {

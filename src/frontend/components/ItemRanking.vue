@@ -39,7 +39,7 @@
       v-else
       type="button"
       :disabled="isGeneratingPdf"
-      class="flex h-10 w-16 items-center justify-center bg-gray text-white disabled:cursor-wait disabled:opacity-70"
+      class="flex h-10 w-16 cursor-pointer items-center justify-center bg-gray text-white disabled:cursor-wait disabled:opacity-70"
       @click="fetchPDF"
     >
       <SlkFlowerSpinner v-if="isGeneratingPdf" :size="20" color="#fbfbfb" />

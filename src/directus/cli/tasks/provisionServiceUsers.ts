@@ -5,25 +5,27 @@ import { createDirectus, createUser, readRoles, readUsers, rest, staticToken } f
 import { randomBytes } from "node:crypto";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { CONCEALED_TOKEN, createStoredTokenReader, type StoredTokenReader } from "../security/storedUserToken.ts";
 
-export async function provisionServiceUsers(url: string, adminToken: string) {
+export async function provisionServiceUsers(url: string, adminToken: string, readStoredToken?: StoredTokenReader) {
   const client = createDirectus<{}>(url).with(staticToken(adminToken)).with(rest());
+  // Directus validates IANA top-level domains; reserved .local addresses are rejected.
   const definitions = [
     {
       role: "Frontend-Server",
-      email: "frontend-server@stadt-land-klima.local",
+      email: "frontend-server@stadt-land-klima.de",
       lastName: "Server",
       variable: "DIRECTUS_FRONTEND_SERVER_TOKEN",
     },
     {
       role: "Frontend-Public",
-      email: "frontend-public@stadt-land-klima.local",
+      email: "frontend-public@stadt-land-klima.de",
       lastName: "Public",
       variable: "DIRECTUS_FRONTEND_PUBLIC_TOKEN",
     },
     {
       role: "Frontend-Preview",
-      email: "frontend-preview@stadt-land-klima.local",
+      email: "frontend-preview@stadt-land-klima.de",
       lastName: "Preview",
       variable: "DIRECTUS_PREVIEW_TOKEN",
     },
@@ -53,6 +55,22 @@ export async function provisionServiceUsers(url: string, adminToken: string) {
       );
       if (matches.length > 1) throw new Error(`Ambiguous service identity for ${definition.role}`);
       const user = matches[0];
+      // Directus conceals static tokens even in administrator API responses.
+      // Only resolve its exact concealment marker after checking identity metadata.
+      if (
+        user &&
+        user.role === roles[index] &&
+        user.status === "active" &&
+        user.token === CONCEALED_TOKEN &&
+        readStoredToken
+      ) {
+        user.token = await readStoredToken({
+          id: user.id,
+          role: user.role,
+          email: definition.email,
+          status: user.status,
+        });
+      }
       if (
         user &&
         (user.role !== roles[index] || user.status !== "active" || !/^[a-f0-9]{64}$/.test(user.token ?? ""))
@@ -94,10 +112,15 @@ export async function provisionServiceUsers(url: string, adminToken: string) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const token = process.env.CLI_DIRECTUS_STATIC_TOKEN;
   if (!token) throw new Error("CLI_DIRECTUS_STATIC_TOKEN is required");
-  const values = await provisionServiceUsers(process.env.DIRECTUS_URL || "http://localhost:8081", token);
-  console.info(
-    Object.entries(values)
-      .map(([key, value]) => `${key}=${value}`)
-      .join("\n"),
-  );
+  const stored = createStoredTokenReader();
+  try {
+    const values = await provisionServiceUsers(process.env.DIRECTUS_URL || "http://localhost:8081", token, stored.read);
+    console.info(
+      Object.entries(values)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("\n"),
+    );
+  } finally {
+    await stored.close();
+  }
 }

@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
 import { parse } from "yaml";
+import { CONCEALED_TOKEN, createStoredTokenReader, type StoredTokenReader } from "../security/storedUserToken.ts";
 
 const Scope = z.strictObject({ legacyFrontend: z.boolean(), candidates: z.boolean(), previews: z.boolean() });
 export type RetirementScope = z.output<typeof Scope>;
@@ -75,6 +76,21 @@ const Plan = z.strictObject({
 });
 export type RetirementPlan = z.output<typeof Plan>;
 export type RetirementRequest = (path: string, method?: string, body?: unknown) => Promise<unknown>;
+export function createRetirementRequest(base: string, token: string, fetcher: typeof fetch = fetch): RetirementRequest {
+  return async (path, method = "GET", body) => {
+    const response = await fetcher(base.replace(/\/$/, "") + path, {
+      method,
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      redirect: "error",
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw Error(`Retirement request failed: HTTP ${response.status}`);
+    // Directus cache clearing returns HTTP 200 with an empty body, not JSON.
+    const content = await response.text();
+    return content.trim() ? (JSON.parse(content) as unknown) : null;
+  };
+}
 const hash = (value: unknown) =>
   createHash("sha256")
     .update(JSON.stringify(value ?? null))
@@ -89,7 +105,7 @@ async function all(request: RetirementRequest, path: string): Promise<Record<str
     if (offset >= 100000) throw Error("Retirement inventory exceeds safety limit");
   }
 }
-async function inventory(request: RetirementRequest, scope: RetirementScope) {
+async function inventory(request: RetirementRequest, scope: RetirementScope, readStoredToken?: StoredTokenReader) {
   const records: z.output<typeof Credential>[] = [];
   for (const [enabled, collection, field] of [
     [scope.candidates, "candidate", "access_token"],
@@ -120,15 +136,28 @@ async function inventory(request: RetirementRequest, scope: RetirementScope) {
     const role = z.string().parse(legacy[0]?.id);
     const users = await all(
       request,
-      "/users?fields=id,role,status,token&filter=" + encodeURIComponent(JSON.stringify({ role: { _eq: role } })),
+      "/users?fields=id,email,role,status,token&filter=" + encodeURIComponent(JSON.stringify({ role: { _eq: role } })),
     );
     for (const row of users) {
       if (row.role !== role) throw Error("Retirement user is outside legacy role");
+      let token = row.token;
+      if (token === CONCEALED_TOKEN) {
+        if (!readStoredToken) throw Error("Concealed credential requires a private stored-token reader");
+        token = await readStoredToken({
+          id: z.string().parse(row.id),
+          role,
+          email: z
+            .string()
+            .nullable()
+            .parse(row.email ?? null),
+          status: z.string().parse(row.status),
+        });
+      }
       records.push({
         id: Id.parse(row.id),
         collection: "users",
         field: "token",
-        previousHash: hash(row.token),
+        previousHash: hash(token),
         replacement: null,
         role,
         status: z.string().parse(row.status),
@@ -143,6 +172,7 @@ export async function planRetirement(
   directusUrl: string,
   websiteOrigin: string,
   selection: RetirementScope,
+  readStoredToken?: StoredTokenReader,
 ): Promise<RetirementPlan> {
   const website = new URL(websiteOrigin);
   if (!["http:", "https:"].includes(website.protocol) || website.username || website.password)
@@ -152,7 +182,7 @@ export async function planRetirement(
     scope: Scope.parse(selection),
     directusUrl: new URL(directusUrl).href,
     websiteOrigin: website.origin,
-    credentials: await inventory(request, Scope.parse(selection)),
+    credentials: await inventory(request, Scope.parse(selection), readStoredToken),
   });
 }
 export async function applyRetirement(
@@ -161,6 +191,7 @@ export async function applyRetirement(
   directusUrl: string,
   websiteOrigin: string,
   selection: RetirementScope,
+  readStoredToken?: StoredTokenReader,
 ) {
   if (input && typeof input === "object" && "version" in input && input.version === 1)
     throw Error("Legacy retirement plans are not policy-bound; generate a new version 2 plan");
@@ -169,7 +200,7 @@ export async function applyRetirement(
     throw Error("Retirement policy changed since planning; generate a new plan");
   if (new URL(directusUrl).href !== plan.directusUrl) throw Error("Plan belongs to a different Directus instance");
   if (new URL(websiteOrigin).origin !== plan.websiteOrigin) throw Error("Plan belongs to a different website");
-  const current = await inventory(request, plan.scope);
+  const current = await inventory(request, plan.scope, readStoredToken);
   if (current.length !== plan.credentials.length) throw Error("Credential inventory changed; generate a new plan");
   const pending: z.output<typeof Credential>[] = [];
   // Validate EVERY record before writing anything. Replays resume completed rows.
@@ -239,37 +270,33 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const token = process.env.CLI_DIRECTUS_STATIC_TOKEN,
     base = process.env.DIRECTUS_URL;
   if (!token || !base) throw Error("DIRECTUS_URL and CLI_DIRECTUS_STATIC_TOKEN are required");
-  const request: RetirementRequest = async (path, method = "GET", body) => {
-    const response = await fetch(base.replace(/\/$/, "") + path, {
-      method,
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      redirect: "error",
-      signal: AbortSignal.timeout(15000),
-    });
-    if (!response.ok) throw Error(`Retirement request failed: HTTP ${response.status}`);
-    return response.status === 204 ? null : response.json();
-  };
-  if (action === "plan") {
-    const plan = await planRetirement(request, base, process.env.PUBLIC_URL || "", scope);
-    writeFileSync(file, JSON.stringify(plan, null, 2) + "\n", { mode: 0o600, flag: "wx" });
-    writeFileSync(file + ".links.json", JSON.stringify(replacementLinks(plan), null, 2) + "\n", {
-      mode: 0o600,
-      flag: "wx",
-    });
-    console.info(
-      `Private plan created: ${plan.credentials.length} credentials. No server writes. Review before apply.`,
-    );
-  } else {
-    if (statSync(file).mode & 0o077) throw Error("Plan permissions must be 0600");
-    console.info(
-      await applyRetirement(
-        request,
-        JSON.parse(readFileSync(file, "utf8")) as unknown,
-        base,
-        process.env.PUBLIC_URL || "",
-        scope,
-      ),
-    );
+  const request = createRetirementRequest(base, token);
+  const stored = createStoredTokenReader();
+  try {
+    if (action === "plan") {
+      const plan = await planRetirement(request, base, process.env.PUBLIC_URL || "", scope, stored.read);
+      writeFileSync(file, JSON.stringify(plan, null, 2) + "\n", { mode: 0o600, flag: "wx" });
+      writeFileSync(file + ".links.json", JSON.stringify(replacementLinks(plan), null, 2) + "\n", {
+        mode: 0o600,
+        flag: "wx",
+      });
+      console.info(
+        `Private plan created: ${plan.credentials.length} credentials. No server writes. Review before apply.`,
+      );
+    } else {
+      if (statSync(file).mode & 0o077) throw Error("Plan permissions must be 0600");
+      console.info(
+        await applyRetirement(
+          request,
+          JSON.parse(readFileSync(file, "utf8")) as unknown,
+          base,
+          process.env.PUBLIC_URL || "",
+          scope,
+          stored.read,
+        ),
+      );
+    }
+  } finally {
+    await stored.close();
   }
 }

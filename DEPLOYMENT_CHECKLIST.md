@@ -10,7 +10,7 @@
 
 ```bash
 cd /home/deploy/staedtechallenge
-umask 077
+umask 022
 slk_compose=(docker compose -f docker-compose.yaml -f docker-compose.prod.yaml)
 if [ -f docker/core-storage/production.compose.json ]; then
   slk_compose+=(-f docker/core-storage/production.compose.json)
@@ -18,6 +18,8 @@ fi
 slk_private="$(mktemp -d /home/deploy/slk-security-cutover-XXXXXX)"
 chmod 700 "$slk_private"
 ```
+
+Use `umask 022` before checkout/pull and build operations so public source files remain readable inside images. Private directories are mode 0700 and credential files must be mode 0600; keep a restrictive backup umask scoped to its backup subprocess.
 
 ## 2. Build and import while the website is stopped
 
@@ -31,7 +33,7 @@ done
 ./bin/start_production.sh --import --prepare-only
 ```
 
-Use the project's supported host Node version for extension builds. The build uses `--no-cache --pull`; clearing the npm cache is unnecessary. `--prepare-only` starts Directus and imports the code-first schema/roles/flows but leaves the frontend stopped. It stops on import/readiness failure. Maintenance is an nginx **fallback**, not a blanket firewall: the running CMS remains reachable; exclude editorial activity during the cutover. Do not change `public.yaml`.
+Use the project's supported host Node version for extension builds, or the matching Node 24 Docker image. On the shared 8 GB staging host, the frontend build needed a 3 GiB container RAM allowance plus 3 GiB of temporary host swap; a 2 GiB limit killed build workers. Budget build memory alongside the other applications and reserve disk for any temporary swap. Remove temporary swap only after the build and only with sufficient memory headroom. Ordinary restarts reuse the production output only when hashes of source, translations, effective environment, Node/platform/libc and output all match the last successful build. Changed or missing output forces a locked installation and the complete checked build; upgrades still need build capacity. The image build uses `--no-cache --pull`; clearing the npm cache is unnecessary. `--prepare-only` starts Directus and imports the code-first schema/roles/flows but leaves the frontend stopped. It stops on import/readiness failure. Maintenance is an nginx **fallback**, not a blanket firewall: the running CMS remains reachable; exclude editorial activity during the cutover. Do not change `public.yaml`.
 
 ## 3. Create the private website service identities and configure secrets
 
@@ -41,7 +43,7 @@ Use the project's supported host Node version for extension builds. The build us
 chmod 600 "$slk_private/service-users.env"
 ```
 
-Requires the private administrator `CLI_DIRECTUS_STATIC_TOKEN` already configured in Directus. The command creates missing Frontend-Server/Public/Preview accounts, reuses existing strong tokens, and refuses conflicting accounts. It does **not** rotate existing tokens. Treat its output as secret; do not paste it into tickets or logs.
+Requires the private administrator `CLI_DIRECTUS_STATIC_TOKEN` already configured in Directus. The command creates missing Frontend-Server/Public/Preview accounts, reuses existing strong tokens, and refuses conflicting accounts. It does **not** rotate existing tokens. The container database credentials are also required to recover existing tokens concealed by the administrator API; that lookup performs no database writes. Treat its output as secret; do not paste it into tickets or logs.
 
 Copy `DIRECTUS_FRONTEND_SERVER_TOKEN` and `DIRECTUS_PREVIEW_TOKEN` from that private file into `src/frontend/.env`. The public-asset token is inventoried but currently has no frontend consumer; do not reintroduce any browser service token. Set the canonical frontend `PUBLIC_URL=https://www.stadt-land-klima.de` and preserve the correct private/public CMS URLs. Check actual imported UUIDs for the two protected mail webhook URLs. Keep `DIRECTUS_ADMIN_TOKEN` private and update aliases together if it is the same credential as the CLI token.
 

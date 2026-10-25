@@ -54,6 +54,8 @@ jobs:
         run: |
           docker build -t slk-directus-security:ci docker/directus
           SLK_SECURITY_IMAGE=slk-directus-security:ci npm --prefix bin/test_suite run audit:directus-image:reviewed -- "$RUNNER_TEMP/directus-image-audit"
+      - name: Verify actual nginx guards and static asset bursts
+        run: npm --prefix bin/test_suite run test:security:nginx
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:

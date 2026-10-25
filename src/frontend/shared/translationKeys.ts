@@ -664,6 +664,7 @@ export const translationKeys = [
   "newsletter.email.placeholder",
   "newsletter.email.required",
   "newsletter.footer.description",
+  "newsletter.list.required",
   "newsletter.no_spam_hint",
   "newsletter.register.description",
   "newsletter.subscribe",

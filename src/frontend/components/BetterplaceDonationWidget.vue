@@ -7,11 +7,7 @@
       :height="height"
       loading="lazy"
       referrerpolicy="strict-origin-when-cross-origin"
-    >
-      <a :href="BETTERPLACE_PROJECT_URL" target="_blank" rel="noopener noreferrer">
-        {{ $t("donate.widget.iframe_fallback") }}
-      </a>
-    </iframe>
+    />
 
     <p class="mt-3 text-sm text-gray-500 dark:text-(--slk-text-muted)">
       <a

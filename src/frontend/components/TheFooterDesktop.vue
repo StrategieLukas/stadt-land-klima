@@ -32,7 +32,7 @@
   </div>
 
   <!-- Main Footer -->
-  <footer class="relative isolate footer footer-center overflow-hidden bg-olive-green px-4 py-10 text-white xl:px-10">
+  <footer class="relative isolate overflow-hidden bg-olive-green px-4 py-10 text-white xl:px-10">
     <img
       src="~/assets/images/Stadt-Land-Klima-Blume.svg"
       alt=""
@@ -58,23 +58,24 @@
             </svg>
             {{ newsletterAlreadySubscribed ? $t("newsletter.already_subscribed") : $t("newsletter.confirmation_sent") }}
           </div>
-          <div v-else class="flex gap-2">
+          <form v-else class="flex gap-2" @submit.prevent="subscribeNewsletter">
             <input
               v-model="footerEmail"
               type="email"
+              required
               autocomplete="email"
+              :aria-label="$t('newsletter.email.placeholder')"
               :placeholder="$t('newsletter.email.placeholder')"
-              class="min-w-0 flex-1 rounded-md px-3 py-2 text-sm text-black placeholder-gray-600 focus:ring-2 focus:ring-white focus:outline-hidden"
-              @keydown.enter.prevent="subscribeNewsletter"
+              class="min-w-0 flex-1 rounded-md bg-white px-3 py-2 text-sm text-black placeholder-gray-600 focus:ring-2 focus:ring-white focus:outline-hidden"
             />
             <CanonicalButton
+              type="submit"
               :label="newsletterState === 'subscribing' ? '\u2026' : $t('newsletter.subscribe')"
               icon-slug="icon_newsletter_click"
               color="green"
               :disabled="newsletterState === 'subscribing'"
-              @click="subscribeNewsletter"
             />
-          </div>
+          </form>
           <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
         </div>
       </div>
@@ -194,6 +195,7 @@ const newsletterAlreadySubscribed = ref(false);
 const newsletterError = ref("");
 
 async function subscribeNewsletter() {
+  if (newsletterState.value === "subscribing") return;
   newsletterError.value = "";
   if (!footerEmail.value.trim()) {
     newsletterError.value = $t("newsletter.email.required");

@@ -11,7 +11,7 @@ function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map((field) => [field, row[field] ?? null]));
 }
 
-const pageFields = ["id", "slug", "name", "contents", "sort_order"];
+const pageFields = ["id", "slug", "name", "contents", "sort_order", "menus", "icon_svg"];
 const municipalityNavFields = ["id", "slug", "name"];
 
 export default defineEventHandler(async (event) => {

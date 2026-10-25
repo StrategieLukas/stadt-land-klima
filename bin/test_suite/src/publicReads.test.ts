@@ -422,11 +422,26 @@ test("site layout reads the navigation singleton, retains nested links and strip
     }
     if (command.collection === "municipalities")
       return [{ id: "m", name: "Town", slug: "town", preview_token: "secret" }];
-    return [{ id: "p", slug: "start", name: "Start", contents: null, sort_order: 1, private: "secret" }];
+    assert.ok(command.query.fields.includes("menus"));
+    assert.ok(command.query.fields.includes("icon_svg"));
+    return [
+      {
+        id: "p",
+        slug: "start",
+        name: "Start",
+        contents: null,
+        sort_order: 1,
+        menus: ["main", "dock"],
+        icon_svg: '<svg viewBox="0 0 24 24"><path d="M0 0h24v24z" /></svg>',
+        private: "secret",
+      },
+    ];
   });
   const route = load("server/api/public/site-layout.get.ts", transport.dependencies).default;
   const result = plain(await route({}));
   assert.equal(result.navigationConfig.header_items[0].children[0].label, "Child");
   assert.equal(result.municipalities[0].slug, "town");
+  assert.deepEqual(result.pages[0].menus, ["main", "dock"]);
+  assert.match(result.pages[0].icon_svg, /viewBox/);
   assert.doesNotMatch(JSON.stringify(result), /secret|private|preview_token/);
 });

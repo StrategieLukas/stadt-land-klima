@@ -130,13 +130,13 @@
               {{ displayArea?.prefix }}
             </p>
             <h1
-              class="mb-4 text-5xl leading-none font-black xl:text-6xl"
+              class="mb-4 text-4xl leading-tight font-black wrap-anywhere sm:text-5xl xl:text-6xl"
               :class="areaReady && heroBackgroundImage ? 'text-white' : 'text-gray-900'"
             >
               {{ displayArea?.name }}
             </h1>
 
-            <dl class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+            <dl class="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2 [&_dd]:wrap-anywhere [&>div]:min-w-0">
               <div v-if="displayArea?.population">
                 <dt
                   class="mb-0.5 text-xs"
