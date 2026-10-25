@@ -1,288 +1,206 @@
 <template>
-  <main class="stats-page mx-auto w-full max-w-7xl px-4 py-6">
-    <!-- ═══════════════════════════════════════════════════════════
-         TOP NAV TILES — anchor navigation
-         ═══════════════════════════════════════════════════════════ -->
-    <nav class="-mx-4 -mt-6 mb-6 flex md:hidden" :aria-label="$t('stats.sections.aria_label')">
-      <button
-        class="flex flex-1 flex-col items-center justify-center gap-0.5 px-4 py-4 text-center text-white transition-opacity hover:opacity-90 active:opacity-80"
-        style="background-color: #006e94"
-        @click="scrollToSection('kommunale-statistiken')"
-      >
-        <svg class="mb-0.5 h-5 w-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"
-          />
-        </svg>
-        <span class="font-heading text-base font-bold leading-tight">{{ $t("stats.municipal.title") }}</span>
-        <span class="hidden text-xs text-white xs:block">{{ $t("stats.municipal.nav_subtitle") }}</span>
-      </button>
-      <div class="w-px flex-shrink-0 bg-solid-stats-white-15"></div>
-      <button
-        class="flex flex-1 flex-col items-center justify-center gap-0.5 px-4 py-4 text-center text-white transition-opacity hover:opacity-90 active:opacity-80"
-        style="background-color: #1a4a6e"
-        @click="scrollToSection('massnahmenstatistiken')"
-      >
-        <svg class="mb-0.5 h-5 w-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-          />
-        </svg>
-        <span class="font-heading text-base font-bold leading-tight">{{ $t("stats.measures.title") }}</span>
-        <span class="hidden text-xs text-white xs:block">{{ $t("stats.measures.nav_subtitle") }}</span>
-      </button>
-    </nav>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         ZONE A: Kommunensuche — find a specific city's stats
-         ═══════════════════════════════════════════════════════════ -->
-    <section id="kommunale-statistiken" class="mb-7 md:overflow-hidden md:rounded-sm md:shadow-list">
-      <!-- Hero: mobile = stacked header + search, desktop = side-by-side in dark band -->
-      <div class="flex flex-col md:flex-row md:items-stretch">
-        <!-- Dark left: icon + title -->
-        <div
-          class="-mx-4 mb-0 flex items-center gap-3 px-4 py-4 md:mx-0 md:w-[35%] md:flex-shrink-0"
-          style="background-color: #006e94"
-        >
-          <svg
-            class="h-5 w-5 flex-shrink-0 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
-            />
-          </svg>
-          <div>
-            <h2 class="font-heading text-lg font-bold leading-tight text-white">{{ $t("stats.municipal.title") }}</h2>
-            <p class="mt-0.5 text-xs text-white">{{ $t("stats.municipal.description") }}</p>
-          </div>
-        </div>
-        <!-- Right: search bar (padded below on mobile, inline on desktop) -->
-        <div class="px-1 pb-3 pt-4 md:flex md:flex-1 md:items-center md:px-5 md:py-3">
-          <AdministrativeAreaSearchBar base-path="/stats" class="w-full" />
-        </div>
+  <main class="stats-page container mx-auto px-4 py-8">
+    <header class="mb-10">
+      <h1 class="mb-4 font-heading text-4xl font-black text-orange sm:text-6xl">{{ $t("stats.title") }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("stats.hero.description") }}</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <CanonicalButton
+          :label="$t('stats.measures.title')"
+          href="#massnahmenstatistiken"
+          icon-slug="mdi:chart-box-outline"
+          color="orange"
+          text-color="white"
+        />
+        <CanonicalButton
+          :label="$t('stats.view_ranking')"
+          href="/municipalities"
+          icon-slug="mdi:format-list-bulleted"
+          color="orange"
+          text-color="white"
+        />
       </div>
-    </section>
+    </header>
+    <p v-if="statsError" role="alert">{{ $t("generic.technical_error") }}</p>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         ZONE B: Gesamtstatistik — aggregate data across all cities
-         ═══════════════════════════════════════════════════════════ -->
-    <section id="massnahmenstatistiken" class="md:mb-8 md:overflow-hidden md:rounded-sm md:shadow-list">
-      <!-- Hero row: mobile = stacked, desktop = side-by-side title + filter -->
-      <div class="border-gray-200 flex flex-col border-b md:flex-row md:items-stretch">
-        <!-- Left: dark title column -->
-        <div
-          class="-mx-4 mb-0 flex items-center gap-3 px-4 py-4 md:mx-0 md:w-[35%] md:flex-shrink-0"
-          style="background-color: #1a4a6e"
+    <section id="massnahmenstatistiken" class="mb-8">
+      <!-- Filter panel — full width -->
+      <div class="slk-filter-panel slk-filter-theme-stats mb-4 flex flex-col gap-0 rounded-xs px-3 py-3">
+        <!-- Collapsible toggle (only shown below xs breakpoint) -->
+        <button
+          class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
+          @click="filterOpen = !filterOpen"
         >
+          <span class="flex items-center gap-2">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
+              />
+            </svg>
+            <span>{{ $t("generic.filter") }}</span>
+            <span
+              v-if="activeFilterCount > 0"
+              class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs leading-none font-bold"
+              >{{ activeFilterCount }}</span
+            >
+          </span>
           <svg
-            class="h-5 w-5 flex-shrink-0 text-white"
+            class="h-4 w-4 shrink-0 transition-transform duration-200"
+            :class="filterOpen ? 'rotate-180' : ''"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            stroke-width="1.5"
+            stroke-width="2"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
-          <div>
-            <h2 class="font-heading text-lg font-bold leading-tight text-white">{{ $t("stats.measures.title") }}</h2>
-            <p class="mt-0.5 text-xs text-white">{{ $t("stats.measures.description") }}</p>
-          </div>
-        </div>
-        <!-- Right: filter panel -->
-        <div class="slk-filter-panel slk-filter-theme-stats flex flex-col gap-0 px-3 py-3 md:flex-1 md:justify-center">
-          <!-- Collapsible toggle (only shown below xs breakpoint) -->
-          <button
-            class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
-            @click="filterOpen = !filterOpen"
-          >
-            <span class="flex items-center gap-2">
-              <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
-                />
-              </svg>
-              <span>{{ $t("generic.filter") }}</span>
-              <span
-                v-if="activeFilterCount > 0"
-                class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
-                >{{ activeFilterCount }}</span
-              >
-            </span>
+        </button>
+
+        <!-- Filter rows (always visible at xs+, collapsible below xs) -->
+        <div v-show="filterOpen" class="xs:block!">
+          <!-- Row 0: catalog + type -->
+          <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-3 py-1.5">
             <svg
-              class="h-4 w-4 flex-shrink-0 transition-transform duration-200"
-              :class="filterOpen ? 'rotate-180' : ''"
+              class="slk-filter-panel-icon h-4 w-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
               stroke-width="2"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
-          </button>
-
-          <!-- Filter rows (always visible at xs+, collapsible below xs) -->
-          <div v-show="filterOpen" class="xs:!block">
-            <!-- Row 0: catalog + type -->
-            <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-3 py-1.5">
-              <svg
-                class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                v-for="v in catalogVersions"
+                :key="v.id"
+                class="slk-filter-pill"
+                :class="selectedCatalogVersionId === v.id ? 'slk-filter-pill--active' : ''"
+                @click="onCatalogVersionChange(v.id)"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <div class="flex flex-wrap items-center gap-2">
-                <button
-                  v-for="v in catalogVersions"
-                  :key="v.id"
-                  class="slk-filter-pill"
-                  :class="selectedCatalogVersionId === v.id ? 'slk-filter-pill--active' : ''"
-                  @click="onCatalogVersionChange(v.id)"
-                >
-                  {{ v.name }}
-                </button>
-                <div class="slk-filter-divider mx-1 hidden w-px self-stretch sm:block" />
-                <button
-                  v-for="opt in typeOptions"
-                  :key="opt.value ?? 'alltype'"
-                  class="slk-filter-pill"
-                  :class="filterType === opt.value ? 'slk-filter-pill--active' : ''"
-                  @click="filterType = opt.value"
-                >
-                  {{ opt.label }}
-                </button>
-              </div>
-            </div>
-
-            <div class="slk-filter-rule my-0.5 border-t" />
-
-            <!-- Row 1: state dropdown -->
-            <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-3 py-1.5">
-              <svg
-                class="slk-filter-panel-icon mt-1 h-4 w-4 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
+                {{ v.name }}
+              </button>
+              <div class="slk-filter-divider mx-1 hidden w-px self-stretch sm:block" />
+              <button
+                v-for="opt in typeOptions"
+                :key="opt.value ?? 'alltype'"
+                class="slk-filter-pill"
+                :class="filterType === opt.value ? 'slk-filter-pill--active' : ''"
+                @click="filterType = opt.value"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
-                />
-              </svg>
-              <div class="flex flex-wrap items-center gap-2">
-                <FilterBadgeDropdown
-                  label="Alle Bundesländer"
-                  :options="availableStates.map((s) => ({ label: s, value: s }))"
-                  v-model="filterState"
-                  width="min-w-[13rem]"
-                  :dark="false"
-                />
-              </div>
+                {{ opt.label }}
+              </button>
             </div>
           </div>
-          <!-- /collapsible -->
+
+          <div class="slk-filter-rule my-0.5 border-t" />
+
+          <!-- Row 1: state dropdown -->
+          <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-3 py-1.5">
+            <svg
+              class="slk-filter-panel-icon mt-1 h-4 w-4 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
+              />
+            </svg>
+            <div class="flex flex-wrap items-center gap-2">
+              <FilterBadgeDropdown
+                v-model="filterState"
+                label="Alle Bundesländer"
+                :options="availableStates.map((s) => ({ label: s, value: s }))"
+                width="min-w-52"
+                :dark="false"
+              />
+            </div>
+          </div>
         </div>
-        <!-- /filter panel right -->
       </div>
-      <!-- /hero row -->
+      <!-- /filter panel -->
 
       <!-- desktop content padding wrapper -->
-      <div class="md:px-4 md:pb-6 md:pt-4">
+      <div class="md:px-4 md:pt-4 md:pb-6">
         <!-- KPI grid — filter-dependent, shown below the filters -->
         <div class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <template v-if="statsLoading">
             <div
               v-for="i in 5"
               :key="i"
-              class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list"
+              class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list"
               :class="i === 5 ? 'col-span-2 sm:col-span-1' : ''"
             >
-              <div class="bg-gray-200 mb-1 h-8 w-10 animate-pulse rounded"></div>
-              <div class="bg-gray-100 mt-1 h-3 w-16 animate-pulse rounded"></div>
+              <div class="mb-1 h-8 w-10 animate-pulse rounded-sm bg-gray-200"></div>
+              <div class="mt-1 h-3 w-16 animate-pulse rounded-sm bg-gray-100"></div>
             </div>
           </template>
           <template v-else>
-            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalCompleted }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.fully_rated") }}</span>
+            <div class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list">
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{ kpi.totalCompleted }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.fully_rated") }}</span>
             </div>
-            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalHalfRatedProgress }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.in_progress") }}</span>
+            <div class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list">
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{ kpi.totalHalfRatedProgress }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.in_progress") }}</span>
             </div>
-            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalMunicipalities }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.total_municipalities") }}</span>
+            <div class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list">
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{ kpi.totalMunicipalities }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.total_municipalities") }}</span>
             </div>
-            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalMeasures }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.measures_in_catalog") }}</span>
+            <div class="flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list">
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{ kpi.totalMeasures }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.measures_in_catalog") }}</span>
             </div>
             <div
-              class="col-span-2 flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list sm:col-span-1"
+              class="col-span-2 flex flex-col items-center rounded-xs bg-white p-3 text-center shadow-list sm:col-span-1"
             >
-              <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{
+              <span class="text-2xl leading-none font-bold text-[#1a4a6e]">{{
                 kpi.totalFilledRatings.toLocaleString("de-DE")
               }}</span>
-              <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.completed_ratings") }}</span>
+              <span class="mt-1 text-xs leading-tight text-gray-500">{{ $t("stats.kpi.completed_ratings") }}</span>
             </div>
           </template>
         </div>
 
         <!-- Tabs -->
-        <div class="border-gray-200 mb-4 flex gap-1 overflow-x-auto border-b">
+        <div class="mb-4 flex gap-1 overflow-x-auto border-b border-gray-200">
           <button
-            class="flex-shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold transition-colors"
+            class="shrink-0 border-b-2 px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors"
             :class="
               activeTab === 'measures'
                 ? 'border-gray-700 text-gray-800'
-                : 'text-gray-500 hover:text-gray-700 border-transparent'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             "
             @click="activeTab = 'measures'"
           >
             {{ $t("stats.measures.singular_title") }}
           </button>
           <button
-            class="flex-shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold transition-colors"
+            class="shrink-0 border-b-2 px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors"
             :class="
               activeTab === 'clustering'
                 ? 'border-gray-700 text-gray-800'
-                : 'text-gray-500 hover:text-gray-700 border-transparent'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             "
             @click="switchToClusteringTab"
           >
             {{ $t("stats.clustering.title") }}
           </button>
           <button
-            class="flex-shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold transition-colors"
+            class="shrink-0 border-b-2 px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors"
             :class="
               activeTab === 'dominance'
                 ? 'border-gray-700 text-gray-800'
-                : 'text-gray-500 hover:text-gray-700 border-transparent'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             "
             @click="switchToDominanceTab"
           >
@@ -293,13 +211,13 @@
         <!-- TAB: Maßnahmenstatistik -->
         <div v-show="activeTab === 'measures'">
           <!-- Mobile sub-tabs (only shown on small screens) -->
-          <div v-if="isSmall" class="border-gray-200 -mx-0 mb-4 flex border-b">
+          <div v-if="isSmall" class="mx-0 mb-4 flex border-b border-gray-200">
             <button
               class="flex flex-1 flex-col items-center gap-0.5 border-b-2 px-1 py-2 text-xs font-semibold transition-colors"
               :class="
                 mobileMeasuresTab === 'selection'
                   ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               "
               @click="mobileMeasuresTab = 'selection'"
             >
@@ -314,7 +232,7 @@
               :class="
                 mobileMeasuresTab === 'plot'
                   ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               "
               @click="mobileMeasuresTab = 'plot'"
             >
@@ -332,7 +250,7 @@
               :class="
                 mobileMeasuresTab === 'list'
                   ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               "
               @click="mobileMeasuresTab = 'list'"
             >
@@ -346,27 +264,27 @@
           <!-- Main interactive panel: sunburst (left) + distribution chart (right) -->
           <div class="mb-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
             <!-- Skeleton: sunburst card -->
-            <div v-if="statsLoading" class="flex flex-col rounded-sm bg-white p-5 shadow-list">
-              <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
-                <div class="bg-gray-200 mb-1 h-4 w-40 animate-pulse rounded"></div>
-                <div class="bg-gray-100 mt-1 h-3 w-56 animate-pulse rounded"></div>
+            <div v-if="statsLoading" class="flex flex-col rounded-xs bg-white p-5 shadow-list">
+              <div class="-mx-5 -mt-5 mb-4 rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3">
+                <div class="mb-1 h-4 w-40 animate-pulse rounded-sm bg-gray-200"></div>
+                <div class="mt-1 h-3 w-56 animate-pulse rounded-sm bg-gray-100"></div>
               </div>
               <div class="flex flex-1 items-center justify-center" style="min-height: 300px">
-                <div class="bg-gray-200 animate-pulse rounded-full" style="width: 220px; height: 220px"></div>
+                <div class="animate-pulse rounded-full bg-gray-200" style="width: 220px; height: 220px"></div>
               </div>
             </div>
 
             <!-- Skeleton: distribution card -->
-            <div v-if="statsLoading" class="flex flex-col rounded-sm bg-white p-5 shadow-list">
-              <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
-                <div class="bg-gray-200 mb-1 h-4 w-48 animate-pulse rounded"></div>
-                <div class="bg-gray-100 mt-1 h-3 w-60 animate-pulse rounded"></div>
+            <div v-if="statsLoading" class="flex flex-col rounded-xs bg-white p-5 shadow-list">
+              <div class="-mx-5 -mt-5 mb-4 rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3">
+                <div class="mb-1 h-4 w-48 animate-pulse rounded-sm bg-gray-200"></div>
+                <div class="mt-1 h-3 w-60 animate-pulse rounded-sm bg-gray-100"></div>
               </div>
               <div class="flex flex-1 flex-col justify-end gap-2 px-2" style="min-height: 300px">
                 <div v-for="i in 7" :key="i" class="flex items-end gap-2">
-                  <div class="bg-gray-100 h-3 w-8 flex-shrink-0 animate-pulse rounded"></div>
+                  <div class="h-3 w-8 shrink-0 animate-pulse rounded-sm bg-gray-100"></div>
                   <div
-                    class="bg-gray-200 animate-pulse rounded"
+                    class="animate-pulse rounded-sm bg-gray-200"
                     :style="{ height: '12px', width: `${30 + i * 8}%` }"
                   ></div>
                 </div>
@@ -376,28 +294,28 @@
             <!-- Sunburst / List view card -->
             <div
               v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'selection')"
-              class="flex flex-col rounded-sm bg-white p-5 shadow-list"
+              class="flex flex-col rounded-xs bg-white p-5 shadow-list"
             >
               <!-- Card header with toggle -->
               <div
-                class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b px-5 py-3"
+                class="-mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3"
               >
                 <div>
                   <h2 class="text-base font-bold">Sektoren &amp; Maßnahmen{{ filterSuffix }}</h2>
-                  <p class="text-gray-500 mt-0.5 text-xs">
+                  <p class="mt-0.5 text-xs text-gray-500">
                     <span v-if="!showListView || isSmall">Klick auf Sektor oder Maßnahme für Details →</span>
                     <span v-else>Sektor oder Maßnahme auswählen für Details →</span>
                   </p>
                 </div>
                 <!-- Toggle only on non-small screens -->
-                <div v-if="!isSmall" role="tablist" class="tabs-boxed tabs ml-3 w-fit flex-shrink-0">
+                <div v-if="!isSmall" role="tablist" class="tabs tabs-box ml-3 w-fit shrink-0">
                   <a
                     role="tab"
                     class="tab gap-1.5"
                     :class="{ 'tab-active': !showListView }"
                     @click="showListView = false"
                   >
-                    <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 32 32" fill="currentColor">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 32 32" fill="currentColor">
                       <path
                         d="M16 2a1 1 0 0 0-1 1v7.09a6 6 0 0 0-2.46 1.043L7.838 6.431a1.455 1.455 0 0 0-2.087.024a14.05 14.05 0 0 0 4.054 22.142a11 11 0 0 0 1.899.768a14.1 14.1 0 0 0 13.844-3.132a1.434 1.434 0 0 0 .028-2.064l-4.699-4.699A6 6 0 0 0 21.91 17H29a1 1 0 0 0 1-1A14.016 14.016 0 0 0 16 2m0 10a4 4 0 1 1-4 4a4.005 4.005 0 0 1 4-4M6.83 8.251l4.296 4.296a5.91 5.91 0 0 0-.011 6.924l-4.277 4.277A12.02 12.02 0 0 1 6.83 8.251m1.423 16.91l4.276-4.276A5.96 5.96 0 0 0 15 21.91v6.042a11.88 11.88 0 0 1-6.747-2.79ZM17 27.956V21.91a6 6 0 0 0 2.46-1.027l4.283 4.282A11.9 11.9 0 0 1 17 27.956M21.91 15A6.01 6.01 0 0 0 17 10.09V4.041A12.02 12.02 0 0 1 27.959 15Z"
                       />
@@ -411,7 +329,7 @@
                     @click="showListView = true"
                   >
                     <svg
-                      class="h-4 w-4 flex-shrink-0"
+                      class="h-4 w-4 shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -440,14 +358,14 @@
               <div
                 v-show="!isSmall && showListView"
                 style="height: 420px"
-                class="border-gray-100 flex flex-col overflow-hidden rounded-lg border"
+                class="flex flex-col overflow-hidden rounded-lg border border-gray-100"
               >
                 <button
-                  class="border-gray-100 flex w-full flex-shrink-0 items-center gap-2 border-b px-3 py-2 text-left text-sm font-medium transition-colors"
+                  class="flex w-full shrink-0 items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-sm font-medium transition-colors"
                   :class="!sunburstSelection.type ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
                   @click="clearSunburstSelection"
                 >
-                  <span class="h-5 w-5 flex-shrink-0 opacity-40">
+                  <span class="h-5 w-5 shrink-0 opacity-40">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                       <circle cx="12" cy="12" r="9" />
                       <path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2" />
@@ -456,7 +374,7 @@
                   <span class="flex-1 font-semibold">Gesamtbewertung</span>
                   <span
                     v-if="overallMeanScore != null"
-                    class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                    class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                     :style="{ background: ratingToColor(overallMeanScore), color: ratingTextColor(overallMeanScore) }"
                     >{{ (overallMeanScore * 100).toFixed(0) }}%</span
                   >
@@ -464,7 +382,7 @@
                 <div class="flex-1 overflow-y-auto">
                   <div v-for="sector in allSectorsOrdered" :key="sector.sectorKey">
                     <button
-                      class="border-gray-100 flex w-full items-center gap-2 border-b px-3 py-2 text-left text-sm font-semibold transition-colors"
+                      class="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-sm font-semibold transition-colors"
                       :class="
                         sunburstSelection.sectorKey === sector.sectorKey && sunburstSelection.type === 'sector'
                           ? 'bg-blue-50 text-blue-700'
@@ -474,20 +392,20 @@
                     >
                       <img
                         :src="sectorImages[sector.sectorKey]"
-                        class="slk-filter-sector-icon h-5 w-5 flex-shrink-0 opacity-70 mix-blend-multiply grayscale invert"
+                        class="slk-filter-sector-icon h-5 w-5 shrink-0 opacity-70 mix-blend-multiply grayscale invert"
                       />
                       <span class="flex-1 text-left">{{ shortSectorNames[sector.sectorKey] }}</span>
                       <span
                         v-if="sectorMeanScores.get(sector.sectorKey) != null"
-                        class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                        class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                         :style="{
                           background: ratingToColor(sectorMeanScores.get(sector.sectorKey)),
                           color: ratingTextColor(sectorMeanScores.get(sector.sectorKey)),
                         }"
-                        >{{ (sectorMeanScores.get(sector.sectorKey) * 100).toFixed(0) }}%</span
+                        >{{ ((sectorMeanScores.get(sector.sectorKey) ?? 0) * 100).toFixed(0) }}%</span
                       >
                       <svg
-                        class="text-gray-400 h-4 w-4 flex-shrink-0 transition-transform duration-150"
+                        class="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150"
                         :class="expandedSectorKey === sector.sectorKey ? 'rotate-180' : ''"
                         fill="none"
                         stroke="currentColor"
@@ -500,7 +418,7 @@
                       <button
                         v-for="measure in Object.values(sector.measures)"
                         :key="measure.id"
-                        class="border-gray-50 flex w-full items-center gap-2 border-b py-1.5 pl-8 pr-3 text-left text-xs transition-colors"
+                        class="flex w-full items-center gap-2 border-b border-gray-50 py-1.5 pr-3 pl-8 text-left text-xs transition-colors"
                         :class="
                           sunburstSelection.measureId === measure.id
                             ? 'bg-blue-50 font-semibold text-blue-700'
@@ -511,14 +429,14 @@
                         <span class="flex-1 text-left">{{ measure.name }}</span>
                         <span
                           v-if="meanMeasureRatings.get(measure.id) != null"
-                          class="slk-rating-chip ml-1 flex-shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold text-white"
+                          class="slk-rating-chip ml-1 shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold text-white"
                           :style="{
                             background: ratingToColor(meanMeasureRatings.get(measure.id)),
                             color: ratingTextColor(meanMeasureRatings.get(measure.id)),
                           }"
-                          >{{ (meanMeasureRatings.get(measure.id) * 100).toFixed(0) }}%</span
+                          >{{ ((meanMeasureRatings.get(measure.id) ?? 0) * 100).toFixed(0) }}%</span
                         >
-                        <span v-else class="text-gray-300 ml-1 flex-shrink-0 text-xs">–</span>
+                        <span v-else class="ml-1 shrink-0 text-xs text-gray-300">–</span>
                       </button>
                     </div>
                   </div>
@@ -529,14 +447,14 @@
               <div
                 v-show="isSmall"
                 style="height: 420px"
-                class="border-gray-100 flex flex-col overflow-hidden rounded-lg border"
+                class="flex flex-col overflow-hidden rounded-lg border border-gray-100"
               >
                 <button
-                  class="border-gray-100 flex w-full flex-shrink-0 items-center gap-2 border-b px-3 py-2 text-left text-sm font-medium transition-colors"
+                  class="flex w-full shrink-0 items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-sm font-medium transition-colors"
                   :class="!sunburstSelection.type ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
                   @click="clearSunburstSelection"
                 >
-                  <span class="h-5 w-5 flex-shrink-0 opacity-40">
+                  <span class="h-5 w-5 shrink-0 opacity-40">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                       <circle cx="12" cy="12" r="9" />
                       <path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2" />
@@ -545,7 +463,7 @@
                   <span class="flex-1 font-semibold">Gesamtbewertung</span>
                   <span
                     v-if="overallMeanScore != null"
-                    class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                    class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                     :style="{ background: ratingToColor(overallMeanScore), color: ratingTextColor(overallMeanScore) }"
                     >{{ (overallMeanScore * 100).toFixed(0) }}%</span
                   >
@@ -553,7 +471,7 @@
                 <div class="flex-1 overflow-y-auto">
                   <div v-for="sector in allSectorsOrdered" :key="sector.sectorKey">
                     <button
-                      class="border-gray-100 flex w-full items-center gap-2 border-b px-3 py-2 text-left text-sm font-semibold transition-colors"
+                      class="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-sm font-semibold transition-colors"
                       :class="
                         sunburstSelection.sectorKey === sector.sectorKey && sunburstSelection.type === 'sector'
                           ? 'bg-blue-50 text-blue-700'
@@ -563,20 +481,20 @@
                     >
                       <img
                         :src="sectorImages[sector.sectorKey]"
-                        class="slk-filter-sector-icon h-5 w-5 flex-shrink-0 opacity-70 mix-blend-multiply grayscale invert"
+                        class="slk-filter-sector-icon h-5 w-5 shrink-0 opacity-70 mix-blend-multiply grayscale invert"
                       />
                       <span class="flex-1 text-left">{{ shortSectorNames[sector.sectorKey] }}</span>
                       <span
                         v-if="sectorMeanScores.get(sector.sectorKey) != null"
-                        class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                        class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                         :style="{
                           background: ratingToColor(sectorMeanScores.get(sector.sectorKey)),
                           color: ratingTextColor(sectorMeanScores.get(sector.sectorKey)),
                         }"
-                        >{{ (sectorMeanScores.get(sector.sectorKey) * 100).toFixed(0) }}%</span
+                        >{{ ((sectorMeanScores.get(sector.sectorKey) ?? 0) * 100).toFixed(0) }}%</span
                       >
                       <svg
-                        class="text-gray-400 h-4 w-4 flex-shrink-0 transition-transform duration-150"
+                        class="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150"
                         :class="expandedSectorKey === sector.sectorKey ? 'rotate-180' : ''"
                         fill="none"
                         stroke="currentColor"
@@ -589,7 +507,7 @@
                       <button
                         v-for="measure in Object.values(sector.measures)"
                         :key="measure.id"
-                        class="border-gray-50 flex w-full items-center gap-2 border-b py-1.5 pl-8 pr-3 text-left text-xs transition-colors"
+                        class="flex w-full items-center gap-2 border-b border-gray-50 py-1.5 pr-3 pl-8 text-left text-xs transition-colors"
                         :class="
                           sunburstSelection.measureId === measure.id
                             ? 'bg-blue-50 font-semibold text-blue-700'
@@ -600,14 +518,14 @@
                         <span class="flex-1 text-left">{{ measure.name }}</span>
                         <span
                           v-if="meanMeasureRatings.get(measure.id) != null"
-                          class="slk-rating-chip ml-1 flex-shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold text-white"
+                          class="slk-rating-chip ml-1 shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold text-white"
                           :style="{
                             background: ratingToColor(meanMeasureRatings.get(measure.id)),
                             color: ratingTextColor(meanMeasureRatings.get(measure.id)),
                           }"
-                          >{{ (meanMeasureRatings.get(measure.id) * 100).toFixed(0) }}%</span
+                          >{{ ((meanMeasureRatings.get(measure.id) ?? 0) * 100).toFixed(0) }}%</span
                         >
-                        <span v-else class="text-gray-300 ml-1 flex-shrink-0 text-xs">–</span>
+                        <span v-else class="ml-1 shrink-0 text-xs text-gray-300">–</span>
                       </button>
                     </div>
                   </div>
@@ -617,7 +535,7 @@
               <div class="mt-3 flex items-center justify-center gap-2">
                 <template v-if="sunburstSelection.label">
                   <button
-                    class="text-gray-400 hover:text-gray-600 px-1 text-xs"
+                    class="px-1 text-xs text-gray-400 hover:text-gray-600"
                     title="Zurück (←)"
                     @click="navigateSunburstSelection(-1)"
                   >
@@ -631,10 +549,10 @@
                       >{{ sunburstSelection.type === "sector" ? "Sektor" : "Maßnahme" }}:
                       {{ sunburstSelection.label }}</span
                     >
-                    <span class="text-sm font-bold leading-none">×</span>
+                    <span class="text-sm leading-none font-bold">×</span>
                   </button>
                   <button
-                    class="text-gray-400 hover:text-gray-600 px-1 text-xs"
+                    class="px-1 text-xs text-gray-400 hover:text-gray-600"
                     title="Vorwärts (→)"
                     @click="navigateSunburstSelection(1)"
                   >
@@ -656,16 +574,16 @@
                     Zur Seite
                   </NuxtLink>
                 </template>
-                <span v-else class="text-gray-400 text-xs">{{ $t("stats.sunburst.click_ring_hint") }}</span>
+                <span v-else class="text-xs text-gray-400">{{ $t("stats.sunburst.click_ring_hint") }}</span>
               </div>
             </div>
 
             <!-- Distribution chart card -->
             <div
               v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'plot')"
-              class="flex flex-col rounded-sm bg-white p-5 shadow-list"
+              class="flex flex-col rounded-xs bg-white p-5 shadow-list"
             >
-              <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
+              <div class="-mx-5 -mt-5 mb-4 rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3">
                 <h2 class="text-base font-bold">
                   <span v-if="!sunburstSelection.type">{{
                     $t("stats.histogram.all_municipalities", { ":filter": filterSuffix })
@@ -677,7 +595,7 @@
                     $t("stats.histogram.rating_distribution", { ":label": sunburstSelection.label })
                   }}</span>
                 </h2>
-                <p class="text-gray-500 mt-0.5 text-xs">
+                <p class="mt-0.5 text-xs text-gray-500">
                   <span v-if="!sunburstSelection.type">{{ $t("stats.histogram.total_score_description") }}</span>
                   <span v-else-if="sunburstSelection.type === 'sector'">{{
                     $t("stats.histogram.sector_score_description", {
@@ -696,10 +614,10 @@
                     @click="clearPanelMunFilter"
                   >
                     <span>{{ panelMunFilter.label }}</span>
-                    <span class="text-sm font-bold leading-none">×</span>
+                    <span class="text-sm leading-none font-bold">×</span>
                   </button>
                 </template>
-                <span v-else-if="sunburstSelection.type" class="text-gray-400 text-xs">{{
+                <span v-else-if="sunburstSelection.type" class="text-xs text-gray-400">{{
                   $t("stats.histogram.click_bar_hint")
                 }}</span>
               </div>
@@ -708,15 +626,15 @@
           <!-- /top row -->
 
           <!-- Skeleton: municipality list card -->
-          <div v-if="statsLoading" class="mb-8 rounded-sm bg-white p-5 shadow-list">
-            <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
-              <div class="bg-gray-200 h-4 w-32 animate-pulse rounded"></div>
+          <div v-if="statsLoading" class="mb-8 rounded-xs bg-white p-5 shadow-list">
+            <div class="-mx-5 -mt-5 mb-4 rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3">
+              <div class="h-4 w-32 animate-pulse rounded-sm bg-gray-200"></div>
             </div>
             <div class="grid grid-cols-1 gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
-              <div v-for="i in 10" :key="i" class="border-gray-100 flex items-center gap-3 border-b py-1.5">
-                <div class="bg-gray-100 h-3 w-5 flex-shrink-0 animate-pulse rounded"></div>
-                <div class="bg-gray-200 h-3 flex-1 animate-pulse rounded"></div>
-                <div class="bg-gray-200 h-5 w-10 flex-shrink-0 animate-pulse rounded-full"></div>
+              <div v-for="i in 10" :key="i" class="flex items-center gap-3 border-b border-gray-100 py-1.5">
+                <div class="h-3 w-5 shrink-0 animate-pulse rounded-sm bg-gray-100"></div>
+                <div class="h-3 flex-1 animate-pulse rounded-sm bg-gray-200"></div>
+                <div class="h-5 w-10 shrink-0 animate-pulse rounded-full bg-gray-200"></div>
               </div>
             </div>
           </div>
@@ -724,12 +642,12 @@
           <!-- Municipality list card -->
           <div
             v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'list')"
-            class="mb-8 rounded-sm bg-white p-5 shadow-list"
+            class="mb-8 rounded-xs bg-white p-5 shadow-list"
           >
             <div
-              class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b px-5 py-3"
+              class="-mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b border-gray-200 bg-gray-100 px-5 py-3"
             >
-              <h3 class="text-gray-800 text-base font-semibold">
+              <h3 class="text-base font-semibold text-gray-800">
                 <span v-if="!panelMunFilter.active">
                   {{ $t("stats.top_10") }}<span v-if="sunburstSelection.label">: {{ sunburstSelection.label }}</span
                   ><span v-else> {{ $t("stats.municipalities") }}{{ filterSuffix }}</span>
@@ -738,7 +656,7 @@
               </h3>
               <button
                 v-if="panelMunFilter.active"
-                class="ml-2 flex-shrink-0 text-xs text-blue-600 hover:underline"
+                class="ml-2 shrink-0 text-xs text-blue-600 hover:underline"
                 @click="clearPanelMunFilter"
               >
                 × {{ $t("stats.filter.clear") }}
@@ -748,13 +666,11 @@
               <div
                 v-for="(ms, i) in panelMunicipalities"
                 :key="ms.id ?? ms.slug ?? i"
-                class="border-gray-100 flex items-center gap-3 border-b py-1.5 last:border-0"
+                class="flex items-center gap-3 border-b border-gray-100 py-1.5 last:border-0"
               >
-                <span
-                  v-if="!panelMunFilter.active"
-                  class="text-gray-400 w-5 flex-shrink-0 text-right text-xs font-bold"
-                  >{{ i + 1 }}</span
-                >
+                <span v-if="!panelMunFilter.active" class="w-5 shrink-0 text-right text-xs font-bold text-gray-400">{{
+                  i + 1
+                }}</span>
                 <NuxtLink
                   :to="ms.slug ? `/municipalities/${ms.slug}` : '#'"
                   class="flex-1 truncate text-sm text-blue-600 hover:text-blue-800 hover:underline"
@@ -762,15 +678,15 @@
                 >
                 <span
                   v-if="ms.score_total != null"
-                  class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                  class="slk-rating-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                   :style="{
-                    background: ratingToColor(parseFloat(ms.score_total) / 100),
-                    color: ratingTextColor(parseFloat(ms.score_total) / 100),
+                    background: ratingToColor(parseNumber(ms.score_total) / 100),
+                    color: ratingTextColor(parseNumber(ms.score_total) / 100),
                   }"
-                  >{{ parseFloat(ms.score_total).toFixed(1) }}</span
+                  >{{ parseNumber(ms.score_total).toFixed(1) }}</span
                 >
               </div>
-              <p v-if="!panelMunicipalities.length" class="text-gray-400 col-span-full py-2 text-xs">
+              <p v-if="!panelMunicipalities.length" class="col-span-full py-2 text-xs text-gray-400">
                 {{ $t("generic.no_data") }}
               </p>
             </div>
@@ -786,36 +702,39 @@
               <div class="mb-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 class="text-xl font-bold">{{ $t("stats.clustering.title") }}</h2>
-                  <p class="text-gray-500 mt-1 text-sm">{{ $t("stats.clustering.click_hint") }} →</p>
+                  <p class="mt-1 text-sm text-gray-500">{{ $t("stats.clustering.click_hint") }} →</p>
                 </div>
-                <div class="flex flex-shrink-0 items-center gap-3">
-                  <label class="whitespace-nowrap text-sm font-semibold">k =</label>
-                  <input v-model.number="kClusters" type="range" min="2" max="10" class="range range-sm w-28" />
+                <div class="flex shrink-0 items-center gap-3">
+                  <label class="text-sm font-semibold whitespace-nowrap">k =</label>
+                  <input v-model.number="kClusters" type="range" min="2" max="10" class="range w-28 range-sm" />
                   <span class="w-4 text-sm font-bold">{{ kClusters }}</span>
-                  <button class="btn btn-outline btn-sm ml-2" @click="computeClusteringAndRender">
-                    {{ $t("stats.analysis.start") }}
-                  </button>
+                  <CanonicalButton
+                    class="ml-2"
+                    :label="$t('stats.analysis.start')"
+                    color="orange"
+                    @click="computeClusteringAndRender"
+                  />
                 </div>
               </div>
               <!-- Methodology note -->
-              <div class="text-gray-400 mb-3 text-xs leading-relaxed">
-                <span v-html="$t('stats.clustering.methodology')"></span>
+              <div class="mb-3 text-xs leading-relaxed text-gray-400">
+                <span v-html="sanitizeHtml($t('stats.clustering.methodology'))"></span>
               </div>
               <div ref="clusterContainer" class="w-full" style="min-height: 100px"></div>
               <p v-if="clusteringError" class="mt-2 text-sm text-error">{{ clusteringError }}</p>
             </div>
 
             <!-- Cluster profile panel -->
-            <div class="rounded-sm bg-white p-5 shadow-list">
+            <div class="rounded-xs bg-white p-5 shadow-list">
               <h3 class="mb-3 text-base font-bold">
                 <span v-if="!clusterProfile.clusterLabel">{{ $t("stats.clustering.profile") }}</span>
                 <span v-else>{{ clusterProfile.clusterLabel }}</span>
               </h3>
-              <p v-if="!clusterProfile.clusterLabel" class="text-gray-400 text-sm">
+              <p v-if="!clusterProfile.clusterLabel" class="text-sm text-gray-400">
                 {{ $t("stats.clustering.empty_profile") }}
               </p>
               <template v-else>
-                <p class="text-gray-500 mb-3 text-xs">
+                <p class="mb-3 text-xs text-gray-500">
                   {{
                     $t("stats.clustering.profile_summary", {
                       ":count": clusterProfile.count,
@@ -825,12 +744,10 @@
                 </p>
                 <div class="mb-4 flex flex-col gap-2">
                   <div v-for="sector in sectorOrder" :key="sector" class="flex items-center gap-2">
-                    <span
-                      class="w-24 flex-shrink-0 truncate text-right text-xs"
-                      :style="{ color: sectorColors[sector] }"
-                      >{{ shortSectorNames[sector] }}</span
-                    >
-                    <div class="bg-gray-100 h-3 flex-1 overflow-hidden rounded-full">
+                    <span class="w-24 shrink-0 truncate text-right text-xs" :style="{ color: sectorColors[sector] }">{{
+                      shortSectorNames[sector]
+                    }}</span>
+                    <div class="h-3 flex-1 overflow-hidden rounded-full bg-gray-100">
                       <div
                         class="h-3 rounded-full transition-all"
                         :style="{
@@ -839,13 +756,13 @@
                         }"
                       ></div>
                     </div>
-                    <span class="w-10 flex-shrink-0 font-mono text-xs">{{
+                    <span class="w-10 shrink-0 font-mono text-xs">{{
                       (clusterProfile.sectorMeans[sector] ?? 0).toFixed(1)
                     }}</span>
                   </div>
                 </div>
                 <div class="border-t pt-3">
-                  <p class="text-gray-600 mb-2 text-xs font-semibold">
+                  <p class="mb-2 text-xs font-semibold text-gray-600">
                     {{ $t("stats.clustering.municipalities_in_cluster") }}
                   </p>
                   <div class="columns-2 gap-x-3">
@@ -867,40 +784,40 @@
         <!-- TAB: Paarweiser Vergleich -->
         <div v-show="activeTab === 'dominance'">
           <!-- Method description -->
-          <div class="mb-6 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-6 rounded-xs bg-white p-5 shadow-list">
             <h2 class="mb-2 text-base font-bold">{{ $t("stats.dominance.title") }}</h2>
-            <p class="text-gray-600 mb-2 text-sm leading-relaxed">
-              <span v-html="$t('stats.dominance.description_1')"></span>
+            <p class="mb-2 text-sm leading-relaxed text-gray-600">
+              <span v-html="sanitizeHtml($t('stats.dominance.description_1'))"></span>
             </p>
-            <p class="text-gray-600 mb-2 text-sm leading-relaxed">
-              <span v-html="$t('stats.dominance.description_2')"></span>
+            <p class="mb-2 text-sm leading-relaxed text-gray-600">
+              <span v-html="sanitizeHtml($t('stats.dominance.description_2'))"></span>
             </p>
-            <p class="text-gray-400 mb-3 text-xs">{{ $t("stats.dominance.filter_note") }}</p>
-            <button class="btn btn-outline btn-sm" @click="computeDominanceAndRender">
-              {{ $t("stats.analysis.start") }}
-            </button>
+            <p class="mb-3 text-xs text-gray-400">{{ $t("stats.dominance.filter_note") }}</p>
+            <CanonicalButton :label="$t('stats.analysis.start')" color="orange" @click="computeDominanceAndRender" />
           </div>
 
           <!-- Win rate ranking chart -->
-          <div class="mb-6 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-6 rounded-xs bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.win_rate_ranking") }}</h3>
-            <p class="text-gray-500 mb-3 text-xs">{{ $t("stats.dominance.win_rate_ranking.description") }}</p>
+            <p class="mb-3 text-xs text-gray-500">{{ $t("stats.dominance.win_rate_ranking.description") }}</p>
             <div ref="dominanceRankContainer" class="w-full" style="min-height: 60px"></div>
             <p v-if="dominanceError" class="mt-2 text-sm text-error">{{ dominanceError }}</p>
           </div>
 
           <!-- Dominance heatmap -->
-          <div class="mb-8 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-8 rounded-xs bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.matrix_top_40") }}</h3>
-            <p class="text-gray-500 mb-3 text-xs">{{ $t("stats.dominance.matrix.description") }}</p>
+            <p class="mb-3 text-xs text-gray-500">{{ $t("stats.dominance.matrix.description") }}</p>
             <div ref="dominanceHeatmapContainer" class="w-full overflow-x-auto" style="min-height: 60px"></div>
           </div>
 
           <!-- Force-directed dominance network -->
-          <div class="mb-8 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-8 rounded-xs bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.network") }}</h3>
-            <p class="text-gray-500 mb-2 text-xs">{{ $t("stats.dominance.network.description") }}</p>
-            <p class="text-gray-400 mb-3 text-xs"><span v-html="$t('stats.dominance.network.note')"></span></p>
+            <p class="mb-2 text-xs text-gray-500">{{ $t("stats.dominance.network.description") }}</p>
+            <p class="mb-3 text-xs text-gray-400">
+              <span v-html="sanitizeHtml($t('stats.dominance.network.note'))"></span>
+            </p>
             <div ref="dominanceForceContainer" class="w-full" style="min-height: 700px"></div>
           </div>
         </div>
@@ -912,43 +829,90 @@
   </main>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
+import type { LayerSpec, UnitSpec } from "vega-lite/types_unstable/spec/index.d.ts";
+import type { View } from "vega";
+import type { VisualizationSpec, EmbedOptions } from "vega-embed";
+import type { SimulationNodeDatum, SimulationLinkDatum } from "d3-force";
+import type { Statistics } from "~/shared/contracts/municipality";
+import type { Sector } from "~/shared/domain";
+import { kMeans, statisticsDatum, pairwiseDominance, matrixValue } from "~/shared/statistics";
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { Chart, BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from "chart.js";
+import { getCatalogVersion } from "~/composables/getCatalogVersion";
+import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions";
+import sectorImages from "~/shared/sectorImages";
+import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";
+type Measure = Statistics["measures"][number];
+type MunicipalitySummary = { id: string; name: string; slug: string; score_total?: number | null | undefined };
+type SectorStats = {
+  sectorKey: Sector;
+  sectorName: string;
+  measures: Record<
+    string,
+    Pick<Measure, "id" | "measure_id" | "name" | "slug"> & { ratings: Record<string, MunicipalitySummary[]> }
+  >;
+};
+type Selection =
+  | { type: null; sectorKey: null; measureId: null; label: string }
+  | { type: "sector"; sectorKey: Sector; measureId: null; label: string }
+  | { type: "measure"; sectorKey: Sector; measureId: string; label: string };
+type PanelFilter = {
+  active: boolean;
+  label: string;
+  type: "measure-rating" | "sector-bin" | "global-bin" | null;
+  measureId: string | null;
+  ratingKey: string | null;
+  sectorKey: Sector | null;
+  binRange: [number, number] | null;
+};
+type ClusterRow = { name: string; slug: string; x: number; y: number; scoreTotal: string; cluster: string };
+type ForceNode = SimulationNodeDatum & { id: string; rank: number; name: string; winRate: number };
+type ForceLink = SimulationLinkDatum<ForceNode> & { dominance: number; rate: number };
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
 const { isDark } = useTheme();
 
+const VEGA_LIGHT_BACKGROUND = "#ffffff";
+const VEGA_DARK_BACKGROUND = "#17212b";
+
 const darkVegaConfig = {
-  background: '#17212b',
-  view: { fill: '#17212b', stroke: '#344454' },
+  background: VEGA_DARK_BACKGROUND,
+  view: { fill: VEGA_DARK_BACKGROUND, stroke: "#344454" },
   axis: {
-    labelColor: '#8aa4b8',
-    titleColor: '#8aa4b8',
-    gridColor: '#243444',
-    domainColor: '#344454',
-    tickColor: '#344454',
+    labelColor: "#8aa4b8",
+    titleColor: "#8aa4b8",
+    gridColor: "#243444",
+    domainColor: "#344454",
+    tickColor: "#344454",
   },
-  title: { color: '#d0dce5', subtitleColor: '#8aa4b8' },
-  legend: { labelColor: '#8aa4b8', titleColor: '#8aa4b8' },
-  header: { labelColor: '#8aa4b8', titleColor: '#8aa4b8' },
+  title: { color: "#d0dce5", subtitleColor: "#8aa4b8" },
+  legend: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
+  header: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
 };
 
-function vegaEmbedOpts(extra = {}) {
+function vegaEmbedOpts(extra: EmbedOptions = {}): EmbedOptions {
   return {
-    renderer: 'svg',
+    ast: true,
+    defaultStyle: false,
+    tooltip: { disableDefaultStyle: true },
+    renderer: "svg",
     actions: false,
     ...extra,
     ...(isDark.value ? { config: darkVegaConfig } : {}),
   };
 }
 
-const { $t, $directus, $readItems } = useNuxtApp();
-import { getCatalogVersion } from "~/composables/getCatalogVersion.js";
-import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions.js";
-import sectorImages from "~/shared/sectorImages.js";
-import { isMunicipalityScorePublished } from "~/shared/municipality-score-publishing.js";
+function themedVegaSpec(spec: VisualizationSpec): VisualizationSpec {
+  return {
+    ...spec,
+    background: isDark.value ? VEGA_DARK_BACKGROUND : VEGA_LIGHT_BACKGROUND,
+  };
+}
+
+const { $t } = useNuxtApp();
 
 const route = useRoute();
 const router = useRouter();
@@ -957,25 +921,23 @@ const municipalityNameCollator = new Intl.Collator("de-DE", {
   sensitivity: "base",
 });
 
-function compareByScoreThenName(a, b) {
+function compareByScoreThenName(
+  a: { score_total?: number | null | undefined; name?: string | undefined },
+  b: { score_total?: number | null | undefined; name?: string | undefined },
+) {
   const scoreDifference = (b.score_total ?? 0) - (a.score_total ?? 0);
   if (scoreDifference !== 0) return scoreDifference;
   return municipalityNameCollator.compare(a.name ?? "", b.name ?? "");
 }
-
-function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route));
+const selectedCatalogVersion = ref(await getCatalogVersion(route));
 const selectedCatalogVersionId = ref(selectedCatalogVersion.value.id);
-const catalogVersions = ref(await getAllCatalogVersions($directus, $readItems));
+const catalogVersions = ref(await getAllCatalogVersions());
 
 useHead({ title: ref($t("stats.title")) });
 
 // ── Filter state ─────────────────────────────────────────────────────────────
-const filterState = ref(null);
-const filterType = ref(null);
+const filterState = ref<string | null>(null);
+const filterType = ref<string | null>(null);
 const filterOpen = ref(false);
 const activeFilterCount = computed(() => {
   let count = 0;
@@ -1005,13 +967,14 @@ const sectorStats = computed(() => {
   const { measures, ratings } = statsData.value;
 
   // Build localteam → municipality map from FILTERED completed scores only
-  const localteamToMunicipality = {};
+  const localteamToMunicipality: Record<string, MunicipalitySummary> = {};
   filteredMunScores.value.forEach((ms) => {
     const mun = ms.municipality;
-    if (mun?.localteam_id) localteamToMunicipality[mun.localteam_id] = { id: mun.id, name: mun.name, slug: mun.slug };
+    if (mun?.localteam_id)
+      localteamToMunicipality[mun.localteam_id?.id] = { id: mun.id, name: mun.name, slug: mun.slug };
   });
 
-  const sectorData = {};
+  const sectorData: Partial<Record<Sector, SectorStats>> = {};
   measures.forEach((measure) => {
     if (!sectorData[measure.sector]) {
       sectorData[measure.sector] = {
@@ -1020,7 +983,7 @@ const sectorStats = computed(() => {
         measures: {},
       };
     }
-    sectorData[measure.sector].measures[measure.id] = {
+    sectorData[measure.sector]!.measures[measure.id] = {
       id: measure.id,
       measure_id: measure.measure_id,
       name: measure.name,
@@ -1037,38 +1000,37 @@ const sectorStats = computed(() => {
     const rk = !r.applicable ? "-1" : r.rating !== null ? String(r.rating) : null;
     if (rk === null) return;
     const mun = localteamToMunicipality[r.localteam_id];
-    if (mun) sector.measures[measure.id].ratings[rk].push(mun);
+    if (mun) (sector.measures[measure.id]!.ratings[rk] ??= []).push(mun);
   });
 
   return Object.values(sectorData);
 });
 
-const sunburstContainer = ref(null);
-const distPanelContainer = ref(null);
-let vegaViewSunburst = null;
-let vegaViewDist = null;
-const clusterContainer = ref(null);
-let vegaViewCluster = null;
+const sunburstContainer = ref<HTMLElement | null>(null);
+const distPanelContainer = ref<HTMLElement | null>(null);
+let vegaViewSunburst: View | null = null;
+let vegaViewDist: View | null = null;
+const clusterContainer = ref<HTMLElement | null>(null);
+let vegaViewCluster: View | null = null;
 
-const dominanceRankContainer = ref(null);
-const dominanceHeatmapContainer = ref(null);
+const dominanceRankContainer = ref<HTMLElement | null>(null);
+const dominanceHeatmapContainer = ref<HTMLElement | null>(null);
 const dominanceError = ref("");
-let vegaViewDominance = null;
-let vegaViewDominanceHeatmap = null;
-const dominanceForceContainer = ref(null);
-let vegaViewDominanceForce = null;
+let vegaViewDominance: View | null = null;
+let vegaViewDominanceHeatmap: View | null = null;
+const dominanceForceContainer = ref<HTMLElement | null>(null);
+let vegaViewDominanceForce: View | null = null;
 
 const kClusters = ref(4);
 const clusteringError = ref("");
-const activeSectorFilter = ref("all");
 const activeTab = ref("measures");
 
 // Sunburst selection state
-const sunburstSelection = ref({ type: null, sectorKey: null, measureId: null, label: "" });
+const sunburstSelection = ref<Selection>({ type: null, sectorKey: null, measureId: null, label: "" });
 // Mobile sub-tab for the measures panel (only active when isSmall)
 const mobileMeasuresTab = ref("selection"); // 'selection' | 'plot' | 'list'
 // Municipality panel filter (set when user clicks a bar in the distribution)
-const panelMunFilter = ref({
+const panelMunFilter = ref<PanelFilter>({
   active: false,
   label: "",
   type: null,
@@ -1078,14 +1040,20 @@ const panelMunFilter = ref({
   binRange: null,
 });
 // Cluster profile panel
-const clusterProfile = ref({ clusterLabel: null, count: 0, avgTotal: "–", sectorMeans: {}, municipalities: [] });
+const clusterProfile = ref<{
+  clusterLabel: string | null;
+  count: number;
+  avgTotal: string;
+  sectorMeans: Partial<Record<Sector, number>>;
+  municipalities: { name: string; slug: string }[];
+}>({ clusterLabel: null, count: 0, avgTotal: "–", sectorMeans: {}, municipalities: [] });
 // Raw cluster data for profile lookup (populated after computeClusteringAndRender)
-const clusterData = ref([]);
+const clusterData = ref<ClusterRow[]>([]);
 
 // ── Constants ────────────────────────────────────────────────────────────────
-const sectorOrder = ["energy", "transport", "agriculture", "industry", "buildings", "management"];
+const sectorOrder = ["energy", "transport", "agriculture", "industry", "buildings", "management"] as const;
 
-const sectorNames = {
+const sectorNames: Record<Sector, string> = {
   energy: $t("measure_sectors.energy.title"),
   transport: $t("measure_sectors.transport.title"),
   agriculture: $t("measure_sectors.agriculture.title"),
@@ -1094,7 +1062,7 @@ const sectorNames = {
   management: $t("measure_sectors.management.title"),
 };
 
-const shortSectorNames = {
+const shortSectorNames: Record<Sector, string> = {
   energy: $t("measure_sectors.energy.title"),
   transport: $t("measure_sectors.transport.title"),
   agriculture: $t("stats.sector_short.agriculture"),
@@ -1103,7 +1071,7 @@ const shortSectorNames = {
   management: $t("stats.sector_short.management"),
 };
 
-const sectorColors = {
+const sectorColors: Record<Sector, string> = {
   energy: "#F39200",
   transport: "#16BAE7",
   agriculture: "#1EA64A",
@@ -1112,7 +1080,7 @@ const sectorColors = {
   management: "#AFCA0B",
 };
 
-const ratingColors = {
+const ratingColors: Record<string, string> = {
   "-1": "#9CA3AF",
   0: "#D9000D",
   0.25: "#F27C00",
@@ -1121,7 +1089,7 @@ const ratingColors = {
   1: "#1DA64A",
 };
 
-const ratingLabelsMap = {
+const ratingLabelsMap: Record<string, string> = {
   "-1": $t("rating.not_applicable"),
   0: $t("rating.hardly_or_not"),
   0.25: $t("rating.initial_steps"),
@@ -1130,14 +1098,13 @@ const ratingLabelsMap = {
   1: $t("rating.fullfilled"),
 };
 
+function parseNumber(value: number | string | null | undefined) {
+  return value == null ? NaN : Number.parseFloat(String(value));
+}
 function getRatingKeys() {
   return selectedCatalogVersion.value.name === "beta"
     ? ["-1", "0", "0.25", "0.75", "1"]
     : ["-1", "0", "0.25", "0.5", "0.75", "1"];
-}
-
-function getRatingLabel(rating) {
-  return ratingLabelsMap[rating] ?? rating;
 }
 
 const vegaColorScale = {
@@ -1145,9 +1112,9 @@ const vegaColorScale = {
   range: ["#9CA3AF", "#D9000D", "#F27C00", "#FFD400", "#AFCA0B", "#1DA64A"],
 };
 
-function ratingToColor(r) {
+function ratingToColor(r: number | null | undefined) {
   if (r == null || isNaN(r)) return "#9CA3AF";
-  const stops = [
+  const stops: [number, [number, number, number]][] = [
     [0, [217, 0, 13]],
     [0.25, [242, 124, 0]],
     [0.5, [255, 212, 0]],
@@ -1156,8 +1123,8 @@ function ratingToColor(r) {
   ];
   const clamped = Math.max(0, Math.min(1, r));
   for (let i = 0; i < stops.length - 1; i++) {
-    const [t0, c0] = stops[i];
-    const [t1, c1] = stops[i + 1];
+    const [t0, c0] = stops[i]!;
+    const [t1, c1] = stops[i + 1]!;
     if (clamped <= t1) {
       const t = (clamped - t0) / (t1 - t0);
       return `rgb(${Math.round(c0[0] + t * (c1[0] - c0[0]))},${Math.round(c0[1] + t * (c1[1] - c0[1]))},${Math.round(c0[2] + t * (c1[2] - c0[2]))})`;
@@ -1166,19 +1133,13 @@ function ratingToColor(r) {
   return "#1DA64A";
 }
 
-function ratingTextColor(r) {
+function ratingTextColor(r: number | null | undefined) {
   if (r == null || isNaN(r)) return "#000000";
   return Math.max(0, Math.min(1, r)) < 0.095 ? "#ffffff" : "#000000";
 }
 
-function meanSectorScore(sectorKey) {
-  const scores = filteredMunScores.value.map((ms) => parseFloat(ms[`score_${sectorKey}`])).filter((v) => !isNaN(v));
-  if (!scores.length) return null;
-  return scores.reduce((a, b) => a + b, 0) / scores.length;
-}
-
 // ── Computed ─────────────────────────────────────────────────────────────────
-const visibleMunicipalityScores = computed(() => {
+const publishedMunicipalityScores = computed(() => {
   if (!statsData.value) return [];
   return statsData.value.municipalityScores.filter((ms) => {
     if (!ms.municipality || !isMunicipalityScorePublished(ms)) return false;
@@ -1188,11 +1149,13 @@ const visibleMunicipalityScores = computed(() => {
   });
 });
 
+const visibleMunicipalityScores = computed(() => publishedMunicipalityScores.value.filter(isMunicipalityScoreComplete));
+
 const filteredMunScores = computed(() => visibleMunicipalityScores.value);
 
 const availableStates = computed(() => {
   if (!statsData.value) return [];
-  const states = new Set();
+  const states = new Set<string>();
   statsData.value.municipalityScores.forEach((ms) => {
     if (ms.municipality?.state) states.add(ms.municipality.state);
   });
@@ -1211,14 +1174,14 @@ const kpi = computed(() => {
   }
   const { municipalities, measures, ratings } = statsData.value;
   const completed = filteredMunScores.value;
-  const halfRatedProgress = visibleMunicipalityScores.value.filter((ms) => {
-    const percentage = parseFloat(ms.percentage_rated);
-    return !isNaN(percentage) && percentage >= 1 && percentage < 98;
+  const halfRatedProgress = publishedMunicipalityScores.value.filter((ms) => {
+    const percentage = parseNumber(ms.percentage_rated);
+    return !isNaN(percentage) && percentage >= 1 && percentage < 100;
   });
   // Count ratings that are filled (rating != null OR applicable == false) for completed municipalities
   const ltSet = new Set();
   completed.forEach((ms) => {
-    if (ms.municipality?.localteam_id) ltSet.add(ms.municipality.localteam_id);
+    if (ms.municipality?.localteam_id) ltSet.add(ms.municipality.localteam_id?.id);
   });
   const filledRatings = ratings.filter(
     (r) => ltSet.has(r.localteam_id) && (r.rating != null || r.applicable === false),
@@ -1235,10 +1198,10 @@ const kpi = computed(() => {
 const top10 = computed(() => {
   const sel = sunburstSelection.value;
   if (sel.type === "sector" && sel.sectorKey) {
-    const scoreField = `score_${sel.sectorKey}`;
+    const scoreField = `score_${sel.sectorKey}` as const;
     return [...filteredMunScores.value]
       .map((ms) => {
-        const v = parseFloat(ms[scoreField]);
+        const v = parseNumber(ms[scoreField]);
         return {
           id: ms.municipality?.id,
           name: ms.municipality?.name,
@@ -1251,15 +1214,15 @@ const top10 = computed(() => {
       .slice(0, 10);
   }
   if (sel.type === "measure" && sel.measureId) {
-    const ratingByLtId = new Map();
+    const ratingByLtId = new Map<string, number>();
     statsData.value?.ratings?.forEach((r) => {
       if (r.measure_id === sel.measureId && r.applicable !== false && r.rating != null)
-        ratingByLtId.set(r.localteam_id, parseFloat(r.rating));
+        ratingByLtId.set(r.localteam_id, parseNumber(r.rating));
     });
     return [...filteredMunScores.value]
-      .filter((ms) => ms.municipality?.localteam_id && ratingByLtId.has(ms.municipality.localteam_id))
+      .filter((ms) => ms.municipality?.localteam_id && ratingByLtId.has(ms.municipality.localteam_id?.id))
       .map((ms) => {
-        const v = ratingByLtId.get(ms.municipality.localteam_id);
+        const v = ratingByLtId.get(ms.municipality.localteam_id?.id ?? "") ?? 0;
         return {
           id: ms.municipality?.id,
           name: ms.municipality?.name,
@@ -1276,7 +1239,7 @@ const top10 = computed(() => {
       id: ms.municipality?.id,
       name: ms.municipality?.name,
       slug: ms.municipality?.slug,
-      score_total: parseFloat(ms.score_total),
+      score_total: parseNumber(ms.score_total),
     }))
     .filter((ms) => !isNaN(ms.score_total))
     .sort(compareByScoreThenName)
@@ -1301,28 +1264,28 @@ const panelMunicipalities = computed(() => {
     const [bin0, bin1] = binRange;
     return filteredMunScores.value
       .filter((ms) => {
-        const s = parseFloat(ms[`score_${sectorKey}`]);
+        const s = parseNumber(ms[`score_${sectorKey}`]);
         return !isNaN(s) && s >= bin0 && s < bin1 + 0.0001;
       })
       .map((ms) => ({
         id: ms.municipality?.id,
         name: ms.municipality?.name,
         slug: ms.municipality?.slug,
-        score_total: parseFloat(ms[`score_${sectorKey}`]),
+        score_total: parseNumber(ms[`score_${sectorKey}`]),
       }));
   }
   if (type === "global-bin" && binRange) {
     const [bin0, bin1] = binRange;
     return filteredMunScores.value
       .filter((ms) => {
-        const s = parseFloat(ms.score_total);
+        const s = parseNumber(ms.score_total);
         return !isNaN(s) && s >= bin0 && s < bin1 + 0.0001;
       })
       .map((ms) => ({
         id: ms.municipality?.id,
         name: ms.municipality?.name,
         slug: ms.municipality?.slug,
-        score_total: parseFloat(ms.score_total),
+        score_total: parseNumber(ms.score_total),
       }))
       .sort(compareByScoreThenName);
   }
@@ -1330,76 +1293,63 @@ const panelMunicipalities = computed(() => {
 });
 
 const meanMeasureRatings = computed(() => {
-  if (!statsData.value) return new Map();
+  if (!statsData.value) return new Map<string, number | null>();
   const { ratings, measures } = statsData.value;
   const completed = filteredMunScores.value;
-  if (!completed.length) return new Map();
+  if (!completed.length) return new Map<string, number | null>();
   const ltSet = new Set();
   completed.forEach((ms) => {
-    if (ms.municipality?.localteam_id) ltSet.add(ms.municipality.localteam_id);
+    if (ms.municipality?.localteam_id) ltSet.add(ms.municipality.localteam_id?.id);
   });
-  const sums = new Map();
-  const counts = new Map();
+  const sums = new Map<string, number>();
+  const counts = new Map<string, number>();
   ratings.forEach((r) => {
     if (!ltSet.has(r.localteam_id)) return;
     if (!r.applicable) return;
     if (r.rating == null) return;
-    const val = parseFloat(r.rating);
+    const val = parseNumber(r.rating);
     if (isNaN(val)) return;
     const mid = r.measure_id;
     sums.set(mid, (sums.get(mid) ?? 0) + val);
     counts.set(mid, (counts.get(mid) ?? 0) + 1);
   });
-  const result = new Map();
+  const result = new Map<string, number | null>();
   measures.forEach((m) => {
-    const s = sums.get(m.id);
+    const s = sums.get(m.id) ?? 0;
     const c = counts.get(m.id);
     result.set(m.id, c ? s / c : null);
   });
   return result;
 });
 
-const filteredSectorStats = computed(() => {
-  const ordered = sectorOrder.map((k) => sectorStats.value.find((s) => s.sectorKey === k)).filter(Boolean);
-  if (activeSectorFilter.value === "all") return ordered;
-  return ordered.filter((s) => s.sectorKey === activeSectorFilter.value);
-});
-
 // ── Data fetching ────────────────────────────────────────────────────────────
-async function fetchStatsForCatalog(catalogVersionId) {
-  const [municipalities, municipalityScores, measures, ratings] = await Promise.all([
-    $directus.request(
-      $readItems("municipalities", { fields: ["id", "name", "slug", "localteam_id", "population"], limit: -1 }),
-    ),
-    $directus.request(
-      $readItems("municipality_scores", {
-        fields: [
-          "*",
-          { municipality: ["id", "name", "slug", "localteam_id", "state", "municipality_type", "population"] },
-        ],
-        filter: { catalog_version: { _eq: catalogVersionId } },
-        limit: -1,
-      }),
-    ),
-    $directus.request(
-      $readItems("measures", {
-        filter: { catalog_version: { _eq: catalogVersionId } },
-        limit: -1,
-      }),
-    ),
-    $directus.request(
-      $readItems("ratings_measures", {
-        fields: ["measure_id", "rating", "applicable", "localteam_id"],
-        filter: { measure_id: { catalog_version: { _eq: catalogVersionId } } },
-        limit: -1,
-      }),
-    ),
-  ]);
-  return { municipalities, municipalityScores, measures, ratings };
+async function fetchStatsForCatalog(catalogVersionId: string) {
+  const catalog = catalogVersions.value.find((version) => version.id === catalogVersionId);
+  if (!catalog) throw new Error("Catalog not found");
+  const result = await $fetch(`/api/public/stats/${encodeURIComponent(catalog.name)}`);
+  return { ...result, municipalityScores: result.scores };
 }
 
-const statsData = ref(null);
+const statsData = ref<(Statistics & { municipalityScores: Statistics["scores"] }) | null>(null);
 const statsLoading = ref(true);
+const statsError = ref(false);
+let statsGeneration = 0;
+async function refreshStatistics(catalogId: string) {
+  const generation = ++statsGeneration;
+  statsLoading.value = true;
+  statsError.value = false;
+  try {
+    const result = await fetchStatsForCatalog(catalogId);
+    if (generation === statsGeneration) statsData.value = result;
+  } catch {
+    if (generation === statsGeneration) {
+      statsData.value = null;
+      statsError.value = true;
+    }
+  } finally {
+    if (generation === statsGeneration) statsLoading.value = false;
+  }
+}
 
 // ── Sunburst (Vega-Lite two-layer arc) ───────────────────────────────────────
 async function renderSunburst() {
@@ -1410,12 +1360,22 @@ async function renderSunburst() {
       vegaViewSunburst.finalize();
       vegaViewSunburst = null;
     }
+    if (!sunburstContainer.value) return;
     sunburstContainer.value.innerHTML = "";
     if (!statsData.value?.measures?.length) return;
     const { measures } = statsData.value;
     const mmr = meanMeasureRatings.value;
-    const innerRows = [];
-    const outerRows = [];
+    const innerRows: { name: string; theta: number; meanRating: number; order: number; sectorKey: Sector }[] = [];
+    const outerRows: {
+      name: string;
+      sectorName: string;
+      theta: number;
+      meanRatingDisplay: number;
+      meanRating: number | null | undefined;
+      order: number;
+      measureId: string;
+      sectorKey: Sector;
+    }[] = [];
     sectorOrder.forEach((sKey, si) => {
       const sector = sectorStats.value.find((s) => s.sectorKey === sKey);
       if (!sector) return;
@@ -1426,7 +1386,7 @@ async function renderSunburst() {
         ? measureMeans.reduce((a, b) => a + b, 0) / measureMeans.length
         : null;
       // inner ring theta = sum of weights for this sector (proportional to total weight)
-      const sectorWeight = sectorMeasures.reduce((s, m) => s + parseFloat(m.weight ?? 1), 0);
+      const sectorWeight = sectorMeasures.reduce((s, m) => s + parseNumber(m.weight ?? 1), 0);
       innerRows.push({
         name: shortSectorNames[sKey] ?? sKey,
         theta: sectorWeight,
@@ -1439,7 +1399,7 @@ async function renderSunburst() {
         outerRows.push({
           name: m.name,
           sectorName: sectorNames[sKey] ?? sKey,
-          theta: parseFloat(m.weight ?? 1),
+          theta: parseNumber(m.weight ?? 1),
           meanRatingDisplay: mr ?? -0.05,
           meanRating: mr,
           order: si * 1000 + mi,
@@ -1451,7 +1411,7 @@ async function renderSunburst() {
     const sel = sunburstSelection.value;
     const omScore = overallMeanScore.value;
     // Center circle — clickable (clears selection), no text label
-    const centerLayers =
+    const centerLayers: (LayerSpec<string> | UnitSpec<string>)[] =
       omScore != null
         ? [
             {
@@ -1484,7 +1444,7 @@ async function renderSunburst() {
       sel.type === "measure"
         ? [...outerRows].sort((a, b) => (a.measureId === sel.measureId ? 1 : b.measureId === sel.measureId ? -1 : 0))
         : outerRows;
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 360,
@@ -1542,26 +1502,30 @@ async function renderSunburst() {
       ],
       resolve: { scale: { theta: "independent", color: "independent" } },
     };
-    const result = await vegaEmbed(sunburstContainer.value, spec, vegaEmbedOpts());
+    const result = await vegaEmbed(sunburstContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!sunburstContainer.value) {
+      result.view.finalize();
+      return;
+    }
     vegaViewSunburst = result.view;
 
     // Click handler: update selection, re-render sunburst with highlight + dist panel
     result.view.addEventListener("click", (_event, item) => {
-      if (!item?.datum) return;
-      const d = item.datum;
+      const d = statisticsDatum(item);
+      if (!d) return;
       if (d.isCenter) {
         clearSunburstSelection();
         return;
       }
-      if (d.measureId) {
+      if (d.measureId && d.sectorKey) {
         sunburstSelection.value = { type: "measure", sectorKey: d.sectorKey, measureId: d.measureId, label: d.name };
       } else if (d.sectorKey) {
         sunburstSelection.value = { type: "sector", sectorKey: d.sectorKey, measureId: null, label: d.name };
       }
       clearPanelMunFilter();
-      nextTick(() => {
-        renderSunburst();
-        renderDistPanel();
+      void nextTick(() => {
+        void renderSunburst();
+        void renderDistPanel();
       });
     });
   } catch (e) {
@@ -1572,9 +1536,9 @@ async function renderSunburst() {
 function clearSunburstSelection() {
   sunburstSelection.value = { type: null, sectorKey: null, measureId: null, label: "" };
   clearPanelMunFilter();
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 
@@ -1598,6 +1562,7 @@ async function renderDistPanel() {
     vegaViewDist.finalize();
     vegaViewDist = null;
   }
+  if (!distPanelContainer.value) return;
   distPanelContainer.value.innerHTML = "";
 
   const sel = sunburstSelection.value;
@@ -1608,7 +1573,7 @@ async function renderDistPanel() {
     const scores = filteredMunScores.value
       .filter((ms) => ms.score_total != null)
       .map((ms) => {
-        const s = parseFloat(ms.score_total);
+        const s = parseNumber(ms.score_total);
         if (isNaN(s)) return null;
         const bin_start = Math.floor(s / BIN_STEP) * BIN_STEP;
         return { score: s, bin_start, bin_end: bin_start + BIN_STEP };
@@ -1616,7 +1581,7 @@ async function renderDistPanel() {
       .filter(Boolean);
     if (!scores.length) return;
     const selectedBin0Global = panelMunFilter.value.type === "global-bin" ? panelMunFilter.value.binRange?.[0] : null;
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 360,
@@ -1658,12 +1623,18 @@ async function renderDistPanel() {
             : { value: null },
       },
     };
-    const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: "svg", actions: false });
+    const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!distPanelContainer.value) {
+      res.view.finalize();
+      return;
+    }
     vegaViewDist = res.view;
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
-      const bin0 = item.datum.bin_start;
-      const bin1 = item.datum.bin_end;
+      const datum = statisticsDatum(item);
+      const bin0 = datum?.bin_start;
+      const bin1 = datum?.bin_end;
+      if (bin0 === undefined || bin1 === undefined) return;
       if (bin0 == null) return;
       panelMunFilter.value = {
         active: true,
@@ -1675,7 +1646,7 @@ async function renderDistPanel() {
         binRange: [bin0, bin1],
       };
       if (isSmall.value) mobileMeasuresTab.value = "list";
-      nextTick(() => renderDistPanel());
+      void nextTick(() => renderDistPanel());
     });
     return;
   }
@@ -1686,7 +1657,7 @@ async function renderDistPanel() {
     const BIN_STEP = 5;
     const scores = filteredMunScores.value
       .map((ms) => {
-        const s = parseFloat(ms[`score_${sKey}`]);
+        const s = parseNumber(ms[`score_${sKey}`]);
         if (isNaN(s)) return null;
         const bin_start = Math.floor(s / BIN_STEP) * BIN_STEP;
         return {
@@ -1703,7 +1674,7 @@ async function renderDistPanel() {
       panelMunFilter.value.type === "sector-bin" && panelMunFilter.value.sectorKey === sKey
         ? panelMunFilter.value.binRange?.[0]
         : null;
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 360,
@@ -1745,13 +1716,19 @@ async function renderDistPanel() {
             : { value: null },
       },
     };
-    const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: "svg", actions: false });
+    const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!distPanelContainer.value) {
+      res.view.finalize();
+      return;
+    }
     vegaViewDist = res.view;
     // Click on a bin: filter municipality list to that bin
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
-      const bin0 = item.datum.bin_start;
-      const bin1 = item.datum.bin_end;
+      const datum = statisticsDatum(item);
+      const bin0 = datum?.bin_start;
+      const bin1 = datum?.bin_end;
+      if (bin0 === undefined || bin1 === undefined) return;
       if (bin0 == null) return;
       panelMunFilter.value = {
         active: true,
@@ -1763,7 +1740,7 @@ async function renderDistPanel() {
         binRange: [bin0, bin1],
       };
       if (isSmall.value) mobileMeasuresTab.value = "list";
-      nextTick(() => renderDistPanel());
+      void nextTick(() => renderDistPanel());
     });
     return;
   }
@@ -1787,7 +1764,7 @@ async function renderDistPanel() {
       panelMunFilter.value.type === "measure-rating" && panelMunFilter.value.measureId === measureId
         ? panelMunFilter.value.ratingKey
         : null;
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 360,
@@ -1812,12 +1789,16 @@ async function renderDistPanel() {
         },
       },
     };
-    const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: "svg", actions: false });
+    const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!distPanelContainer.value) {
+      res.view.finalize();
+      return;
+    }
     vegaViewDist = res.view;
     // Click on a bar: filter municipality list to that rating
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
-      const rk = item.datum.ratingKey;
+      const rk = statisticsDatum(item)?.ratingKey;
       if (!rk) return;
       panelMunFilter.value = {
         active: true,
@@ -1829,7 +1810,7 @@ async function renderDistPanel() {
         binRange: null,
       };
       if (isSmall.value) mobileMeasuresTab.value = "list";
-      nextTick(() => renderDistPanel());
+      void nextTick(() => renderDistPanel());
     });
   }
 }
@@ -1837,21 +1818,21 @@ async function renderDistPanel() {
 // ── Arrow-key / button navigation through sectors & measures ─────────────────
 const orderedMeasures = computed(() => {
   if (!statsData.value?.measures) return [];
-  const result = [];
+  const result: Measure[] = [];
   sectorOrder.forEach((sKey) => {
-    statsData.value.measures.filter((m) => m.sector === sKey).forEach((m) => result.push(m));
+    statsData.value!.measures.filter((m) => m.sector === sKey).forEach((m) => result.push(m));
   });
   return result;
 });
 
-function navigateSunburstSelection(dir) {
+function navigateSunburstSelection(dir: number) {
   const sel = sunburstSelection.value;
   if (!sel.type) return;
   if (sel.type === "sector") {
     const idx = sectorOrder.indexOf(sel.sectorKey);
     if (idx === -1) return;
     const newIdx = (idx + dir + sectorOrder.length) % sectorOrder.length;
-    const newKey = sectorOrder[newIdx];
+    const newKey = sectorOrder[newIdx]!;
     sunburstSelection.value = {
       type: "sector",
       sectorKey: newKey,
@@ -1864,16 +1845,17 @@ function navigateSunburstSelection(dir) {
     if (idx === -1) return;
     const newIdx = (idx + dir + measures.length) % measures.length;
     const m = measures[newIdx];
+    if (!m) return;
     sunburstSelection.value = { type: "measure", sectorKey: m.sector, measureId: m.id, label: m.name };
   }
   clearPanelMunFilter();
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 
-function handleArrowKey(e) {
+function handleArrowKey(e: KeyboardEvent) {
   if (activeTab.value !== "measures") return;
   if (!sunburstSelection.value.type) return;
   if (e.key === "ArrowLeft") {
@@ -1884,35 +1866,39 @@ function handleArrowKey(e) {
     navigateSunburstSelection(1);
   }
 }
-
-// ── (legacy functions kept for possible reuse but no longer called directly) ──
-async function openSectorDistribution() {}
-async function openMeasureDistribution() {}
-async function renderDistributionChart() {}
-
-// ── (renderHistogram removed — distribution is now inline in the detail panel) ──
-
-function setSectorFilter(key) {
-  activeSectorFilter.value = key;
-}
 // ── Reactive re-render on filter change ──────────────────────────────────────
 watch([filterState, filterType], () => {
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 });
 
 // ── Re-render all active Vega charts when theme changes ───────────────────────
 watch(isDark, () => {
-  nextTick(() => {
-    if (vegaViewSunburst) { vegaViewSunburst.finalize(); vegaViewSunburst = null; }
-    if (vegaViewDist) { vegaViewDist.finalize(); vegaViewDist = null; }
-    if (vegaViewCluster) { vegaViewCluster.finalize(); vegaViewCluster = null; }
-    if (vegaViewDominance) { vegaViewDominance.finalize(); vegaViewDominance = null; }
-    if (vegaViewDominanceHeatmap) { vegaViewDominanceHeatmap.finalize(); vegaViewDominanceHeatmap = null; }
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    if (vegaViewSunburst) {
+      vegaViewSunburst.finalize();
+      vegaViewSunburst = null;
+    }
+    if (vegaViewDist) {
+      vegaViewDist.finalize();
+      vegaViewDist = null;
+    }
+    if (vegaViewCluster) {
+      vegaViewCluster.finalize();
+      vegaViewCluster = null;
+    }
+    if (vegaViewDominance) {
+      vegaViewDominance.finalize();
+      vegaViewDominance = null;
+    }
+    if (vegaViewDominanceHeatmap) {
+      vegaViewDominanceHeatmap.finalize();
+      vegaViewDominanceHeatmap = null;
+    }
+    void renderSunburst();
+    void renderDistPanel();
   });
 });
 
@@ -1922,8 +1908,8 @@ function switchToClusteringTab() {
 
 function switchToDominanceTab() {
   activeTab.value = "dominance";
-  nextTick(() => {
-    computeDominanceAndRender();
+  void nextTick(() => {
+    void computeDominanceAndRender();
   });
 }
 
@@ -1943,83 +1929,70 @@ async function computeDominanceAndRender() {
       return;
     }
 
+    if (!statsData.value) return;
     const { ratings: allRatings, measures: allMeasures } = statsData.value;
 
     const munData = data.filter((ms) => ms.municipality?.localteam_id);
     const N = munData.length;
-    const ltIds = munData.map((ms) => ms.municipality.localteam_id);
+    const ltIds = munData.map((ms) => ms.municipality.localteam_id?.id);
     const names = munData.map((ms) => ms.municipality.name);
 
     // Build rating map per localteam: lt -> { measureId -> numeric 0-1 } (exclude N/A and null)
     const ltSet = new Set(ltIds);
-    const ratingMap = {};
+    const ratingMap: Record<string, Record<string, number>> = {};
     allRatings.forEach((r) => {
       if (!ltSet.has(r.localteam_id)) return;
       if (r.applicable === false || r.rating == null) return;
-      const v = parseFloat(r.rating);
+      const v = parseNumber(r.rating);
       if (isNaN(v)) return;
       if (!ratingMap[r.localteam_id]) ratingMap[r.localteam_id] = {};
-      ratingMap[r.localteam_id][r.measure_id] = v;
+      ratingMap[r.localteam_id]![r.measure_id] = v;
     });
 
     // Per-measure rating arrays indexed by municipality
     const measureIds = allMeasures.map((m) => m.id);
-    const ratingArrays = measureIds.map((mid) => ltIds.map((lt) => ratingMap[lt]?.[mid] ?? null));
+    const ratingArrays = measureIds.map((mid) => ltIds.map((lt) => ratingMap[lt ?? ""]?.[mid] ?? null));
 
-    // wins[i][j] = #measures where municipality i beat j
-    // compared[i][j] = #measures where both had a valid rating
-    const wins = Array.from({ length: N }, () => new Float32Array(N));
-    const compared = Array.from({ length: N }, () => new Float32Array(N));
-
-    for (const ratings of ratingArrays) {
-      for (let i = 0; i < N; i++) {
-        if (ratings[i] == null) continue;
-        for (let j = i + 1; j < N; j++) {
-          if (ratings[j] == null) continue;
-          compared[i][j]++;
-          compared[j][i]++;
-          if (ratings[i] > ratings[j]) wins[i][j]++;
-          else if (ratings[j] > ratings[i]) wins[j][i]++;
-        }
-      }
-    }
+    // matrixValue(wins, i, j) = #measures where municipality i beat j
+    // matrixValue(compared, i, j) = #measures where both had a valid rating
+    const { wins, compared } = pairwiseDominance(ratingArrays, N);
 
     // Win rate per municipality
     const winRates = Array.from({ length: N }, (_, i) => {
       let totalW = 0,
         totalC = 0;
       for (let j = 0; j < N; j++) {
-        totalW += wins[i][j];
-        totalC += compared[i][j];
+        totalW += matrixValue(wins, i, j);
+        totalC += matrixValue(compared, i, j);
       }
       return totalC > 0 ? totalW / totalC : 0;
     });
 
     // Sort indices by win rate descending
-    const sortedIdx = Array.from({ length: N }, (_, i) => i).sort((a, b) => winRates[b] - winRates[a]);
+    const sortedIdx = Array.from({ length: N }, (_, i) => i).sort((a, b) => (winRates[b] ?? 0) - (winRates[a] ?? 0));
 
     // Ranking data for bar chart
     const rankingData = sortedIdx.map((i, rank) => ({
-      name: names[i],
-      winRate: winRates[i],
-      wins: Array.from(wins[i]).reduce((s, v) => s + v, 0),
-      losses: Array.from({ length: N }, (_, j) => wins[j][i]).reduce((s, v) => s + v, 0),
+      name: names[i] ?? "",
+      winRate: winRates[i] ?? 0,
+      wins: Array.from(wins[i] ?? []).reduce((s, v) => s + v, 0),
+      losses: Array.from({ length: N }, (_, j) => matrixValue(wins, j, i)).reduce((s, v) => s + v, 0),
       rank: rank + 1,
     }));
 
     // Top 40 for heatmap, sorted by win rate → topNames defines display order
     const topN = Math.min(40, N);
     const topIdx = sortedIdx.slice(0, topN);
-    const topNames = topIdx.map((i) => names[i]);
+    const topNames = topIdx.map((i) => names[i] ?? "");
 
     const heatmapData = [];
     for (let ii = 0; ii < topN; ii++) {
       for (let jj = 0; jj < topN; jj++) {
         if (ii === jj) continue;
-        const i = topIdx[ii],
-          j = topIdx[jj];
-        const rate = compared[i][j] > 0 ? wins[i][j] / compared[i][j] : 0.5;
-        heatmapData.push({ row: names[i], col: names[j], rate });
+        const i = topIdx[ii]!,
+          j = topIdx[jj]!;
+        const rate = matrixValue(compared, i, j) > 0 ? matrixValue(wins, i, j) / matrixValue(compared, i, j) : 0.5;
+        heatmapData.push({ row: names[i] ?? "", col: names[j], rate });
       }
     }
 
@@ -2030,9 +2003,10 @@ async function computeDominanceAndRender() {
       vegaViewDominance.finalize();
       vegaViewDominance = null;
     }
+    if (!dominanceRankContainer.value) return;
     dominanceRankContainer.value.innerHTML = "";
 
-    const rankSpec = {
+    const rankSpec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: { step: 18 },
@@ -2069,7 +2043,11 @@ async function computeDominanceAndRender() {
       },
     };
 
-    const r1 = await vegaEmbed(dominanceRankContainer.value, rankSpec, vegaEmbedOpts());
+    const r1 = await vegaEmbed(dominanceRankContainer.value, themedVegaSpec(rankSpec), vegaEmbedOpts());
+    if (!dominanceRankContainer.value) {
+      r1.view.finalize();
+      return;
+    }
     vegaViewDominance = r1.view;
 
     // ── Dominance heatmap ──────────────────────────────────────────────────────
@@ -2077,10 +2055,11 @@ async function computeDominanceAndRender() {
       vegaViewDominanceHeatmap.finalize();
       vegaViewDominanceHeatmap = null;
     }
+    if (!dominanceHeatmapContainer.value) return;
     dominanceHeatmapContainer.value.innerHTML = "";
 
     const step = Math.max(10, Math.floor(500 / topN));
-    const heatSpec = {
+    const heatSpec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: { step },
       height: { step },
@@ -2115,7 +2094,11 @@ async function computeDominanceAndRender() {
       },
     };
 
-    const r2 = await vegaEmbed(dominanceHeatmapContainer.value, heatSpec, vegaEmbedOpts());
+    const r2 = await vegaEmbed(dominanceHeatmapContainer.value, themedVegaSpec(heatSpec), vegaEmbedOpts());
+    if (!dominanceHeatmapContainer.value) {
+      r2.view.finalize();
+      return;
+    }
     vegaViewDominanceHeatmap = r2.view;
 
     // ── Force-directed graph ──────────────────────────────────────────────────
@@ -2123,25 +2106,27 @@ async function computeDominanceAndRender() {
       vegaViewDominanceForce.finalize();
       vegaViewDominanceForce = null;
     }
+    if (!dominanceForceContainer.value) return;
     dominanceForceContainer.value.innerHTML = "";
 
     const { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide } = await import("d3-force");
+    if (!dominanceForceContainer.value) return;
 
-    const forceNodes = sortedIdx.map((i, pos) => ({
+    const forceNodes: ForceNode[] = sortedIdx.map((i, pos) => ({
       id: String(pos),
       rank: pos + 1,
-      name: names[i],
-      winRate: winRates[i],
+      name: names[i] ?? "",
+      winRate: winRates[i] ?? 0,
     }));
 
-    const forceLinks = [];
+    const forceLinks: ForceLink[] = [];
     for (let ii = 0; ii < N; ii++) {
       for (let jj = ii + 1; jj < N; jj++) {
-        const i = sortedIdx[ii];
-        const j = sortedIdx[jj];
-        if (compared[i][j] === 0) continue;
+        const i = sortedIdx[ii]!;
+        const j = sortedIdx[jj]!;
+        if (matrixValue(compared, i, j) === 0) continue;
 
-        const rateIJ = wins[i][j] / compared[i][j];
+        const rateIJ = matrixValue(wins, i, j) / matrixValue(compared, i, j);
         const dominance = Math.abs(rateIJ - 0.5) * 2;
         if (dominance < 0.08) continue;
 
@@ -2168,13 +2153,13 @@ async function computeDominanceAndRender() {
       .force("center", forceCenter(width / 2, height / 2))
       .force(
         "collide",
-        forceCollide()
+        forceCollide<ForceNode>()
           .radius((d) => 7 + d.winRate * 7)
           .iterations(2),
       )
       .force(
         "link",
-        forceLink(forceLinks)
+        forceLink<ForceNode, ForceLink>(forceLinks)
           .id((d) => d.id)
           .distance((d) => 140 - d.dominance * 95)
           .strength((d) => 0.08 + d.dominance * 0.35),
@@ -2205,7 +2190,7 @@ async function computeDominanceAndRender() {
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", String(height));
     svg.style.display = "block";
-    svg.style.background = isDark.value ? '#17212b' : 'white';
+    svg.style.background = isDark.value ? "#17212b" : "white";
 
     const linksGroup = document.createElementNS(ns, "g");
     const nodesGroup = document.createElementNS(ns, "g");
@@ -2226,7 +2211,7 @@ async function computeDominanceAndRender() {
       linksGroup.appendChild(line);
     });
 
-    const colorForWinRate = (r) => {
+    const colorForWinRate = (r: number) => {
       if (r < 0.38) return "#ef4444";
       if (r < 0.5) return "#f59e0b";
       if (r < 0.62) return "#60a5fa";
@@ -2250,8 +2235,8 @@ async function computeDominanceAndRender() {
 
       if (idx < forceNodes.length) {
         const label = document.createElementNS(ns, "text");
-        label.setAttribute("x", String(node.x + 7));
-        label.setAttribute("y", String(node.y - 7));
+        label.setAttribute("x", String((node.x ?? 0) + 7));
+        label.setAttribute("y", String((node.y ?? 0) - 7));
         label.setAttribute("font-size", "10");
         label.setAttribute("fill", "#374151");
         label.textContent = node.name;
@@ -2266,52 +2251,9 @@ async function computeDominanceAndRender() {
     vegaViewDominanceForce = null;
   } catch (e) {
     console.error("Dominance analysis error", e);
-    dominanceError.value = `Fehler beim Rendern: ${e?.message || e}`;
+    dominanceError.value = `Fehler beim Rendern: ${e instanceof Error ? e.message : "Unknown error"}`;
   }
 }
-function kMeans(points, k, iters = 100) {
-  // k-means++ init
-  const centroids = [points[Math.floor(Math.random() * points.length)]];
-  while (centroids.length < k) {
-    const dists = points.map((p) => Math.min(...centroids.map((c) => (p.x - c.x) ** 2 + (p.y - c.y) ** 2)));
-    const sum = dists.reduce((a, b) => a + b, 0);
-    if (sum === 0) {
-      centroids.push(points[Math.floor(Math.random() * points.length)]);
-      continue;
-    }
-    let r = Math.random() * sum;
-    let idx = 0;
-    while (r > 0 && idx < dists.length - 1) {
-      r -= dists[idx];
-      idx++;
-    }
-    centroids.push(points[idx]);
-  }
-  let labels = points.map(() => 0);
-  for (let iter = 0; iter < iters; iter++) {
-    labels = points.map(
-      (p) =>
-        centroids.reduce(
-          (best, c, ci) => {
-            const d = (p.x - c.x) ** 2 + (p.y - c.y) ** 2;
-            return d < best.d ? { ci, d } : best;
-          },
-          { ci: 0, d: Infinity },
-        ).ci,
-    );
-    for (let ci = 0; ci < k; ci++) {
-      const pts = points.filter((_, i) => labels[i] === ci);
-      if (pts.length) {
-        centroids[ci] = {
-          x: pts.reduce((s, p) => s + p.x, 0) / pts.length,
-          y: pts.reduce((s, p) => s + p.y, 0) / pts.length,
-        };
-      }
-    }
-  }
-  return labels;
-}
-
 async function computeClusteringAndRender() {
   clusteringError.value = "";
   if (!clusterContainer.value) return;
@@ -2326,24 +2268,25 @@ async function computeClusteringAndRender() {
   }
 
   // Build feature matrix: individual measure ratings + log(population)
+  if (!statsData.value) return;
   const { measures: allMeasures, ratings: allRatings } = statsData.value;
 
   // Ordered list of measure IDs used as feature columns
   const measureIds = allMeasures.map((m) => m.id);
 
   // Build lookup: localteam_id -> { measureId -> numeric score (0..1, -1 = N/A, null = missing) }
-  const ltRatingMap = {};
+  const ltRatingMap: Record<string, Record<string, number | null>> = {};
   allRatings.forEach((r) => {
     if (!ltRatingMap[r.localteam_id]) ltRatingMap[r.localteam_id] = {};
-    ltRatingMap[r.localteam_id][r.measure_id] =
-      r.applicable === false ? -1 : r.rating != null ? parseFloat(r.rating) : null;
+    ltRatingMap[r.localteam_id]![r.measure_id] =
+      r.applicable === false ? -1 : r.rating != null ? parseNumber(r.rating) : null;
   });
 
   const munItems = data
     .filter((ms) => ms.municipality?.localteam_id)
     .map((ms) => {
-      const lt = ms.municipality.localteam_id;
-      const munRatings = ltRatingMap[lt] ?? {};
+      const lt = ms.municipality.localteam_id?.id;
+      const munRatings = ltRatingMap[lt ?? ""] ?? {};
       // Measure scores: use actual rating (0..1), 0 for N/A or missing
       const measureVec = measureIds.map((mid) => {
         const v = munRatings[mid];
@@ -2353,7 +2296,7 @@ async function computeClusteringAndRender() {
       return {
         name: ms.municipality.name,
         slug: ms.municipality.slug,
-        scoreTotal: parseFloat(ms.score_total) || 0,
+        scoreTotal: parseNumber(ms.score_total) || 0,
         vec: measureVec,
       };
     });
@@ -2369,7 +2312,8 @@ async function computeClusteringAndRender() {
     const pca = new PCA(matrix, { center: true, scale: false });
     const projected = pca.predict(matrix, { nComponents: 2 }).to2DArray();
 
-    const points = projected.map((row) => ({ x: row[0], y: row[1] }));
+    const points = projected.map((row) => ({ x: row[0] ?? NaN, y: row[1] ?? NaN }));
+    if (points.some((p) => !Number.isFinite(p.x) || !Number.isFinite(p.y))) throw new Error("Invalid PCA projection");
     const clusterLabels = kMeans(points, kClusters.value);
 
     const palette = [
@@ -2387,16 +2331,16 @@ async function computeClusteringAndRender() {
     const rows = munItems.map((m, i) => ({
       name: m.name,
       slug: m.slug,
-      x: points[i].x,
-      y: points[i].y,
+      x: points[i]!.x,
+      y: points[i]!.y,
       scoreTotal: m.scoreTotal.toFixed(1),
-      cluster: `Cluster ${clusterLabels[i] + 1}`,
+      cluster: `Cluster ${clusterLabels[i]! + 1}`,
     }));
 
     const clusterDomain = Array.from({ length: kClusters.value }, (_, i) => `Cluster ${i + 1}`);
-    const clusterRange = clusterDomain.map((_, i) => palette[i % palette.length]);
+    const clusterRange = clusterDomain.map((_, i) => palette[i % palette.length]!);
 
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 460,
@@ -2426,20 +2370,25 @@ async function computeClusteringAndRender() {
       vegaViewCluster.finalize();
       vegaViewCluster = null;
     }
+    if (!clusterContainer.value) return;
     clusterContainer.value.innerHTML = "";
-    const result = await vegaEmbed(clusterContainer.value, spec, vegaEmbedOpts());
+    const result = await vegaEmbed(clusterContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!clusterContainer.value) {
+      result.view.finalize();
+      return;
+    }
     vegaViewCluster = result.view;
 
     // Store rows for profile lookup — keep slug for sector-score lookup
     clusterData.value = rows.map((r, i) => ({
       ...r,
-      slug: munItems[i].slug,
+      slug: munItems[i]!.slug,
     }));
 
     // Click on a point: show cluster profile
     result.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
-      const clickedCluster = item.datum.cluster;
+      const clickedCluster = statisticsDatum(item)?.cluster;
       if (!clickedCluster) return;
       const members = clusterData.value.filter((r) => r.cluster === clickedCluster);
       if (!members.length) return;
@@ -2447,13 +2396,13 @@ async function computeClusteringAndRender() {
       // Look up sector scores from the original filtered data (0-100 scale)
       const slugSet = new Set(members.map((m) => m.slug));
       const memberScores = filteredMunScores.value.filter((ms) => slugSet.has(ms.municipality?.slug));
-      const sectorMeans = {};
+      const sectorMeans: Partial<Record<Sector, number>> = {};
       sectorOrder.forEach((sk) => {
-        const vals = memberScores.map((ms) => parseFloat(ms[`score_${sk}`])).filter((v) => !isNaN(v));
+        const vals = memberScores.map((ms) => parseNumber(ms[`score_${sk}`])).filter((v) => !isNaN(v));
         sectorMeans[sk] = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
       });
 
-      const totals = members.map((m) => parseFloat(m.scoreTotal)).filter((v) => !isNaN(v));
+      const totals = members.map((m) => parseNumber(m.scoreTotal)).filter((v) => !isNaN(v));
       const avgTotal = totals.length ? (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(1) : "–";
       clusterProfile.value = {
         clusterLabel: clickedCluster,
@@ -2465,7 +2414,7 @@ async function computeClusteringAndRender() {
     });
   } catch (e) {
     console.error("Cluster error", e);
-    clusteringError.value = `Fehler: ${e.message}`;
+    clusteringError.value = `Fehler: ${e instanceof Error ? e.message : "Unknown error"}`;
   }
 }
 
@@ -2474,11 +2423,14 @@ const isSmall = ref(false);
 function updateIsSmall() {
   isSmall.value = window.innerWidth < 640;
 }
-const expandedSectorKey = ref(null);
+const expandedSectorKey = ref<Sector | null>(null);
 const showListView = ref(false);
 
 const allSectorsOrdered = computed(() =>
-  sectorOrder.map((k) => sectorStats.value.find((s) => s.sectorKey === k)).filter(Boolean),
+  sectorOrder.flatMap((k) => {
+    const sector = sectorStats.value.find((s) => s.sectorKey === k);
+    return sector ? [sector] : [];
+  }),
 );
 
 const sunburstSelectionLink = computed(() => {
@@ -2498,7 +2450,7 @@ const sunburstSelectionLink = computed(() => {
 
 const sectorMeanScores = computed(() => {
   const mmr = meanMeasureRatings.value;
-  const result = new Map();
+  const result = new Map<string, number | null>();
   for (const sector of sectorStats.value) {
     const vals = Object.keys(sector.measures)
       .map((id) => mmr.get(id))
@@ -2525,25 +2477,25 @@ watch(
 // Re-render when switching away from small mode
 watch(isSmall, (small) => {
   if (!small)
-    nextTick(() => {
-      renderSunburst();
-      renderDistPanel();
+    void nextTick(() => {
+      void renderSunburst();
+      void renderDistPanel();
     });
 });
 
 // Re-render sunburst when switching to diagram view (container was hidden when last render ran)
 watch(showListView, (listView) => {
-  if (!listView) nextTick(() => renderSunburst());
+  if (!listView) void nextTick(() => renderSunburst());
 });
 
 // On mobile, re-render the plot when switching to the 'plot' tab because the container was
 // hidden (display:none) when Vega last rendered, causing it to measure 0 width.
 watch(mobileMeasuresTab, (tab) => {
-  if (tab === "plot") nextTick(() => renderDistPanel());
-  if (tab === "selection") nextTick(() => renderSunburst());
+  if (tab === "plot") void nextTick(() => renderDistPanel());
+  if (tab === "selection") void nextTick(() => renderSunburst());
 });
 
-function onChooserSectorClick(sector) {
+function onChooserSectorClick(sector: SectorStats) {
   const key = sector.sectorKey;
   // Toggle expand; always update selection
   expandedSectorKey.value = expandedSectorKey.value === key ? null : key;
@@ -2551,28 +2503,22 @@ function onChooserSectorClick(sector) {
   clearPanelMunFilter();
   if (isSmall.value) {
     mobileMeasuresTab.value = "plot";
-  } else {
-    // Switch to sunburst view so it's visible when we re-render
-    showListView.value = false;
   }
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 
-function onChooserMeasureClick(measure, sectorKey) {
+function onChooserMeasureClick(measure: Pick<Measure, "id" | "name">, sectorKey: Sector) {
   sunburstSelection.value = { type: "measure", sectorKey, measureId: measure.id, label: measure.name };
   clearPanelMunFilter();
   if (isSmall.value) {
     mobileMeasuresTab.value = "plot";
-  } else {
-    // Switch to sunburst view so it's visible when we re-render
-    showListView.value = false;
   }
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 
@@ -2582,16 +2528,16 @@ onMounted(async () => {
   window.addEventListener("resize", updateIsSmall);
   window.addEventListener("keydown", handleArrowKey);
 
-  statsData.value = await fetchStatsForCatalog(selectedCatalogVersion.value.id);
-  statsLoading.value = false;
+  await refreshStatistics(selectedCatalogVersion.value.id);
 
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 });
 
 onBeforeUnmount(() => {
+  statsGeneration++;
   window.removeEventListener("resize", updateIsSmall);
   window.removeEventListener("keydown", handleArrowKey);
   if (vegaViewSunburst) vegaViewSunburst.finalize();
@@ -2603,17 +2549,16 @@ onBeforeUnmount(() => {
 });
 
 // ── Catalog version change ───────────────────────────────────────────────────
-async function onCatalogVersionChange(newId) {
+async function onCatalogVersionChange(newId: string) {
   const newVersion = catalogVersions.value.find((v) => v.id === newId);
   if (!newVersion) return;
   selectedCatalogVersionId.value = newId;
   selectedCatalogVersion.value = newVersion;
-  router.replace({ query: { ...route.query, v: newVersion.name } });
+  void router.replace({ query: { ...route.query, v: newVersion.name } });
   filterState.value = null;
   filterType.value = null;
-  statsLoading.value = true;
-  statsData.value = await fetchStatsForCatalog(newVersion.id);
-  statsLoading.value = false;
+  await refreshStatistics(newVersion.id);
+  if (selectedCatalogVersion.value.id !== newVersion.id) return;
   if (vegaViewSunburst) {
     vegaViewSunburst.finalize();
     vegaViewSunburst = null;
@@ -2637,9 +2582,9 @@ async function onCatalogVersionChange(newId) {
     sectorKey: null,
     binRange: null,
   };
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
+  void nextTick(() => {
+    void renderSunburst();
+    void renderDistPanel();
   });
 }
 </script>

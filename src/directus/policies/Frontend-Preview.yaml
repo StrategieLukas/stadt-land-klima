@@ -1,0 +1,15 @@
+name: Frontend-Preview
+icon: key
+description: Read only municipality identity and preview credential; never assign to a browser or content service
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: municipalities
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - preview_token

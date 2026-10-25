@@ -20,6 +20,7 @@ permissions:
       - id
       - candidate
       - question
+      - response
       - explanation
       - date_created
       - date_updated
@@ -29,8 +30,20 @@ permissions:
       localteam:
         _in:
           - $CURRENT_USER.localteams.localteam_id
-    validation: null
-    presets: null
+    validation:
+      _and:
+        - election:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id.elections.id
+        - salutation:
+            _nnull: true
+        - salutation:
+            _in:
+              - frau
+              - herr
+              - neutral
+    presets:
+      salutation: null
     fields:
       - id
       - name
@@ -145,12 +158,18 @@ permissions:
   - collection: elections
     action: create
     permissions: {}
-    validation: {}
+    validation:
+      localteam:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id
     presets: null
     fields:
       - descriptor
       - candidate_email_reply_to
       - custom_logo
+      - is_party_election
+      - sharepic
+      - sharepic_dark
       - response_cutoff_date
       - localteam
   - collection: elections
@@ -177,15 +196,20 @@ permissions:
     presets: null
     fields:
       - id
+      - is_party_election
       - response_cutoff_date
       - candidate_email_reply_to
       - date_created
       - custom_logo
+      - sharepic
+      - sharepic_dark
       - descriptor
       - date_updated
       - localteam
       - action_buttons
       - already_sent_mails
+      - already_sent_reminder_mails
+      - already_sent_thank_you_mails
       - already_generated_questions
       - review_requested
       - prefill_trigger
@@ -203,9 +227,12 @@ permissions:
     presets: null
     fields:
       - descriptor
+      - is_party_election
       - response_cutoff_date
       - candidate_email_reply_to
       - custom_logo
+      - sharepic
+      - sharepic_dark
       - is_public
   - collection: measure_catalog
     action: read
@@ -270,8 +297,11 @@ permissions:
       - notes
   - collection: questions
     action: create
-    permissions: null
-    validation: null
+    permissions: {}
+    validation:
+      election:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id.elections.id
     presets:
       localteam: "{{$CURRENT_USER.localteams[0].localteam_id}}"
     fields:

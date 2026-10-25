@@ -1,0 +1,41 @@
+collection: success_project_tour_stops
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: success_project_tour_stops
+  color: null
+  display_template: '{{title}}'
+  group: success_projects
+  hidden: false
+  icon: pin_drop
+  item_duplication_fields:
+  - title
+  - status
+  - slug
+  - start_date
+  - end_date
+  - location
+  - event_type
+  - event_category
+  - description
+  - image
+  - registration_url
+  note: Veranstaltungskalender für Konferenzen, Workshops und Webinare
+  preview_url: null
+  singleton: false
+  sort: 7
+  sort_field: sort
+  translations:
+  - language: de-DE
+    translation: Tourstopps
+  - language: en-GB
+    translation: Tour stops
+  - language: it-IT
+    translation: Tappe del tour
+  unarchive_value: draft
+  versioning: false
+schema:
+  name: success_project_tour_stops

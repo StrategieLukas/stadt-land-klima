@@ -1,0 +1,70 @@
+name: Frontend-Tour-Reports
+icon: newspaper
+description: Published tour report fields and media
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+- collection: news_items
+  action: read
+  permissions:
+    status:
+      _eq: published
+    is_tour_redirect:
+      _eq: true
+    tour_stop:
+      status:
+        _eq: published
+      tour:
+        status:
+          _eq: published
+  validation: {}
+  presets: null
+  fields:
+  - id
+  - slug
+  - status
+  - is_tour_redirect
+  - tour_stop
+- collection: success_project_tour_media
+  action: read
+  permissions:
+    stop:
+      status:
+        _eq: published
+      tour:
+        status:
+          _eq: published
+      report_status:
+        _eq: published
+  validation: {}
+  presets: null
+  fields:
+  - id
+  - stop
+  - file
+  - poster
+  - sort
+  - alt
+  - caption
+  - credit
+- collection: success_project_tour_stops
+  action: read
+  permissions:
+    status:
+      _eq: published
+    tour:
+      status:
+        _eq: published
+    report_status:
+      _eq: published
+  validation: {}
+  presets: null
+  fields:
+  - report_title
+  - teaser
+  - author
+  - date_published
+  - image
+  - image_credits
+  - media

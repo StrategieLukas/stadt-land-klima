@@ -1,0 +1,33 @@
+collection: articles
+field: tour_stops
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{stop.title}}'
+  field: tour_stops
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: null
+  options:
+    enableCreate: false
+    template: '{{stop.title}}'
+  readonly: true
+  required: false
+  searchable: true
+  sort: 35
+  special:
+  - m2m
+  translations:
+  - language: de-DE
+    translation: Tourstopps
+  - language: en-GB
+    translation: Tour stops
+  - language: it-IT
+    translation: Tappe del tour
+  validation: null
+  validation_message: null
+  width: full

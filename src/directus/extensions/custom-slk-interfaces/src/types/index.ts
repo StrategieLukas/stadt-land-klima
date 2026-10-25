@@ -1,4 +1,4 @@
-import type { DefineComponent } from 'vue';
+import type { Component } from "vue";
 
 // Directus Extension Interface Configuration
 export interface DirectusInterfaceConfig {
@@ -6,7 +6,7 @@ export interface DirectusInterfaceConfig {
   name: string;
   icon?: string;
   description?: string;
-  component: DefineComponent;
+  component: Component;
   types: string[];
   group?: string;
   localTypes?: string[];

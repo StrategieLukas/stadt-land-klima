@@ -67,6 +67,42 @@ meta:
         foreground: "#ffffff"
         text: Tierschutzpartei
         value: Tierschutzpartei
+      - background: "#ffa600"
+        foreground: "#000000"
+        text: Partei des Fortschritts
+        value: ParteiDesFortschritts
+      - background: "#01cdfe"
+        foreground: "#000000"
+        text: Tierschutzallianz
+        value: Tierschutzallianz
+      - background: "#004001"
+        foreground: "#ffffff"
+        text: Gartenpartei
+        value: Gartenpartei
+      - background: "#ee225a"
+        foreground: "#ffffff"
+        text: Humanisten
+        value: Humanisten
+      - background: "#266e7a"
+        foreground: "#ffffff"
+        text: Losdemokratie
+        value: Losdemokratie
+      - background: "#10104f"
+        foreground: "#ffffff"
+        text: Freie Bürgerliche Union
+        value: FBU
+      - background: "#00529c"
+        foreground: "#ffffff"
+        text: Bündnis C
+        value: BuendnisC
+      - background: "#f79707"
+        foreground: "#000000"
+        text: Handwerkerpartei
+        value: Handwerkerpartei
+      - background: "#d2175e"
+        foreground: "#ffffff"
+        text: Lobbyisten für Kinder
+        value: LobbyistenFuerKinder
   field: party
   group: null
   hidden: false
@@ -106,6 +142,24 @@ meta:
         value: Klimaliste
       - text: Tierschutzpartei
         value: Tierschutzpartei
+      - text: Partei des Fortschritts
+        value: ParteiDesFortschritts
+      - text: Tierschutzallianz
+        value: Tierschutzallianz
+      - text: Gartenpartei
+        value: Gartenpartei
+      - text: Humanisten
+        value: Humanisten
+      - text: Losdemokratie
+        value: Losdemokratie
+      - text: Freie Bürgerliche Union
+        value: FBU
+      - text: Bündnis C
+        value: BuendnisC
+      - text: Handwerkerpartei
+        value: Handwerkerpartei
+      - text: Lobbyisten für Kinder
+        value: LobbyistenFuerKinder
   readonly: false
   required: true
   searchable: true

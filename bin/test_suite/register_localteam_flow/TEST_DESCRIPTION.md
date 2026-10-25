@@ -10,19 +10,22 @@
 8. Solve the real Altcha widget in the browser.
 9. Submit the form and verify `/api/register-municipality` succeeds.
 10. Verify the success state shows:
-   - `Durchstarten!`
-   - `Account erstellen`
-   - `Lokalteam anlegen`
-   - `Passwort-E-Mail versenden`
-   - `Aktivierungs-E-Mail`
-   - the submitted email
-   - the selected municipality
+
+- `Durchstarten!`
+- `Account erstellen`
+- `Lokalteam anlegen`
+- `Passwort-E-Mail versenden`
+- `Aktivierungs-E-Mail`
+- the submitted email
+- the selected municipality
+
 11. Verify no visible registration error and no browser console/page errors occur.
-12. Verify Directus created an active, unverified `LokalteamAdmin` user with the submitted contact data.
+12. Verify Directus created an active, unverified `LokalteamAdmin` user with the submitted contact data and persisted the exact role assignment.
 13. Verify Directus created a draft localteam named `Stadt.Land.Klima! <new-test-municipality>`.
 14. Verify the localteam admin is the created user.
 15. Verify exactly one user/localteam junction exists for the created user and localteam.
 16. Verify the generated municipality is linked to the localteam, keeps the selected name, has the selected ARS, is unverified, and has a preview token.
+17. Verify the Directus municipality preview metadata and clickable presentation link use the configured `FRONTEND_BASE_URL`.
 
 # Join An Existing Localteam
 
@@ -42,6 +45,8 @@
 2. Verify an unpublished current-backend rating above 0% shows `Lokalteam aktiv - Bewertung läuft`.
 3. Verify a published current-backend rating shows `Bewertung abgeschlossen` even when its percentage is 0%.
 4. Verify a stale `slug` URL parameter cannot create an existing-team state for an ARS without a team.
+5. Verify a localteam admin's `verified` state propagates to `municipalities.creator_verified` in both directions.
+6. Verify a separately verified localteam member can publish while the localteam admin preview flag remains false, and an unverified member cannot publish.
 
 # Ask User To Verify
 

@@ -59,13 +59,7 @@
             <h3>Gerade aktiv</h3>
             <p>Teams mit frischen Änderungen im ausgewählten Zeitraum.</p>
           </div>
-          <button
-            class="text-button"
-            type="button"
-            @click="activeTab = 'recent'"
-          >
-            Aktivitätsansicht öffnen
-          </button>
+          <button class="text-button" type="button" @click="activeTab = 'recent'">Aktivitätsansicht öffnen</button>
         </div>
 
         <div class="signal-grid">
@@ -78,15 +72,10 @@
           >
             <span class="signal-dot" :class="activityToneClass(team)" />
             <strong>{{ team.name }}</strong>
-            <small
-              >{{ team.activityCount }} Änderungen ·
-              {{ relativeDate(team.lastActivity) }}</small
-            >
+            <small>{{ team.activityCount }} Änderungen · {{ relativeDate(team.lastActivity) }}</small>
           </button>
 
-          <div v-if="recentTeams.length === 0" class="empty-card">
-            Keine Aktivität im ausgewählten Zeitraum.
-          </div>
+          <div v-if="recentTeams.length === 0" class="empty-card">Keine Aktivität im ausgewählten Zeitraum.</div>
         </div>
       </section>
 
@@ -96,16 +85,10 @@
             <div>
               <h3>Aktivität über Zeit</h3>
               <p>
-                {{
-                  summary.meta.bucket === "week"
-                    ? "Wochenansicht"
-                    : "Tagesansicht"
-                }}
+                {{ summary.meta.bucket === "week" ? "Wochenansicht" : "Tagesansicht" }}
               </p>
             </div>
-            <span class="section-badge"
-              >{{ firstTimelineLabel }} bis {{ lastTimelineLabel }}</span
-            >
+            <span class="section-badge">{{ firstTimelineLabel }} bis {{ lastTimelineLabel }}</span>
           </div>
 
           <svg
@@ -132,11 +115,7 @@
           </div>
 
           <div class="catalog-list">
-            <div
-              v-for="catalog in summary.catalogAdoption"
-              :key="catalog.id"
-              class="catalog-row"
-            >
+            <div v-for="catalog in summary.catalogAdoption" :key="catalog.id" class="catalog-row">
               <div class="catalog-title">
                 <span>{{ catalog.name }}</span>
                 <v-chip v-if="catalog.isCurrentFrontend" small>Aktuell</v-chip>
@@ -160,20 +139,12 @@
       <section class="mail-section panel-card">
         <div>
           <h3>Nachricht vorbereiten</h3>
-          <p>
-            Betreff und Text werden für Sammelmails oder einzelne Teams
-            verwendet.
-          </p>
+          <p>Betreff und Text werden für Sammelmails oder einzelne Teams verwendet.</p>
         </div>
 
         <div class="mail-fields">
           <v-input v-model="mailSubject" placeholder="Betreff" />
-          <textarea
-            v-model="mailBody"
-            class="mail-body"
-            rows="4"
-            placeholder="Nachricht"
-          />
+          <textarea v-model="mailBody" class="mail-body" rows="4" placeholder="Nachricht" />
         </div>
 
         <div class="mail-actions">
@@ -186,11 +157,7 @@
             <v-icon name="content_copy" />
             E-Mails der Ansicht kopieren
           </button>
-          <a
-            class="action-button"
-            :class="{ disabled: activeEmails.length === 0 }"
-            :href="mailtoFor(activeEmails)"
-          >
+          <a class="action-button" :class="{ disabled: activeEmails.length === 0 }" :href="mailtoFor(activeEmails)">
             <v-icon name="mail" />
             Sammelmail öffnen
           </a>
@@ -202,16 +169,9 @@
           <div class="section-head stacked-head">
             <div>
               <h3>Lokalteams</h3>
-              <p>
-                Standardmäßig nach höchstem Fortschritt sortiert.
-                Spaltenüberschriften ändern die Sortierung.
-              </p>
+              <p>Standardmäßig nach höchstem Fortschritt sortiert. Spaltenüberschriften ändern die Sortierung.</p>
             </div>
-            <v-input
-              v-model="searchTerm"
-              class="search-input"
-              placeholder="Team suchen"
-            />
+            <v-input v-model="searchTerm" class="search-input" placeholder="Team suchen" />
           </div>
 
           <div class="tabs" role="tablist" aria-label="Teamansicht">
@@ -229,36 +189,20 @@
           </div>
 
           <div class="team-table">
-            <div class="table-row table-head">
-              <button
-                class="sort-button"
-                type="button"
-                @click="setSort('name')"
-              >
+            <div class="table-head table-row">
+              <button class="sort-button" type="button" @click="setSort('name')">
                 Lokalteam
                 <span>{{ sortIndicator("name") }}</span>
               </button>
-              <button
-                class="sort-button"
-                type="button"
-                @click="setSort('progress')"
-              >
+              <button class="sort-button" type="button" @click="setSort('progress')">
                 Fortschritt
                 <span>{{ sortIndicator("progress") }}</span>
               </button>
-              <button
-                class="sort-button"
-                type="button"
-                @click="setSort('activity')"
-              >
+              <button class="sort-button" type="button" @click="setSort('activity')">
                 Letzte Aktivität
                 <span>{{ sortIndicator("activity") }}</span>
               </button>
-              <button
-                class="sort-button"
-                type="button"
-                @click="setSort('members')"
-              >
+              <button class="sort-button" type="button" @click="setSort('members')">
                 Mitglieder
                 <span>{{ sortIndicator("members") }}</span>
               </button>
@@ -267,23 +211,18 @@
             <button
               v-for="team in filteredTeams"
               :key="team.id"
-              class="table-row team-row"
+              class="team-row table-row"
               :class="{ selected: selectedTeam?.id === team.id }"
               type="button"
               @click="selectTeam(team.id)"
             >
               <span class="team-name">
                 <strong>{{ team.name }}</strong>
-                <small
-                  >{{ statusLabel(team.status) }} ·
-                  {{ locationLabel(team) }}</small
-                >
+                <small>{{ statusLabel(team.status) }} · {{ locationLabel(team) }}</small>
               </span>
 
               <span class="progress-cell">
-                <span class="progress-label"
-                  >{{ team.currentCatalogProgress }} %</span
-                >
+                <span class="progress-label">{{ team.currentCatalogProgress }} %</span>
                 <span class="progress-track compact">
                   <span
                     :class="progressClass(team.currentCatalogProgress)"
@@ -302,9 +241,7 @@
               <span class="members-cell">{{ team.memberCount }} Personen</span>
             </button>
 
-            <div v-if="filteredTeams.length === 0" class="empty">
-              Keine Teams für diese Auswahl gefunden.
-            </div>
+            <div v-if="filteredTeams.length === 0" class="empty">Keine Teams für diese Auswahl gefunden.</div>
           </div>
         </div>
 
@@ -359,25 +296,16 @@
             </div>
 
             <div class="reason-list">
-              <v-chip
-                v-for="reason in selectedTeam.attentionReasons"
-                :key="reason.type"
-                small
-              >
+              <v-chip v-for="reason in selectedTeam.attentionReasons" :key="reason.type" small>
                 {{ reason.label }}
               </v-chip>
-              <v-chip v-if="selectedTeam.attentionReasons.length === 0" small>
-                Kein akuter Handlungsbedarf
-              </v-chip>
+              <v-chip v-if="selectedTeam.attentionReasons.length === 0" small> Kein akuter Handlungsbedarf </v-chip>
             </div>
 
             <section class="detail-block">
               <h4>Empfohlene nächste Schritte</h4>
               <ul class="recommendations">
-                <li
-                  v-for="recommendation in recommendationsFor(selectedTeam)"
-                  :key="recommendation"
-                >
+                <li v-for="recommendation in recommendationsFor(selectedTeam)" :key="recommendation">
                   {{ recommendation }}
                 </li>
               </ul>
@@ -388,23 +316,16 @@
               <div class="member-list">
                 <div
                   v-for="member in selectedTeam.members"
-                  :key="member.id || member.email"
+                  :key="member.id || member.email || member.name"
                   class="member-row"
                 >
                   <div>
                     <strong>{{ member.name }}</strong>
-                    <small>{{
-                      member.email || "Keine E-Mail hinterlegt"
-                    }}</small>
+                    <small>{{ member.email || "Keine E-Mail hinterlegt" }}</small>
                   </div>
                   <v-chip v-if="member.isAdmin" small>Teamleitung</v-chip>
                 </div>
-                <div
-                  v-if="selectedTeam.members.length === 0"
-                  class="empty-inline"
-                >
-                  Keine Mitglieder hinterlegt.
-                </div>
+                <div v-if="selectedTeam.members.length === 0" class="empty-inline">Keine Mitglieder hinterlegt.</div>
               </div>
             </section>
 
@@ -417,24 +338,16 @@
                 >
                   <span>{{ relativeDate(activity.timestamp) }}</span>
                   <strong>{{ actionLabel(activity.action) }}</strong>
-                  <small
-                    >{{ activity.measureName || "Maßnahme ohne Namen" }} ·
-                    {{ activity.userName }}</small
-                  >
+                  <small>{{ activity.measureName || "Maßnahme ohne Namen" }} · {{ activity.userName }}</small>
                 </li>
               </ol>
-              <div
-                v-if="selectedTeam.recentActivity.length === 0"
-                class="empty-inline"
-              >
+              <div v-if="selectedTeam.recentActivity.length === 0" class="empty-inline">
                 Keine Änderungen im ausgewählten Zeitraum.
               </div>
             </section>
           </template>
 
-          <div v-else class="empty-detail">
-            Wähle ein Lokalteam aus, um Details zu sehen.
-          </div>
+          <div v-else class="empty-detail">Wähle ein Lokalteam aus, um Details zu sehen.</div>
         </aside>
       </section>
     </template>
@@ -513,15 +426,7 @@ interface TeamSummary {
   attentionReasons: Array<{ type: string; label: string }>;
 }
 
-type TabKey =
-  | "all"
-  | "attention"
-  | "byActivity"
-  | "stalling"
-  | "catalogLag"
-  | "spurious"
-  | "mostActive"
-  | "recent";
+type TabKey = "all" | "attention" | "byActivity" | "stalling" | "catalogLag" | "spurious" | "mostActive" | "recent";
 type SortDirection = "asc" | "desc";
 type SortKey = "activity" | "members" | "name" | "progress";
 
@@ -564,10 +469,7 @@ export default defineComponent({
         });
         summary.value = response.data;
       } catch (err: any) {
-        error.value =
-          err?.response?.data?.error ??
-          err?.message ??
-          "Dashboard konnte nicht geladen werden.";
+        error.value = err?.response?.data?.error ?? err?.message ?? "Dashboard konnte nicht geladen werden.";
       } finally {
         loading.value = false;
       }
@@ -628,28 +530,17 @@ export default defineComponent({
       }));
     });
 
-    const activityLinePoints = computed(() =>
-      timelinePoints.value.map((point) => `${point.x},${point.y}`).join(" "),
-    );
+    const activityLinePoints = computed(() => timelinePoints.value.map((point) => `${point.x},${point.y}`).join(" "));
     const activityAreaPoints = computed(() => {
       const points = timelinePoints.value;
       if (points.length === 0) return "";
       return `0,180 ${points.map((point) => `${point.x},${point.y}`).join(" ")} 640,180`;
     });
 
-    const firstTimelineLabel = computed(
-      () => summary.value?.timeline[0]?.bucket ?? "",
-    );
-    const lastTimelineLabel = computed(
-      () => summary.value?.timeline.at(-1)?.bucket ?? "",
-    );
-    const currentCatalogLabel = computed(
-      () =>
-        summary.value?.meta.currentCatalog?.name ?? "Kein aktueller Katalog",
-    );
-    const generatedAtLabel = computed(() =>
-      formatDateTime(summary.value?.meta.generatedAt ?? null),
-    );
+    const firstTimelineLabel = computed(() => summary.value?.timeline[0]?.bucket ?? "");
+    const lastTimelineLabel = computed(() => summary.value?.timeline.at(-1)?.bucket ?? "");
+    const currentCatalogLabel = computed(() => summary.value?.meta.currentCatalog?.name ?? "Kein aktueller Katalog");
+    const generatedAtLabel = computed(() => formatDateTime(summary.value?.meta.generatedAt ?? null));
 
     const tabs = computed(() => {
       const teams = summary.value?.teams;
@@ -692,9 +583,7 @@ export default defineComponent({
       ];
     });
 
-    const activeTeams = computed(
-      () => summary.value?.teams[activeTab.value] ?? [],
-    );
+    const activeTeams = computed(() => summary.value?.teams[activeTab.value] ?? []);
     const sortedTeams = computed(() => {
       const direction = sortDirection.value === "desc" ? -1 : 1;
       return [...activeTeams.value].sort((a, b) => {
@@ -703,28 +592,16 @@ export default defineComponent({
         }
 
         if (sortKey.value === "members") {
-          return (
-            direction *
-            (a.memberCount - b.memberCount || a.name.localeCompare(b.name))
-          );
+          return direction * (a.memberCount - b.memberCount || a.name.localeCompare(b.name));
         }
 
         if (sortKey.value === "activity") {
           const aTime = new Date(a.lastActivity ?? 0).getTime();
           const bTime = new Date(b.lastActivity ?? 0).getTime();
-          return (
-            direction *
-            (aTime - bTime ||
-              a.activityCount - b.activityCount ||
-              a.name.localeCompare(b.name))
-          );
+          return direction * (aTime - bTime || a.activityCount - b.activityCount || a.name.localeCompare(b.name));
         }
 
-        return (
-          direction *
-          (a.currentCatalogProgress - b.currentCatalogProgress ||
-            a.name.localeCompare(b.name))
-        );
+        return direction * (a.currentCatalogProgress - b.currentCatalogProgress || a.name.localeCompare(b.name));
       });
     });
     const filteredTeams = computed(() => {
@@ -735,9 +612,7 @@ export default defineComponent({
           `${member.name} ${member.email ?? ""}`.toLowerCase().includes(query),
         );
         return (
-          `${team.name} ${team.localteamName ?? ""} ${team.state ?? ""}`
-            .toLowerCase()
-            .includes(query) || memberMatch
+          `${team.name} ${team.localteamName ?? ""} ${team.state ?? ""}`.toLowerCase().includes(query) || memberMatch
         );
       });
     });
@@ -748,9 +623,7 @@ export default defineComponent({
         allTeams.value[0] ??
         null,
     );
-    const activeEmails = computed(() => [
-      ...new Set(filteredTeams.value.flatMap((team) => team.contactEmails)),
-    ]);
+    const activeEmails = computed(() => [...new Set(filteredTeams.value.flatMap((team) => team.contactEmails))]);
 
     function selectTeam(id: string) {
       selectedTeamId.value = id;
@@ -823,10 +696,7 @@ export default defineComponent({
       if (!value) return "keine Aktivität";
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return "unbekannt";
-      const daysAgo = Math.max(
-        0,
-        Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000)),
-      );
+      const daysAgo = Math.max(0, Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000)));
       if (daysAgo === 0) return "heute";
       if (daysAgo === 1) return "gestern";
       return `vor ${daysAgo} Tagen`;
@@ -844,9 +714,7 @@ export default defineComponent({
     function locationLabel(team: TeamSummary) {
       const parts = [
         team.state,
-        team.population
-          ? `${new Intl.NumberFormat("de-DE").format(team.population)} Ew.`
-          : null,
+        team.population ? `${new Intl.NumberFormat("de-DE").format(team.population)} Ew.` : null,
       ].filter(Boolean);
       return parts.join(" · ") || "Ort ohne Zusatzdaten";
     }
@@ -872,44 +740,21 @@ export default defineComponent({
       const recommendations: string[] = [];
 
       if (team.memberCount === 0)
-        recommendations.push(
-          "Mitgliederzuordnung prüfen, damit das Lokalteam erreichbar ist.",
-        );
+        recommendations.push("Mitgliederzuordnung prüfen, damit das Lokalteam erreichbar ist.");
       if (team.contactEmails.length === 0)
-        recommendations.push(
-          "Kontaktadresse ergänzen, sonst sind Nachfragen nicht möglich.",
-        );
+        recommendations.push("Kontaktadresse ergänzen, sonst sind Nachfragen nicht möglich.");
       if (team.currentCatalogProgress < 25)
-        recommendations.push(
-          "Einstiegshilfe anbieten und die nächsten drei Maßnahmen gemeinsam priorisieren.",
-        );
+        recommendations.push("Einstiegshilfe anbieten und die nächsten drei Maßnahmen gemeinsam priorisieren.");
       if (team.attentionReasons.some((reason) => reason.type === "stalling"))
-        recommendations.push(
-          "Kurz nachfragen, ob Recherche, Quellen oder Rollenverteilung blockieren.",
-        );
-      if (
-        team.attentionReasons.some(
-          (reason) => reason.type === "catalog_adoption",
-        )
-      )
-        recommendations.push(
-          "Beim Katalogwechsel unterstützen und offene Maßnahmen aus dem alten Katalog übertragen.",
-        );
+        recommendations.push("Kurz nachfragen, ob Recherche, Quellen oder Rollenverteilung blockieren.");
+      if (team.attentionReasons.some((reason) => reason.type === "catalog_adoption"))
+        recommendations.push("Beim Katalogwechsel unterstützen und offene Maßnahmen aus dem alten Katalog übertragen.");
       if (team.topUserShare >= 80 && team.activityCount >= 5)
-        recommendations.push(
-          "Arbeit auf mehrere Personen verteilen, damit das Team stabiler wird.",
-        );
-      if (
-        team.activitySignal.key === "today" ||
-        team.activitySignal.key === "week"
-      )
-        recommendations.push(
-          "Aktivität zeitnah wertschätzen und bei offenen Fragen direkt reagieren.",
-        );
+        recommendations.push("Arbeit auf mehrere Personen verteilen, damit das Team stabiler wird.");
+      if (team.activitySignal.key === "today" || team.activitySignal.key === "week")
+        recommendations.push("Aktivität zeitnah wertschätzen und bei offenen Fragen direkt reagieren.");
       if (recommendations.length === 0)
-        recommendations.push(
-          "Kein akuter Handlungsbedarf. Beim nächsten Check-in kurz bestätigen.",
-        );
+        recommendations.push("Kein akuter Handlungsbedarf. Beim nächsten Check-in kurz bestätigen.");
 
       return recommendations;
     }
@@ -1429,10 +1274,9 @@ textarea {
 
 .table-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1.45fr) minmax(120px, 0.75fr) minmax(
-      140px,
-      0.8fr
-    ) minmax(88px, 0.45fr);
+  grid-template-columns:
+    minmax(180px, 1.45fr) minmax(120px, 0.75fr) minmax(140px, 0.8fr)
+    minmax(88px, 0.45fr);
   gap: 16px;
   align-items: center;
   width: 100%;

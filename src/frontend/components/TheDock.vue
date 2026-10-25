@@ -1,26 +1,29 @@
 <template>
-  <div class="dock dock-xl border-gray-200 flex items-center justify-around border-t bg-white text-black">
+  <div class="slk-dock flex items-center justify-around border-t border-gray-200 bg-white text-black">
     <button
-      v-for="page in pages"
+      v-for="page in navigationPages"
       :key="page.id"
-      :class="{ 'dock-active': isPageActive(page.slug) }"
+      :class="{ 'slk-dock-active': isPageActive(page.slug) }"
+      class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
       @click="
         followLink(page.slug);
         closeDrawer();
       "
-      class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
     >
-      <div class="size-[3em]">
-        <div v-html="page.icon_svg"></div>
+      <div class="size-[3em]" aria-hidden="true">
+        <!-- eslint-disable-next-line vue/no-v-html -- navigationPages sanitizes CMS icons through sanitizeSvg. -->
+        <div class="h-full w-full [&_svg]:h-full [&_svg]:w-full" v-html="page.icon_svg"></div>
       </div>
-      <span class="dock-label max-w-full truncate text-center font-heading text-sm">{{ navLabel(page, "name") }}</span>
+      <span class="slk-dock-label max-w-full truncate text-center font-heading text-sm">{{
+        navLabel(page, "name")
+      }}</span>
     </button>
 
     <button
       id="page-drawer-toggle"
-      @click="toggleDrawer"
-      :class="{ 'dock-active': isDrawerOpen }"
+      :class="{ 'slk-dock-active': isDrawerOpen }"
       class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
+      @click="toggleDrawer"
     >
       <svg class="size-[3em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path
@@ -29,41 +32,55 @@
           clip-rule="evenodd"
         />
       </svg>
-      <span class="dock-label max-w-full truncate text-center font-heading text-sm">{{ $t("generic.menu") }}</span>
+      <span class="slk-dock-label max-w-full truncate text-center font-heading text-sm">{{ $t("generic.menu") }}</span>
     </button>
   </div>
 </template>
 
-<script setup>
-import { defineProps } from "vue";
-import translatedNavigationLabel from "~/shared/translatedNavigationLabel.js";
-const { $t } = useNuxtApp();
+<script setup lang="ts">
+import type { NavigationPage } from "~/types/components/navigation";
+import { defineProps, computed } from "vue";
+import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
+import { sanitizeSvg } from "~/utils/sanitizeHtml";
+
+const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
-const props = defineProps(["pages"]);
-const navLabel = (item, field = "label") => translatedNavigationLabel(item, $t, field);
+const router = useRouter();
+const _props = defineProps<{ pages?: NavigationPage[] | undefined }>();
+const navLabel = (item: NavigationPage, field: "name" | "label" = "label") =>
+  translatedNavigationLabel(item, $translateDynamic, field);
+
+const sanitizedPages = computed(() => {
+  if (!_props.pages) return [];
+  return _props.pages.map((page) => ({
+    ...page,
+    icon_svg: sanitizeSvg(page.icon_svg),
+  }));
+});
+
+const navigationPages = computed(() => sanitizedPages.value);
 
 // Use the shared drawer state
 const { isDrawerOpen, toggleDrawer, closeDrawer } = useDrawer();
 
-const isPageActive = (slug) => {
+const isPageActive = (slug: string) => {
   const normalized = slug === "index" ? "" : slug;
   const path = normalized === "" ? "/" : `/${normalized}`;
   return route.path === path || route.path.startsWith(`${path}/`);
 };
 
-const followLink = (pageSlug) => {
-  const nuxtApp = useNuxtApp();
+const followLink = (pageSlug: string) => {
   const path = !pageSlug || pageSlug === "index" ? "/" : "/" + pageSlug;
-  nuxtApp.$router.push(path);
+  void router.push(path);
 };
 </script>
 
 <style scoped>
-.dock-active {
+.slk-dock-active {
   color: #afca0b !important;
 }
 
-.dock-active svg {
+.slk-dock-active svg {
   color: #afca0b !important;
 }
 </style>

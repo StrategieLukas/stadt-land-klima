@@ -1,0 +1,25 @@
+collection: directus_files
+field: tour_report_covers
+type: alias
+meta:
+  collection: directus_files
+  conditions: null
+  display: related-values
+  display_options: null
+  field: tour_report_covers
+  group: null
+  hidden: true
+  interface: list-o2m
+  note: Publication ownership of tour report uploads
+  options:
+    enableCreate: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 11
+  special:
+  - o2m
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

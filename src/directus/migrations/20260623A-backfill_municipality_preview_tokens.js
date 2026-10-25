@@ -1,23 +1,21 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
 function createPreviewToken() {
-  return `${randomUUID()}${randomUUID()}`.replace(/-/g, '');
+  return `${randomUUID()}${randomUUID()}`.replace(/-/g, "");
 }
 
 export async function up(knex) {
-  const municipalities = await knex('municipalities')
-    .select('id')
+  const municipalities = await knex("municipalities")
+    .select("id")
     .where((builder) => {
-      builder.whereNull('creator_verified').orWhere('creator_verified', false);
+      builder.whereNull("creator_verified").orWhere("creator_verified", false);
     })
     .where((builder) => {
-      builder.whereNull('preview_token').orWhere('preview_token', '');
+      builder.whereNull("preview_token").orWhere("preview_token", "");
     });
 
   for (const municipality of municipalities) {
-    await knex('municipalities')
-      .where({ id: municipality.id })
-      .update({ preview_token: createPreviewToken() });
+    await knex("municipalities").where({ id: municipality.id }).update({ preview_token: createPreviewToken() });
   }
 }
 

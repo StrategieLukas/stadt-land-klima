@@ -1,7 +1,12 @@
-import generateQuestions from '../generate-questions/api.js';
-import sendCandidateMails from '../send-candidate-mails/api.js';
-import type { Router, Services, GetSchema, Logger, Accountability } from '@directus/extensions-sdk';
-import type { Knex } from 'knex';
+import generateQuestions from "../generate-questions/api.js";
+import sendCandidateMails from "../send-candidate-mails/api.js";
+import type { Accountability, ApiExtensionContext } from "@directus/types";
+import type { Router } from "express";
+import type { Knex } from "knex";
+
+type GetSchema = ApiExtensionContext["getSchema"];
+type Logger = ApiExtensionContext["logger"];
+type Services = ApiExtensionContext["services"];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,10 +24,14 @@ interface ElectionForReview {
   already_generated_questions?: boolean | null;
   descriptor?: string | null;
   review_requested?: boolean | null;
-  localteam?: {
-    id?: string | number | null;
-    municipality_name?: string | null;
-  } | string | number | null;
+  localteam?:
+    | {
+        id?: string | number | null;
+        municipality_name?: string | null;
+      }
+    | string
+    | number
+    | null;
 }
 
 interface RequestReviewResult {
@@ -51,17 +60,20 @@ function makeActionHandler<TResult>(
     const { election_id } = req.body as { election_id?: string | number };
 
     if (!election_id) {
-      return res.status(400).json({ error: 'Missing required field: election_id' });
+      return res.status(400).json({ error: "Missing required field: election_id" });
     }
 
     const schema = await ctx.getSchema();
 
     try {
-      const userElectionSvc = new ctx.services.ItemsService('elections', {
+      const userElectionSvc = new ctx.services.ItemsService("elections", {
         schema,
         accountability: req.accountability,
       });
-      await userElectionSvc.readOne(election_id, { fields: ['id'] });
+      // Requiring the action interface field prevents read-only frontend tokens
+      // from invoking privileged election actions merely because they can read
+      // the public election record.
+      await userElectionSvc.readOne(election_id, { fields: ["id", "action_buttons"] });
 
       const result = await run(election_id, {
         ...ctx,
@@ -72,9 +84,8 @@ function makeActionHandler<TResult>(
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       ctx.logger.error(`[election-actions] ${name} failed for election ${election_id}: ${message}`);
-      const status = typeof (err as { status?: unknown })?.status === 'number'
-        ? (err as { status: number }).status
-        : 500;
+      const status =
+        typeof (err as { status?: unknown })?.status === "number" ? (err as { status: number }).status : 500;
       return res.status(status).json({ error: message });
     }
   };
@@ -85,43 +96,40 @@ function makeCompletionHandler(ctx: ActionContext) {
     const { election_id: electionId } = req.body as { election_id?: string | number };
 
     if (!electionId) {
-      return res.status(400).json({ error: 'Missing required field: election_id' });
+      return res.status(400).json({ error: "Missing required field: election_id" });
     }
 
     try {
       const schema = await ctx.getSchema();
-      const electionService = new ctx.services.ItemsService('elections', {
+      const electionService = new ctx.services.ItemsService("elections", {
         schema,
         accountability: req.accountability,
       });
-      const election = await electionService.readOne(electionId, {
-        fields: ['id', 'is_public'],
-      }) as PublicElection | null;
+      const election = (await electionService.readOne(electionId, {
+        fields: ["id", "is_public"],
+      })) as PublicElection | null;
 
       if (!election?.is_public) {
-        return res.status(404).json({ error: 'Public election not found' });
+        return res.status(404).json({ error: "Public election not found" });
       }
 
-      const updatedRows = await ctx.database('elections')
+      const updatedRows = await ctx
+        .database("elections")
         .where({ id: electionId, is_public: true })
         .update({
-          wahlcheck_completion_count: ctx.database.raw(
-            'COALESCE(??, 0) + 1',
-            ['wahlcheck_completion_count'],
-          ),
+          wahlcheck_completion_count: ctx.database.raw("COALESCE(??, 0) + 1", ["wahlcheck_completion_count"]),
         });
 
       if (updatedRows !== 1) {
-        return res.status(404).json({ error: 'Public election not found' });
+        return res.status(404).json({ error: "Public election not found" });
       }
 
       return res.json({ success: true });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       ctx.logger.error(`[election-actions] complete failed for election ${electionId}: ${message}`);
-      const status = typeof (err as { status?: unknown })?.status === 'number'
-        ? (err as { status: number }).status
-        : 500;
+      const status =
+        typeof (err as { status?: unknown })?.status === "number" ? (err as { status: number }).status : 500;
       return res.status(status).json({ error: message });
     }
   };
@@ -135,25 +143,25 @@ async function requestReview(
   const sysAcc = { ...accountability, admin: true };
   const { ItemsService, MailService } = services;
 
-  const electionSvc = new ItemsService('elections', { schema, accountability: sysAcc });
+  const electionSvc = new ItemsService("elections", { schema, accountability: sysAcc });
   const mailSvc = new MailService({ schema, accountability: sysAcc });
 
-  const election = await electionSvc.readOne(electionId, {
+  const election = (await electionSvc.readOne(electionId, {
     fields: [
-      'already_generated_questions',
-      'descriptor',
-      'review_requested',
-      'localteam.id',
-      'localteam.municipality_name',
+      "already_generated_questions",
+      "descriptor",
+      "review_requested",
+      "localteam.id",
+      "localteam.municipality_name",
     ],
-  }) as ElectionForReview | null;
+  })) as ElectionForReview | null;
 
   if (!election) {
     throw new Error(`Election with ID "${electionId}" not found.`);
   }
 
   if (!election.already_generated_questions) {
-    throw new Error('Thesen müssen vor der Review-Anfrage generiert werden.');
+    throw new Error("Thesen müssen vor der Review-Anfrage generiert werden.");
   }
 
   if (election.review_requested) {
@@ -166,14 +174,11 @@ async function requestReview(
     };
   }
 
-  const recipient = env.WAHLCHECK_EMAIL || 'info@stadt-land-klima.de';
-  const localteamName = typeof election.localteam === 'object' && election.localteam !== null
-    ? election.localteam.municipality_name
-    : null;
+  const recipient = env.WAHLCHECK_EMAIL || "info@stadt-land-klima.de";
+  const localteamName =
+    typeof election.localteam === "object" && election.localteam !== null ? election.localteam.municipality_name : null;
   const electionLabel = election.descriptor || String(electionId);
-  const adminUrl = env.PUBLIC_URL
-    ? `${env.PUBLIC_URL.replace(/\/$/, '')}/admin/content/elections/${electionId}`
-    : null;
+  const adminUrl = env.PUBLIC_URL ? `${env.PUBLIC_URL.replace(/\/$/, "")}/admin/content/elections/${electionId}` : null;
 
   await electionSvc.updateOne(electionId, { review_requested: true });
 
@@ -184,16 +189,18 @@ async function requestReview(
       to: recipient,
       subject: `Review der Wahlcheck-Thesen angefragt: ${electionLabel}`,
       text: [
-        'Ein Lokalteam hat Review für die Wahlcheck-Thesen angefragt.',
-        '',
+        "Ein Lokalteam hat Review für die Wahlcheck-Thesen angefragt.",
+        "",
         `Wahl: ${electionLabel}`,
-        `Lokalteam: ${localteamName ?? 'unbekannt'}`,
+        `Lokalteam: ${localteamName ?? "unbekannt"}`,
         `Election ID: ${electionId}`,
         adminUrl ? `Directus: ${adminUrl}` : null,
-      ].filter(Boolean).join('\n'),
+      ]
+        .filter(Boolean)
+        .join("\n"),
     });
   } catch (err) {
-    if (env.SLK_ENV === 'development') {
+    if (env.SLK_ENV === "development") {
       emailSent = false;
       logger.warn(
         `[request-review] Failed to send review request email in development: ${
@@ -206,9 +213,9 @@ async function requestReview(
     }
   }
 
-  const updatedElection = await electionSvc.readOne(electionId, {
-    fields: ['review_requested'],
-  }) as Record<string, unknown>;
+  const updatedElection = (await electionSvc.readOne(electionId, {
+    fields: ["review_requested"],
+  })) as Record<string, unknown>;
 
   logger.info(`[request-review] Review requested for election ${electionId}; recipient: ${recipient}`);
 
@@ -226,27 +233,35 @@ async function requestReview(
 // ---------------------------------------------------------------------------
 
 export default {
-  id: 'election-actions',
-  handler: (
-    router: Router,
-    ctx: ActionContext,
-  ) => {
+  id: "election-actions",
+  handler: (router: Router, ctx: ActionContext) => {
     router.post(
-      '/generate',
-      makeActionHandler('generate', (election_id, { accountability, services, getSchema, logger }) =>
-          generateQuestions.handler(
-            { election_id },
-            { logger, accountability, services, getSchema, data: {} },
-          ),
+      "/generate",
+      makeActionHandler(
+        "generate",
+        (election_id, { accountability, services, getSchema, logger }) =>
+          generateQuestions.handler({ election_id }, { logger, accountability, services, getSchema, data: {} }),
         ctx,
       ),
     );
 
     router.post(
-      '/send-mails',
-      makeActionHandler('send-mails', (election_id, { accountability, services, getSchema, logger, env }) =>
+      "/send-mails",
+      makeActionHandler(
+        "send-mails",
+        (election_id, { accountability, services, getSchema, logger, env }) =>
+          sendCandidateMails.handler({ election_id }, { logger, accountability, services, getSchema, env, data: {} }),
+        ctx,
+      ),
+    );
+
+    router.post(
+      "/send-reminders",
+      makeActionHandler(
+        "send-reminders",
+        (election_id, { accountability, services, getSchema, logger, env }) =>
           sendCandidateMails.handler(
-            { election_id },
+            { election_id, mail_type: "reminder" },
             { logger, accountability, services, getSchema, env, data: {} },
           ),
         ctx,
@@ -254,8 +269,23 @@ export default {
     );
 
     router.post(
-      '/test-mail',
-      makeActionHandler('test-mail', (election_id, { accountability, services, getSchema, logger, env }) =>
+      "/send-thank-you-mails",
+      makeActionHandler(
+        "send-thank-you-mails",
+        (election_id, { accountability, services, getSchema, logger, env }) =>
+          sendCandidateMails.handler(
+            { election_id, mail_type: "thank_you" },
+            { logger, accountability, services, getSchema, env, data: {} },
+          ),
+        ctx,
+      ),
+    );
+
+    router.post(
+      "/test-mail",
+      makeActionHandler(
+        "test-mail",
+        (election_id, { accountability, services, getSchema, logger, env }) =>
           sendCandidateMails.handler(
             { election_id, test_mode: true },
             { logger, accountability, services, getSchema, env, data: {} },
@@ -264,14 +294,8 @@ export default {
       ),
     );
 
-    router.post(
-      '/request-review',
-      makeActionHandler('request-review', requestReview, ctx),
-    );
+    router.post("/request-review", makeActionHandler("request-review", requestReview, ctx));
 
-    router.post(
-      '/complete',
-      makeCompletionHandler(ctx),
-    );
+    router.post("/complete", makeCompletionHandler(ctx));
   },
 };

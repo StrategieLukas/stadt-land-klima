@@ -7,21 +7,20 @@ meta:
   display: null
   display_options: null
   field: candidate_email_subject
-  group: null
+  group: candidate_invitation_email_settings
   hidden: false
   interface: input
-  note: >-
-    Betreff der Einladung. Verfügbare Platzhalter: {{ candidate_name }}, {{
+  note: "Betreff der Einladung. Verfügbare Platzhalter: {{ candidate_name }}, {{
     candidate_salutation }}, {{ municipality_name }}, {{ election_descriptor }},
     {{ cutoff_date }}, {{ personal_link }} und {{ projectName }}. Ein leerer
-    Betreff verhindert den Versand.
+    Betreff verhindert den Versand."
   options:
     placeholder: "Einladung zum Klimawahl-Check: {{ municipality_name }}"
     trim: true
   readonly: false
   required: false
   searchable: true
-  sort: 17
+  sort: 1
   special: null
   translations:
     - language: de-DE

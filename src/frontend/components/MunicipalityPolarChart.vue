@@ -1,7 +1,7 @@
-<template lang="">
+<template>
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
-      <div class="relative flex h-96 w-full items-center justify-center cursor-pointer">
+      <div class="relative flex h-96 w-full cursor-pointer items-center justify-center">
         <div class="z-10 h-58/100 w-58/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
@@ -12,12 +12,16 @@
     </div>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
+import type { PropType } from "vue";
+import type { SubScores } from "~/types/components/municipality";
+
 /* import resolveConfig from "tailwindcss/resolveConfig";
 import tailwindConfig from "../tailwind.config";
 
 const config = resolveConfig(tailwindConfig); */
 
+import type { ChartOptions } from "chart.js";
 import { PolarArea } from "vue-chartjs";
 import {
   Chart,
@@ -30,16 +34,10 @@ import {
   ArcElement,
   RadialLinearScale,
 } from "chart.js";
-class CustomRadialLinearScale extends RadialLinearScale {
-  draw() {
-    super.draw();
-  }
-}
-CustomRadialLinearScale.id = "customRadialLinear";
-Chart.register(CategoryScale, LinearScale, CustomRadialLinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
+Chart.register(CategoryScale, LinearScale, RadialLinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 const { $t } = useNuxtApp();
 
-function cssColor(name, fallback) {
+function cssColor(name: string, fallback: string) {
   if (typeof window === "undefined") {
     return fallback;
   }
@@ -49,13 +47,13 @@ function cssColor(name, fallback) {
 
 const props = defineProps({
   subScores: {
-    type: Object,
+    type: Object as PropType<SubScores>,
     required: true,
   },
   nameMunicipality: {
     type: String,
     required: true,
-  }
+  },
 });
 const subScoresArray = createSubScoreArray(props.subScores);
 const colorsArray = createColorArray(subScoresArray);
@@ -80,22 +78,15 @@ const chartData = {
   ],
 };
 // Mapping from chart data index to sector keys
-const sectorKeys = [
-  "energy",
-  "transport",
-  "agriculture",
-  "industry",
-  "buildings",
-  "management",
-];
+const sectorKeys = ["energy", "transport", "agriculture", "industry", "buildings", "management"];
 
-const chartOptions = {
+const chartOptions: ChartOptions<"polarArea"> = {
   responsive: true,
   maintainAspectRatio: false,
   animation: { animateScale: false },
   onClick: (event, elements) => {
     if (elements.length > 0) {
-      const index = elements[0].index;
+      const index = elements[0]!.index;
       const sectorKey = sectorKeys[index];
       // Navigate to the sector by setting the hash
       window.location.hash = `sector-${sectorKey}`;
@@ -108,7 +99,7 @@ const chartOptions = {
     tooltip: {
       callbacks: {
         label: function (context) {
-          const label = subScoresArray[context.dataIndex] + "%";
+          const label = `${subScoresArray[context.dataIndex] ?? 0}%`;
           return label;
         },
       },
@@ -116,7 +107,7 @@ const chartOptions = {
   },
   scales: {
     r: {
-      type: "customRadialLinear",
+      type: "radialLinear",
       grid: {
         display: false,
       },
@@ -127,12 +118,10 @@ const chartOptions = {
         display: true,
         color: cssColor("--slk-border-strong", "#b9c2b0"),
         lineWidth: 1,
-        z: 1,
       },
 
       ticks: {
         display: false,
-        sampleSize: 6,
         stepSize: 20,
         z: 2,
       },
@@ -140,8 +129,8 @@ const chartOptions = {
   },
 };
 
-function createSubScoreArray(subScoreObject) {
-  let scoresArray = [];
+function createSubScoreArray(subScoreObject: SubScores) {
+  const scoresArray = [];
   scoresArray.push(subScoreObject.score_energy);
   scoresArray.push(subScoreObject.score_transport);
   scoresArray.push(subScoreObject.score_agriculture);
@@ -150,12 +139,12 @@ function createSubScoreArray(subScoreObject) {
   scoresArray.push(subScoreObject.score_management);
   return scoresArray.map((value) => Math.round(Number(value) * 10) / 10);
 }
-function scaleToArea(scoresArray) {
+function scaleToArea(scoresArray: number[]) {
   return scoresArray.map((value) => Math.sqrt(value / 100) * 100);
 }
-function createColorArray(subScoresArray) {
-  const tempColorsArray = [];
-  subScoresArray.forEach(function (score, index) {
+function createColorArray(subScoresArray: number[]) {
+  const tempColorsArray: string[] = [];
+  subScoresArray.forEach(function (score, _index) {
     if (score < 20) {
       tempColorsArray.push("#D9000D");
     } else if (score < 40) {

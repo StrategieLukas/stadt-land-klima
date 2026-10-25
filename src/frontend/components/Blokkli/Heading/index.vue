@@ -1,146 +1,148 @@
 <template>
-  <div
-    class="blokkli-block-heading-wrapper"
-    :id="getBlokkliBlockId(options.anchor, uuid)"
-    :class="[alignClass]"
-  >
+  <div :id="getBlokkliBlockId(options.anchor, uuid)" class="blokkli-block-heading-wrapper" :class="[alignClass]">
     <component
       :is="headingTag"
-      v-blokkli-editable:text
       class="blokkli-block-heading whitespace-pre-line"
       :class="[colorClass, sizeClass, weightClass]"
-      v-html="props.text || ''"
-    />
+    >
+      <span v-blokkli-editable:text v-html="sanitizeHtml(sanitizedText)" />
+    </component>
   </div>
 </template>
 
 <script setup lang="ts">
-import { getBlokkliBlockId } from '~/utils/blokkliLinks'
+import { getBlokkliBlockId } from "~/utils/blokkliLinks";
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
 
 const { options, uuid } = defineBlokkli({
-  bundle: 'heading',
-  globalOptions: ['anchor'],
+  bundle: "heading",
+  propsFieldMapping: {
+    text: { name: "text", type: "editable" },
+  },
+  globalOptions: ["anchor"],
   options: {
     level: {
-      type: 'radios',
-      label: 'Heading Level',
-      default: 'h2',
-      displayAs: 'radios',
+      type: "radios",
+      label: "Heading Level",
+      default: "h2",
+      displayAs: "radios",
       options: {
-        h1: 'H1',
-        h2: 'H2',
-        h3: 'H3',
-        h4: 'H4',
+        h1: "H1",
+        h2: "H2",
+        h3: "H3",
+        h4: "H4",
       },
     },
     weight: {
-      type: 'radios',
-      label: 'Schriftstärke',
-      default: 'bold',
+      type: "radios",
+      label: "Schriftstärke",
+      default: "bold",
       options: {
-        light: 'Leicht',
-        normal: 'Normal',
-        semibold: 'Halbfett',
-        bold: 'Fett',
+        light: "Leicht",
+        normal: "Normal",
+        semibold: "Halbfett",
+        bold: "Fett",
       },
     },
     color: {
-      type: 'radios',
-      label: 'Farbe',
-      default: 'black',
-      displayAs: 'colors',
+      type: "radios",
+      label: "Farbe",
+      default: "black",
+      displayAs: "colors",
       options: {
-        default:      { label: 'Standard',    hex: '#111111' },
-        black:        { label: 'Schwarz',     hex: '#000000' },
-        gray:         { label: 'Grau',        hex: '#505050' },
-        white:        { label: 'Weiß',        hex: '#fbfbfb' },
-        green:        { label: 'Grün',        hex: '#1da64a' },
-        'dark-green': { label: 'Dunkelgrün',  hex: '#339737' },
-        blue:         { label: 'Blau',        hex: '#16bae7' },
-        dark:         { label: 'Dunkelblau',  hex: '#006e94' },
-        orange:       { label: 'Orange',      hex: '#f39200' },
-        yellow:       { label: 'Gelb',        hex: '#ffc80c' },
-        lime:         { label: 'Lime',        hex: '#afca0b' },
-        red:          { label: 'Rot',         hex: '#e30613' },
+        default: { label: "Standard", hex: "#111111" },
+        black: { label: "Schwarz", hex: "#000000" },
+        gray: { label: "Grau", hex: "#505050" },
+        white: { label: "Weiß", hex: "#fbfbfb" },
+        green: { label: "Grün", hex: "#1da64a" },
+        "dark-green": { label: "Dunkelgrün", hex: "#339737" },
+        blue: { label: "Blau", hex: "#16bae7" },
+        dark: { label: "Dunkelblau", hex: "#006e94" },
+        orange: { label: "Orange", hex: "#f39200" },
+        yellow: { label: "Gelb", hex: "#ffc80c" },
+        lime: { label: "Lime", hex: "#afca0b" },
+        red: { label: "Rot", hex: "#e30613" },
       },
     },
     align: {
-      type: 'radios',
-      label: 'Ausrichtung',
-      default: 'left',
+      type: "radios",
+      label: "Ausrichtung",
+      default: "left",
       options: {
-        left: 'Links',
-        center: 'Zentriert',
-        right: 'Rechts',
+        left: "Links",
+        center: "Zentriert",
+        right: "Rechts",
       },
     },
   },
   editor: {
-    addBehaviour: 'editable:text',
+    addBehaviour: "editable:text",
     editTitle: (el) => el.textContent,
     mockProps: (text) => {
       return {
-        text: text || 'Neue Überschrift',
-      }
+        text: text || "Neue Überschrift",
+      };
     },
   },
-})
+});
 
 const props = defineProps<{
-  text?: string
-}>()
+  text?: string | undefined;
+}>();
 
-const headingTag = computed(() => options.value.level || 'h2')
+const sanitizedText = computed(() => sanitizeHtml(props.text));
+
+const headingTag = computed(() => options.value.level || "h2");
 
 const weightClass = computed(() => {
   const map: Record<string, string> = {
-    light: 'font-light',
-    normal: 'font-normal',
-    semibold: 'font-semibold',
-    bold: 'font-bold',
-  }
-  return map[options.value.weight] || 'font-bold'
-})
+    light: "font-light",
+    normal: "font-normal",
+    semibold: "font-semibold",
+    bold: "font-bold",
+  };
+  return map[options.value.weight] || "font-bold";
+});
 
 const sizeClass = computed(() => {
   const map: Record<string, string> = {
-    h1: 'prose-h1 text-4xl',
-    h2: 'prose-h2 text-3xl',
-    h3: 'prose-h3 text-2xl',
-    h4: 'prose-h4 text-xl',
-    h5: 'prose-h5',
-    h6: 'prose-h6'
-  }
-  return map[options.value.level] || 'prose-h2 text-3xl'
-})
+    h1: "prose-h1 text-4xl",
+    h2: "prose-h2 text-3xl",
+    h3: "prose-h3 text-2xl",
+    h4: "prose-h4 text-xl",
+    h5: "prose-h5",
+    h6: "prose-h6",
+  };
+  return map[options.value.level] || "prose-h2 text-3xl";
+});
 
 const colorClass = computed(() => {
   const map: Record<string, string> = {
-    default:      '',
-    black:        'text-black',
-    gray:         'text-gray-700',
-    white:        'text-mild-white',
-    green:        'text-ff-green',
-    'dark-green': 'text-green',
-    blue:         'text-light-blue',
-    'light-blue': 'text-light-blue', // legacy alias
-    dark:         'text-stats-dark',
-    orange:       'text-orange',
-    yellow:       'text-localzero-yellow',
-    lime:         'text-light-green',
-    red:          'text-red',
-  }
-  return map[options.value.color] ?? 'text-black'
-})
+    default: "",
+    black: "text-black",
+    gray: "text-gray-700",
+    white: "text-mild-white",
+    green: "text-ff-green",
+    "dark-green": "text-green",
+    blue: "text-light-blue",
+    "light-blue": "text-light-blue", // legacy alias
+    dark: "text-stats-dark",
+    orange: "text-orange",
+    yellow: "text-localzero-yellow",
+    lime: "text-light-green",
+    red: "text-red",
+  };
+  return map[options.value.color] ?? "text-black";
+});
 
 const alignClass = computed(() => {
   const map: Record<string, string> = {
-    left: 'text-left',
-    center: 'text-center',
-    right: 'text-right',
-  }
-  return map[options.value.align] || 'text-left'
-})
+    left: "text-left",
+    center: "text-center",
+    right: "text-right",
+  };
+  return map[options.value.align] || "text-left";
+});
 </script>
 
 <style scoped>

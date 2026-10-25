@@ -10,15 +10,26 @@
   },
   "scripts": {
     "build": "directus-extension build",
-    "dev": "directus-extension build -w --no-minify"
+    "dev": "directus-extension build -w --no-minify",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prebuild": "npm run typecheck"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "17.1.4",
-    "@types/express": "^4.17.21",
-    "esbuild": "^0.28.0",
-    "typescript": "^5.0.0"
+    "@directus/extensions-sdk": "18.0.6",
+    "@types/express": "^4.17.25",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3",
+    "@directus/types": "^18.0.0"
   },
   "overrides": {
-    "esbuild": "^0.28.0"
+    "esbuild": "^0.28.2",
+    "vite": "^8.3.4",
+    "svgo": "^4.1.0",
+    "browserslist": "^4.29.3",
+    "baseline-browser-mapping": "^2.11.29",
+    "immutable": "^5.1.9",
+    "decode-uri-component": "^0.5.0",
+    "postcss-selector-parser": "^7.1.6",
+    "zod": "4.6.7"
   }
 }

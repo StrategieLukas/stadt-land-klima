@@ -1,0 +1,27 @@
+name: Native frontend compatibility
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install-and-build:
+    name: Install and build on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+      - name: Record the actual native platform
+        run: node -p "JSON.stringify({platform:process.platform,arch:process.arch,node:process.version})"
+      - name: Install locked dependencies with optional platform bindings
+        run: npm ci --prefix src/frontend
+      - name: Strict checking and production build
+        run: npm --prefix src/frontend run build

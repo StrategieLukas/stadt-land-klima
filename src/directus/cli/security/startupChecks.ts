@@ -1,14 +1,14 @@
-import process from 'node:process';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import dotenv from 'dotenv';
-import pg from 'pg';
+import process from "node:process";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import dotenv from "dotenv";
+import pg from "pg";
 
 const { Pool } = pg;
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 
-dotenv.config({ path: '/directus/.env', quiet: true });
-dotenv.config({ path: path.resolve(currentDirectory, '../../.env'), quiet: true });
+dotenv.config({ path: "/directus/.env", quiet: true });
+dotenv.config({ path: path.resolve(currentDirectory, "../../.env"), quiet: true });
 dotenv.config({ quiet: true });
 
 type PermissionRow = {
@@ -24,88 +24,86 @@ type EffectivePermissionRow = PermissionRow & {
   accessor_name: string;
 };
 
-const TRUE_VALUES = new Set(['1', 'true', 'yes']);
-const securityChecksEnabled = TRUE_VALUES.has(
-  (process.env.SLK_STARTUP_SECURITY_CHECKS ?? '').trim().toLowerCase(),
-);
-const skipEnvironmentChecks = process.argv.includes('--skip-env');
-const skipDatabaseChecks = process.argv.includes('--skip-db');
+const TRUE_VALUES = new Set(["1", "true", "yes"]);
+const securityChecksEnabled = TRUE_VALUES.has((process.env.SLK_STARTUP_SECURITY_CHECKS ?? "").trim().toLowerCase());
+const skipEnvironmentChecks = process.argv.includes("--skip-env");
+const skipDatabaseChecks = process.argv.includes("--skip-db");
 
 const defaultValuePatterns: Array<{ pattern: RegExp; reason: string }> = [
-  { pattern: /^some-random-key$/i, reason: 'uses the example random key' },
-  { pattern: /^directus$/i, reason: 'uses the Directus example password' },
-  { pattern: /^secret$/i, reason: 'uses the example secret' },
-  { pattern: /^password$/i, reason: 'uses a placeholder password' },
-  { pattern: /^change-me/i, reason: 'uses a change-me placeholder' },
-  { pattern: /^access_token_of_admin_user$/i, reason: 'uses the example static token' },
-  { pattern: /^your-.+-here$/i, reason: 'uses an example API key placeholder' },
-  { pattern: /check-my-dms/i, reason: 'uses a local placeholder secret note' },
+  { pattern: /^some-random-key$/i, reason: "uses the example random key" },
+  { pattern: /^directus$/i, reason: "uses the Directus example password" },
+  { pattern: /^secret$/i, reason: "uses the example secret" },
+  { pattern: /^password$/i, reason: "uses a placeholder password" },
+  { pattern: /^change-me/i, reason: "uses a change-me placeholder" },
+  { pattern: /^replace-with-/i, reason: "uses a replace-with placeholder" },
+  { pattern: /^access_token_of_admin_user$/i, reason: "uses the example static token" },
+  { pattern: /^your-.+-here$/i, reason: "uses an example API key placeholder" },
+  { pattern: /check-my-dms/i, reason: "uses a local placeholder secret note" },
 ];
 
 const envChecks: Array<{ name: string; required: boolean }> = [
-  { name: 'KEY', required: true },
-  { name: 'SECRET', required: true },
-  { name: 'DB_PASSWORD', required: true },
-  { name: 'CLI_DIRECTUS_STATIC_TOKEN', required: false },
-  { name: 'MEILI_MASTER_KEY', required: false },
-  { name: 'EMAIL_SMTP_PASSWORD', required: false },
-  { name: 'UNSPLASH_ACCESS_KEY', required: false },
-  { name: 'DIRECTUS_MAPBOX_KEY', required: false },
-  { name: 'DIRECTUS_AI_OPENAI_API_KEY', required: false },
-  { name: 'DIRECTUS_AI_ANTHROPIC_API_KEY', required: false },
-  { name: 'DIRECTUS_AI_GOOGLE_API_KEY', required: false },
-  { name: 'DIRECTUS_AI_OPENAI_COMPATIBLE_API_KEY', required: false },
+  { name: "SECRET", required: true },
+  { name: "DB_PASSWORD", required: true },
+  { name: "CLI_DIRECTUS_STATIC_TOKEN", required: false },
+  { name: "MEILI_MASTER_KEY", required: false },
+  { name: "EMAIL_SMTP_PASSWORD", required: false },
+  { name: "UNSPLASH_ACCESS_KEY", required: false },
+  { name: "DIRECTUS_MAPBOX_KEY", required: false },
+  { name: "DIRECTUS_AI_OPENAI_API_KEY", required: false },
+  { name: "DIRECTUS_AI_ANTHROPIC_API_KEY", required: false },
+  { name: "DIRECTUS_AI_GOOGLE_API_KEY", required: false },
+  { name: "DIRECTUS_AI_OPENAI_COMPATIBLE_API_KEY", required: false },
 ];
 
 const publicFileFields = new Set([
-  '$thumbnail',
-  'charset',
-  'created_on',
-  'description',
-  'duration',
-  'filename_download',
-  'filesize',
-  'folder',
-  'height',
-  'id',
-  'metadata',
-  'modified_on',
-  'storage_divider',
-  'tags',
-  'title',
-  'type',
-  'uploaded_on',
-  'width',
+  "$thumbnail",
+  "charset",
+  "created_on",
+  "description",
+  "duration",
+  "filename_download",
+  "filesize",
+  "folder",
+  "height",
+  "id",
+  "metadata",
+  "modified_on",
+  "storage_divider",
+  "tags",
+  "title",
+  "type",
+  "uploaded_on",
+  "width",
 ]);
 
 const publicUserReadFields = new Set([
-  'avatar',
-  'description',
-  'email',
-  'first_name',
-  'id',
-  'language',
-  'last_name',
-  'last_page',
-  'location',
-  'show_on_team_page',
-  'tags',
-  'theme',
-  'title',
+  "avatar",
+  "description",
+  "email",
+  "first_name",
+  "id",
+  "language",
+  "last_name",
+  "last_page",
+  "location",
+  "show_on_team_page",
+  "tags",
+  "theme",
+  "title",
 ]);
 
 const publicUserUpdateFields = new Set([
-  'avatar',
-  'description',
-  'email',
-  'first_name',
-  'language',
-  'last_name',
-  'last_page',
-  'location',
-  'tags',
-  'theme',
-  'title',
+  "avatar",
+  "description",
+  "email",
+  "first_name",
+  "language",
+  "last_name",
+  "last_page",
+  "location",
+  "tags",
+  "theme",
+  "title",
 ]);
 
 const publicFileFilter = {
@@ -113,7 +111,7 @@ const publicFileFilter = {
     {
       folder: {
         name: {
-          _eq: 'public',
+          _eq: "public",
         },
       },
     },
@@ -124,121 +122,118 @@ const publicFolderFilter = {
   _and: [
     {
       name: {
-        _eq: 'public',
+        _eq: "public",
       },
     },
   ],
 };
 
 const sensitiveCollections = [
-  'answers',
-  'candidate',
-  'directus_access',
-  'directus_dashboards',
-  'directus_flows',
-  'directus_panels',
-  'directus_permissions',
-  'directus_policies',
-  'directus_roles',
-  'directus_sessions',
-  'directus_shares',
-  'directus_users',
-  'editors',
-  'elections',
-  'feedback',
-  'localteams',
-  'questions',
-  'user_consent',
+  "answers",
+  "candidate",
+  "directus_access",
+  "directus_dashboards",
+  "directus_flows",
+  "directus_panels",
+  "directus_permissions",
+  "directus_policies",
+  "directus_roles",
+  "directus_sessions",
+  "directus_shares",
+  "directus_users",
+  "editors",
+  "elections",
+  "feedback",
+  "localteams",
+  "questions",
+  "user_consent",
 ];
 
 const sensitiveAccessWhitelist: Record<string, string[]> = {
-  'answers:create': ['Frontend'],
-  'answers:delete': ['Frontend'],
-  'answers:read': ['Frontend', 'LokalteamMitglied', 'Planungsteam', 'WahlcheckAdmin'],
-  'answers:update': ['Frontend'],
-  'candidate:create': ['LokalteamMitglied', 'WahlcheckAdmin'],
-  'candidate:delete': ['LokalteamMitglied', 'WahlcheckAdmin'],
-  'candidate:read': ['Frontend', 'LokalteamMitglied', 'Planungsteam', 'WahlcheckAdmin'],
-  'candidate:update': ['Frontend', 'LokalteamMitglied', 'WahlcheckAdmin'],
-  'directus_dashboards:create': ['Planungsteam'],
-  'directus_dashboards:delete': ['Planungsteam'],
-  'directus_dashboards:read': ['Maßnahmenteam', 'Massnahmenteam', 'Planungsteam'],
-  'directus_dashboards:update': ['Planungsteam'],
-  'directus_flows:read': ['Planungsteam'],
-  'directus_panels:create': ['Planungsteam'],
-  'directus_panels:delete': ['Planungsteam'],
-  'directus_panels:read': ['Planungsteam'],
-  'directus_panels:update': ['Planungsteam'],
-  'directus_roles:read': ['Planungsteam'],
-  'directus_shares:read': ['Planungsteam'],
-  'directus_users:read': [
-    'Frontend',
-    'LokalteamMitglied',
-    'Maßnahmenteam',
-    'Massnahmenteam',
-    'MinimalUser',
-    'Planungsteam',
+  "answers:create": ["Frontend", "Frontend-Server"],
+  "answers:delete": ["Frontend", "Frontend-Server"],
+  "answers:read": ["Frontend", "Frontend-Server", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
+  "answers:update": ["Frontend", "Frontend-Server"],
+  "candidate:create": ["LokalteamMitglied", "WahlcheckAdmin"],
+  "candidate:delete": ["LokalteamMitglied", "WahlcheckAdmin"],
+  "candidate:read": ["Frontend", "Frontend-Server", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
+  "candidate:update": ["Frontend", "Frontend-Server", "LokalteamMitglied", "WahlcheckAdmin"],
+  "directus_dashboards:create": ["Planungsteam"],
+  "directus_dashboards:delete": ["Planungsteam"],
+  "directus_dashboards:read": ["Maßnahmenteam", "Massnahmenteam", "Planungsteam"],
+  "directus_dashboards:update": ["Planungsteam"],
+  "directus_flows:read": ["Planungsteam"],
+  "directus_panels:create": ["Planungsteam"],
+  "directus_panels:delete": ["Planungsteam"],
+  "directus_panels:read": ["Planungsteam"],
+  "directus_panels:update": ["Planungsteam"],
+  "directus_roles:read": ["Planungsteam", "ErfolgsprojekteRedaktion"],
+  "directus_shares:read": ["Planungsteam"],
+  "directus_users:read": [
+    "Frontend",
+    "Frontend-Server",
+    "LokalteamMitglied",
+    "Maßnahmenteam",
+    "Massnahmenteam",
+    "MinimalUser",
+    "Planungsteam",
   ],
-  'directus_users:update': ['LokalteamMitglied', 'Maßnahmenteam', 'Massnahmenteam', 'MinimalUser'],
-  'editors:create': ['LokalteamAdmin'],
-  'editors:read': ['LokalteamMitglied', 'Planungsteam'],
-  'editors:update': ['LokalteamAdmin'],
-  'elections:create': ['LokalteamMitglied', 'WahlcheckAdmin'],
-  'elections:delete': ['LokalteamMitglied'],
-  'elections:read': ['Frontend', 'LokalteamMitglied', 'Planungsteam', 'WahlcheckAdmin'],
-  'elections:update': ['LokalteamMitglied', 'WahlcheckAdmin'],
-  'feedback:create': ['Frontend'],
-  'feedback:read': ['Planungsteam'],
-  'feedback:update': ['Planungsteam'],
-  'localteams:read': [
-    'Frontend',
-    'LokalteamMitglied',
-    'Maßnahmenteam',
-    'Massnahmenteam',
-    'Planungsteam',
-    'WahlcheckAdmin',
+  "directus_users:update": ["LokalteamMitglied", "Maßnahmenteam", "Massnahmenteam", "MinimalUser"],
+  "editors:create": ["LokalteamAdmin", "LokalteamMitglied"],
+  "editors:read": ["LokalteamMitglied", "Planungsteam"],
+  "editors:update": ["LokalteamAdmin", "LokalteamMitglied"],
+  "elections:create": ["LokalteamMitglied", "WahlcheckAdmin"],
+  "elections:delete": ["LokalteamMitglied"],
+  "elections:read": ["Frontend", "Frontend-Server", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
+  "elections:update": ["LokalteamMitglied", "WahlcheckAdmin", "Frontend-Server"],
+  "feedback:create": ["Frontend", "Frontend-Server"],
+  "feedback:read": ["Planungsteam"],
+  "feedback:update": ["Planungsteam"],
+  "localteams:read": [
+    "Frontend",
+    "Frontend-Server",
+    "LokalteamMitglied",
+    "Maßnahmenteam",
+    "Massnahmenteam",
+    "Planungsteam",
+    "WahlcheckAdmin",
   ],
-  'localteams:update': ['LokalteamMitglied'],
-  'questions:create': ['LokalteamMitglied', 'WahlcheckAdmin'],
-  'questions:delete': ['LokalteamMitglied', 'WahlcheckAdmin'],
-  'questions:read': ['Frontend', 'LokalteamMitglied', 'Planungsteam', 'WahlcheckAdmin'],
-  'questions:update': ['LokalteamMitglied', 'WahlcheckAdmin'],
-  'user_consent:create': [
-    'LokalteamMitglied',
-    'Maßnahmenteam',
-    'Massnahmenteam',
-    'MinimalUser',
-    'WahlcheckAdmin',
-  ],
-  'user_consent:read': [
-    'LokalteamMitglied',
-    'Maßnahmenteam',
-    'Massnahmenteam',
-    'MinimalUser',
-    'Planungsteam',
-    'WahlcheckAdmin',
+  "localteams:update": ["LokalteamMitglied"],
+  "questions:create": ["LokalteamMitglied", "WahlcheckAdmin"],
+  "questions:delete": ["LokalteamMitglied", "WahlcheckAdmin"],
+  "questions:read": ["Frontend", "Frontend-Server", "LokalteamMitglied", "Planungsteam", "WahlcheckAdmin"],
+  "questions:update": ["LokalteamMitglied", "WahlcheckAdmin"],
+  "user_consent:create": ["LokalteamMitglied", "Maßnahmenteam", "Massnahmenteam", "MinimalUser", "WahlcheckAdmin"],
+  "user_consent:read": [
+    "LokalteamMitglied",
+    "Maßnahmenteam",
+    "Massnahmenteam",
+    "MinimalUser",
+    "Planungsteam",
+    "WahlcheckAdmin",
   ],
 };
 
 function cleanEnvValue(value: string): string {
-  return value.trim().replace(/^['"]|['"]$/g, '');
+  return value.trim().replace(/^['"]|['"]$/g, "");
 }
 
-function checkEnvironment(failures: string[], warnings: string[]): Set<string> {
+export function checkEnvironment(env: NodeJS.ProcessEnv, failures: string[]): Set<string> {
   const missingRequiredKeys = new Set<string>();
 
   for (const check of envChecks) {
-    const rawValue = process.env[check.name];
-    const value = rawValue === undefined ? '' : cleanEnvValue(rawValue);
+    const rawValue = env[check.name];
+    const value = rawValue === undefined ? "" : cleanEnvValue(rawValue);
 
     if (!value) {
       if (check.required) {
-        warnings.push(`${check.name} is missing; configure it for production Directus startup`);
+        failures.push(`${check.name} is missing; configure it before enabling startup checks`);
         missingRequiredKeys.add(check.name);
       }
       continue;
     }
 
+    if (check.name === "SECRET" && value.length < 32) failures.push(`${check.name} must have at least 32 characters`);
     const defaultMatch = defaultValuePatterns.find(({ pattern }) => pattern.test(value));
     if (defaultMatch) {
       failures.push(`${check.name} ${defaultMatch.reason}`);
@@ -249,7 +244,7 @@ function checkEnvironment(failures: string[], warnings: string[]): Set<string> {
 }
 
 function normalizeDatabaseValue(value: unknown): unknown {
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return value;
   }
 
@@ -258,7 +253,7 @@ function normalizeDatabaseValue(value: unknown): unknown {
     return null;
   }
 
-  if (!trimmed.startsWith('{') && !trimmed.startsWith('[') && !trimmed.startsWith('"')) {
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[") && !trimmed.startsWith('"')) {
     return value;
   }
 
@@ -274,7 +269,7 @@ function sortJson(value: unknown): unknown {
     return value.map(sortJson);
   }
 
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     return Object.fromEntries(
       Object.entries(value as Record<string, unknown>)
         .sort(([a], [b]) => a.localeCompare(b))
@@ -296,9 +291,9 @@ function fieldsToArray(value: unknown): string[] {
     return normalized.map(String);
   }
 
-  if (typeof normalized === 'string') {
+  if (typeof normalized === "string") {
     return normalized
-      .split(',')
+      .split(",")
       .map((field) => field.trim())
       .filter(Boolean);
   }
@@ -314,7 +309,7 @@ function fieldsAreSubset(value: unknown, allowedFields: Set<string>, allowWildca
   }
 
   return fields.every((field) => {
-    if (field === '*') {
+    if (field === "*") {
       return allowWildcard;
     }
 
@@ -325,39 +320,101 @@ function fieldsAreSubset(value: unknown, allowedFields: Set<string>, allowWildca
 function containsCurrentUserFilter(value: unknown): boolean {
   const normalized = normalizeDatabaseValue(value);
 
-  if (typeof normalized === 'string') {
-    return normalized.includes('$CURRENT_USER');
+  if (typeof normalized === "string") {
+    return normalized.includes("$CURRENT_USER");
   }
 
   if (Array.isArray(normalized)) {
     return normalized.some(containsCurrentUserFilter);
   }
 
-  if (normalized && typeof normalized === 'object') {
+  if (normalized && typeof normalized === "object") {
     return Object.values(normalized as Record<string, unknown>).some(containsCurrentUserFilter);
   }
 
   return false;
 }
 
-function isAllowedPublicPermission(row: PermissionRow): boolean {
-  if (row.collection === 'directus_files' && row.action === 'read') {
+export function isAllowedPublicPermission(row: PermissionRow): boolean {
+  if (row.collection === "directus_files" && row.action === "read") {
     return jsonEquals(row.permissions, publicFileFilter) && fieldsAreSubset(row.fields, publicFileFields);
   }
 
-  if (row.collection === 'directus_folders' && row.action === 'read') {
+  if (row.collection === "directus_folders" && row.action === "read") {
     return jsonEquals(row.permissions, publicFolderFilter) && fieldsAreSubset(row.fields, new Set(), true);
   }
 
-  if (row.collection === 'directus_users' && row.action === 'read') {
+  if (row.collection === "directus_users" && row.action === "read") {
     return containsCurrentUserFilter(row.permissions) && fieldsAreSubset(row.fields, publicUserReadFields);
   }
 
-  if (row.collection === 'directus_users' && row.action === 'update') {
+  if (row.collection === "directus_users" && row.action === "update") {
     return containsCurrentUserFilter(row.permissions) && fieldsAreSubset(row.fields, publicUserUpdateFields);
   }
 
   return false;
+}
+
+export function isAllowedSensitiveAccessor(collection: string, action: string, accessor: string): boolean {
+  return (sensitiveAccessWhitelist[`${collection}:${action}`] ?? []).includes(accessor);
+}
+
+type DatabaseRoleState = {
+  rolsuper: boolean;
+  rolcreaterole: boolean;
+  rolcreatedb: boolean;
+  rolreplication: boolean;
+  rolbypassrls: boolean;
+  privileged_memberships?: string[];
+};
+
+export function databaseRoleFailures(role: DatabaseRoleState): string[] {
+  const flags = ["rolsuper", "rolcreaterole", "rolcreatedb", "rolreplication", "rolbypassrls"] as const;
+  return [
+    ...flags.filter((flag) => role[flag]).map((flag) => `Database application role has forbidden privilege: ${flag}`),
+    ...(role.privileged_memberships ?? []).map(
+      (name) => `Database application role belongs to privileged role: ${name}`,
+    ),
+  ];
+}
+
+/** Role attributes alone miss file/program access and privileges gained through nested groups. */
+export async function checkDatabaseRole(
+  pool: Pick<InstanceType<typeof Pool>, "query">,
+  failures: string[],
+): Promise<void> {
+  const result = await pool.query<DatabaseRoleState>(
+    `
+    SELECT app.rolsuper, app.rolcreaterole, app.rolcreatedb, app.rolreplication, app.rolbypassrls,
+      ARRAY(
+        SELECT inherited.rolname::text
+        FROM pg_roles inherited
+        WHERE inherited.oid <> app.oid
+          AND (inherited.rolsuper OR inherited.rolcreaterole OR inherited.rolcreatedb
+            OR inherited.rolreplication OR inherited.rolbypassrls
+            OR inherited.rolname = ANY($1::name[]))
+          AND pg_has_role(current_user, inherited.oid, 'MEMBER')
+        ORDER BY inherited.rolname
+      ) AS privileged_memberships
+    FROM pg_roles app WHERE app.rolname = current_user
+  `,
+    [
+      [
+        "pg_execute_server_program",
+        "pg_read_server_files",
+        "pg_write_server_files",
+        "pg_read_all_data",
+        "pg_write_all_data",
+        "pg_signal_backend",
+        "pg_checkpoint",
+        "pg_create_subscription",
+        "pg_maintain",
+        "pg_database_owner",
+      ],
+    ],
+  );
+  if (!result.rows[0]) failures.push("Cannot verify database application role");
+  else failures.push(...databaseRoleFailures(result.rows[0]));
 }
 
 function describePermission(row: PermissionRow): string {
@@ -427,8 +484,8 @@ async function checkSensitiveAccess(pool: InstanceType<typeof Pool>, failures: s
     const key = `${row.collection}:${row.action}`;
     const allowedAccessors = sensitiveAccessWhitelist[key] ?? [];
 
-    if (!allowedAccessors.includes(row.accessor_name)) {
-      const allowed = allowedAccessors.length ? allowedAccessors.join(', ') : 'no roles';
+    if (!isAllowedSensitiveAccessor(row.collection, row.action, row.accessor_name)) {
+      const allowed = allowedAccessors.length ? allowedAccessors.join(", ") : "no roles";
       failures.push(
         `${row.accessor_name} has non-whitelisted sensitive access ${describePermission(row)}; allowed: ${allowed}`,
       );
@@ -438,7 +495,7 @@ async function checkSensitiveAccess(pool: InstanceType<typeof Pool>, failures: s
 
 async function main(): Promise<void> {
   if (!securityChecksEnabled) {
-    console.info('Custom SLK-Directus startup security checks skipped; SLK_STARTUP_SECURITY_CHECKS is not enabled.');
+    console.info("Custom SLK-Directus startup security checks skipped; SLK_STARTUP_SECURITY_CHECKS is not enabled.");
     return;
   }
   console.info("Running custom SLK-Directus startup security checks");
@@ -448,13 +505,16 @@ async function main(): Promise<void> {
   let missingRequiredKeys = new Set<string>();
 
   if (!skipEnvironmentChecks) {
-    missingRequiredKeys = checkEnvironment(failures, warnings);
+    missingRequiredKeys = checkEnvironment(process.env, failures);
   }
 
-  const missingDatabaseKeys = ['DB_PASSWORD'].filter((key) => missingRequiredKeys.has(key));
+  const missingDatabaseKeys = ["DB_PASSWORD"].filter((key) => missingRequiredKeys.has(key));
   if (failures.length === 0 && !skipDatabaseChecks && missingDatabaseKeys.length === 0) {
     const pool = createPool();
     try {
+      if (process.env.SLK_ENV === "production") {
+        await checkDatabaseRole(pool, failures);
+      }
       await checkPublicPermissions(pool, failures);
       await checkSensitiveAccess(pool, failures);
     } finally {
@@ -462,30 +522,31 @@ async function main(): Promise<void> {
     }
   } else if (!skipDatabaseChecks && missingDatabaseKeys.length > 0) {
     warnings.push(
-      `Database security checks skipped because required database configuration is missing: ${missingDatabaseKeys.join(', ')}`,
+      `Database security checks skipped because required database configuration is missing: ${missingDatabaseKeys.join(", ")}`,
     );
   }
 
   if (warnings.length > 0) {
-    console.warn('Custom SLK-Directus startup security check warnings:');
+    console.warn("Custom SLK-Directus startup security check warnings:");
     for (const warning of warnings) {
       console.warn(`- ${warning}`);
     }
   }
 
   if (failures.length > 0) {
-    console.error('Custom SLK-Directus startup security checks failed:');
+    console.error("Custom SLK-Directus startup security checks failed:");
     for (const failure of failures) {
       console.error(`- ${failure}`);
     }
     process.exit(1);
   }
 
-  console.info('Custom SLK-Directus startup security checks passed.');
+  console.info("Custom SLK-Directus startup security checks passed.");
 }
 
-main().catch((error: unknown) => {
-  console.error('Custom SLK-Directus startup security checks failed unexpectedly:');
-  console.error(error);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href)
+  main().catch((error: unknown) => {
+    console.error("Custom SLK-Directus startup security checks failed unexpectedly:");
+    console.error(error);
+    process.exit(1);
+  });

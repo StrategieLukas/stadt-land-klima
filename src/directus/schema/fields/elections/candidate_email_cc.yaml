@@ -14,8 +14,8 @@ meta:
     Hier könnt ihr *eine E-Mail-Adresse aus eurem Team* angeben, wenn ihr Kopien
     erhalten möchtet.
 
-    **Wichtig:** Wer diese E-Mails erhält, kann die Antworten aller Kandidierenden
-    einsehen und bearbeiten.
+    **Wichtig:** Wer diese E-Mails erhält, kann die Antworten aller
+    Kandidierenden einsehen und bearbeiten.
   options:
     placeholder: lokalteam@example.org
     trim: true

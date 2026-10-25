@@ -1,0 +1,7 @@
+language: it-IT
+key: data.products.contact_content
+value: |
+  Area: :area
+  Pagina: :url
+
+  Il mio commento:

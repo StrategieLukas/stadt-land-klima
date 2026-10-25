@@ -1,14 +1,14 @@
 <template>
   <!-- Bottom sheet: fixed above the dock, slides up via parent Transition -->
   <div
-    class="fixed left-0 right-0 z-[9999] flex flex-col rounded-t-2xl bg-white shadow-2xl"
+    class="fixed right-0 left-0 z-9999 flex flex-col rounded-t-2xl bg-white shadow-2xl"
     style="bottom: 80px; max-height: 65vh; overflow: hidden"
     aria-modal="true"
     role="dialog"
   >
     <!-- Easter egg: pull-to-reveal SLK flower -->
     <div
-      class="flex flex-shrink-0 items-center justify-center overflow-hidden"
+      class="flex shrink-0 items-center justify-center overflow-hidden"
       :style="{
         height: eggHeight + 'px',
         transition: isAnimatingBack ? 'height 0.4s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none',
@@ -57,17 +57,17 @@
 
     <!-- Drag handle pill -->
     <div
-      class="flex flex-shrink-0 cursor-grab touch-none select-none justify-center pb-1 pt-3"
+      class="flex shrink-0 cursor-grab touch-none justify-center pt-3 pb-1 select-none"
       @touchstart="onEggDragStart"
       @touchmove.prevent="onEggDragMove"
       @touchend="onEggDragEnd"
       @touchcancel="onEggDragEnd"
     >
-      <div class="bg-gray-300 h-1 w-10 rounded-full"></div>
+      <div class="h-1 w-10 rounded-full bg-gray-300"></div>
     </div>
 
     <!-- Login, donate, and language selection -->
-    <div class="flex flex-shrink-0 flex-col gap-3 px-4 pb-3 pt-2">
+    <div class="flex shrink-0 flex-col gap-3 px-4 pt-2 pb-3">
       <div class="flex gap-3">
         <LoginButton class="flex-1" @click="closeDrawer" />
         <DonateButton class="flex-1" @click="closeDrawer" />
@@ -79,7 +79,7 @@
     </div>
 
     <!-- Divider -->
-    <div class="border-gray-100 flex-shrink-0 border-t"></div>
+    <div class="shrink-0 border-t border-gray-100"></div>
 
     <!-- Scrollable nav items -->
     <div class="flex-1 overflow-y-auto overscroll-contain pb-4">
@@ -89,12 +89,12 @@
           <!-- Item with children: split row — label navigates, chevron expands -->
           <template v-if="hasChildren(item)">
             <div
-              class="border-gray-100 hover:bg-gray-50 flex w-full items-center justify-between border-b transition-colors"
+              class="flex w-full items-center justify-between border-b border-gray-100 transition-colors hover:bg-gray-50"
               :class="{ 'bg-solid-light-green-10': anyChildActive(item) }"
             >
               <component
-                v-if="item.link_type === 'page'"
                 :is="NuxtLink"
+                v-if="item.link_type === 'page'"
                 :to="resolveHref(item)"
                 class="flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold"
                 :class="
@@ -103,42 +103,42 @@
                 @click="closeDrawer"
               >
                 <img
-                  v-if="item.image_id && imageUrlMap[item.image_id]"
-                  :src="imageUrlMap[item.image_id]"
-                  class="h-4 w-auto flex-shrink-0 object-contain"
+                  v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+                  :src="imageUrlMap[item.image_id ?? '']"
+                  class="h-4 w-auto shrink-0 object-contain"
                   alt=""
                 />
                 <span>{{ navLabel(item) }}</span>
               </component>
               <component
-                v-else-if="item.link_type === 'external'"
                 :is="'a'"
-                :href="item.external_url"
+                v-else-if="item.link_type === 'external'"
+                :href="item.external_url ?? undefined"
                 :target="item.open_new_tab ? '_blank' : '_self'"
                 rel="noopener noreferrer"
-                class="text-gray-800 flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold"
+                class="flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800"
                 @click="closeDrawer"
               >
                 <img
-                  v-if="item.image_id && imageUrlMap[item.image_id]"
-                  :src="imageUrlMap[item.image_id]"
-                  class="h-4 w-auto flex-shrink-0 object-contain"
+                  v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+                  :src="imageUrlMap[item.image_id ?? '']"
+                  class="h-4 w-auto shrink-0 object-contain"
                   alt=""
                 />
                 <span>{{ navLabel(item) }}</span>
               </component>
-              <span v-else class="text-gray-800 flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold">
+              <span v-else class="flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800">
                 <img
-                  v-if="item.image_id && imageUrlMap[item.image_id]"
-                  :src="imageUrlMap[item.image_id]"
-                  class="h-4 w-auto flex-shrink-0 object-contain"
+                  v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+                  :src="imageUrlMap[item.image_id ?? '']"
+                  class="h-4 w-auto shrink-0 object-contain"
                   alt=""
                 />
                 {{ navLabel(item) }}
               </span>
               <!-- Chevron toggle -->
               <button
-                class="text-gray-400 hover:text-gray-600 flex h-full w-12 flex-shrink-0 items-center justify-center py-3 transition-colors"
+                class="flex h-full w-12 shrink-0 items-center justify-center py-3 text-gray-400 transition-colors hover:text-gray-600"
                 :aria-label="expandedId === item.id ? $t('generic.collapse') : $t('generic.expand')"
                 @click="toggleExpanded(item.id)"
               >
@@ -156,13 +156,13 @@
             </div>
 
             <!-- Children -->
-            <div v-show="expandedId === item.id" class="border-gray-100 border-b">
+            <div v-show="expandedId === item.id" class="border-b border-gray-100">
               <!-- Image children: 2-column grid -->
               <div v-if="hasImageChildren(item)" class="grid grid-cols-2 gap-2 px-4 py-3">
                 <component
+                  :is="child.link_type === 'page' ? NuxtLink : 'a'"
                   v-for="child in childrenWithImages(item)"
                   :key="child.id"
-                  :is="child.link_type === 'page' ? NuxtLink : 'a'"
                   :to="child.link_type === 'page' ? resolveHref(child) : undefined"
                   :href="child.link_type === 'external' ? child.external_url : undefined"
                   :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
@@ -171,12 +171,12 @@
                   :class="{ 'ring-2 ring-olive-green': child.link_type === 'page' && isActive(child) }"
                   @click="closeDrawer"
                 >
-                  <img :src="imageUrlMap[child.image_id]" class="h-full w-full object-cover" alt="" />
+                  <img :src="imageUrlMap[child.image_id ?? '']" class="h-full w-full object-cover" alt="" />
                   <div
-                    class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4"
+                    class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-2 pt-4 pb-1.5"
                   >
                     <div
-                      class="text-xs font-semibold leading-snug text-white"
+                      class="text-xs leading-snug font-semibold text-white"
                       style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
                     >
                       {{ navLabel(child) }}
@@ -187,7 +187,7 @@
 
               <!-- Text-only children -->
               <template v-for="(child, index) in childrenWithoutImages(item)" :key="child.id">
-                <div v-if="index > 0" class="border-gray-100 ml-7 border-t"></div>
+                <div v-if="index > 0" class="ml-7 border-t border-gray-100"></div>
                 <component
                   :is="child.link_type === 'page' ? NuxtLink : 'a'"
                   :to="child.link_type === 'page' ? resolveHref(child) : undefined"
@@ -201,11 +201,11 @@
                   }"
                   @click="closeDrawer"
                 >
-                  <span class="flex items-center gap-1.5 font-semibold leading-snug">
+                  <span class="flex items-center gap-1.5 leading-snug font-semibold">
                     <svg
                       v-if="child.link_type === 'external'"
                       xmlns="http://www.w3.org/2000/svg"
-                      class="text-gray-500 h-3 w-3 flex-shrink-0"
+                      class="h-3 w-3 shrink-0 text-gray-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -219,7 +219,7 @@
                     </svg>
                     {{ navLabel(child) }}
                   </span>
-                  <span v-if="child.description" class="text-gray-400 mt-0.5 text-xs font-normal leading-snug">{{
+                  <span v-if="child.description" class="mt-0.5 text-xs leading-snug font-normal text-gray-400">{{
                     navDescription(child)
                   }}</span>
                 </component>
@@ -229,13 +229,13 @@
 
           <!-- Simple link -->
           <component
-            v-else-if="item.link_type !== 'none'"
             :is="item.link_type === 'page' ? NuxtLink : 'a'"
+            v-else-if="item.link_type !== 'none'"
             :to="item.link_type === 'page' ? resolveHref(item) : undefined"
             :href="item.link_type === 'external' ? item.external_url : undefined"
             :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
             :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
-            class="border-gray-100 flex w-full items-center gap-2 border-b px-5 py-3 text-sm font-semibold transition-colors"
+            class="flex w-full items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold transition-colors"
             :class="{
               'bg-solid-light-green-10 text-olive-green': item.link_type === 'page' && isActive(item),
               'text-gray-800 hover:bg-gray-50': !(item.link_type === 'page' && isActive(item)),
@@ -243,15 +243,15 @@
             @click="closeDrawer"
           >
             <img
-              v-if="item.image_id && imageUrlMap[item.image_id]"
-              :src="imageUrlMap[item.image_id]"
-              class="h-4 w-auto flex-shrink-0 object-contain"
+              v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+              :src="imageUrlMap[item.image_id ?? '']"
+              class="h-4 w-auto shrink-0 object-contain"
               alt=""
             />
             <svg
               v-if="item.link_type === 'external'"
               xmlns="http://www.w3.org/2000/svg"
-              class="text-gray-500 h-3.5 w-3.5 flex-shrink-0"
+              class="h-3.5 w-3.5 shrink-0 text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -269,12 +269,12 @@
           <!-- Label-only (no link, no children) -->
           <span
             v-else
-            class="text-gray-400 border-gray-100 flex w-full items-center gap-2 border-b px-5 py-3 text-sm font-semibold"
+            class="flex w-full items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-400"
           >
             <img
-              v-if="item.image_id && imageUrlMap[item.image_id]"
-              :src="imageUrlMap[item.image_id]"
-              class="h-4 w-auto flex-shrink-0 object-contain"
+              v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+              :src="imageUrlMap[item.image_id ?? '']"
+              class="h-4 w-auto shrink-0 object-contain"
               alt=""
             />
             {{ navLabel(item) }}
@@ -287,7 +287,7 @@
         <li v-for="page in pages" :key="page.id">
           <NuxtLink
             :to="'/' + page.slug"
-            class="text-gray-800 border-gray-100 hover:bg-gray-50 flex items-center gap-2 border-b px-5 py-3 text-sm font-semibold transition-colors"
+            class="flex items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50"
             @click="closeDrawer"
           >
             <span>→</span> {{ navLabel(page, "name") }}
@@ -298,41 +298,45 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from "vue";
+import type { NavigationPage, NavigationItem } from "~/types/components/navigation";
+
 import { ref, computed, onMounted, onBeforeUnmount, resolveComponent } from "vue";
 import { useRuntimeConfig } from "#imports";
-import translatedNavigationLabel from "~/shared/translatedNavigationLabel.js";
+import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 
 const NuxtLink = resolveComponent("NuxtLink");
 
-const { $t } = useNuxtApp();
+const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
 const config = useRuntimeConfig();
 const { closeDrawer } = useDrawer();
-const navLabel = (item, field = "label") => translatedNavigationLabel(item, $t, field);
-const navDescription = (item) => translatedNavigationLabel(item, $t, "description");
+const navLabel = (item: NavigationItem, field: "label" | "name" | "title" | "description" = "label") =>
+  translatedNavigationLabel(item, $translateDynamic, field);
+const navDescription = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "description");
 
 // Easter egg: pull-to-reveal SLK flower
 const eggHeight = ref(0);
 const eggStartY = ref(0);
 const isAnimatingBack = ref(false);
 let eggHapticFired = false;
-let eggResetTimer = null;
+let eggResetTimer: ReturnType<typeof setTimeout> | null = null;
 
 const flowerRotation = computed(() => eggHeight.value * 3);
 
-function onEggDragStart(e) {
+function onEggDragStart(e: TouchEvent) {
   if (eggResetTimer) {
     clearTimeout(eggResetTimer);
     eggResetTimer = null;
   }
   isAnimatingBack.value = false;
-  eggStartY.value = e.touches[0].clientY;
+  eggStartY.value = e.touches[0]!.clientY;
   eggHapticFired = false;
 }
 
-function onEggDragMove(e) {
-  const delta = e.touches[0].clientY - eggStartY.value;
+function onEggDragMove(e: TouchEvent) {
+  const delta = e.touches[0]!.clientY - eggStartY.value;
   if (delta <= 0) {
     eggHeight.value = 0;
     return;
@@ -358,20 +362,20 @@ onBeforeUnmount(() => {
 });
 
 const props = defineProps({
-  pages: { type: Array, default: () => [] },
-  navItems: { type: Array, default: () => [] },
+  pages: { type: Array as PropType<NavigationPage[] | undefined>, default: () => [] },
+  navItems: { type: Array as PropType<NavigationItem[] | undefined>, default: () => [] },
 });
 
 const safeNavItems = computed(() => (Array.isArray(props.navItems) ? props.navItems : []));
 
 // Accordion
-const expandedId = ref(null);
-function toggleExpanded(id) {
+const expandedId = ref<string | number | null>(null);
+function toggleExpanded(id: string | number) {
   expandedId.value = expandedId.value === id ? null : id;
 }
 
 // Image URL resolution
-const imageUrlMap = ref({});
+const imageUrlMap = ref<Record<string, string>>({});
 onMounted(() => {
   const baseUrl = config.public.clientDirectusUrl;
   safeNavItems.value.forEach((item) => {
@@ -382,7 +386,7 @@ onMounted(() => {
   });
 });
 
-function resolveHref(item) {
+function resolveHref(item: NavigationItem) {
   if (item.link_type === "page") {
     const slug = (item.page_slug ?? "").replace(/^\/+/, "");
     return slug === "" ? "/" : `/${slug}`;
@@ -390,30 +394,30 @@ function resolveHref(item) {
   return item.external_url || "#";
 }
 
-function isActive(item) {
+function isActive(item: NavigationItem) {
   if (item.link_type !== "page") return false;
   const slug = (item.page_slug ?? "").replace(/^\/+/, "").replace(/\/+$/, "");
   if (!slug) return false;
   return route.path === `/${slug}` || route.path.startsWith(`/${slug}/`);
 }
 
-function hasChildren(item) {
+function hasChildren(item: NavigationItem) {
   return Array.isArray(item.children) && item.children.length > 0;
 }
 
-function anyChildActive(item) {
-  return hasChildren(item) && item.children.some((child) => isActive(child));
+function anyChildActive(item: NavigationItem) {
+  return hasChildren(item) && (item.children ?? []).some((child) => isActive(child));
 }
 
-function hasImageChildren(item) {
+function hasImageChildren(item: NavigationItem) {
   return (item.children || []).some((c) => c.image_id);
 }
 
-function childrenWithImages(item) {
+function childrenWithImages(item: NavigationItem) {
   return (item.children || []).filter((c) => c.image_id);
 }
 
-function childrenWithoutImages(item) {
+function childrenWithoutImages(item: NavigationItem) {
   return (item.children || []).filter((c) => !c.image_id);
 }
 </script>

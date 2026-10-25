@@ -1,46 +1,55 @@
 <template>
   <!-- Social Media Section -->
-  <div class="mx-auto mb-8 max-w-screen-xl text-center">
-    <p class="mb-4">
-      {{ $t("generic.social_media.support_by_sharing") }}
-    </p>
-    <div class="flex items-center justify-center gap-6">
-      <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
-        <img src="~/assets/icons/icon_instagram.svg" alt="Instagram" class="h-12 w-12" />
-      </a>
-      <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" aria-label="LinkedIn">
-        <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
-      </a>
-    </div>
-    <div class="mt-4 flex items-center justify-center gap-6">
-      <a href="https://whatsapp.com/channel/0029Vb8RAti2v1Ix7Yz7OM0a" target="_blank" aria-label="WhatsApp">
-        <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
-      </a>
-      <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
-        <img src="~/assets/icons/icon_telegram.svg" alt="Telegram" class="h-12 w-12" />
-      </a>
-      <a
-        href="https://signal.group/#CjQKIPtaXcn_-6q29ufg9BBFvz0figXXqFc1H-1CddW5rkjUEhCWGjAx0p2QVVrDx4zlURBA"
-        target="_blank"
-        aria-label="Signal"
-      >
-        <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
-      </a>
+  <div class="w-full bg-gray-100">
+    <div class="mx-auto max-w-(--breakpoint-xl) py-8 text-center">
+      <p class="mb-4">
+        {{ $t("generic.social_media.support_by_sharing") }}
+      </p>
+      <div class="flex items-center justify-center gap-6">
+        <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
+          <img src="~/assets/icons/icon_instagram.svg" alt="Instagram" class="h-12 w-12" />
+        </a>
+        <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" aria-label="LinkedIn">
+          <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
+        </a>
+      </div>
+      <div class="mt-4 flex items-center justify-center gap-6">
+        <a href="https://whatsapp.com/channel/0029Vb8RAti2v1Ix7Yz7OM0a" target="_blank" aria-label="WhatsApp">
+          <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
+        </a>
+        <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
+          <img src="~/assets/icons/icon_telegram.svg" alt="Telegram" class="h-12 w-12" />
+        </a>
+        <a
+          href="https://signal.group/#CjQKIPtaXcn_-6q29ufg9BBFvz0figXXqFc1H-1CddW5rkjUEhCWGjAx0p2QVVrDx4zlURBA"
+          target="_blank"
+          aria-label="Signal"
+        >
+          <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
+        </a>
+      </div>
     </div>
   </div>
 
   <!-- Main Footer -->
-  <footer class="footer footer-center bg-olive-green px-4 py-10 text-white xl:px-10">
+  <footer class="relative isolate overflow-hidden bg-olive-green px-4 py-10 text-white xl:px-10">
+    <img
+      src="~/assets/images/Stadt-Land-Klima-Blume.svg"
+      alt=""
+      aria-hidden="true"
+      class="pointer-events-none absolute top-1/2 left-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.08] brightness-0 invert select-none"
+    />
+
     <!-- Newsletter Signup -->
-    <div class="mx-auto mb-8 w-full max-w-screen-xl border-b border-rating-4-light pb-8">
+    <div class="relative z-10 mx-auto mb-10 w-full max-w-(--breakpoint-xl)">
       <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-10">
-        <div class="max-w-xs flex-shrink-0">
+        <div class="max-w-xs shrink-0">
           <h3 class="text-lg font-bold">Newsletter</h3>
           <p class="mt-0.5 text-sm text-rating-4-very-light">{{ $t("newsletter.footer.description") }}</p>
         </div>
         <div class="min-w-0 flex-1">
           <div v-if="newsletterState === 'success'" class="flex items-center gap-2 text-sm font-medium">
-            <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fill-rule="evenodd"
                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -49,52 +58,49 @@
             </svg>
             {{ newsletterAlreadySubscribed ? $t("newsletter.already_subscribed") : $t("newsletter.confirmation_sent") }}
           </div>
-          <div v-else class="flex gap-2">
+          <form v-else class="flex gap-2" @submit.prevent="subscribeNewsletter">
             <input
               v-model="footerEmail"
               type="email"
+              required
               autocomplete="email"
+              :aria-label="$t('newsletter.email.placeholder')"
               :placeholder="$t('newsletter.email.placeholder')"
-              class="placeholder-gray-600 min-w-0 flex-1 rounded-md px-3 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-white"
-              @keydown.enter.prevent="subscribeNewsletter"
+              class="min-w-0 flex-1 rounded-md bg-white px-3 py-2 text-sm text-black placeholder-gray-600 focus:ring-2 focus:ring-white focus:outline-hidden"
             />
             <CanonicalButton
+              type="submit"
               :label="newsletterState === 'subscribing' ? '\u2026' : $t('newsletter.subscribe')"
               icon-slug="icon_newsletter_click"
               color="green"
               :disabled="newsletterState === 'subscribing'"
-              @click="subscribeNewsletter"
             />
-          </div>
-          <p v-if="newsletterError" class="text-red-300 mt-1 text-xs">{{ newsletterError }}</p>
+          </form>
+          <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
         </div>
       </div>
     </div>
 
     <!-- Navigation Links: footer_columns (from navigation_config) -->
-    <div v-if="footerColumnsData.length > 0" class="mx-auto mb-8 w-full max-w-screen-xl">
+    <div v-if="footerColumnsData.length > 0" class="relative z-10 mx-auto mb-10 w-full max-w-(--breakpoint-xl)">
       <div
-        class="grid w-full gap-8"
+        class="grid w-full gap-x-12 gap-y-8"
         :style="{ gridTemplateColumns: `repeat(${footerColumnsData.length}, minmax(0, 1fr))` }"
       >
-        <nav
-          v-for="(col, index) in footerColumnsData"
-          :key="col.id"
-          :class="['flex flex-col gap-2 text-left', index !== 0 ? 'border-l border-rating-4-light pl-6' : '']"
-        >
-          <h6 class="footer-title mb-2 flex min-h-[3rem] items-start font-bold text-white opacity-100">
+        <nav v-for="col in footerColumnsData" :key="col.id" class="flex flex-col gap-2 text-left">
+          <h6 class="footer-title mb-2 flex min-h-12 items-start font-bold text-white opacity-100">
             {{ navTitle(col) }}
           </h6>
           <template v-for="link in col.links" :key="link.id">
-            <NuxtLink v-if="link.link_type === 'page'" :to="'/' + link.page_slug" class="link-hover link text-base">{{
+            <NuxtLink v-if="link.link_type === 'page'" :to="'/' + link.page_slug" class="link text-base link-hover">{{
               navLabel(link)
             }}</NuxtLink>
             <a
               v-else
-              :href="link.external_url"
+              :href="link.external_url ?? undefined"
               :target="link.open_new_tab ? '_blank' : undefined"
               rel="noopener noreferrer"
-              class="link-hover link text-base"
+              class="link text-base link-hover"
               >{{ navLabel(link) }}</a
             >
           </template>
@@ -102,11 +108,16 @@
       </div>
     </div>
 
+    <!-- Condensed organisation details -->
+    <div class="relative z-10 mx-auto mb-10 w-full max-w-(--breakpoint-xl)">
+      <FooterOrganizationDetails />
+    </div>
+
     <!-- Bottom Section: Logo, Buttons, Copyright -->
-    <div class="mx-auto w-full max-w-screen-xl border-t border-rating-4-light py-8">
+    <div class="relative z-10 mx-auto w-full max-w-(--breakpoint-xl) pt-2 pb-4">
       <div class="flex w-full flex-col items-center justify-between gap-6 lg:flex-row">
         <!-- Logo -->
-        <div class="flex-shrink-0">
+        <div class="shrink-0">
           <NuxtLink to="/">
             <img
               src="~/assets/images/Stadt-Land-Klima-Logo.svg"
@@ -129,7 +140,9 @@
 
         <!-- Copyright + internal login -->
         <div class="text-center text-sm text-rating-4-very-light">
-          <div>{{ $t("footer.copyright") }}</div>
+          <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed">
+            <div>{{ $t("footer.copyright") }}</div>
+          </a>
           <button
             v-if="!isAuthenticated"
             class="mt-1 text-xs text-rating-4-light transition-colors hover:text-white"
@@ -147,26 +160,30 @@
     </div>
   </footer>
 
-  <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
+  <AuthLoginModal :is-open="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { requestErrorMessage } from "~/shared/requestError";
+import type { PropType } from "vue";
+import type { NavigationItem } from "~/types/components/navigation";
+
 import { ref, computed, onMounted } from "vue";
 import DonateButton from "~/components/DonateButton.vue";
 import LoginButton from "~/components/LoginButton.vue";
 import AuthLoginModal from "~/components/AuthLoginModal.vue";
 import { useAuth } from "~/composables/useAuth";
-import translatedNavigationLabel from "~/shared/translatedNavigationLabel.js";
+import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 
-const { $t } = useNuxtApp();
+const { $translateDynamic, $t } = useNuxtApp();
 const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
-const navLabel = (item) => translatedNavigationLabel(item, $t);
-const navTitle = (item) => translatedNavigationLabel(item, $t, "title");
+const navLabel = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic);
+const navTitle = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "title");
 
 const props = defineProps({
   navItems: {
-    type: Array,
+    type: Array as PropType<NavigationItem[] | undefined>,
     default: () => [],
   },
 });
@@ -178,6 +195,7 @@ const newsletterAlreadySubscribed = ref(false);
 const newsletterError = ref("");
 
 async function subscribeNewsletter() {
+  if (newsletterState.value === "subscribing") return;
   newsletterError.value = "";
   if (!footerEmail.value.trim()) {
     newsletterError.value = $t("newsletter.email.required");
@@ -193,7 +211,7 @@ async function subscribeNewsletter() {
     newsletterState.value = "success";
   } catch (err) {
     newsletterState.value = "idle";
-    newsletterError.value = err?.data?.message ?? $t("newsletter.subscribe_failed");
+    newsletterError.value = requestErrorMessage(err, $t("newsletter.subscribe_failed"));
   }
 }
 
@@ -213,7 +231,7 @@ async function handleLogout() {
 }
 
 onMounted(() => {
-  initialize();
+  void initialize();
 });
 </script>
 

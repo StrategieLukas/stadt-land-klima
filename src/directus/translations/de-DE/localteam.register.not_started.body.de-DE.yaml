@@ -1,6 +1,5 @@
 language: de-DE
 key: localteam.register.not_started.body
-value:
-  In <strong>:name</strong> gibt es bereits ein Lokalteam. Die Bewertung des
-  aktuellen Maßnahmenkatalogs wurde noch nicht begonnen. Möchtest du das Team
-  unterstützen?
+value: In <strong>:name</strong> gibt es bereits ein Lokalteam. Die Bewertung
+  des aktuellen Maßnahmenkatalogs wurde noch nicht begonnen. Möchtest du das
+  Team unterstützen?

@@ -1,0 +1,46 @@
+collection: success_project_tours
+field: introduction
+type: text
+meta:
+  collection: success_project_tours
+  conditions: null
+  display: null
+  display_options: null
+  field: introduction
+  group: null
+  hidden: false
+  interface: input-rich-text-html
+  note: Einführung für die Reihenseite
+  options: null
+  readonly: false
+  required: false
+  searchable: true
+  sort: 5
+  special: null
+  translations:
+  - language: de-DE
+    translation: Einleitung
+  - language: en-GB
+    translation: Introduction
+  - language: it-IT
+    translation: Introduzione
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: introduction
+  table: success_project_tours
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

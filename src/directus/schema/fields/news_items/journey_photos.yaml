@@ -1,0 +1,29 @@
+collection: news_items
+field: journey_photos
+type: alias
+meta:
+  collection: news_items
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{caption}}'
+  field: journey_photos
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: Auswahl und Reihenfolge nur für die Reihenseite; die Neuigkeit kann eigene Bilder enthalten
+  options:
+    enableCreate: true
+    template: '{{caption}}'
+  readonly: false
+  required: false
+  searchable: true
+  sort: 16
+  special:
+  - m2m
+  translations:
+  - language: de-DE
+    translation: Fotos für das Reisejournal
+  validation: null
+  validation_message: null
+  width: full

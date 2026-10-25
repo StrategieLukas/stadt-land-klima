@@ -1,24 +1,20 @@
 <template>
-  <div class="blokkli-block-progress-bar" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-progress-bar">
     <!-- Label row -->
-    <div class="flex items-center justify-between gap-2 mb-2">
-      <span
-        v-blokkli-editable:label
-        class="text-sm font-semibold"
-        v-text="props.label"
-      />
+    <div class="mb-2 flex items-center justify-between gap-2">
+      <span v-blokkli-editable:label class="text-sm font-semibold" v-text="props.label" />
       <span
         v-if="options.showValue"
-        class="text-sm font-bold tabular-nums flex items-baseline gap-0.5"
+        class="flex items-baseline gap-0.5 text-sm font-bold tabular-nums"
         :class="accentTextClass"
-      ><span v-blokkli-editable:value v-text="props.value || '0'" /><span v-blokkli-editable:unit v-text="props.unit || '%'" /></span>
+        ><span v-blokkli-editable:value v-text="props.value || '0'" /><span
+          v-blokkli-editable:unit
+          v-text="props.unit || '%'"
+      /></span>
     </div>
 
     <!-- Track -->
-    <div
-      class="w-full rounded-full overflow-hidden"
-      :class="[trackBgClass, trackHeightClass]"
-    >
+    <div class="w-full overflow-hidden rounded-full" :class="[trackBgClass, trackHeightClass]">
       <div
         class="rounded-full transition-[width] duration-700 ease-out"
         :class="[barBgClass, trackHeightClass]"
@@ -34,103 +30,111 @@
     <p
       v-if="props.description || isEditing"
       v-blokkli-editable:description
-      class="text-xs text-gray opacity-70 mt-1.5 leading-relaxed"
+      class="mt-1.5 text-xs leading-relaxed text-gray opacity-70"
       v-text="props.description"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-const { options, isEditing, uuid } = defineBlokkli({
-  bundle: 'progress_bar',
+const isEditing = import.meta.blokkliEditing;
+
+const { options, uuid } = defineBlokkli({
+  bundle: "progress_bar",
+  propsFieldMapping: {
+    label: { name: "label", type: "editable" },
+    value: { name: "value", type: "editable" },
+    unit: { name: "unit", type: "editable" },
+    description: { name: "description", type: "editable" },
+  },
   options: {
     color: {
-      type: 'radios',
-      label: 'Farbe',
-      default: 'green',
-      displayAs: 'colors',
+      type: "radios",
+      label: "Farbe",
+      default: "green",
+      displayAs: "colors",
       options: {
-        green: { label: 'Grün', hex: '#1da64a' },
-        blue: { label: 'Blau', hex: '#16bae7' },
-        dark: { label: 'Dunkelblau', hex: '#006e94' },
-        orange: { label: 'Orange', hex: '#f39200' },
-        lime: { label: 'Hellgrün', hex: '#AFCA0B' },
-        red: { label: 'Rot', hex: '#e30613' },
+        green: { label: "Grün", hex: "#1da64a" },
+        blue: { label: "Blau", hex: "#16bae7" },
+        dark: { label: "Dunkelblau", hex: "#006e94" },
+        orange: { label: "Orange", hex: "#f39200" },
+        lime: { label: "Hellgrün", hex: "#AFCA0B" },
+        red: { label: "Rot", hex: "#e30613" },
       },
     },
     size: {
-      type: 'radios',
-      label: 'Größe',
-      default: 'medium',
+      type: "radios",
+      label: "Größe",
+      default: "medium",
       options: {
-        small: 'Klein',
-        medium: 'Mittel',
-        large: 'Groß',
+        small: "Klein",
+        medium: "Mittel",
+        large: "Groß",
       },
     },
     showValue: {
-      type: 'checkbox',
-      label: 'Wert anzeigen',
+      type: "checkbox",
+      label: "Wert anzeigen",
       default: true,
     },
     trackStyle: {
-      type: 'radios',
-      label: 'Hintergrund',
-      default: 'light',
+      type: "radios",
+      label: "Hintergrund",
+      default: "light",
       options: {
-        light: 'Hell',
-        muted: 'Grau',
+        light: "Hell",
+        muted: "Grau",
       },
     },
   },
   editor: {
-    addBehaviour: 'editable:label',
-    editTitle: (el) => el.textContent?.trim().slice(0, 40) || 'Fortschrittsbalken',
-    mockProps: () => { return { label: 'Fortschritt', value: '72', unit: '%', description: '' } },
+    addBehaviour: "editable:label",
+    editTitle: (el) => el.textContent?.trim().slice(0, 40) || "Fortschrittsbalken",
+    mockProps: () => {
+      return { label: "Fortschritt", value: "72", unit: "%", description: "" };
+    },
   },
-})
+});
 
 const props = defineProps<{
-  label?: string
-  value?: string
-  unit?: string
-  description?: string
-}>()
+  label?: string | undefined;
+  value?: string | undefined;
+  unit?: string | undefined;
+  description?: string | undefined;
+}>();
 
 const clampedValue = computed(() => {
-  const v = parseFloat(props.value || '0')
-  return Math.min(100, Math.max(0, isNaN(v) ? 0 : v))
-})
+  const v = parseFloat(props.value || "0");
+  return Math.min(100, Math.max(0, isNaN(v) ? 0 : v));
+});
 
-const displayValue = computed(() => {
-  return `${props.value || '0'}${props.unit || '%'}`
-})
+const _displayValue = computed(() => {
+  return `${props.value || "0"}${props.unit || "%"}`;
+});
 
 const colorMap: Record<string, { bar: string; text: string }> = {
-  green: { bar: 'bg-ff-green', text: 'text-ff-green' },
-  blue: { bar: 'bg-light-blue', text: 'text-light-blue' },
-  dark: { bar: 'bg-stats-dark', text: 'text-stats-dark' },
-  orange: { bar: 'bg-orange', text: 'text-orange' },
-  lime: { bar: 'bg-light-green', text: 'text-light-green' },
-  red: { bar: 'bg-red', text: 'text-red' },
-}
+  green: { bar: "bg-ff-green", text: "text-ff-green" },
+  blue: { bar: "bg-light-blue", text: "text-light-blue" },
+  dark: { bar: "bg-stats-dark", text: "text-stats-dark" },
+  orange: { bar: "bg-orange", text: "text-orange" },
+  lime: { bar: "bg-light-green", text: "text-light-green" },
+  red: { bar: "bg-red", text: "text-red" },
+};
 
-const currentColor = computed(() => colorMap[options.value.color] || colorMap.green)
-const barBgClass = computed(() => currentColor.value.bar)
-const accentTextClass = computed(() => currentColor.value.text)
+const currentColor = computed(() => colorMap[options.value.color] || colorMap.green!);
+const barBgClass = computed(() => currentColor.value.bar);
+const accentTextClass = computed(() => currentColor.value.text);
 
-const trackBgClass = computed(() =>
-  options.value.trackStyle === 'muted' ? 'bg-gray-300' : 'bg-gray-100',
-)
+const trackBgClass = computed(() => (options.value.trackStyle === "muted" ? "bg-gray-300" : "bg-gray-100"));
 
 const trackHeightClass = computed(() => {
   const map: Record<string, string> = {
-    small: 'h-2',
-    medium: 'h-4',
-    large: 'h-6',
-  }
-  return map[options.value.size] || 'h-4'
-})
+    small: "h-2",
+    medium: "h-4",
+    large: "h-6",
+  };
+  return map[options.value.size] || "h-4";
+});
 </script>
 
 <style scoped>

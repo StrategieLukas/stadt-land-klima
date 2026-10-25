@@ -84,27 +84,19 @@ function normalizeText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-async function canInvite(
-  database: Database,
-  accountability?: Accountability,
-): Promise<boolean> {
+async function canInvite(database: Database, accountability?: Accountability): Promise<boolean> {
   if (accountability?.admin) return true;
   if (!accountability?.role) return false;
 
-  const role = (await database("directus_roles")
-    .select("name")
-    .where({ id: accountability.role })
-    .first()) as Pick<RoleRow, "name"> | undefined;
+  const role = (await database("directus_roles").select("name").where({ id: accountability.role }).first()) as
+    Pick<RoleRow, "name"> | undefined;
 
   return role?.name === ALLOWED_ROLE;
 }
 
 export default {
   id: "erfolgsprojekte-users",
-  handler: (
-    router: Router,
-    { database, env, getSchema, logger, services }: ExtensionContext,
-  ) => {
+  handler: (router: Router, { database, env, getSchema, logger, services }: ExtensionContext) => {
     router.post("/invite", async (req: AuthenticatedRequest, res: Response) => {
       if (!(await canInvite(database, req.accountability))) {
         return res
@@ -123,10 +115,7 @@ export default {
         });
       }
 
-      if (
-        firstName.length > MAX_NAME_LENGTH ||
-        lastName.length > MAX_NAME_LENGTH
-      ) {
+      if (firstName.length > MAX_NAME_LENGTH || lastName.length > MAX_NAME_LENGTH) {
         return res.status(400).json({ error: "Der Name ist zu lang." });
       }
 
@@ -137,12 +126,8 @@ export default {
           .first()) as RoleRow | undefined;
 
         if (!targetRole) {
-          logger.error(
-            `[erfolgsprojekte-users] Role ${TARGET_ROLE} not found.`,
-          );
-          return res
-            .status(500)
-            .json({ error: "Die Redaktionsrolle wurde nicht gefunden." });
+          logger.error(`[erfolgsprojekte-users] Role ${TARGET_ROLE} not found.`);
+          return res.status(500).json({ error: "Die Redaktionsrolle wurde nicht gefunden." });
         }
 
         const schema = await getSchema();
@@ -160,14 +145,10 @@ export default {
         try {
           usersService.validateEmail(email);
         } catch {
-          return res
-            .status(400)
-            .json({ error: "Die E-Mail-Adresse ist ungültig." });
+          return res.status(400).json({ error: "Die E-Mail-Adresse ist ungültig." });
         }
 
-        const existingUser = (await usersService.getUserByEmail(email)) as
-          | ExistingUser
-          | undefined;
+        const existingUser = (await usersService.getUserByEmail(email)) as ExistingUser | undefined;
         if (existingUser) {
           return res.status(409).json({
             error:
@@ -186,17 +167,16 @@ export default {
           status: "invited",
         })) as string;
 
-        const inviter = (req.accountability?.user
-          ? await database("directus_users")
-              .select("first_name", "last_name", "email")
-              .where({ id: req.accountability.user })
-              .first()
-          : null) as InviterRow | null;
+        const inviter = (
+          req.accountability?.user
+            ? await database("directus_users")
+                .select("first_name", "last_name", "email")
+                .where({ id: req.accountability.user })
+                .first()
+            : null
+        ) as InviterRow | null;
         const inviterName =
-          [inviter?.first_name, inviter?.last_name]
-            .filter(Boolean)
-            .join(" ")
-            .trim() ||
+          [inviter?.first_name, inviter?.last_name].filter(Boolean).join(" ").trim() ||
           inviter?.email ||
           "das Planungsteam";
 
@@ -217,14 +197,10 @@ export default {
         } catch (error) {
           if (env["SLK_ENV"] !== "development") throw error;
           mailSent = false;
-          logger.warn(
-            `[erfolgsprojekte-users] Invitation mail for ${email} was not sent in development.`,
-          );
+          logger.warn(`[erfolgsprojekte-users] Invitation mail for ${email} was not sent in development.`);
         }
 
-        logger.info(
-          `[erfolgsprojekte-users] ${inviterName} invited ${email} as ${TARGET_ROLE}.`,
-        );
+        logger.info(`[erfolgsprojekte-users] ${inviterName} invited ${email} as ${TARGET_ROLE}.`);
 
         return res.status(201).json({
           user: {
@@ -239,9 +215,7 @@ export default {
         });
       } catch (error) {
         logger.error("[erfolgsprojekte-users] Invitation failed.", error);
-        return res
-          .status(500)
-          .json({ error: "Die Einladung konnte nicht versendet werden." });
+        return res.status(500).json({ error: "Die Einladung konnte nicht versendet werden." });
       }
     });
   },

@@ -10,6 +10,6 @@ type DirectusApi = {
  * `/backend` on staging.
  */
 export function directusUrl(api: DirectusApi | null | undefined, path: string): string {
-  const baseUrl = api?.defaults?.baseURL?.replace(/\/+$/, '') ?? '';
-  return `${baseUrl}/${path.replace(/^\/+/, '')}`;
+  const baseUrl = api?.defaults?.baseURL?.replace(/\/+$/, "") ?? "";
+  return `${baseUrl}/${path.replace(/^\/+/, "")}`;
 }

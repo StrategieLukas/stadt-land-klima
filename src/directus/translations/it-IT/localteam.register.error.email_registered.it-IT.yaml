@@ -1,3 +1,3 @@
 language: it-IT
 key: localteam.register.error.email_registered
-value: Indirizzo email già registrato
+value: "Esiste già un account per questo indirizzo e-mail. Se vuoi valutare più comuni, registrati con account e indirizzi e-mail separati."

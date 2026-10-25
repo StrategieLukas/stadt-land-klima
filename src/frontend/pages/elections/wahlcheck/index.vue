@@ -1,14 +1,10 @@
 <template>
   <div class="elections-flow min-h-screen bg-mild-white">
     <!-- Header -->
-    <div class="border-b border-solid-gray-10 bg-white shadow-sm">
+    <div class="border-b border-solid-gray-10 bg-white shadow-xs">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <NuxtLink to="/" class="flex items-center gap-3">
-          <img
-            src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-            :alt="$t('logo.alt')"
-            class="h-10 w-auto dark:hidden"
-          />
+          <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" :alt="$t('logo.alt')" class="h-10 w-auto dark:hidden" />
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
             :alt="$t('logo.alt')"
@@ -37,13 +33,13 @@
       <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
         <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
-        <button @click="loadElections" class="btn btn-primary">{{ $t("generic.try_again") }}</button>
+        <button class="btn btn-primary" @click="loadElections">{{ $t("generic.try_again") }}</button>
       </div>
 
       <!-- No Public Elections -->
       <div
         v-else-if="publicElections.length === 0"
-        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
+        class="my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center text-orange-800"
       >
         <div class="mb-6">
           <img
@@ -64,9 +60,9 @@
         <div class="rounded-xl border border-solid-gray-10 bg-white p-8 text-center shadow-list">
           <div class="mb-6">
             <img
-              src="~/assets/images/Stadt-Land-Klima-Blume.svg"
-              :alt="$t('logo.alt')"
-              class="mx-auto h-24 w-auto opacity-80"
+              src="~/assets/images/Mach_den-Klima-Wahlcheck.svg"
+              :alt="$t('elections.wahlcheck.header_title')"
+              class="mx-auto h-24 w-auto object-contain"
             />
           </div>
           <h2 class="mb-4 text-2xl font-bold text-stats-dark">
@@ -74,6 +70,12 @@
           </h2>
           <p class="mx-auto max-w-2xl text-lg text-mid-gray">
             {{ $t("elections.wahlcheck.intro.description") }}
+          </p>
+          <p
+            data-testid="wahlcheck-intro-disclaimer"
+            class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-mid-gray"
+          >
+            {{ $t("elections.wahlcheck.intro.disclaimer") }}
           </p>
         </div>
 
@@ -85,7 +87,7 @@
           <NuxtLink
             v-for="election in publicElections"
             :key="election.id"
-            :to="`/elections/wahlcheck/${election.localteam?.municipality_id?.[0]?.slug || election.localteam?.municipality_id?.[0]?.name || election.id}`"
+            :to="`/elections/wahlcheck/${election.municipalitySlug || election.localteam?.slug || election.id}`"
             class="group rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-all duration-300 hover:border-solid-ff-green-30 hover:shadow-xl"
           >
             <div class="mb-4 flex items-start justify-between">
@@ -97,7 +99,7 @@
                   {{ election.localteam.municipality_name || election.localteam.name }}
                 </p>
               </div>
-              <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-solid-ff-green-10">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-solid-ff-green-10">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5 text-ff-green"
@@ -126,7 +128,13 @@
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span>{{ $t("elections.candidates_count", { ":count": election.candidateCount }) }}</span>
+                <span>
+                  {{
+                    $t(election.is_party_election ? "elections.parties_count" : "elections.candidates_count", {
+                      ":count": election.candidateCount,
+                    })
+                  }}
+                </span>
               </div>
               <div class="flex items-center gap-1">
                 <svg
@@ -147,12 +155,9 @@
               </div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between border-t border-solid-gray-10 pt-4">
+            <div class="mt-4 border-t border-solid-gray-10 pt-4">
               <span class="text-sm text-mid-gray">
                 {{ $t("generic.created_at", { ":date": formatDate(election.date_created) }) }}
-              </span>
-              <span class="rounded-full bg-solid-ff-green-10 px-2 py-1 text-xs font-medium text-ff-green">
-                {{ $t("generic.public") }}
               </span>
             </div>
           </NuxtLink>
@@ -195,26 +200,23 @@
         </div>
       </div>
     </div>
-
-    <!-- Footer -->
-    <div class="mt-20">
-      <TheFooterDesktop />
-    </div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from "vue";
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
 
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
+import type { z } from "zod";
+import type { PublicElectionListSchema } from "~/shared/contracts/elections";
 
-const publicElections = ref([]);
+const { $t, $locale } = useNuxtApp();
+const publicElections = ref<z.output<typeof PublicElectionListSchema>[]>([]);
 const pending = ref(true);
 const error = ref(false);
 const errorMessage = ref("");
 
 // Format date
-function formatDate(dateString) {
+function formatDate(dateString: string | null) {
   if (!dateString) return $t("generic.unknown");
   try {
     const date = new Date(dateString);
@@ -228,31 +230,14 @@ function formatDate(dateString) {
   }
 }
 
-// Load all public elections
+// Load all public elections from server API
 async function loadElections() {
   pending.value = true;
   error.value = false;
   errorMessage.value = "";
 
   try {
-    // Load elections that are public
-    const elections = await $directus.request(
-      $readItems("elections", {
-        filter: {
-          is_public: { _eq: true },
-        },
-        sort: ["-date_created"],
-        fields: [
-          "*",
-          "localteam.id",
-          "localteam.name",
-          "localteam.slug",
-          "localteam.municipality_name",
-          "localteam.municipality_id.slug",
-          "localteam.municipality_id.name",
-        ],
-      }),
-    );
+    const elections = await $fetch("/api/public/wahlcheck");
 
     if (!elections || elections.length === 0) {
       publicElections.value = [];
@@ -260,49 +245,8 @@ async function loadElections() {
       return;
     }
 
-    // For each election, count candidates and questions
-    const electionsWithCounts = [];
-    for (const election of elections) {
-      try {
-        // Count candidates who have answered
-        const candidates = await $directus.request(
-          $readItems("candidate", {
-            filter: {
-              election: { _eq: election.id },
-              has_answered: { _eq: true },
-            },
-            limit: -1,
-          }),
-        );
-
-        // Count published questions
-        const questions = await $directus.request(
-          $readItems("questions", {
-            filter: {
-              election: { _eq: election.id },
-              status: { _eq: "published" },
-            },
-            limit: -1,
-          }),
-        );
-
-        electionsWithCounts.push({
-          ...election,
-          candidateCount: candidates?.length || 0,
-          questionCount: questions?.length || 0,
-        });
-      } catch (err) {
-        // Still add the election with 0 counts
-        electionsWithCounts.push({
-          ...election,
-          candidateCount: 0,
-          questionCount: 0,
-        });
-      }
-    }
-
-    publicElections.value = electionsWithCounts.filter((e) => e.candidateCount > 0);
-  } catch (err) {
+    publicElections.value = elections;
+  } catch {
     error.value = true;
     errorMessage.value = $t("elections.loading_error.description");
   } finally {
@@ -312,15 +256,7 @@ async function loadElections() {
 
 // Load data on mount
 onMounted(() => {
-  loadElections();
-});
-
-// Sort elections by date (newest first) or by candidate count
-const sortedElections = computed(() => {
-  return [...publicElections.value].sort((a, b) => {
-    // Sort by date_created descending (newest first)
-    return new Date(b.date_created) - new Date(a.date_created);
-  });
+  void loadElections();
 });
 
 useHead({

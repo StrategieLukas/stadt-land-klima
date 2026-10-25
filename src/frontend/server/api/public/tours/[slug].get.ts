@@ -1,0 +1,37 @@
+import { cmsRows } from "~/server/utils/cmsValue";
+import { z } from "zod";
+import { readItems } from "@directus/sdk";
+import { createError, defineEventHandler, getRouterParam, setResponseHeader } from "h3";
+import { createDirectusServerClient } from "../../../utils/directusServerClient";
+import { parseCms } from "../../../utils/parseCms";
+import { routeSlug } from "~/shared/routeValues";
+import { TOUR_FIELDS, STOP_FIELDS } from "~/shared/successProjectTour";
+import { TourSchema, TourStopSchema } from "~/shared/contracts/content";
+export default defineEventHandler(async (event) => {
+  const slug = routeSlug(getRouterParam(event, "slug"));
+  if (!slug) throw createError({ statusCode: 404, statusMessage: "Tour not found" });
+  const client = createDirectusServerClient();
+  const tours = await client
+    .request(
+      readItems("success_project_tours", {
+        filter: { slug: { _eq: slug }, status: { _eq: "published" } },
+        fields: [...TOUR_FIELDS],
+        limit: 1,
+      }),
+    )
+    .then(cmsRows);
+  if (!tours[0]) throw createError({ statusCode: 404, statusMessage: "Tour not found" });
+  const tour = parseCms(TourSchema, tours[0]);
+  const stops = await client
+    .request(
+      readItems("success_project_tour_stops", {
+        filter: { status: { _eq: "published" }, tour: { id: { _eq: tour.id }, status: { _eq: "published" } } },
+        fields: [...STOP_FIELDS],
+        limit: 1001,
+      }),
+    )
+    .then(cmsRows);
+  if (stops.length > 1000) throw createError({ statusCode: 502, statusMessage: "Tour limit exceeded" });
+  setResponseHeader(event, "Cache-Control", "public, max-age=60");
+  return { tour, stops: parseCms(z.array(TourStopSchema), stops) };
+});

@@ -1,0 +1,133 @@
+<template>
+  <div
+    class="flex min-h-[140px] flex-col justify-center gap-1 border-gray-200 bg-white"
+    :class="flush ? 'rounded-none border-0 p-4 shadow-none' : 'rounded-lg border p-4 shadow-xs'"
+  >
+    <template v-if="loading">
+      <div class="h-4 w-32 animate-pulse rounded-sm bg-gray-200" />
+      <div class="h-3 w-48 animate-pulse rounded-sm bg-gray-200" />
+      <div class="h-10 w-24 animate-pulse rounded-sm bg-gray-200" />
+      <div class="mt-1 h-3 w-16 animate-pulse rounded-sm bg-gray-200" />
+    </template>
+    <template v-else>
+      <p v-if="titleText" class="text-sm leading-snug font-bold text-gray-900">
+        {{ titleText }}
+      </p>
+      <p v-if="descriptionText" class="text-xs leading-relaxed text-gray-500">
+        {{ descriptionText }}
+      </p>
+      <div class="justify-content-end flex flex-row">
+        <div class="mt-1 text-4xl leading-none font-black tabular-nums" :style="{ color: kpiColor }">
+          {{ kpiDisplayValue }}
+        </div>
+        <div v-if="unitText" class="mt-0.5 mt-5 ml-2 text-xs text-gray-500">
+          {{ unitText }}<template v-if="element.population_normalized"> / 1 000 Einw.</template>
+        </div>
+      </div>
+      <ThresholdBar
+        v-if="kpiValue !== null && hasThresholds"
+        :thresholds="element.thresholds!"
+        :value="kpiValue"
+        :unit="unitText"
+        :is-percentage="element.is_percentage"
+        class="mt-2"
+      />
+    </template>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+import { useSlzLocale } from "~/composables/useSlzLocale";
+import type { RenderElement, CollectionSummary } from "~/types/slz-api";
+
+const props = defineProps<{
+  element: RenderElement;
+  collectionSlug: string;
+  ars: string;
+  baseUrl: string;
+  population?: number | null | undefined;
+  flush?: boolean | undefined;
+}>();
+
+const { t } = useSlzLocale();
+
+const loading = ref(false);
+const aggregate = ref<Record<string, unknown> | null>(null);
+const canonicalKpi = ref<{ value: number | null; precision?: number | null | undefined } | null>(null);
+
+const unitText = computed(() => t(props.element.unit));
+const labelText = computed(() => t(props.element.label));
+const titleText = computed(() => t(props.element.title) || labelText.value);
+const descriptionText = computed(() => t(props.element.description));
+const hasThresholds = computed(() => {
+  const th = props.element.thresholds;
+  return !!th && Object.keys(th).length > 0;
+});
+
+const kpiRawValue = computed(() => {
+  if (!props.element.field || !aggregate.value) return null;
+  const v = aggregate.value[props.element.field];
+  return typeof v === "number" ? v : null;
+});
+
+const kpiValue = computed(() => {
+  if (canonicalKpi.value && typeof canonicalKpi.value.value === "number") return canonicalKpi.value.value;
+  const raw = kpiRawValue.value;
+  if (raw === null) return null;
+  if (props.element.population_normalized && props.population) {
+    return (raw / props.population) * 1000;
+  }
+  return raw;
+});
+
+const kpiDisplayValue = computed(() => {
+  const v = kpiValue.value;
+  if (v === null || v === undefined) return "—";
+  if (props.element.is_percentage) {
+    const th = props.element.thresholds ?? {};
+    const vals = Object.values(th).filter((x) => typeof x === "number" && x > 0);
+    const isRatioScale = vals.length > 0 && Math.max(...vals) <= 1;
+    const pct = isRatioScale ? v * 100 : v;
+    return `${pct.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`;
+  }
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)} M`;
+  if (v >= 10_000) return v.toLocaleString("de-DE");
+  const precision = canonicalKpi.value?.precision;
+  if (typeof precision === "number") {
+    return v.toLocaleString("de-DE", { minimumFractionDigits: precision, maximumFractionDigits: precision });
+  }
+  if (!Number.isInteger(v)) return v.toLocaleString("de-DE", { maximumFractionDigits: 1 });
+  return v.toLocaleString("de-DE");
+});
+
+const kpiColor = computed(() => {
+  const v = kpiValue.value;
+  const th = props.element.thresholds ?? {};
+  if (v === null || !Object.keys(th).length) return "#006e94";
+  if (th.darkgreen != null && v >= th.darkgreen) return "#1EA64A";
+  if (th.lightgreen != null && v >= th.lightgreen) return "#8DC63F";
+  if (th.yellow != null && v >= th.yellow) return "#F7A600";
+  if (th.orange != null && v >= th.orange) return "#F36633";
+  return "#E30613";
+});
+
+onMounted(async () => {
+  if (!props.ars || !props.collectionSlug) return;
+  loading.value = true;
+  try {
+    const data = await $fetch<CollectionSummary>(`${props.baseUrl}/api/collections/${props.collectionSlug}/summary/`, {
+      params: { area: props.ars },
+    });
+    aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null;
+    const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {};
+    canonicalKpi.value =
+      (kpiValues?.[props.element.plot_id] as
+        { value: number | null; precision?: number | null | undefined } | undefined) ?? null;
+  } catch {
+    // Silently fail — display '—'
+  } finally {
+    loading.value = false;
+  }
+});
+</script>

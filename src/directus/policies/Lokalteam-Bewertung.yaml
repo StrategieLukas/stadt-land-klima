@@ -164,6 +164,7 @@ permissions:
       - applicable
       - why_not_applicable
       - measure_info_preview
+      - localteam_id
   - collection: ratings_measures
     action: update
     permissions:

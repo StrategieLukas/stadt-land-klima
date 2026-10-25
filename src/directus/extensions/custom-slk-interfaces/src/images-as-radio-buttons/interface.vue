@@ -1,10 +1,6 @@
 <template>
   <div v-if="!choices" class="v-notice warning">No choices configured</div>
-  <div
-    v-else
-    class="radio-icon-buttons"
-    :style="containerStyle"
-  >
+  <div v-else class="radio-icon-buttons" :style="containerStyle">
     <input
       :value="value"
       :field="field"
@@ -19,19 +15,12 @@
       type="button"
       :aria-pressed="isChecked(value, item.value) ? 'true' : 'false'"
       :disabled="disabled"
-      :class="[
-        { checked: isChecked(value, item.value), block },
-        valueToClass(item.value)
-      ]"
+      :class="[{ checked: isChecked(value, item.value) }, valueToClass(item.value)]"
       @click="selectOption(item.value, field)"
     >
-      <span class="label type-text">
+      <span class="type-text label">
         <!-- Prefer SVG icon; fall back to a Directus file asset -->
-        <span
-          v-if="item.svg_icon"
-          class="v-icon"
-          v-html="item.svg_icon"
-        />
+        <span v-if="item.svg_icon" class="v-icon" v-html="sanitizeSvg(item.svg_icon)" />
         <img
           v-else-if="item.file_id"
           :src="renderImage(item.file_id, item.modified_on) ?? undefined"
@@ -45,9 +34,10 @@
 </template>
 
 <script setup lang="ts">
-import { inject, nextTick, computed } from 'vue';
-import { directusUrl } from '../directus-url';
-import useDirectusToken, { type DirectusApi } from './use-directus-token';
+import { inject, nextTick, computed } from "vue";
+import DOMPurify from "dompurify";
+import { directusUrl } from "../directus-url";
+import useDirectusToken, { type DirectusApi } from "./use-directus-token";
 
 interface Choice {
   value: string;
@@ -77,28 +67,55 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'input', value: string): void;
-  (e: 'setFieldValue', payload: { field: string; value: string }): void;
+  (e: "input", value: string): void;
+  (e: "setFieldValue", payload: { field: string; value: string }): void;
 }>();
 
-const api = inject<DirectusApi>('api');
+const api = inject<DirectusApi>("api");
 
 const containerStyle = computed(() => ({
-  '--v-radio-color': 'var(--theme--primary)',
-  '--columns': props.choices?.length || 1,
+  "--v-radio-color": "var(--theme--primary)",
+  "--columns": props.choices?.length || 1,
 }));
+
+function sanitizeSvg(svg: string | undefined): string {
+  if (!svg) return "";
+  return DOMPurify.sanitize(svg, {
+    USE_PROFILES: { svg: true, svgFilters: true },
+    ADD_ATTR: [
+      "class",
+      "viewBox",
+      "xmlns",
+      "fill",
+      "stroke",
+      "stroke-width",
+      "d",
+      "points",
+      "cx",
+      "cy",
+      "r",
+      "x",
+      "y",
+      "width",
+      "height",
+      "transform",
+      "opacity",
+      "style",
+    ],
+  });
+}
 
 function selectOption(value: string, field?: string): void {
   if (field !== props.field) return;
-  emit('input', value);
+  emit("input", value);
 
-  const targetField = props.statusField !== undefined ? props.statusField : 'status';
+  const targetField = props.statusField !== undefined ? props.statusField : "status";
   if (!targetField) return;
 
   nextTick().then(() => {
-    emit('setFieldValue', {
+    emit("setFieldValue", {
       field: targetField,
-      value: value == null ? 'draft' : 'published',
+      value: value == null ? "draft" : "published",
     });
   });
 }
@@ -107,40 +124,47 @@ function isChecked(input: string | undefined, value: string): boolean {
   return input === value;
 }
 
-function renderImage(file_id: string | null | undefined, modified_on: string = new Date().toISOString()): string | undefined {
+function renderImage(
+  file_id: string | null | undefined,
+  modified_on: string = new Date().toISOString(),
+): string | undefined {
   if (!file_id) return undefined;
   const { addTokenToURL } = useDirectusToken(api ?? {});
   const query = new URLSearchParams({
-    width: '42',
-    height: '42',
-    fit: 'cover',
-    'cache-buster': modified_on,
+    width: "42",
+    height: "42",
+    fit: "cover",
+    "cache-buster": modified_on,
   });
 
-  return addTokenToURL(
-    `${directusUrl(api, `assets/${encodeURIComponent(file_id)}`)}?${query.toString()}`
-  );
+  return addTokenToURL(`${directusUrl(api, `assets/${encodeURIComponent(file_id)}`)}?${query.toString()}`);
 }
 
 function handleChange(value: string, field?: string): void {
   if (field === props.field) {
-    emit('input', value);
+    emit("input", value);
   }
 }
 
 function valueToClass(val: string | null | undefined): string {
   // Explicit null/undefined/empty → not-applicable; must come before Number() conversion
   // because Number(null) === 0 which would incorrectly match rating-0
-  if (val === null || val === undefined || val === '') return 'rating-na';
+  if (val === null || val === undefined || val === "") return "rating-na";
   const num = Number(val);
-  if (isNaN(num)) return 'rating-na';
+  if (isNaN(num)) return "rating-na";
   switch (num) {
-    case 0:    return 'rating-0';
-    case 0.25: return 'rating-1';
-    case 0.5:  return 'rating-2';
-    case 0.75: return 'rating-3';
-    case 1:    return 'rating-4';
-    default:   return 'rating-na';
+    case 0:
+      return "rating-0";
+    case 0.25:
+      return "rating-1";
+    case 0.5:
+      return "rating-2";
+    case 0.75:
+      return "rating-3";
+    case 1:
+      return "rating-4";
+    default:
+      return "rating-na";
   }
 }
 </script>
@@ -276,10 +300,22 @@ function valueToClass(val: string | null | undefined): string {
 
 /* Rating colour states — using CSS variables where Directus provides them,
    falling back to fixed values for colours Directus doesn't expose */
-.v-icon-radio.checked.rating-0  { background-color: var(--theme--danger-background,  #fad3d0); }
-.v-icon-radio.checked.rating-1  { background-color: var(--theme--warning-background, #fbdeb2); }
-.v-icon-radio.checked.rating-2  { background-color: #fff4cd; }
-.v-icon-radio.checked.rating-3  { background-color: #e7efb5; }
-.v-icon-radio.checked.rating-4  { background-color: var(--theme--success-background, #d2eddb); }
-.v-icon-radio.checked.rating-na { background-color: var(--theme--background-subdued, #d0d0d0); }
+.v-icon-radio.checked.rating-0 {
+  background-color: var(--theme--danger-background, #fad3d0);
+}
+.v-icon-radio.checked.rating-1 {
+  background-color: var(--theme--warning-background, #fbdeb2);
+}
+.v-icon-radio.checked.rating-2 {
+  background-color: #fff4cd;
+}
+.v-icon-radio.checked.rating-3 {
+  background-color: #e7efb5;
+}
+.v-icon-radio.checked.rating-4 {
+  background-color: var(--theme--success-background, #d2eddb);
+}
+.v-icon-radio.checked.rating-na {
+  background-color: var(--theme--background-subdued, #d0d0d0);
+}
 </style>

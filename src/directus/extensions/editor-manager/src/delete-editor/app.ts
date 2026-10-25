@@ -25,7 +25,7 @@ export default {
       meta: {
         width: "full",
         interface: "input",
-        note: "Provide a JSON array of editor record IDs to delete, e.g. [\"uuid-1\", \"uuid-2\"]",
+        note: 'Provide a JSON array of editor record IDs to delete, e.g. ["uuid-1", "uuid-2"]',
         required: true,
       },
     },

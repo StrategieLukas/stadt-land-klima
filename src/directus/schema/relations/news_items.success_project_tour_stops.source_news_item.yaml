@@ -1,0 +1,21 @@
+collection: success_project_tour_stops
+field: source_news_item
+related_collection: news_items
+meta:
+  junction_field: null
+  many_collection: success_project_tour_stops
+  many_field: source_news_item
+  one_allowed_collections: null
+  one_collection: news_items
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: null
+  sort_field: null
+schema:
+  table: success_project_tour_stops
+  column: source_news_item
+  foreign_key_table: news_items
+  foreign_key_column: id
+  constraint_name: success_project_tour_stops_source_news_item_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL

@@ -1,0 +1,49 @@
+collection: success_project_tour_stops
+field: tour
+type: uuid
+meta:
+  collection: success_project_tour_stops
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{title}}'
+  field: tour
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: Eine Veranstaltung gehört höchstens einer Reihe an
+  options:
+    template: '{{title}}'
+  readonly: false
+  required: true
+  searchable: true
+  sort: 17
+  special:
+  - m2o
+  translations:
+  - language: de-DE
+    translation: Erfolgsprojekte-Tour
+  - language: en-GB
+    translation: Success project tour
+  - language: it-IT
+    translation: Tour dei progetti di successo
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: tour
+  table: success_project_tour_stops
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: success_project_tours
+  foreign_key_column: id

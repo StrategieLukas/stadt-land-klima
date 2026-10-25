@@ -1,0 +1,41 @@
+name: Frontend-Public
+icon: public
+description: Browser-exposed identity — minimal permissions for asset access only. All content data is served through Nuxt server routes.
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+- collection: directus_files
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - id
+  - filename_disk
+  - filename_download
+  - title
+  - type
+  - mime_type
+  - filesize
+  - width
+  - height
+  - duration
+  - descriptions
+  - location
+  - tags
+  - folder
+  - uploaded_by
+  - created_on
+  - modified_on
+  - charset
+  - image_credits
+- collection: directus_folders
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - id
+  - name
+  - parent
