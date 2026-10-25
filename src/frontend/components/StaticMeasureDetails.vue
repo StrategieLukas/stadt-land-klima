@@ -45,10 +45,7 @@
         />
       </figure>
 
-      <div
-        class="has-long-links prose whitespace-pre-line"
-        v-html="sanitizeHtml(measure.description_evaluation_criteria)"
-      />
+      <div class="has-long-links prose" v-html="sanitizeHtml(measure.description_evaluation_criteria)" />
     </div>
   </div>
 
@@ -93,7 +90,7 @@
 import type { PropType } from "vue";
 import type { Measure } from "~/types/components/municipality";
 
-import sanitizeHtml from "sanitize-html";
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
 const iconImpact = "/icons/icon_impact.svg";
 const iconImpactDark = "/icons/icon_impact-dark.svg";
 const iconPolitics = "/icons/icon_politics.svg";

@@ -10,8 +10,9 @@
         closeDrawer();
       "
     >
-      <div class="size-[3em]">
-        <div v-html="sanitizeSvg(page.icon_svg)"></div>
+      <div class="size-[3em]" aria-hidden="true">
+        <!-- eslint-disable-next-line vue/no-v-html -- navigationPages sanitizes CMS icons through sanitizeSvg. -->
+        <div class="h-full w-full [&_svg]:h-full [&_svg]:w-full" v-html="page.icon_svg"></div>
       </div>
       <span class="slk-dock-label max-w-full truncate text-center font-heading text-sm">{{
         navLabel(page, "name")
@@ -44,6 +45,7 @@ import { sanitizeSvg } from "~/utils/sanitizeHtml";
 
 const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
+const router = useRouter();
 const _props = defineProps<{ pages?: NavigationPage[] | undefined }>();
 const navLabel = (item: NavigationPage, field: "name" | "label" = "label") =>
   translatedNavigationLabel(item, $translateDynamic, field);
@@ -68,9 +70,8 @@ const isPageActive = (slug: string) => {
 };
 
 const followLink = (pageSlug: string) => {
-  const nuxtApp = useNuxtApp();
   const path = !pageSlug || pageSlug === "index" ? "/" : "/" + pageSlug;
-  void nuxtApp.$router.push(path);
+  void router.push(path);
 };
 </script>
 

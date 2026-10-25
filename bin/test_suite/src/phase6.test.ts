@@ -583,7 +583,7 @@ test("newsletter selection never permits client-requested private lists, includi
             },
           };
         writes++;
-        return {};
+        return { data: true };
       },
     },
   ).default;
@@ -593,6 +593,48 @@ test("newsletter selection never permits client-requested private lists, includi
   assert.equal((await handler({ body: { email: "person@example.org", listIds: [1] } })).success, true);
   assert.equal((await handler({ body: { email: "person@example.org" } })).success, true);
   assert.equal(writes, 2);
+});
+
+test("newsletter normalizes provider URLs, validates acknowledgement and hides provider failures", async () => {
+  let response: unknown = { data: true };
+  let defaultListId = "1";
+  const requests: Row[] = [];
+  const handler = load(
+    "server/api/newsletter-subscribe.post.ts",
+    {},
+    {
+      useRuntimeConfig: () => ({
+        listmonkEndpoint: "https://newsletter.example/",
+        listmonkApiUsername: "user",
+        listmonkApiToken: "secret",
+        listmonkListId: defaultListId,
+      }),
+      readRequestBody: async (event: Row) => event.body,
+      $fetch: async (url: string, options: Row) => {
+        assert.ok(!url.includes("example//"));
+        assert.equal(options.timeout, 10_000);
+        if (url.endsWith("/api/lists")) return { data: { results: [{ id: 1, uuid: "public-id", type: "public" }] } };
+        requests.push(options);
+        if (response instanceof Error) throw response;
+        return response;
+      },
+    },
+  ).default;
+  const event = { body: { email: "person@example.org" } };
+  assert.equal((await handler(event)).success, true);
+  assert.deepEqual(plain(requests[0]!.body.list_uuids), ["public-id"]);
+  assert.ok(!requests[0]!.headers.Authorization, "Public subscription never receives provider credentials");
+  for (const value of [{ data: false }, {}, Object.assign(new Error("private-provider-detail"), { status: 500 })]) {
+    response = value;
+    await assert.rejects(
+      handler(event),
+      (error: Row) => error.statusCode === 502 && !error.message.includes("private-provider-detail"),
+    );
+  }
+  response = Object.assign(new Error("already subscribed"), { status: 409 });
+  assert.equal((await handler(event)).alreadySubscribed, true);
+  defaultListId = "invalid";
+  await assert.rejects(handler(event), { statusCode: 503 });
 });
 
 test("local-team inverse municipality relations retain their array shape and strip private records", async () => {

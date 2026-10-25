@@ -176,24 +176,25 @@
                 newsletterAlreadySubscribed ? $t("newsletter.already_subscribed") : $t("newsletter.confirmation_sent")
               }}
             </div>
-            <div class="flex flex-col gap-2 xs:flex-row">
+            <form class="flex flex-col gap-2 xs:flex-row" @submit.prevent="subscribeNewsletter">
               <input
                 v-model="newsletterEmail"
                 type="email"
+                required
                 autocomplete="email"
+                :aria-label="$t('newsletter.email.placeholder')"
                 :placeholder="$t('newsletter.email.placeholder')"
                 class="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
-                @keydown.enter.prevent="subscribeNewsletter"
               />
               <CanonicalButton
+                type="submit"
                 :label="newsletterState === 'subscribing' ? '...' : $t('newsletter.subscribe')"
                 icon-slug="icon_newsletter_click"
                 color="green"
                 :disabled="newsletterState === 'subscribing'"
                 class="w-full xs:w-auto"
-                @click="subscribeNewsletter"
               />
-            </div>
+            </form>
             <p v-if="newsletterError" class="mt-1 text-xs text-red-500">{{ newsletterError }}</p>
             <p class="mt-1.5 text-xs text-gray-400">{{ $t("newsletter.no_spam_hint") }}</p>
           </div>
@@ -583,6 +584,7 @@ async function submit() {
 }
 
 async function subscribeNewsletter() {
+  if (newsletterState.value === "subscribing") return;
   newsletterError.value = "";
   if (!newsletterEmail.value.trim()) {
     newsletterError.value = $t("newsletter.email.required");

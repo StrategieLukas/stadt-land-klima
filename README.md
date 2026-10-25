@@ -365,3 +365,23 @@ Use `npm ci` independently on each local machine and in the server container. Na
 The pinned Directus 11.17.4 image applies exact-source guards and locked dependency replacements. Rebuild it when the security layer changes. `npm --prefix bin/test_suite run test:security:image` exercises the actual image without application database writes; `audit:directus-image` preserves raw advisory output, while `audit:directus-image:reviewed` additionally requires exact current dispositions, configuration controls and passing vendor regressions. The review expires on 2026-11-24; new advisories or an expired review fail the reviewed gate. CI archives raw image reports.
 
 `.github/workflows/quality.yml` runs PR quality/extension/image gates. The manually triggered deployed acceptance workflow uses read-only public/CSP/style checks and requires a real search result. Keep the explicit full writable HTTPS suite on isolated fixtures. Follow [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for credentials, database roles, proxy configuration and actual target acceptance; [REMAINING_TODOS.md](REMAINING_TODOS.md) separates those actions from optional later improvements.
+
+## Newsletter SMTP routing on staging
+
+The newsletter service is operated separately from this repository in
+`/home/deploy/newsletter/docker-compose.yml`. Its `app` service needs this mapping
+so the SMTP hostname reaches the host's published mail listener rather than
+loopback inside the listmonk container:
+
+```yaml
+extra_hosts:
+  - "mail.stadt-land-klima.de:host-gateway"
+```
+
+This was applied on 2026-10-25 after signup requests failed with HTTP 502 and
+listmonk logged `dial tcp 127.0.0.1:587: connect: connection refused`. The SMTP
+hostname and credentials stay in listmonk settings. TLS verification remains
+enabled. Only the newsletter app was recreated, retaining the same image.
+Container connectivity and SMTP TLS/authentication were checked without sending
+mail. A private Compose backup is retained alongside the service configuration
+as `docker-compose.yml.before-smtp-routing-20261025T092239Z`.

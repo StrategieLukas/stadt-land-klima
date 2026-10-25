@@ -1,7 +1,7 @@
 import { NewsletterListsSchema } from "~/shared/contracts/submissions";
 export default defineEventHandler(async () => {
   const config = useRuntimeConfig();
-  const endpoint = config.listmonkEndpoint as string | undefined;
+  const endpoint = config.listmonkEndpoint?.replace(/\/+$/, "");
   const username = config.listmonkApiUsername as string | undefined;
   const token = config.listmonkApiToken as string | undefined;
 
@@ -14,6 +14,7 @@ export default defineEventHandler(async () => {
   try {
     const result = NewsletterListsSchema.parse(
       await $fetch<unknown>(`${endpoint}/api/lists`, {
+        timeout: 10_000,
         headers: { Authorization: `Basic ${credentials}` },
         query: { page: 1, per_page: 100 },
       }),

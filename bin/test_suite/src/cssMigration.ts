@@ -65,12 +65,48 @@ try {
           assert.ok(Math.abs(layout.width! - layout.viewport) <= 1, "Content must span the viewport");
           assert.equal(layout.overflow, false);
           assert.equal(layout.buttonRadius, "6px", "CanonicalButton corners must survive the upgrade");
+          const footer = page.locator("footer");
+          const footerLayout = await footer.evaluate((element) => {
+            const width = element.getBoundingClientRect().width;
+            return {
+              display: getComputedStyle(element).display,
+              sections: [...element.children]
+                .filter((child) => child.tagName === "DIV")
+                .map((child) => child.getBoundingClientRect().width / width),
+              inputBackground: getComputedStyle(element.querySelector('input[type="email"]')!).backgroundColor,
+            };
+          });
+          assert.equal(footerLayout.display, "block", "Custom footer sections must not inherit DaisyUI grids");
+          assert.ok(
+            footerLayout.sections.every((ratio) => ratio > 0.8),
+            "Footer sections span the available width",
+          );
+          assert.equal(
+            footerLayout.inputBackground,
+            preference === "light" ? "rgb(255, 255, 255)" : "rgb(23, 33, 43)",
+            "Newsletter input keeps an opaque theme background",
+          );
           if (path === "/measures") {
             const card = page.locator("main .card-body").first();
             await card.waitFor();
             assert.equal(await card.evaluate((element) => getComputedStyle(element).padding), "32px");
           }
         }
+        // Replace only the browser-facing response; this gate never sends live newsletter mail.
+        let subscriptions = 0;
+        await page.route("**/api/newsletter-subscribe", async (route) => {
+          subscriptions++;
+          await route.fulfill({ json: { success: true, alreadySubscribed: false } });
+        });
+        const newsletter = page.locator("footer form");
+        const email = newsletter.locator('input[type="email"]');
+        await email.fill("invalid");
+        await newsletter.locator('button[type="submit"]').click();
+        assert.equal(subscriptions, 0, "Invalid email must not reach the subscription API");
+        await email.fill("style-regression@example.invalid");
+        await email.press("Enter");
+        await newsletter.waitFor({ state: "detached" });
+        assert.equal(subscriptions, 1, "Enter submits the newsletter form once and renders success");
         if (width < 640) {
           await page.locator("#page-drawer-toggle").click();
           await page.getByRole("dialog").waitFor({ state: "visible" });

@@ -49,24 +49,25 @@
         </div>
 
         <!-- Email input + button -->
-        <div v-else class="mx-auto flex max-w-md flex-col gap-2 sm:flex-row">
+        <form v-else class="mx-auto flex max-w-md flex-col gap-2 sm:flex-row" @submit.prevent="subscribe">
           <input
             v-model="email"
             type="email"
+            required
             autocomplete="email"
+            :aria-label="$t('newsletter.email.placeholder')"
             :placeholder="$t('newsletter.email.placeholder')"
             class="min-w-0 flex-1 rounded-md border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
-            @keydown.enter.prevent="subscribe"
           />
           <CanonicalButton
+            type="submit"
             :label="subscribeState === 'subscribing' ? '...' : $t('newsletter.subscribe')"
             icon-slug="icon_newsletter_click"
             :color="newsletterButtonColor"
             :disabled="subscribeState === 'subscribing'"
             class="w-full shrink-0 sm:w-auto"
-            @click="subscribe"
           />
-        </div>
+        </form>
 
         <p v-if="subscribeError" class="mt-2 text-xs text-red-500">{{ subscribeError }}</p>
         <p class="mt-2 text-xs" :class="hintClass">{{ $t("newsletter.no_spam_hint") }}</p>
@@ -194,6 +195,7 @@ const hintClass = computed(() => (bg.value === "olive" ? "text-white" : "text-gr
 const newsletterButtonColor = computed(() => (bg.value === "olive" ? "dark-green" : "green"));
 
 async function subscribe() {
+  if (subscribeState.value === "subscribing") return;
   subscribeError.value = "";
   if (!email.value.trim()) {
     subscribeError.value = $t("newsletter.email.required");
@@ -201,6 +203,11 @@ async function subscribe() {
   }
   // Prevent form submission in editor mode
   if (isEditing) return;
+
+  if (filteredLists.value.length > 0 && selectedIds.value.length === 0) {
+    subscribeError.value = $t("newsletter.list.required");
+    return;
+  }
 
   const listIds = selectedIds.value.length > 0 ? selectedIds.value : undefined;
   subscribeState.value = "subscribing";

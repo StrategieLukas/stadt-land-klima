@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 429, message: "Zu viele Anfragen. Bitte versuche es später erneut." });
   }
   const config = useRuntimeConfig();
-  const endpoint = config.listmonkEndpoint as string | undefined;
+  const endpoint = config.listmonkEndpoint?.replace(/\/+$/, "");
   const username = config.listmonkApiUsername as string | undefined;
   const token = config.listmonkApiToken as string | undefined;
   const defaultListId = config.listmonkListId as string | undefined;
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     if (targetIds.length === 0) {
       throw createError({ statusCode: 400, message: "Ungültige Listen-IDs." });
     }
-  } else if (defaultListId) {
+  } else if (defaultListId && Number.isSafeInteger(Number(defaultListId)) && Number(defaultListId) > 0) {
     targetIds = [Number(defaultListId)];
   } else {
     throw createError({ statusCode: 503, message: "Newsletter-Dienst nicht konfiguriert." });
@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
       })
       .parse(
         await $fetch<unknown>(`${endpoint}/api/lists`, {
+          timeout: 10_000,
           headers: { Authorization: `Basic ${credentials}` },
           query: { page: 1, per_page: 100 },
         }),
@@ -77,8 +78,9 @@ export default defineEventHandler(async (event) => {
 
   // Use the public subscription endpoint — handles double opt-in and sends confirmation mail
   try {
-    await $fetch(`${endpoint}/api/public/subscription`, {
+    const response = await $fetch<unknown>(`${endpoint}/api/public/subscription`, {
       method: "POST",
+      timeout: 10_000,
       headers: { "Content-Type": "application/json" },
       body: {
         email: email.trim(),
@@ -86,6 +88,7 @@ export default defineEventHandler(async (event) => {
         list_uuids: listUuids,
       },
     });
+    z.object({ data: z.literal(true) }).parse(response);
   } catch (err: unknown) {
     // ofetch exposes the HTTP status on FetchError.status.
     if (err && typeof err === "object" && "status" in err && err.status === 409) {

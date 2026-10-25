@@ -35,9 +35,7 @@
   </div>
 
   <!-- Main Footer -->
-  <footer
-    class="relative isolate footer footer-vertical overflow-hidden bg-olive-green p-6 pb-[84px] text-white sm:pb-6"
-  >
+  <footer class="relative isolate overflow-hidden bg-olive-green p-6 pb-[120px] text-white sm:pb-6">
     <img
       src="~/assets/images/Stadt-Land-Klima-Blume.svg"
       alt=""
@@ -59,29 +57,30 @@
         </svg>
         {{ newsletterAlreadySubscribed ? $t("newsletter.already_subscribed") : $t("newsletter.confirmation_sent") }}
       </div>
-      <div v-else class="flex flex-col gap-2">
+      <form v-else class="flex flex-col gap-2" @submit.prevent="subscribeNewsletter">
         <input
           v-model="footerEmail"
           type="email"
+          required
           autocomplete="email"
+          :aria-label="$t('newsletter.email.placeholder')"
           :placeholder="$t('newsletter.email.placeholder')"
-          class="w-full min-w-0 rounded-md px-3 py-2 text-sm text-black placeholder-gray-600 focus:ring-2 focus:ring-white focus:outline-hidden"
-          @keydown.enter.prevent="subscribeNewsletter"
+          class="w-full min-w-0 rounded-md bg-white px-3 py-2 text-sm text-black placeholder-gray-600 focus:ring-2 focus:ring-white focus:outline-hidden"
         />
         <CanonicalButton
+          type="submit"
           :label="newsletterState === 'subscribing' ? '\u2026' : $t('newsletter.subscribe')"
           icon-slug="icon_newsletter_click"
           color="green"
           class="w-full shrink-0"
           :disabled="newsletterState === 'subscribing'"
-          @click="subscribeNewsletter"
         />
-      </div>
+      </form>
       <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
     </div>
 
     <!-- Navigation Links: footer_columns -->
-    <div v-if="footerColumnsData.length > 0" class="relative z-10 mb-8 block! w-full">
+    <div v-if="footerColumnsData.length > 0" class="relative z-10 mb-8 w-full">
       <div class="grid grid-cols-1 gap-4 xs:grid-cols-2 xs:gap-6">
         <nav v-for="col in footerColumnsData" :key="col.id" class="flex flex-col gap-2">
           <h6 class="footer-title mb-2 text-sm font-bold text-white opacity-100">
@@ -186,6 +185,7 @@ const newsletterAlreadySubscribed = ref(false);
 const newsletterError = ref("");
 
 async function subscribeNewsletter() {
+  if (newsletterState.value === "subscribing") return;
   newsletterError.value = "";
   if (!footerEmail.value.trim()) {
     newsletterError.value = $t("newsletter.email.required");

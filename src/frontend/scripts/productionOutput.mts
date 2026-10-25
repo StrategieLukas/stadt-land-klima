@@ -149,6 +149,7 @@ if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.m
       if (!/^[a-f0-9]{64}$/.test(process.argv[3] ?? "")) throw new Error("Expected production input fingerprint");
       stampProductionOutput(frontend, translations, process.argv[3]!);
       break;
+    case undefined:
     default:
       throw new Error("Usage: productionOutput.mts verify|prepare|stamp <input-fingerprint>");
   }
