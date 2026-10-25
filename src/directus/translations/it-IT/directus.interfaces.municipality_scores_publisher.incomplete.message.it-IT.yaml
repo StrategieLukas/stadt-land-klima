@@ -1,0 +1,3 @@
+language: it-IT
+key: directus.interfaces.municipality_scores_publisher.incomplete.message
+value: "La pubblicazione richiede che il 100% delle misure sia valutato o contrassegnato come non applicabile e approvato. Una persona verificata può abilitare l'anteprima tramite il link privato a qualsiasi percentuale di completamento."

@@ -1,3 +1,4 @@
+import { runMunicipalityPublishingFlow } from "./flows/municipalityPublishingFlow.js";
 import { launchBrowser } from "./lib/browser.js";
 import { loadConfig } from "./lib/config.js";
 import { createAdminClient } from "./lib/directus.js";
@@ -42,6 +43,16 @@ async function main(): Promise<void> {
     await runner.step("Initialise disposable Directus fixture", async () => {
       await fixture.setup();
     });
+
+    try {
+      await runMunicipalityPublishingFlow(runner, fixture, browser);
+    } catch (error) {
+      runner.results.push({
+        name: "Municipality publishing flow",
+        status: "failed",
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
+    }
 
     // Keep the longer editorial/registration/PDF workflows in the explicit full profile.
     if (profile === "--full") {

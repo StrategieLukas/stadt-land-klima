@@ -3,24 +3,14 @@ field: creator_verified
 type: boolean
 meta:
   collection: municipalities
-  conditions:
-    - hidden: true
-      name: Hide if true
-      rule:
-        _and:
-          - creator_verified:
-              _eq: true
+  conditions: null
   display: boolean
   display_options: null
   field: creator_verified
   group: null
-  hidden: false
+  hidden: true
   interface: boolean
-  note:
-    Der Account des Lokalteam-Admins wurde durch einen Admin verifiziert. Wird
-    automatisch aus directus_users.verified synchronisiert und steuert nur die
-    öffentliche Vorschau. Das Veröffentlichen wird anhand der persönlichen
-    Verifizierung geprüft.
+  note: Veraltet. Historischer Wert ohne Berechtigungswirkung. Veröffentlichung und Vorschaufreigabe werden anhand der Verifizierung der handelnden Person geprüft.
   options: null
   readonly: true
   required: false

@@ -545,7 +545,6 @@ permissions:
       - ars
       - geolocation
       - id
-      - creator_verified
       - date_created
       - image
       - image_credits

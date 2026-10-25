@@ -5,6 +5,7 @@ export type AnswerValue = 0 | 1 | 2 | 3 | 4;
 export type RatingColor = "rating-na" | "rating-0" | "rating-1" | "rating-2" | "rating-3" | "rating-4";
 export interface ScorePublication {
   published?: boolean | null | undefined;
+  preview_enabled?: boolean | undefined;
   percentage_rated?: NumericValue | undefined;
 }
 

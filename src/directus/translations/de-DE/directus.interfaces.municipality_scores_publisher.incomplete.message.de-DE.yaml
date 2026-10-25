@@ -1,0 +1,3 @@
+language: de-DE
+key: directus.interfaces.municipality_scores_publisher.incomplete.message
+value: "Zum Veröffentlichen müssen 100 % der Maßnahmen bewertet oder als nicht anwendbar markiert und freigegeben sein. Du kannst als verifizierte Person unabhängig vom Bewertungsfortschritt die Vorschau über den geheimen Vorschau-Link freigeben."

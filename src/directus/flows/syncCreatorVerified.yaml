@@ -1,10 +1,7 @@
 name: syncCreatorVerified
 icon: verified_user
 color: null
-description: Legacy flow. Verification synchronization is handled by the
-  users.update hook in hook-calc-score-and-ranks. The municipality flag controls
-  unpublished previews; publishing is checked against the user's own
-  directus_users.verified value.
+description: Retired legacy flow. Managed by the TypeScript score hook; kept inactive for deployment reconciliation.
 status: inactive
 trigger: event
 accountability: all
@@ -21,35 +18,5 @@ operations:
     position_x: 1
     position_y: 1
     options:
-      code: >
-        module.exports = async function({ $trigger, services, getSchema,
-        accountability }) {
-          const verified = $trigger.payload && $trigger.payload.verified;
-          if (verified === undefined || verified === null) return;
-          const keys = $trigger.keys || ($trigger.key ? [$trigger.key] : []);
-          if (!keys.length) return;
-          const userId = keys[0];
-          const schema = await getSchema();
-          accountability.admin = true;
-          const ItemsService = services.ItemsService;
-          const localteamService = new ItemsService('localteams', { schema, accountability });
-          const municipalityService = new ItemsService('municipalities', { schema, accountability });
-          const localteams = await localteamService.readByQuery({
-            filter: { admin_id: { _in: keys } },
-            fields: ['id'],
-            limit: 100,
-          });
-          if (!localteams.length) return;
-          const localteamIds = localteams.map(lt => lt.id);
-          const municipalities = await municipalityService.readByQuery({
-            filter: { localteam_id: { _in: localteamIds } },
-            fields: ['id'],
-            limit: 100,
-          });
-          if (!municipalities.length) return;
-          const municipalityIds = municipalities.map(m => m.id);
-          for (const id of municipalityIds) {
-            await municipalityService.updateOne(id, { creator_verified: verified });
-          }
-        };
+      code: "module.exports = async function() { return null; };"
 operation_key: exec_sync_verified

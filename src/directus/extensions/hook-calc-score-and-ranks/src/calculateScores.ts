@@ -73,6 +73,10 @@ function parseOptionalNumber(value: number | string | null | undefined): number 
   return Number.isFinite(number) ? number : NaN;
 }
 
+export function ratingCompletesMeasure(rating: Pick<RatingMeasure, "rating" | "applicable">): boolean {
+  return rating.applicable === false || !Number.isNaN(parseOptionalNumber(rating.rating));
+}
+
 export async function calculateScores(
   { municipalityIds = null, catalogVersionId }: CalculateScoresParams,
   { services, getSchema, logger }: Context,
@@ -190,7 +194,7 @@ export async function calculateScores(
         const weight = parseFiniteNumber(measure.weight);
         const numeric = parseOptionalNumber(r.rating);
 
-        if (!Number.isNaN(numeric) || r.applicable === false) {
+        if (ratingCompletesMeasure(r)) {
           completedMeasureIds.add(measureId);
         }
 

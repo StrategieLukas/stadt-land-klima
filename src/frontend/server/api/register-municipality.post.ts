@@ -413,7 +413,6 @@ export default defineEventHandler(async (event) => {
         headers,
         body: {
           ars: ars.trim(),
-          creator_verified: false,
           preview_token: previewToken,
           ...(population != null ? { population: population } : {}),
           ...(state ? { state: state.trim() } : {}),

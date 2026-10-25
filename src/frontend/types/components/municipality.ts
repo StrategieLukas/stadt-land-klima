@@ -28,6 +28,7 @@ export type MunicipalityScore = {
   municipality: Municipality;
   catalog_version: Catalog;
   published?: boolean | null | undefined;
+  preview_enabled?: boolean | undefined;
   percentage_rated?: NumericValue | undefined;
   score_total: NumericValue;
   score_max?: NumericValue | undefined;
