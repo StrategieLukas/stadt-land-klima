@@ -1,4 +1,5 @@
 /** Narrow, source-verified hardening of the pinned 11.17.4 image. No version upgrade. */
+import { loggingPatches } from "./logging-patches.ts";
 import { authorizationPatches } from "./authorization-patches.ts";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -67,8 +68,19 @@ export function patchDirectusApi(root: string) {
       replacements: [[marker, replacement]] as [string, string][],
     })),
     ...authorizationPatches,
+    ...loggingPatches,
   ];
-  const checked = allDefinitions.map(({ file, sha256: digest, replacements }) => {
+  // Several independent guards can protect the same pinned file. Compose their
+  // replacements before writing, so one guard can never overwrite another.
+  const grouped = new Map<string, { file: string; sha256: string; replacements: [string, string][] }>();
+  for (const definition of allDefinitions) {
+    const existing = grouped.get(definition.file);
+    if (existing) {
+      if (existing.sha256 !== definition.sha256) throw new Error(`Conflicting Directus source: ${definition.file}`);
+      existing.replacements.push(...definition.replacements);
+    } else grouped.set(definition.file, { ...definition, replacements: [...definition.replacements] });
+  }
+  const checked = Array.from(grouped.values()).map(({ file, sha256: digest, replacements }) => {
     const path = join(root, file),
       source = readFileSync(path, "utf8");
     if (

@@ -45,6 +45,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic, clientFailure } from "../shared/securityLog";
+
 import type { ChartData, ChartOptions, Plugin } from "chart.js";
 import { HistogramResponseSchema, BinAreasSchema, type Histogram, type BinAreas } from "~/shared/contracts/histogram";
 import type { PropType } from "vue";
@@ -202,8 +204,8 @@ const markerPosition = computed(() => {
         const percentage = (exactPixelPosition / containerWidth) * 100;
         return percentage;
       }
-    } catch (error) {
-      console.warn("Could not calculate marker position using chart scales:", error);
+    } catch {
+      clientDiagnostic("app.components.DataHistogram.degraded", "warn");
     }
   }
 
@@ -611,7 +613,7 @@ async function fetchBinData(binIndex: number) {
 
     emit("bin-click", binData);
   } catch (error) {
-    console.error("Error fetching bin data:", error);
+    clientFailure("app.components.DataHistogram.fetchBinData.failed", error);
   } finally {
     loadingBinData.value = false;
   }
@@ -639,12 +641,12 @@ async function fetchData() {
       // Calculate threshold breakdown by fetching all bin data
       await calculateThresholdBreakdown();
     } else {
-      console.warn("No histogram data found in API response");
+      clientDiagnostic("app.components.DataHistogram.fetchData.degraded", "warn");
       histogramApiData.value = null;
       histogramId.value = null;
     }
   } catch (error) {
-    console.error("Error fetching histogram data:", error);
+    clientFailure("app.components.DataHistogram.fetchData.failed", error);
     histogramApiData.value = null;
     histogramId.value = null;
   } finally {
@@ -698,8 +700,8 @@ async function calculateThresholdBreakdown() {
         fetch(url)
           .then(async (response) => (response.ok ? BinAreasSchema.parse(await response.json()) : null))
           .then((binData) => ({ binIndex, binData }))
-          .catch((error: unknown) => {
-            console.warn(`Could not fetch data for bin ${binIndex}:`, error);
+          .catch((_error: unknown) => {
+            clientDiagnostic("app.components.DataHistogram.calculateThresholdBreakdown.degraded", "warn");
             return { binIndex, binData: null };
           }),
       );
@@ -736,8 +738,8 @@ async function calculateThresholdBreakdown() {
     if (binDetails.length > 0) {
       binDetailsData.value = { bin_details: binDetails };
     }
-  } catch (error) {
-    console.warn("Could not calculate threshold breakdown:", error);
+  } catch {
+    clientDiagnostic("app.components.DataHistogram.calculateThresholdBreakdown.degraded", "warn");
     binDetailsData.value = null;
   }
 }

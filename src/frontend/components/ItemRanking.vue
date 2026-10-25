@@ -48,6 +48,8 @@
   </div>
 </template>
 <script setup lang="ts">
+import { clientFailure } from "../shared/securityLog";
+
 import type { PropType } from "vue";
 import type { MunicipalityScore } from "~/types/components/municipality";
 
@@ -108,7 +110,7 @@ async function fetchPDF() {
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank");
   } catch (err) {
-    console.error("Error fetching PDF:", err);
+    clientFailure("app.components.ItemRanking.fetchPDF.failed", err);
   } finally {
     isGeneratingPdf.value = false;
   }

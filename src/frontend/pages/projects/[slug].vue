@@ -77,6 +77,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic } from "../../shared/securityLog";
+
 import { routeSlug } from "~/shared/routeValues";
 import ArticlePage from "~/components/ArticlePage.vue";
 import { isRaster } from "~/shared/utils";
@@ -154,7 +156,7 @@ const articleLink = computed(() => {
   try {
     return new URL(article.value!.link);
   } catch {
-    console.error("Invalid URL: " + article.value!.link);
+    clientDiagnostic("app.pages.projects._slug_.invalid_link", "warn");
     return null;
   }
 });

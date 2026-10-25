@@ -11,11 +11,11 @@
     "lint:prettier": "npm run format:check",
     "lint": "npm run lint:js",
     "lintfix": "npm run lint:js -- --fix",
-    "lintExtensions:js": "cd ../directus/extensions && ../../frontend/node_modules/.bin/eslint --config ../../frontend/eslint.extensions.config.mjs '**/src/**/*.{ts,vue}' --max-warnings 0",
+    "lintExtensions:js": "cd ../directus/extensions && ../../frontend/node_modules/.bin/eslint --config ../../frontend/eslint.extensions.config.mjs '**/src/**/*.{ts,vue}' --max-warnings 0 'shared/**/*.ts'",
     "lintExtensions:prettier": "prettier --ignore-path ../../.gitignore --ignore-path ../../.prettierignore --check \"../directus/extensions/*/src/**/*.{js,ts,vue}\"",
     "lintExtensions": "npm run lintExtensions:js",
     "lintfixExtensions": "npm run lintExtensions:js -- --fix",
-    "typecheck": "npm run security:check && npm run translations:check && bash typecheck.sh && npm run typecheck:coverage && npm run lint:types && npm run typecheck:scripts && npm run typecheck:tooling",
+    "typecheck": "npm run security:check && npm run translations:check && npm run logging:check && bash typecheck.sh && npm run typecheck:coverage && npm run lint:types && npm run typecheck:scripts && npm run typecheck:tooling",
     "typecheck:full": "nuxt prepare && vue-tsc -b --noEmit",
     "prebuild": "npm run typecheck",
     "pregenerate": "npm run typecheck",
@@ -27,7 +27,9 @@
     "typecheck:tooling": "tsc --noEmit -p tsconfig.tooling.json",
     "format:check": "node scripts/format-project.mts --check",
     "format": "node scripts/format-project.mts --write",
-    "security:check": "node scripts/patch-node-forge.mts --check"
+    "security:check": "node scripts/patch-node-forge.mts --check",
+    "logging:generate": "node scripts/generate-security-log-manifests.mts",
+    "logging:check": "node scripts/generate-security-log-manifests.mts --check"
   },
   "devDependencies": {
     "@nuxt/devtools": "3.4.4",

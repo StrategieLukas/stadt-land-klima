@@ -1,3 +1,4 @@
+import { clientFailure } from "../shared/securityLog";
 import { serviceBaseUrl } from "~/shared/serviceUrl";
 import { z } from "zod";
 import { AreaSchema, AreaListSchema, type Area, type SearchMode } from "~/shared/contracts/search";
@@ -83,7 +84,7 @@ export default defineNuxtPlugin(() => {
 
       return ConnectionSchema.parse(result.data);
     } catch (error) {
-      console.error(`searchThroughAdministrativeAreasByName failed for name_slice "${name_slice}":`, error);
+      clientFailure("app.plugins.stadt-land-zahl-api.client.failed", error);
       return null;
     }
   };
@@ -114,7 +115,7 @@ export default defineNuxtPlugin(() => {
 
       return data;
     } catch (error) {
-      console.error(`fetchStatsByARS failed for ars "${ars}":`, error);
+      clientFailure("app.plugins.stadt-land-zahl-api.client.failed", error);
       return null;
     }
   };
@@ -158,10 +159,7 @@ export default defineNuxtPlugin(() => {
       });
       return ConnectionSchema.parse(result.data);
     } catch (error) {
-      console.error(
-        `getNearbyAdministrativeAreas failed for lat "${latitude}", lon "${longitude}", radius_km "${radius_km}":`,
-        error,
-      );
+      clientFailure("app.plugins.stadt-land-zahl-api.client.failed", error);
       return null;
     }
   };
@@ -245,7 +243,7 @@ export default defineNuxtPlugin(() => {
       }
       return allData;
     } catch (error) {
-      console.error(`fetchHistogramData failed for dataType "${dataType}", attributeName "${attributeName}":`, error);
+      clientFailure("app.plugins.stadt-land-zahl-api.client.failed", error);
       return [];
     }
   };
@@ -270,7 +268,7 @@ export default defineNuxtPlugin(() => {
       });
       return AreaListSchema.parse(nodes);
     } catch (error) {
-      console.error(`searchAdministrativeAreas failed for "${term}" (mode: ${mode}):`, error);
+      clientFailure("app.plugins.stadt-land-zahl-api.client.failed", error);
       return [];
     }
   };
@@ -355,7 +353,7 @@ export default defineNuxtPlugin(() => {
         if (hasNextPage && (!cursor || seenCursors.has(cursor))) throw new Error("Invalid pagination cursor");
         if (cursor) seenCursors.add(cursor);
       } catch (e) {
-        console.error("fetchMunicipalitiesInRegion error:", e);
+        clientFailure("app.plugins.stadt-land-zahl-api.client.failed", e);
         break;
       }
     }

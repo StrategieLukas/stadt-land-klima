@@ -236,6 +236,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../shared/securityLog";
+
 import { HistogramResponseSchema, type BinAreas } from "~/shared/contracts/histogram";
 import type { PropType } from "vue";
 import type { HistogramConfig } from "~/types/components/data";
@@ -370,7 +372,7 @@ async function checkHistogramAvailability() {
     // Check if we have valid histogram data
     hasPrecomputedHistogram.value = !!(result?.bin_edges && result?.bin_counts && data?.results?.length > 0);
   } catch (error) {
-    console.error("Error checking histogram availability:", error);
+    clientFailure("app.components.DataProductViewWrapper.checkHistogramAvailability.failed", error);
     hasPrecomputedHistogram.value = false;
   }
 }
@@ -404,7 +406,7 @@ function toggle() {
 function handleBinClick(binData: BinAreas) {
   selectedBinData.value = binData;
   sortOrder.value = "asc"; // Reset sort order on new selection
-  console.log("Bin clicked:", binData);
+
   // You can add more functionality here, such as:
   // - Display a modal with the list of areas
   // - Emit an event to parent components

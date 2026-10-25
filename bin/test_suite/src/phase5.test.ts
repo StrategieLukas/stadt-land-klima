@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -49,6 +50,8 @@ function load(name: string, globals: Record<string, unknown> = {}, dependencies:
     useNuxtApp: () => ({ $t: (key: string) => key, $locale: "de-DE" }),
     useRuntimeConfig: () => ({ public: { clientDirectusUrl: "https://cms.example.org" } }),
     require: (id: string) => {
+      const logging = loggingModule(id);
+      if (logging && !(id in dependencies)) return logging;
       if (id === "vue") return dependencies.vue ?? vue;
       assert.ok(id in dependencies, `Unexpected import ${id}`);
       return dependencies[id];

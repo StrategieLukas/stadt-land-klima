@@ -1,3 +1,5 @@
+import type { H3Event } from "h3";
+import { requestLog, requestFailure } from "../utils/securityLogging";
 import { abuseProtection } from "../utils/abuseProtection";
 import { directusErrorDetails, requestErrorStatus } from "~/shared/requestError";
 import { RegistrationRequestSchema } from "~/shared/contracts/submissions";
@@ -50,6 +52,7 @@ async function ensureUserRole(
 }
 
 async function deleteUserAfterFailedRegistration(
+  event: H3Event,
   directusUrl: string,
   headers: Record<string, string>,
   userId: string | null,
@@ -58,12 +61,21 @@ async function deleteUserAfterFailedRegistration(
 
   try {
     await $fetch(`${directusUrl}/users/${userId}`, { method: "DELETE", headers });
-  } catch (cleanupError) {
-    console.error("[register-municipality] Failed to clean up incomplete user:", cleanupError);
+    requestLog(event, "info", "nuxt.registration.user_removed", {
+      resource: "directus_users",
+      resourceId: userId,
+      outcome: "success",
+    });
+  } catch {
+    requestLog(event, "error", "nuxt.registration.user_cleanup_failed", {
+      resource: "directus_users",
+      resourceId: userId,
+    });
   }
 }
 
 async function deleteLocalteamAfterFailedRegistration(
+  event: H3Event,
   directusUrl: string,
   headers: Record<string, string>,
   localteamId: string,
@@ -86,14 +98,25 @@ async function deleteLocalteamAfterFailedRegistration(
         headers,
       });
     }
-  } catch (cleanupError) {
-    console.error("[register-municipality] Failed to clean up incomplete localteam links:", cleanupError);
+  } catch {
+    requestLog(event, "error", "nuxt.registration.links_cleanup_failed", {
+      resource: "localteams",
+      resourceId: localteamId,
+    });
   }
 
   try {
     await $fetch(`${directusUrl}/items/localteams/${localteamId}`, { method: "DELETE", headers });
-  } catch (cleanupError) {
-    console.error("[register-municipality] Failed to clean up incomplete localteam:", cleanupError);
+    requestLog(event, "info", "nuxt.registration.team_removed", {
+      resource: "localteams",
+      resourceId: localteamId,
+      outcome: "success",
+    });
+  } catch {
+    requestLog(event, "error", "nuxt.registration.team_cleanup_failed", {
+      resource: "localteams",
+      resourceId: localteamId,
+    });
   }
 }
 
@@ -243,7 +266,7 @@ export default defineEventHandler(async (event) => {
   const adminToken = config.directusAdminToken as string | undefined;
 
   if (!adminToken) {
-    console.error("[register-municipality] DIRECTUS_ADMIN_TOKEN not configured");
+    requestLog(event, "error", "app.server.api.register-municipality.post.failed");
     throw createRegistrationError(
       503,
       "Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.",
@@ -278,7 +301,7 @@ export default defineEventHandler(async (event) => {
   } catch (err: unknown) {
     if (requestErrorStatus(err) === 422) throw err;
     // Non-fatal: the unique constraint below remains the final safeguard.
-    console.warn("[register-municipality] Email duplicate check failed (non-fatal):", err);
+    requestLog(event, "warn", "nuxt.registration.duplicate_user_check_unavailable");
   }
 
   // --- Pre-check: reject if ARS already has a localteam ---
@@ -297,7 +320,7 @@ export default defineEventHandler(async (event) => {
   } catch (err: unknown) {
     if (requestErrorStatus(err) === 422) throw err;
     // Non-fatal: proceed with registration if the check itself fails
-    console.warn("[register-municipality] ARS duplicate check failed (non-fatal):", err);
+    requestLog(event, "warn", "nuxt.registration.duplicate_team_check_unavailable");
   }
 
   // --- Step 1: Create Directus user ---
@@ -305,7 +328,7 @@ export default defineEventHandler(async (event) => {
   try {
     LOKALTEAM_ADMIN_ROLE = await getLokalteamAdminRoleId();
   } catch (err) {
-    console.error("[register-municipality] Lokalteam admin role lookup failed:", err);
+    requestFailure(event, "app.server.api.register-municipality.post.failed", err);
     throw createRegistrationError(
       503,
       "Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.",
@@ -332,9 +355,17 @@ export default defineEventHandler(async (event) => {
     userId = userResult.data.id;
     await ensureUserRole(directusUrl, headers, userId, LOKALTEAM_ADMIN_ROLE);
     steps.user = true;
+    requestLog(event, "info", "nuxt.registration.user_created", {
+      resource: "directus_users",
+      resourceId: userId,
+      outcome: "success",
+    });
   } catch (err: unknown) {
-    await deleteUserAfterFailedRegistration(directusUrl, headers, userId);
+    await deleteUserAfterFailedRegistration(event, directusUrl, headers, userId);
     const isUnique = isDuplicateEmailError(err);
+    requestLog(event, isUnique ? "info" : "error", "nuxt.registration.user_creation_failed", {
+      outcome: isUnique ? "rejected" : "failed",
+    });
     throw createRegistrationError(
       422,
       isUnique
@@ -363,7 +394,8 @@ export default defineEventHandler(async (event) => {
     });
     localteamId = teamResult.data.id;
   } catch {
-    await deleteUserAfterFailedRegistration(directusUrl, headers, userId);
+    requestLog(event, "error", "nuxt.registration.team_creation_failed", { outcome: "failed" });
+    await deleteUserAfterFailedRegistration(event, directusUrl, headers, userId);
     throw createRegistrationError(
       422,
       "Lokalteam konnte nicht angelegt werden. Bitte versuche es später erneut.",
@@ -377,10 +409,15 @@ export default defineEventHandler(async (event) => {
   try {
     await ensureLocalteamUserJunction(directusUrl, headers, userId, localteamId);
     steps.team = true;
+    requestLog(event, "info", "nuxt.registration.team_created", {
+      resource: "localteams",
+      resourceId: localteamId,
+      outcome: "success",
+    });
   } catch (err) {
-    console.error("[register-municipality] Failed to create or verify M2M junction entry:", err);
-    await deleteLocalteamAfterFailedRegistration(directusUrl, headers, localteamId);
-    await deleteUserAfterFailedRegistration(directusUrl, headers, userId);
+    requestFailure(event, "app.server.api.register-municipality.post.failed", err);
+    await deleteLocalteamAfterFailedRegistration(event, directusUrl, headers, localteamId);
+    await deleteUserAfterFailedRegistration(event, directusUrl, headers, userId);
     throw createRegistrationError(
       503,
       "Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.",
@@ -420,11 +457,11 @@ export default defineEventHandler(async (event) => {
         },
       });
     } else {
-      console.warn("[register-municipality] Municipality not found after retries for localteam:", localteamId);
+      requestLog(event, "warn", "nuxt.registration.municipality_not_ready");
     }
-  } catch (err) {
+  } catch {
     // Non-fatal: team + user already created; log and continue
-    console.warn("[register-municipality] Municipality update failed (non-fatal):", err);
+    requestLog(event, "warn", "nuxt.registration.municipality_update_failed");
   }
 
   // --- Step 4: Obtain password-reset URL (will be embedded in the welcome email) ---
@@ -439,12 +476,9 @@ export default defineEventHandler(async (event) => {
     });
     passwordResetUrl = resetData.url ?? null;
     steps.email = true;
-  } catch (err) {
+  } catch {
     // Non-fatal: fall back to sending a separate Directus password-reset email
-    console.warn(
-      "[register-municipality] Password reset link generation failed, falling back to separate email (non-fatal):",
-      err,
-    );
+    requestLog(event, "warn", "nuxt.registration.reset_link_fallback");
     try {
       await $fetch(`${directusUrl}/auth/password/request`, {
         method: "POST",
@@ -452,8 +486,8 @@ export default defineEventHandler(async (event) => {
         body: { email: email.trim() },
       });
       steps.email = true;
-    } catch (fallbackErr) {
-      console.warn("[register-municipality] Fallback password reset email also failed (non-fatal):", fallbackErr);
+    } catch {
+      requestLog(event, "error", "nuxt.registration.reset_mail_failed");
     }
   }
 
@@ -469,7 +503,7 @@ export default defineEventHandler(async (event) => {
   // --- Step 5: Notify admin ---
   const adminEmail = config.adminNotificationEmail || "info@stadt-land-klima.de";
   if (!notifyAdminFlowUrl) {
-    console.warn("[register-municipality] DIRECTUS_FLOW_NOTIFY_ADMIN not configured — skipping admin notification");
+    requestLog(event, "warn", "nuxt.registration.admin_mail_not_configured");
   } else {
     try {
       await sendDirectusMailFlow(notifyAdminFlowUrl, directusUrl, adminToken, {
@@ -488,14 +522,15 @@ export default defineEventHandler(async (event) => {
         ].join("\n"),
       });
       steps.notify = true;
-    } catch (err) {
-      console.warn("[register-municipality] Admin notification email failed (non-fatal):", err);
+      requestLog(event, "info", "nuxt.registration.admin_mail_sent", { resourceId: localteamId, outcome: "success" });
+    } catch {
+      requestLog(event, "error", "nuxt.registration.admin_mail_failed");
     }
   }
 
   // --- Step 6: Send welcome email to new user ---
   if (!welcomeEmailFlowUrl) {
-    console.warn("[register-municipality] DIRECTUS_FLOW_WELCOME_EMAIL not configured — skipping welcome email");
+    requestLog(event, "error", "nuxt.registration.welcome_mail_not_configured");
   } else {
     try {
       const tutorialUrl = config.welcomeEmailTutorialUrl || "";
@@ -517,10 +552,16 @@ export default defineEventHandler(async (event) => {
         },
       });
       steps.welcome = true;
-    } catch (err) {
-      console.warn("[register-municipality] Welcome email failed (non-fatal):", err);
+      requestLog(event, "info", "nuxt.registration.welcome_mail_sent", { resourceId: userId, outcome: "success" });
+    } catch {
+      requestLog(event, "error", "nuxt.registration.welcome_mail_failed");
     }
   }
 
+  requestLog(event, "info", "nuxt.registration.completed", {
+    resource: "localteams",
+    resourceId: localteamId,
+    outcome: "success",
+  });
   return { success: true, steps };
 });

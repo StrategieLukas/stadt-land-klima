@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -33,6 +34,8 @@ function load(path: string, dependencies: Record<string, unknown>, globals: Row 
       ...globals,
       require: (id: string) => {
         if (!(id in dependencies)) {
+          const logging = loggingModule(id);
+          if (logging) return logging;
           if (id === "~/server/utils/cmsValue") return load("server/utils/cmsValue.ts", {});
           if (id === "~/shared/contracts/navigation") return frontend("./shared/contracts/navigation.ts");
           if (id === "zod") return frontend("zod");

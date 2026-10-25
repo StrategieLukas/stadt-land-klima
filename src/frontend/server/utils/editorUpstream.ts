@@ -1,3 +1,4 @@
+import { requestLog } from "./securityLogging";
 import { createError, type H3Event } from "h3";
 import { z } from "zod";
 import { AuthUserSchema } from "~/shared/contracts/auth";
@@ -72,6 +73,7 @@ export async function editorAccess(event: H3Event, mutation: boolean) {
       await logoutEditor(session.refreshToken).catch(() => undefined);
       throw error;
     }
+    requestLog(event, "info", "nuxt.auth.refreshed", { outcome: "success" });
     return { ...state, session };
   } finally {
     await withProtectionRedis((redis) =>

@@ -830,6 +830,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../../shared/securityLog";
+
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import type { LayerSpec, UnitSpec } from "vega-lite/types_unstable/spec/index.d.ts";
 import type { View } from "vega";
@@ -1529,7 +1531,7 @@ async function renderSunburst() {
       });
     });
   } catch (e) {
-    console.error("Sunburst render error", e);
+    clientFailure("app.pages.stats.index.renderSunburst.failed", e);
   }
 }
 
@@ -2250,7 +2252,7 @@ async function computeDominanceAndRender() {
     dominanceForceContainer.value.appendChild(svg);
     vegaViewDominanceForce = null;
   } catch (e) {
-    console.error("Dominance analysis error", e);
+    clientFailure("app.pages.stats.index.computeDominanceAndRender.failed", e);
     dominanceError.value = `Fehler beim Rendern: ${e instanceof Error ? e.message : "Unknown error"}`;
   }
 }
@@ -2413,7 +2415,7 @@ async function computeClusteringAndRender() {
       };
     });
   } catch (e) {
-    console.error("Cluster error", e);
+    clientFailure("app.pages.stats.index.computeClusteringAndRender.failed", e);
     clusteringError.value = `Fehler: ${e instanceof Error ? e.message : "Unknown error"}`;
   }
 }

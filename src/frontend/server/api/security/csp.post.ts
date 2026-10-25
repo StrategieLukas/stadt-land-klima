@@ -1,3 +1,4 @@
+import { requestLog } from "../../utils/securityLogging";
 import { createError, defineEventHandler, setResponseStatus } from "h3";
 import { readRequestBody } from "../../utils/readRequestBody";
 import { rateLimit } from "../../utils/rateLimit";
@@ -21,7 +22,9 @@ export default defineEventHandler(async (event) => {
     counts.set(directive, (counts.get(directive) ?? 0) + 1);
   }
   if (Date.now() >= nextReport) {
-    console.info("[csp] directive counts", Object.fromEntries(counts));
+    requestLog(event, "warn", "nuxt.security.csp_blocked", {
+      count: Array.from(counts.values()).reduce((sum, count) => sum + count, 0),
+    });
     counts.clear();
     nextReport = Date.now() + 60_000;
   }

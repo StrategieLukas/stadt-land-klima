@@ -1,3 +1,4 @@
+import { extensionDiagnostic } from "../../shared/securityLogger.ts";
 import path from "path";
 import os from "os";
 import fs from "fs";
@@ -137,7 +138,7 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
       })) as RatingMeasure[];
 
       if (!results || results.length === 0) {
-        console.warn("[rating report] No data returned, skipping report.");
+        extensionDiagnostic("warn", "app.hook-measure-rating-reports.index.degraded");
         return;
       }
 
@@ -157,10 +158,9 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
         text: "Attached is the weekly rating measures report (CSV).",
         attachments: [{ filename: fileName, path: filePath }],
       });
-
-      console.log(`[rating report] Report sent successfully to ${REPORT_EMAIL}`);
-    } catch (err) {
-      console.error("[rating report] Cron job failed:", err);
+      extensionDiagnostic("info", "directus.rating_report.sent", { count: rows.length, outcome: "success" });
+    } catch {
+      extensionDiagnostic("error", "app.hook-measure-rating-reports.index.failed");
 
       try {
         const schema = await getSchema();
@@ -168,17 +168,17 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
         await mailService.send({
           to: REPORT_EMAIL,
           subject: "Stadt.Land.Klima Wochenbericht – FEHLER",
-          text: `The weekly rating report failed to generate or send.\n\nError: ${err instanceof Error ? err.message : String(err)}`,
+          text: "The weekly rating report failed to generate or send. Check the sanitized Directus operational logs.",
         });
-      } catch (mailErr) {
-        console.error("[rating report] Failed to send error notification:", mailErr);
+      } catch {
+        extensionDiagnostic("error", "app.hook-measure-rating-reports.index.failed");
       }
     } finally {
       if (filePath && fs.existsSync(filePath)) {
         try {
           fs.unlinkSync(filePath);
-        } catch (cleanupErr) {
-          console.error("[rating report] Failed to clean up temp file:", cleanupErr);
+        } catch {
+          extensionDiagnostic("error", "app.hook-measure-rating-reports.index.failed");
         }
       }
     }

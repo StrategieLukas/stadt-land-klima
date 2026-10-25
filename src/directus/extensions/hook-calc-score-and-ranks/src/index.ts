@@ -1,3 +1,4 @@
+import { extensionLog, extensionError } from "../../shared/securityLogger.ts";
 import type { ApiExtensionContext, SchemaOverview } from "@directus/types";
 import {
   changesPublication,
@@ -85,9 +86,8 @@ const recalculateCatalogVersions = async (
 
 const updateRanks = async (
   { catalogVersionId }: { catalogVersionId: number | string },
-  { services, getSchema, logger }: ServiceContext,
+  { services, getSchema }: ServiceContext,
 ): Promise<void> => {
-  logger.info(`Updating ranks for catalogVersionId=${catalogVersionId}`);
   const schema = await getSchema();
   const municipalityScoresService = new services.ItemsService<RankedMunicipalityScore>("municipality_scores", {
     schema,
@@ -103,17 +103,12 @@ const updateRanks = async (
   });
 
   if (!scores?.length) {
-    logger.info(`[updateRanks] No scores found for catalogVersion=${catalogVersionId}, skipping rank update.`);
     return;
   }
 
   const sortedScores = scores
     .filter((score) => score.published === true)
     .sort((a, b) => (Number(b.score_total) || 0) - (Number(a.score_total) || 0));
-
-  if (!sortedScores.length) {
-    logger.info(`[updateRanks] No published scores found for catalogVersion=${catalogVersionId}; resetting ranks.`);
-  }
 
   const ranked: Array<{ id: number | string; rank: number }> = [];
   for (let index = 0; index < sortedScores.length; index++) {
@@ -127,21 +122,17 @@ const updateRanks = async (
   }
 
   const rankById = new Map(ranked.map((entry) => [String(entry.id), entry.rank]));
-  let updated = 0;
 
   for (const score of scores) {
     const nextRank = rankById.get(String(score.id)) ?? -1;
     if (Number(score.rank) === nextRank) continue;
     await municipalityScoresService.updateOne(score.id, { rank: nextRank });
-    updated++;
   }
-
-  logger.info(`[updateRanks] Updated ranks for ${updated} municipality_scores.`);
 };
 
 const syncMunicipalityPublicationStatus = async (
   { municipalityId }: { municipalityId: number | string },
-  { services, getSchema, logger }: ServiceContext,
+  { services, getSchema }: ServiceContext,
 ): Promise<void> => {
   const schema = await getSchema();
   const municipalityScoresService = new services.ItemsService<RankedMunicipalityScore>("municipality_scores", {
@@ -169,7 +160,6 @@ const syncMunicipalityPublicationStatus = async (
   if (municipality?.status === status) return;
 
   await municipalitiesService.updateOne(municipalityId, { status });
-  logger.info(`[syncMunicipalityPublicationStatus] Municipality ${municipalityId} status updated to ${status}.`);
 };
 
 const createEmptyRatingsForNewMunicipality = async (
@@ -196,7 +186,6 @@ const createEmptyRatingsForNewMunicipality = async (
   });
 
   if (!publishedMeasures?.length) {
-    logger.info(`[createEmptyRatings] No published measures found for new municipality "${municipality.name}".`);
     return;
   }
 
@@ -211,14 +200,17 @@ const createEmptyRatingsForNewMunicipality = async (
   }));
 
   await ratingsService.createMany(toCreate, { emitEvents: false });
-  logger.info(
-    `[createEmptyRatings] Created ${toCreate.length} ratings_measures for municipality="${municipality.name}".`,
-  );
+  extensionLog(logger, "info", "directus.ratings.initialized", {
+    municipalityId: municipality.id,
+    resource: "ratings_measures",
+    count: toCreate.length,
+    outcome: "success",
+  });
 };
 
 const createEmptyScoresForMunicipality = async (
   municipality: { id: number; name: string },
-  { services, getSchema, logger }: ServiceContext,
+  { services, getSchema }: ServiceContext,
 ): Promise<void> => {
   const schema = await getSchema();
   const measureCatalogService = new services.ItemsService("measure_catalog", {
@@ -253,8 +245,6 @@ const createEmptyScoresForMunicipality = async (
 
   const createdIds = await municipalityScoresService.createMany(scoresToCreate);
   await munService.updateOne(municipality.id, { scores: createdIds });
-
-  logger.info(`[createEmptyScores] Created ${createdIds.length} municipality_scores for "${municipality.name}".`);
 };
 
 const ensureRatingsForPublishedMeasure = async (
@@ -263,9 +253,6 @@ const ensureRatingsForPublishedMeasure = async (
   ratingChoices: any,
   { services, getSchema, logger }: ServiceContext,
 ): Promise<void> => {
-  logger.info(
-    `[ensureRatingsForPublishedMeasure] Syncing ratings for measure=${measureId}, catalogVersion=${catalogVersionId}`,
-  );
   const schema = await getSchema();
   const municipalitiesService = new services.ItemsService("municipalities", {
     schema,
@@ -320,14 +307,25 @@ const ensureRatingsForPublishedMeasure = async (
       { measure_published: true },
       { emitEvents: false },
     );
+    extensionLog(logger, "info", "directus.ratings.measure_reactivated", {
+      resource: "measures",
+      resourceId: measureId,
+      catalogId: catalogVersionId,
+      count: existingRatings.length,
+      outcome: "success",
+    });
   }
   if (toCreate.length) {
     // Do not emit events — score and rank recalculation is handled by the caller.
     await ratingsService.createMany(toCreate, { emitEvents: false });
+    extensionLog(logger, "info", "directus.ratings.measure_initialized", {
+      resource: "measures",
+      resourceId: measureId,
+      catalogId: catalogVersionId,
+      count: toCreate.length,
+      outcome: "success",
+    });
   }
-  logger.info(
-    `[ensureRatingsForPublishedMeasure] Created ${toCreate.length} missing ratings for measure=${measureId}, catalogVersion=${catalogVersionId}.`,
-  );
 };
 
 const syncAllMunicipalityScores = async ({ services, getSchema, logger }: ServiceContext): Promise<void> => {
@@ -346,18 +344,14 @@ const syncAllMunicipalityScores = async ({ services, getSchema, logger }: Servic
     accountability: adminAccountability,
   });
 
-  logger.info("[syncAllMunicipalityScores] Checking if municipality_scores is empty...");
-
   const existing: any[] = await scoresService.readByQuery({ limit: 1, fields: ["id"] });
   const catalogs: any[] = await catalogService.readByQuery({ limit: -1 });
 
   if (!existing?.length) {
-    logger.info("[syncAllMunicipalityScores] municipality_scores is empty — creating initial blank scores.");
-
     const municipalities: any[] = await municipalityService.readByQuery({ limit: -1 });
 
     if (!municipalities?.length || !catalogs?.length) {
-      logger.warn("[syncAllMunicipalityScores] No municipalities or catalog versions found.");
+      extensionLog(logger, "warn", "app.hook-calc-score-and-ranks.index.degraded");
       return;
     }
 
@@ -383,24 +377,15 @@ const syncAllMunicipalityScores = async ({ services, getSchema, logger }: Servic
     }
 
     if (toCreate.length) {
-      logger.info(`[syncAllMunicipalityScores] Creating ${toCreate.length} initial municipality_scores...`);
       await scoresService.createMany(toCreate);
     }
-  } else {
-    logger.info(
-      "[syncAllMunicipalityScores] municipality_scores already populated — skipping creation, recalculating scores.",
-    );
   }
 
   for (const cv of catalogs) {
-    logger.info(`[syncAllMunicipalityScores] Calculating scores for catalog version ${cv.id}...`);
     await calculateScores({ catalogVersionId: cv.id }, { services, getSchema, logger });
 
-    logger.info(`[syncAllMunicipalityScores] Updating ranks for catalog version ${cv.id}...`);
     await updateRanks({ catalogVersionId: cv.id }, { services, getSchema, logger });
   }
-
-  logger.info("[syncAllMunicipalityScores] Initial sync completed successfully.");
 };
 
 const captureMeasureSnapshots = async (meta: any, serviceContext: ServiceContext): Promise<void> => {
@@ -458,7 +443,7 @@ const handleMunicipalityCreated = async (meta: any, ctx: ServiceContext): Promis
 const handleMeasuresCreatedOrUpdated = async (meta: any, ctx: ServiceContext): Promise<void> => {
   const measureIds = getEventKeys(meta);
   if (!measureIds.length) {
-    ctx.logger.warn("[handleMeasuresCreatedOrUpdated] No measure id(s) found in meta.");
+    extensionLog(ctx.logger, "warn", "app.hook-calc-score-and-ranks.index.degraded");
     return;
   }
 
@@ -531,7 +516,7 @@ const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceConte
   const ratingIds = getEventKeys(meta);
 
   if (!ratingIds.length) {
-    ctx.logger.warn("[handleRatingsMeasureUpdatedOrCreated] No rating id(s) found in meta.");
+    extensionLog(ctx.logger, "warn", "app.hook-calc-score-and-ranks.index.degraded");
     return;
   }
 
@@ -591,7 +576,6 @@ const handleMeasuresDeleted = async (meta: any, ctx: ServiceContext): Promise<vo
   }
 
   if (!catalogVersionIds.size) {
-    ctx.logger.info("[handleMeasuresDeleted] No published measures were deleted.");
     return;
   }
 
@@ -604,7 +588,7 @@ const handleMunicipalityScoreUpdated = async (meta: any, ctx: ServiceContext): P
   const scoreIds: Array<number | string> = meta.key ? [meta.key] : Array.isArray(meta.keys) ? meta.keys : [];
 
   if (!scoreIds.length) {
-    ctx.logger.warn("[handleMunicipalityScoreUpdated] No municipality_score id(s) found in meta.");
+    extensionLog(ctx.logger, "warn", "app.hook-calc-score-and-ranks.index.degraded");
     return;
   }
 
@@ -657,13 +641,11 @@ const safeCall =
   async (meta: any, event?: PublicationEventContext): Promise<void> => {
     try {
       if (!meta?.collection) {
-        extensionContext.logger.warn(`[HOOK:${fnName}] meta missing or malformed: ${JSON.stringify(meta)}`);
+        extensionLog(extensionContext.logger, "warn", "app.hook-calc-score-and-ranks.index.degraded");
       }
       await fn(meta, { ...extensionContext, event });
     } catch (err: unknown) {
-      const e = err as Error;
-      extensionContext.logger.error(`[HOOK:${fnName}] Caught error: ${e?.message}`);
-      extensionContext.logger.error(e?.stack ?? String(err));
+      extensionError(extensionContext.logger, "directus.score_hook.failed", err);
       throw err;
     }
   };
@@ -675,9 +657,7 @@ export default ({ action, filter }: HookContext, extensionContext: ServiceContex
 
   // Run initial sync at startup — all context variables are in scope here
   syncAllMunicipalityScores({ services, getSchema, logger }).catch((err: unknown) => {
-    const e = err as Error;
-    logger.error(`[syncAllMunicipalityScores] Failed during startup: ${e?.message}`);
-    logger.error(e?.stack ?? String(err));
+    extensionError(logger, "directus.score_initialization.failed", err);
   });
 
   filter("items.update", async (payload, meta, eventContext) => {

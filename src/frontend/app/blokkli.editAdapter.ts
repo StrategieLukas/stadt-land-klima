@@ -1,3 +1,4 @@
+import { clientDiagnostic, clientFailure } from "../shared/securityLog";
 /**
  * blökkli Edit Adapter for Directus
  *
@@ -194,7 +195,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     try {
       raw = window.localStorage.getItem(getLocalDraftKey());
     } catch {
-      console.warn("[blokkli] Local draft storage is unavailable");
+      clientDiagnostic("app.app.blokkli.editAdapter.loadLocalDraft.degraded", "warn");
       return null;
     }
     if (!raw) return null;
@@ -215,8 +216,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     if (!import.meta.client) return;
     try {
       window.localStorage.setItem(getLocalDraftKey(), JSON.stringify(draft));
-    } catch (err) {
-      console.warn("[blokkli] Failed to write local draft backup:", err);
+    } catch {
+      clientDiagnostic("app.app.blokkli.editAdapter.saveLocalDraft.degraded", "warn");
     }
   }
 
@@ -224,8 +225,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     if (!import.meta.client) return;
     try {
       window.localStorage.removeItem(getLocalDraftKey());
-    } catch (err) {
-      console.warn("[blokkli] Failed to clear local draft backup:", err);
+    } catch {
+      clientDiagnostic("app.app.blokkli.editAdapter.clearLocalDraft.degraded", "warn");
     }
   }
 
@@ -272,7 +273,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     draftSaveTimer = window.setTimeout(() => {
       draftSaveTimer = null;
       void persistDraftNow().catch((err: unknown) => {
-        console.error("[blokkli] Autosave failed; the in-browser draft is retained:", err);
+        clientFailure("app.app.blokkli.editAdapter.scheduleDraftSave.failed", err);
         if (!autosaveErrorShown) {
           emitMessage($t("blokkli.editor.autosave_error"), "error");
           autosaveErrorShown = true;
@@ -369,7 +370,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return loadLocalDraft();
       }
     } catch (err) {
-      console.error("[blokkli] loadEditState failed:", err);
+      clientFailure("app.app.blokkli.editAdapter.loadEditState.failed", err);
       // Editing without a working lock/recovery state risks concurrent data loss.
       isCurrentUserOwner = false;
       throw err;
@@ -1169,7 +1170,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           });
           editStateDateUpdated = Date.now();
         } catch (err) {
-          console.error("[blokkli] Failed to discard recoverable draft:", err);
+          clientFailure("app.app.blokkli.editAdapter.failed", err);
           return {
             success: false as const,
             state,
@@ -1187,8 +1188,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       try {
         // Ensure the recoverable copy contains the exact state being published.
         await flushDraftSave();
-      } catch (err) {
-        console.warn("[blokkli] Server autosave failed before publish; local backup remains:", err);
+      } catch {
+        clientDiagnostic("app.app.blokkli.editAdapter.degraded", "warn");
       }
 
       let result: z.output<typeof PersistenceResponseSchema>;
@@ -1210,7 +1211,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           ),
         );
       } catch (err: unknown) {
-        console.error("[blokkli] Atomic publish failed; draft was retained:", err);
+        clientFailure("app.app.blokkli.editAdapter.failed", err);
         const status = requestErrorStatus(err);
         const message = $t(status === 409 ? "blokkli.editor.publish_conflict" : "blokkli.editor.publish_error");
         return { success: false as const, state, errors: [message] };
@@ -1235,8 +1236,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
             editStateId = null;
             currentOwnerName = "";
             isCurrentUserOwner = true;
-          } catch (err) {
-            console.warn("[blokkli] Failed to delete edit state after publish:", err);
+          } catch {
+            clientDiagnostic("app.app.blokkli.editAdapter.degraded", "warn");
           }
         }
 
@@ -1252,8 +1253,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
               base_revision: baseRevision,
             });
             editStateDateUpdated = Date.now();
-          } catch (cleanupError) {
-            console.warn("[blokkli] Failed to clear edit state after publish:", cleanupError);
+          } catch {
+            clientDiagnostic("app.app.blokkli.editAdapter.degraded", "warn");
           }
         }
       }
@@ -1288,7 +1289,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         isCurrentUserOwner = true;
         await persistDraftNow();
       } catch (err) {
-        console.error("[blokkli] takeOwnership failed:", err);
+        clientFailure("app.app.blokkli.editAdapter.failed", err);
         return { success: false as const, state };
       }
       return { success: true as const, state };
@@ -1316,8 +1317,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           }),
         );
         return Math.max(localDate, Date.parse(records[0]?.date_updated || "") || 0, 1);
-      } catch (err) {
-        console.warn("[blokkli] Failed to check preview draft timestamp:", err);
+      } catch {
+        clientDiagnostic("app.app.blokkli.editAdapter.degraded", "warn");
         return Math.max(localDate, editStateDateUpdated, 1);
       }
     },

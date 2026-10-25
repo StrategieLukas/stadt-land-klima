@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, mkdtempSync, writeFileSync, rmSync } from "node:fs";
@@ -42,6 +43,8 @@ function load(path: string, dependencies: Row = {}, globals: Row = {}, client = 
     exports: module.exports,
     console: { warn() {}, error() {}, log() {} },
     require: (id: string) => {
+      const logging = loggingModule(id);
+      if (logging && !(id in dependencies)) return logging;
       assert.ok(id in dependencies, `${path}: unexpected dependency ${id}`);
       return dependencies[id];
     },

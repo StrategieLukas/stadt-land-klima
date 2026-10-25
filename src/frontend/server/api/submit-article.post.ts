@@ -1,3 +1,4 @@
+import { requestLog, requestFailure } from "../utils/securityLogging";
 import { abuseProtection } from "../utils/abuseProtection";
 import { directusErrorDetails, errorRecord, requestErrorData, requestErrorStatus } from "~/shared/requestError";
 import { randomBytes } from "node:crypto";
@@ -436,7 +437,7 @@ async function submitArticle(event: H3Event) {
   const directusUrl = config.directusServerUrl || "http://directus:8055";
   const adminToken = config.directusAdminToken as string | undefined;
   if (!adminToken) {
-    console.error("[submit-article] DIRECTUS_ADMIN_TOKEN not configured");
+    requestLog(event, "error", "app.server.api.submit-article.post.submitArticle.failed");
     throw submissionError(
       503,
       "service_unavailable",
@@ -444,7 +445,7 @@ async function submitArticle(event: H3Event) {
     );
   }
   if (adminToken === (config.directusFrontendServerToken as string | undefined)) {
-    console.error("[submit-article] DIRECTUS_ADMIN_TOKEN must not be the frontend server token");
+    requestLog(event, "error", "app.server.api.submit-article.post.submitArticle.failed");
     throw submissionError(
       503,
       "service_unavailable",
@@ -472,6 +473,11 @@ async function submitArticle(event: H3Event) {
       body: imageForm,
     });
     imageId = uploadedImage.data.id;
+    requestLog(event, "info", "nuxt.article.image_uploaded", {
+      resource: "directus_files",
+      resourceId: imageId,
+      outcome: "success",
+    });
 
     const articlePayload: ArticlePayload = {
       status: "draft",
@@ -498,14 +504,17 @@ async function submitArticle(event: H3Event) {
       body: articlePayload,
     });
 
+    requestLog(event, "info", "nuxt.article.created", {
+      resource: "articles",
+      resourceId: article.data.id,
+      outcome: "success",
+    });
     const directusPublicUrl = config.directusPublicUrl || "https://stadt-land-klima.de/backend";
     const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "articles", article.data.id);
     const notifyAdminFlowUrl = config.directusFlowNotifyAdmin as string | undefined;
     const notificationEmail = config.erfolgsprojekteNotificationEmail || "presse@stadt-land-klima.de";
     if (!notifyAdminFlowUrl) {
-      console.warn(
-        "[submit-article] DIRECTUS_FLOW_NOTIFY_ADMIN not configured - skipping Erfolgsprojekte notification",
-      );
+      requestLog(event, "warn", "app.server.api.submit-article.post.submitArticle.degraded");
     } else {
       await sendDirectusMailFlow(notifyAdminFlowUrl, directusUrl, adminToken, {
         to: notificationEmail,
@@ -536,24 +545,23 @@ async function submitArticle(event: H3Event) {
           ]),
           "</table>",
         ].join("\n"),
-      }).catch((err: unknown) => {
-        console.warn("[submit-article] Erfolgsprojekte notification email failed (non-fatal):", err);
+      }).catch((_err: unknown) => {
+        requestLog(event, "warn", "app.server.api.submit-article.post.submitArticle.degraded");
       });
     }
 
     return { success: true, id: article.data.id, status: article.data.status };
   } catch (err: unknown) {
     if (imageId) {
-      await $fetch(`${directusUrl}/files/${imageId}`, { method: "DELETE", headers }).catch((cleanupErr: unknown) => {
-        console.warn("[submit-article] Failed to clean up uploaded image after article error:", cleanupErr);
+      await $fetch(`${directusUrl}/files/${imageId}`, { method: "DELETE", headers }).catch((_cleanupErr: unknown) => {
+        requestLog(event, "warn", "app.server.api.submit-article.post.submitArticle.degraded");
       });
     }
     const directusError = directusErrorDetails(err)[0];
     const directusCode = directusError?.code;
     const directusStatus = requestErrorStatus(err);
-    console.error("[submit-article] Directus error:", { status: directusStatus, code: directusCode });
+    requestFailure(event, "app.server.api.submit-article.post.submitArticle.failed", err);
     if (directusStatus === 401 || directusStatus === 403 || directusCode === "FORBIDDEN") {
-      console.error("[submit-article] DIRECTUS_ADMIN_TOKEN lacks permission to create articles or files");
       throw submissionError(
         503,
         "service_unavailable",

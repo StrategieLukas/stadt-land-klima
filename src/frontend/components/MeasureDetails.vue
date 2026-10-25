@@ -167,7 +167,6 @@ const similarExamples = ref<SimilarExample[]>([]);
 const loadingExamples = ref(false);
 
 async function fetchSimilarExamples(measureId: string, currentRating: NumericValue) {
-  console.log("Fetching similar examples...");
   loadingExamples.value = true;
 
   // Step 1: Check if we are the highest rating and then return immediately

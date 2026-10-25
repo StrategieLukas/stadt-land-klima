@@ -52,9 +52,6 @@ export function getScorePercentageColor(score: NumericValue | undefined): Rating
   } else if (numericScore >= 20) {
     return "rating-1";
   } else if (numericScore >= 0) {
-    if (numericScore > 0 && numericScore < 1) {
-      console.warn("Score is between 0 and 1 - is this intentional or did we pass a decimal instead of a percentage?");
-    }
     return "rating-0";
   }
   return "rating-na";

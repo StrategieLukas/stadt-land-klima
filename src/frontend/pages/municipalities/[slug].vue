@@ -611,7 +611,6 @@ const slzAreaLookup = useAsyncData(`slz-area-${slug}`, async () => {
 const { data: slzArea, pending: slzPending } = await slzAreaLookup;
 
 // Centralised page-view state. All 9 cases are documented in useMunicipalityPageState.js.
-// Debug tip: console.log(pageView.value) to see which view is active.
 const {
   pageView,
   isRatedView,

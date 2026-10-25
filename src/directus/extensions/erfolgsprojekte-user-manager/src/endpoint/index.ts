@@ -1,3 +1,4 @@
+import { extensionLog, extensionError } from "../../../shared/securityLogger.ts";
 import type { Request, Response, Router } from "express";
 
 interface Accountability {
@@ -126,7 +127,7 @@ export default {
           .first()) as RoleRow | undefined;
 
         if (!targetRole) {
-          logger.error(`[erfolgsprojekte-users] Role ${TARGET_ROLE} not found.`);
+          extensionLog(logger, "error", "app.erfolgsprojekte-user-manager.endpoint.index.failed");
           return res.status(500).json({ error: "Die Redaktionsrolle wurde nicht gefunden." });
         }
 
@@ -194,13 +195,16 @@ export default {
               },
             },
           });
+          extensionLog(logger, "info", "directus.article_editor.invitation_sent", {
+            resource: "directus_users",
+            resourceId: userId,
+            outcome: "success",
+          });
         } catch (error) {
           if (env["SLK_ENV"] !== "development") throw error;
           mailSent = false;
-          logger.warn(`[erfolgsprojekte-users] Invitation mail for ${email} was not sent in development.`);
+          extensionLog(logger, "warn", "app.erfolgsprojekte-user-manager.endpoint.index.degraded");
         }
-
-        logger.info(`[erfolgsprojekte-users] ${inviterName} invited ${email} as ${TARGET_ROLE}.`);
 
         return res.status(201).json({
           user: {
@@ -214,7 +218,7 @@ export default {
           mailSent,
         });
       } catch (error) {
-        logger.error("[erfolgsprojekte-users] Invitation failed.", error);
+        extensionError(logger, "app.erfolgsprojekte-user-manager.endpoint.index.failed", error);
         return res.status(500).json({ error: "Die Einladung konnte nicht versendet werden." });
       }
     });

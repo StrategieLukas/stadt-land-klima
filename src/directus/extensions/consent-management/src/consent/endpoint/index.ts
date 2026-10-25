@@ -1,3 +1,4 @@
+import { extensionDiagnostic } from "../../../../shared/securityLogger.ts";
 import type { Request, Router } from "express";
 import type { Accountability, SchemaOverview, ApiExtensionContext } from "@directus/types";
 
@@ -122,8 +123,8 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
       };
 
       return res.json(body);
-    } catch (error) {
-      console.error("[consent] Error in GET /consent/status:", error);
+    } catch {
+      extensionDiagnostic("error", "app.consent-management.consent.endpoint.index.failed");
       return res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -194,8 +195,8 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
       });
 
       return res.status(201).json({ success: true, message: "Newsletter subscription created" });
-    } catch (error) {
-      console.error("[consent] Error in POST /consent/newsletter/optin:", error);
+    } catch {
+      extensionDiagnostic("error", "app.consent-management.consent.endpoint.index.failed");
       return res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -265,8 +266,8 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
       await consentsService.deleteOne(existingConsents[0].id);
 
       return res.json({ success: true, message: "Newsletter subscription removed" });
-    } catch (error) {
-      console.error("[consent] Error in DELETE /consent/newsletter/optout:", error);
+    } catch {
+      extensionDiagnostic("error", "app.consent-management.consent.endpoint.index.failed");
       return res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -354,8 +355,8 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
         success: true,
         created: toCreate.length,
       });
-    } catch (error) {
-      console.error("[consent] Error in POST /consent/accept:", error);
+    } catch {
+      extensionDiagnostic("error", "app.consent-management.consent.endpoint.index.failed");
       return res.status(500).json({ error: "Internal server error" });
     }
   });

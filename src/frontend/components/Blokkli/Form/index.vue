@@ -95,6 +95,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../../../shared/securityLog";
+
 import { FORM_SCOPE } from "~/shared/formScope";
 import { GenericFormRequestSchema } from "~/shared/contracts/submissions";
 import { displayScalar } from "~/shared/visualization";
@@ -335,8 +337,8 @@ async function submitForm() {
       }),
     });
     submissionState.value = "success";
-  } catch (err) {
-    console.warn("[form-block] submit failed:", err);
+  } catch (error) {
+    clientFailure("app.components.Blokkli.Form.index.submitForm.failed", error);
     submissionState.value = "idle";
     submitError.value = $t("form_block.submit.error");
   }

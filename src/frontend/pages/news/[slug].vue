@@ -195,6 +195,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../../shared/securityLog";
+
 import { routeSlug } from "~/shared/routeValues";
 import { useAuth } from "~/composables/useAuth";
 import { useReferrer } from "~/composables/useReferrer";
@@ -274,7 +276,7 @@ const { data: blocksData } = await useAsyncData(
       });
       return mapBlokkliBlocks(result.blocks ?? []);
     } catch (error) {
-      console.error("[blokkli] Failed to load news blocks:", error);
+      clientFailure("app.pages.news._slug_.failed", error);
       return [];
     }
   },

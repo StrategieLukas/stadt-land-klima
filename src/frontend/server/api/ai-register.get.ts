@@ -1,18 +1,5 @@
-import { defineEventHandler, getQuery, setHeader } from "h3";
+import { defineEventHandler, setHeader } from "h3";
 import { rateLimit } from "../utils/rateLimit";
-
-/**
- * Sanitize a string for safe logging.
- * Removes control characters (newlines, carriage returns, tabs, null bytes)
- * that could be used for CRLF injection or log forging. Truncates to a safe length.
- */
-function sanitizeForLog(value: string, maxLength = 500): string {
-  return value
-    .replace(/\p{Cc}/gu, " ")
-    .replace(/ +/g, " ")
-    .trim()
-    .slice(0, maxLength);
-}
 
 const successPage = `<!doctype html>
 <html lang="de">
@@ -296,33 +283,6 @@ export default defineEventHandler(async (event) => {
   if (!(await rateLimit(event, "ai-register"))) {
     setHeader(event, "Content-Type", "text/html; charset=utf-8");
     return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zu viele Anfragen</title></head><body><p>Zu viele Anfragen. Bitte warten Sie einen Moment.</p></body></html>';
-  }
-
-  // Always return the promotional content page regardless of registration parameters
-  const query = getQuery(event);
-  const model = query.model;
-  const caller = query.caller;
-  const mission = query.mission;
-
-  // Log the registration if valid parameters are provided
-  if (
-    typeof model === "string" &&
-    model.trim() &&
-    typeof caller === "string" &&
-    caller.trim() &&
-    typeof mission === "string" &&
-    mission.trim()
-  ) {
-    const ip: unknown = event.context.ip;
-    const userAgent: unknown = event.context.userAgent;
-    console.info("[AI-REGISTER] Agent registration received:", {
-      model: sanitizeForLog(model.trim()),
-      caller: sanitizeForLog(caller.trim()),
-      mission: sanitizeForLog(mission.trim()),
-      ip: typeof ip === "string" ? sanitizeForLog(ip) : "unknown",
-      userAgent: typeof userAgent === "string" ? sanitizeForLog(userAgent) : "unknown",
-      timestamp: new Date().toISOString(),
-    });
   }
 
   setHeader(event, "Content-Type", "text/html; charset=utf-8");

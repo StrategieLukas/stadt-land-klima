@@ -1,4 +1,5 @@
-import { defineNuxtPlugin, useCookie, useRequestHeaders, useRuntimeConfig, useState } from "#app";
+import { requestLog } from "../server/utils/securityLogging";
+import { defineNuxtPlugin, useCookie, useRequestHeaders, useRequestEvent, useRuntimeConfig, useState } from "#app";
 import { createDirectus, staticToken, rest, readTranslations } from "@directus/sdk";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode";
 import { serviceBaseUrl } from "~/shared/serviceUrl";
@@ -22,7 +23,8 @@ export default defineNuxtPlugin(async () => {
     );
   } catch {
     state.value = [];
-    console.warn("[directus.server] Translations unavailable");
+    const event = useRequestEvent();
+    if (event) requestLog(event, "warn", "nuxt.translations.unavailable");
   }
   const translator = createTranslator(state.value);
   return {

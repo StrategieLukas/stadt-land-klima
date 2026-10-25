@@ -1,3 +1,4 @@
+import { requestLog, requestFailure } from "../utils/securityLogging";
 import { publishedForm } from "../utils/publishedForm";
 import { formDeliveryQuota } from "../utils/formDeliveryQuota";
 import { abuseProtection } from "../utils/abuseProtection";
@@ -212,7 +213,7 @@ export default defineEventHandler(async (event) => {
   const adminToken = config.directusAdminToken as string | undefined;
 
   if (!adminToken) {
-    console.error("[submit-form-response] DIRECTUS_ADMIN_TOKEN not configured");
+    requestLog(event, "error", "app.server.api.submit-form-response.post.failed");
     throw submissionError(503, "Formularantworten können momentan nicht gespeichert werden.");
   }
 
@@ -262,6 +263,11 @@ export default defineEventHandler(async (event) => {
 
     const directusPublicUrl = config.directusPublicUrl || directusUrl;
     const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "form_responses", result.data.id);
+    requestLog(event, "info", "nuxt.form_response.created", {
+      resource: "form_responses",
+      resourceId: result.data.id,
+      outcome: "success",
+    });
     return {
       success: true,
       id: result.data.id,
@@ -269,7 +275,7 @@ export default defineEventHandler(async (event) => {
       directusUrl: escapeHtml(directusItemUrl),
     };
   } catch (err) {
-    console.error("[submit-form-response] Directus error:", err);
+    requestFailure(event, "app.server.api.submit-form-response.post.failed", err);
     throw submissionError(502, "Formularantwort konnte nicht gespeichert werden. Bitte versuche es später erneut.");
   }
 });

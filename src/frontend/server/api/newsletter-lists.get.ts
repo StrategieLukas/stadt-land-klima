@@ -1,5 +1,6 @@
+import { requestLog } from "../utils/securityLogging";
 import { NewsletterListsSchema } from "~/shared/contracts/submissions";
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const endpoint = config.listmonkEndpoint?.replace(/\/+$/, "");
   const username = config.listmonkApiUsername as string | undefined;
@@ -26,7 +27,7 @@ export default defineEventHandler(async () => {
 
     return { lists };
   } catch {
-    console.error("[newsletter-lists] Invalid or unavailable upstream response");
+    requestLog(event, "error", "app.server.api.newsletter-lists.get.failed");
     throw createError({ statusCode: 502, message: "Newsletter-Listen konnten nicht geladen werden." });
   }
 });

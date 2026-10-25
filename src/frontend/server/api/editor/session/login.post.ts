@@ -1,3 +1,4 @@
+import { requestLog } from "../../../utils/securityLogging";
 import { createError, defineEventHandler, setResponseHeader } from "h3";
 import { z } from "zod";
 import { editorMutationOrigin, openEditorSession } from "../../../utils/editorSession";
@@ -18,5 +19,7 @@ export default defineEventHandler(async (event) => {
   } catch {
     throw createError({ statusCode: 401, statusMessage: "Invalid user credentials" });
   }
-  return openEditorSession(event, session);
+  const result = await openEditorSession(event, session);
+  requestLog(event, "info", "nuxt.auth.login", { outcome: "success" });
+  return result;
 });

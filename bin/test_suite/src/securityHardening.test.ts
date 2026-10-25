@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -34,7 +35,7 @@ function load(path: string, deps: Row = {}, globals: Row = {}, extra = ""): Row 
       clearTimeout,
       console,
       process: { env: {} },
-      require: (id: string) => (id in deps ? deps[id] : id === "h3" ? h3 : frontend(id)),
+      require: (id: string) => (id in deps ? deps[id] : id === "h3" ? h3 : (loggingModule(id) ?? frontend(id))),
       ...globals,
     },
   );
@@ -281,6 +282,10 @@ test("CSP reports never log document URLs, blocked URLs, script samples or unbou
     {
       "../../utils/readRequestBody": { readRequestBody: async (event: Row) => event.body },
       "../../utils/rateLimit": { rateLimit: async () => true },
+      "../../utils/securityLogging": {
+        requestLog: (_event: unknown, level: string, code: string, details: unknown) =>
+          logs.push(JSON.stringify({ level, code, details })),
+      },
     },
     { Date: { now: () => now }, console: { info: (...args: unknown[]) => logs.push(JSON.stringify(args)) } },
   ).default;
@@ -295,7 +300,8 @@ test("CSP reports never log document URLs, blocked URLs, script samples or unbou
       },
     },
   });
-  assert.match(logs.join(), /script-src-elem/);
+  assert.match(logs.join(), /csp_blocked/);
+  assert.match(logs.join(), /"count":1/);
   assert.doesNotMatch(logs.join(), /private|secret|evil\.org/);
 });
 

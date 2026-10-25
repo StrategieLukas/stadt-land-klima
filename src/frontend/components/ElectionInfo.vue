@@ -168,6 +168,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../shared/securityLog";
+
 import type { NumericValue } from "~/shared/domain";
 
 import type { PropType } from "vue";
@@ -278,7 +280,7 @@ async function fetchPDF() {
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank");
   } catch (err) {
-    console.error("Error fetching PDF:", err);
+    clientFailure("app.components.ElectionInfo.fetchPDF.failed", err);
   }
 }
 </script>

@@ -30,6 +30,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../shared/securityLog";
+
 import OnboardingBox from "@/components/OnboardingBox.vue";
 import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
@@ -74,7 +76,7 @@ const { data: blocksData } = await useAsyncData(
       });
       return mapBlokkliBlocks(result.blocks || []);
     } catch (error) {
-      console.error("[blokkli] Failed to load page blocks:", error);
+      clientFailure("app.pages._slug_.failed", error);
       throw error;
     }
   },

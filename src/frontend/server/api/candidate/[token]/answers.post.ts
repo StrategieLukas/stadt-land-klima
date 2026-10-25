@@ -22,5 +22,5 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Invalid request body" });
   }
 
-  return saveCandidateAnswers(accessToken, parsed.data);
+  return saveCandidateAnswers(accessToken, parsed.data, event);
 });

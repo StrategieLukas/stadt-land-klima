@@ -470,6 +470,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic } from "../../shared/securityLog";
+
 import {
   parseBerlinDateTime,
   formatBerlinDate as formatDate,
@@ -574,8 +576,8 @@ onMounted(async () => {
   if (isAuthenticated.value) {
     try {
       adminNewsItems.value = await editor.list();
-    } catch (e) {
-      console.warn("[news] admin fetch failed", e);
+    } catch {
+      clientDiagnostic("app.pages.news.index.degraded", "warn");
     }
   }
 });

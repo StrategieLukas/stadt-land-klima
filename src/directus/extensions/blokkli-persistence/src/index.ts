@@ -1,3 +1,4 @@
+import { extensionLog } from "../../shared/securityLogger.ts";
 import { createHash } from "node:crypto";
 import type { Request, Response, Router } from "express";
 import type { Accountability, ApiExtensionContext, SchemaOverview, AbstractService } from "@directus/types";
@@ -191,7 +192,7 @@ function sendError(res: Response, error: unknown, logger: ExtensionContext["logg
     });
   }
 
-  logger.error("[blokkli-persistence] Request failed", error);
+  extensionLog(logger, "error", "app.blokkli-persistence.index.sendError.failed");
   return res.status(500).json({ error: "Blökkli content could not be persisted." });
 }
 
@@ -435,6 +436,13 @@ export default {
           accountability: req.accountability,
         });
 
+        extensionLog(logger, "info", "directus.editor.blocks_published", {
+          userId: req.accountability?.user,
+          resource: scope.entityType,
+          resourceId: scope.entityUuid,
+          count: blocks.length,
+          outcome: "success",
+        });
         return res.json(result);
       } catch (error) {
         return sendError(res, error, logger);

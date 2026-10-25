@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { setLogActor, requestLog } from "./securityLogging";
+import type { H3Event } from "h3";
 import { createItem, readItems, updateItem } from "@directus/sdk";
 import { createError } from "h3";
 import { getBerlinEndOfDay } from "../../shared/eventDateTime";
@@ -35,7 +38,8 @@ interface CandidateAnswerSchema {
   answers: Answer[];
 }
 
-export async function saveCandidateAnswers(accessToken: string, request: CandidateAnswersRequest) {
+export async function saveCandidateAnswers(accessToken: string, request: CandidateAnswersRequest, event?: H3Event) {
+  if (!z.uuid().safeParse(accessToken).success) throw createError({ statusCode: 404, statusMessage: "Not found" });
   const client = createTypedDirectusServerClient<CandidateAnswerSchema>();
   const [candidate] = await client.request(
     readItems("candidate", {
@@ -45,6 +49,7 @@ export async function saveCandidateAnswers(accessToken: string, request: Candida
     }),
   );
   if (!candidate?.election) throw createError({ statusCode: 404, statusMessage: "Not found" });
+  if (event) setLogActor(event, candidate.id, "candidate");
 
   const cutoffDate = candidate.election.response_cutoff_date;
   const cutoff = getBerlinEndOfDay(cutoffDate);
@@ -97,5 +102,12 @@ export async function saveCandidateAnswers(accessToken: string, request: Candida
       ...(!candidate.time_first_submitted ? { time_first_submitted: now } : {}),
     }),
   );
+  if (event)
+    requestLog(event, "info", "nuxt.candidate.answers_saved", {
+      resource: "candidate",
+      resourceId: candidate.id,
+      count: request.answers.length,
+      outcome: "success",
+    });
   return CandidateAnswersResponseSchema.parse({ success: true });
 }

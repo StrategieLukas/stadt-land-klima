@@ -1,3 +1,4 @@
+import { setLogActor } from "../../utils/securityLogging";
 import { CandidateReadSchema } from "~/shared/contracts/elections";
 import { parseCms } from "~/server/utils/parseCms";
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from "h3";
@@ -21,6 +22,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Not found" });
   }
 
+  setLogActor(event, data.candidate.id, "candidate");
   const electionId = data.candidate.election?.id;
   if (!electionId) {
     throw createError({ statusCode: 404, statusMessage: "Not found" });

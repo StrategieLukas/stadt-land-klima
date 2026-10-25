@@ -360,6 +360,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientDiagnostic, clientFailure } from "../../shared/securityLog";
+
 import type { PropType } from "vue";
 import type { Election, WahlcheckResult, ElectionCandidate, UserAnswers } from "~/types/components/elections";
 
@@ -534,7 +536,7 @@ async function generateDynamicSharepicBlob() {
       backgroundColor: isDark.value ? "#0a2731" : "#ffffff",
     });
   } catch (err) {
-    console.error("Error rendering Wahlcheck sharepic preview:", err);
+    clientFailure("app.components.Elections.WahlCheckShare.generateDynamicSharepicBlob.failed", err);
     return null;
   } finally {
     isGenerating.value = false;
@@ -551,7 +553,7 @@ async function getActiveSharepicFile() {
       const filename = `klimawahlcheck-${props.election?.descriptor?.toLowerCase().replace(/[^a-z0-9]/g, "-") || "ergebnis"}.png`;
       return new File([blob], filename, { type: blob.type || "image/png" });
     } catch (err) {
-      console.error("Error creating official sharepic file:", err);
+      clientFailure("app.components.Elections.WahlCheckShare.getActiveSharepicFile.failed", err);
       return null;
     }
   }
@@ -580,7 +582,7 @@ async function downloadActiveSharepic() {
 
     showToast($t("elections.wahlcheck.results.share.insta_hint"));
   } catch (err) {
-    console.error("Error downloading sharepic:", err);
+    clientFailure("app.components.Elections.WahlCheckShare.downloadActiveSharepic.failed", err);
   }
 }
 
@@ -604,7 +606,7 @@ async function shareToStory() {
       return;
     } catch (err) {
       if ((err instanceof Error ? err.name : undefined) !== "AbortError") {
-        console.warn("Native file share error, fallback to download:", err);
+        clientDiagnostic("app.components.Elections.WahlCheckShare.shareToStory.degraded", "warn");
       } else {
         return;
       }
@@ -680,7 +682,7 @@ async function shareViaWebShare() {
     }
   } catch (err) {
     if ((err instanceof Error ? err.name : undefined) !== "AbortError") {
-      console.error("Error sharing:", err);
+      clientFailure("app.components.Elections.WahlCheckShare.shareViaWebShare.failed", err);
     }
   }
 }

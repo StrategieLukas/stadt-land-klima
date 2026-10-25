@@ -188,6 +188,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../../../shared/securityLog";
+
 import { getWahlcheckAnswerOptions, usesSimpleWahlcheckAnswerMode } from "~/shared/wahlcheckAnswerOptions";
 import { formatBerlinDate, getBerlinEndOfDay } from "~/shared/eventDateTime";
 
@@ -325,7 +327,7 @@ async function submitAnswers() {
     submitted.value = true;
     window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (e) {
-    console.error("Error submitting answers:", e);
+    clientFailure("app.pages.elections.thesen.__access_token__.submitAnswers.failed", e);
     alert($t("elections.theses.submission_error"));
   } finally {
     submitting.value = false;

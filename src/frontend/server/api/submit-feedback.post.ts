@@ -1,3 +1,4 @@
+import { requestLog, requestFailure } from "../utils/securityLogging";
 import { abuseProtection } from "../utils/abuseProtection";
 import { FeedbackRequestSchema } from "~/shared/contracts/submissions";
 import { createDirectus, rest, staticToken, createItem } from "@directus/sdk";
@@ -77,7 +78,7 @@ export default defineEventHandler(async (event) => {
   const adminToken = config.directusAdminToken as string | undefined;
 
   if (!adminToken) {
-    console.error("[submit-feedback] DIRECTUS_ADMIN_TOKEN not configured");
+    requestLog(event, "error", "app.server.api.submit-feedback.post.failed");
     throw createError({
       statusCode: 503,
       message: "Feedback kann momentan nicht gespeichert werden. Bitte versuche es später erneut.",
@@ -98,12 +99,13 @@ export default defineEventHandler(async (event) => {
       }),
     );
   } catch (err) {
-    console.error("[submit-feedback] Directus error:", err);
+    requestFailure(event, "app.server.api.submit-feedback.post.failed", err);
     throw createError({
       statusCode: 502,
       message: "Feedback konnte nicht gespeichert werden. Bitte versuche es später erneut.",
     });
   }
 
+  requestLog(event, "info", "nuxt.feedback.created", { resource: "feedback", outcome: "success" });
   return { success: true };
 });

@@ -52,7 +52,7 @@ function fixture() {
   return { context, data, writes, logs };
 }
 const meta = { collection: "municipality_scores", keys: ["score"] };
-const event = { accountability: { user: "actor", admin: false } };
+const event = { accountability: { user: "11111111-1111-4111-8111-111111111111", admin: false } };
 
 test("unverified actors cannot change either state; errors explain anti-spam and contact", async () => {
   const f = fixture();
@@ -114,10 +114,10 @@ test("publication logs use event-context actor and separate flags without tokens
   const f = fixture();
   await logPublication({ ...meta, payload: { preview_enabled: true, source: "PRIVATE RESEARCH" } }, event, f.context);
   assert.equal(f.logs.length, 1);
-  assert.equal(f.logs[0]!.fields.actorId, "actor");
-  assert.equal(f.logs[0]!.fields.actorEmail, "actor@example.org");
-  assert.deepEqual(f.logs[0]!.fields.changes, { preview_enabled: true });
-  assert.doesNotMatch(JSON.stringify(f.logs), /PRIVATE RESEARCH|preview_token/);
+  assert.equal(f.logs[0]!.fields.userId, "11111111-1111-4111-8111-111111111111");
+  assert.equal(f.logs[0]!.fields.actorEmail, undefined);
+  assert.deepEqual(f.logs[0]!.fields.changedFields, ["preview_enabled"]);
+  assert.doesNotMatch(JSON.stringify(f.logs), /PRIVATE RESEARCH|preview_token|actor@example.org/);
 });
 
 test("missing preview tokens use cryptographic 64-character hex and existing tokens are preserved", async () => {

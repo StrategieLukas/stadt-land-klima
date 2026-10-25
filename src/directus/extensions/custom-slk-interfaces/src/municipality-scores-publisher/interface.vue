@@ -116,6 +116,8 @@
 </template>
 
 <script setup lang="ts">
+import { clientFailure } from "../../../../../frontend/shared/securityLog";
+
 import { computed, inject, onMounted, onUnmounted, ref, watch, type Ref } from "vue";
 
 defineOptions({ inheritAttrs: false });
@@ -227,7 +229,7 @@ async function loadScores(): Promise<void> {
     scores.value = response.data?.data ?? [];
     await loadPreviewUrl();
   } catch (err) {
-    console.error("[MunicipalityScoresPublisher] Failed to load scores:", err);
+    clientFailure("app.custom-slk-interfaces.municipality-scores-publisher.interface.loadScores.failed", err);
     errorKey.value = "directus.interfaces.municipality_scores_publisher.error_loading";
     scores.value = [];
   } finally {
@@ -348,7 +350,10 @@ async function loadCurrentUserVerification(): Promise<boolean> {
     const response = await api.get<CurrentUser>("/users/me?fields=id,verified");
     currentUserVerified.value = response.data?.data?.verified === true;
   } catch (err) {
-    console.error("[MunicipalityScoresPublisher] Failed to load current user verification state:", err);
+    clientFailure(
+      "app.custom-slk-interfaces.municipality-scores-publisher.interface.loadCurrentUserVerification.fa",
+      err,
+    );
     currentUserVerified.value = false;
   } finally {
     verificationLoading.value = false;

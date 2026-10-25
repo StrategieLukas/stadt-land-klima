@@ -1,3 +1,4 @@
+import { extensionLog } from "../../shared/securityLogger.ts";
 import { defineHook } from "@directus/extensions-sdk";
 import { resolveMissingMunicipalityData, resolveMunicipalityById } from "./resolver.js";
 
@@ -15,7 +16,7 @@ export default defineHook(({ action, schedule }, context) => {
       try {
         await resolveMunicipalityById(id, context);
       } catch {
-        context.logger.warn("[municipality-climate-region] Municipality lookup failed");
+        extensionLog(context.logger, "warn", "app.municipality-climate-region.hook.degraded");
       }
     }
   };
@@ -28,7 +29,7 @@ export default defineHook(({ action, schedule }, context) => {
     try {
       await resolveMissingMunicipalityData(context);
     } catch {
-      context.logger.error("[municipality-climate-region] Scheduled resolution failed");
+      extensionLog(context.logger, "error", "app.municipality-climate-region.hook.failed");
     }
   });
 });

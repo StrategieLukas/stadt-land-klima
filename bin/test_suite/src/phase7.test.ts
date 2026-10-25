@@ -1,3 +1,4 @@
+import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
@@ -290,6 +291,8 @@ test("the actual MapLibre component validates its constructed style before creat
       module,
       exports: module.exports,
       require: (id: string) => {
+        const logging = loggingModule(id);
+        if (logging && !(id in dependencies)) return logging;
         assert.ok(id in dependencies, "Unexpected import: " + id);
         return dependencies[id];
       },

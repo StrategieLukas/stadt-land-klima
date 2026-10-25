@@ -1,3 +1,4 @@
+import { extensionLog } from "../../../shared/securityLogger.ts";
 import { isEmpty } from "lodash-es";
 import { createError } from "@directus/errors";
 import type { Editor, OperationContext } from "../types";
@@ -35,18 +36,16 @@ export default {
     const editors = (await editorsService.readMany(keysToDelete, { limit: -1 })) as Editor[];
 
     if (isEmpty(editors)) {
-      context.logger.warn(`No editor records found for keys: ${keysToDelete.join(", ")}`);
+      extensionLog(context.logger, "warn", "app.editor-manager.delete-editor.api.degraded");
       return;
     }
-
-    context.logger.info(`Resolving Directus users for ${editors.length} editor(s)...`);
 
     // Resolve all user lookups in parallel for performance.
     const userLookups = await Promise.all(
       editors.map(async (editor) => {
         const user = await usersService.getUserByEmail(editor.email);
         if (!user) {
-          context.logger.warn(`No Directus user found for editor "${editor.id}" (${editor.email}). Skipping.`);
+          extensionLog(context.logger, "warn", "app.editor-manager.delete-editor.api.degraded");
         }
         return user?.id ?? null;
       }),
@@ -55,12 +54,10 @@ export default {
     const userIdsForDeletion = userLookups.filter((id): id is string => id !== null);
 
     if (isEmpty(userIdsForDeletion)) {
-      context.logger.warn("No matching Directus users found. Nothing to delete.");
+      extensionLog(context.logger, "warn", "app.editor-manager.delete-editor.api.degraded");
       return;
     }
 
-    context.logger.info(`Deleting ${userIdsForDeletion.length} user(s): ${userIdsForDeletion.join(", ")}`);
     await usersService.deleteMany(userIdsForDeletion);
-    context.logger.info("User deletion complete.");
   },
 };

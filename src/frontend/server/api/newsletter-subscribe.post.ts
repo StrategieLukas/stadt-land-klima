@@ -1,3 +1,4 @@
+import { requestLog, requestFailure } from "../utils/securityLogging";
 import { z } from "zod";
 import { NewsletterRequestSchema } from "~/shared/contracts/submissions";
 import { rateLimit } from "../utils/rateLimit";
@@ -72,7 +73,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (err: unknown) {
     if (err && typeof err === "object" && "statusCode" in err && err.statusCode === 400) throw err;
-    console.error("[newsletter-subscribe] Failed to fetch lists");
+    requestFailure(event, "app.server.api.newsletter-subscribe.post.failed", err);
     throw createError({ statusCode: 502, message: "Anmeldung fehlgeschlagen. Bitte versuche es später erneut." });
   }
 
@@ -92,11 +93,13 @@ export default defineEventHandler(async (event) => {
   } catch (err: unknown) {
     // ofetch exposes the HTTP status on FetchError.status.
     if (err && typeof err === "object" && "status" in err && err.status === 409) {
+      requestLog(event, "info", "nuxt.newsletter.subscription_unchanged", { outcome: "success" });
       return { success: true, alreadySubscribed: true };
     }
-    console.error("[newsletter-subscribe] Subscription failed");
+    requestFailure(event, "app.server.api.newsletter-subscribe.post.failed", err);
     throw createError({ statusCode: 502, message: "Anmeldung fehlgeschlagen. Bitte versuche es später erneut." });
   }
 
+  requestLog(event, "info", "nuxt.newsletter.subscription_requested", { count: listUuids.length, outcome: "success" });
   return { success: true, alreadySubscribed: false };
 });

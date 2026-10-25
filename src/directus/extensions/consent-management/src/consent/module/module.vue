@@ -85,6 +85,8 @@
 </template>
 
 <script lang="ts">
+import { clientFailure } from "../../../../../../frontend/shared/securityLog";
+
 import { ref, computed, onMounted } from "vue";
 import { useApi } from "@directus/extensions-sdk";
 import MarkdownIt from "markdown-it";
@@ -259,7 +261,7 @@ export default {
         // Load versions and status concurrently — they are independent queries.
         await Promise.all([loadAgreementVersions(), loadConsentStatus()]);
       } catch (error: unknown) {
-        console.error("[consent] Error loading consent data:", error);
+        clientFailure("app.consent-management.consent.module.module.failed", error);
         loadError.value = "Fehler beim Laden der Einverständniserklärungen.";
       } finally {
         loading.value = false;
