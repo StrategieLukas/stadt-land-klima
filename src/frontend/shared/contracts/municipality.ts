@@ -20,6 +20,7 @@ export const MunicipalitySchema = z.object({
   state: NullableTextSchema,
   population: NumericSchema.nullish().transform((v) => v ?? null),
   municipality_type: NullableTextSchema,
+  climate_region_type: NullableTextSchema,
   description: NullableTextSchema,
   image: z.string().nullable().optional(),
   image_credits: NullableTextSchema,

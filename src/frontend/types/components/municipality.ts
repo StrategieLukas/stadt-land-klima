@@ -10,6 +10,7 @@ export interface Municipality {
   state?: string | null | undefined;
   population?: NumericValue | undefined;
   municipality_type?: string | null | undefined;
+  climate_region_type?: string | null | undefined;
   description?: string | null | undefined;
   image?: string | null | undefined;
   image_credits?: string | null | undefined;

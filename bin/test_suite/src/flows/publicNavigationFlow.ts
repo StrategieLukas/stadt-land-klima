@@ -63,6 +63,8 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
   const context = await newContext(browser);
   try {
     await admin.updateUser(fixture.localteamAdmin.id, { verified: true });
+    const climateRegion = "Mittelgebirgsvorland";
+    await admin.updateItem("municipalities", fixture.municipality.id, { climate_region_type: climateRegion });
     const catalog = await create("measure_catalog", {
       name: slug,
       hidden: false,
@@ -329,6 +331,49 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         await page.waitForURL((url) => url.pathname === `/${slug}`);
       } finally {
         await mobile.close();
+      }
+    });
+
+    await runner.step("Municipality climate region: private-service DTO and desktop/mobile display", async () => {
+      const owned = await fixture.localteamMember.client.readItems<{ climate_region_type: string }>("municipalities", {
+        filter: { id: { _eq: fixture.municipality.id } },
+        fields: ["climate_region_type"],
+      });
+      assert(
+        owned[0]?.climate_region_type === climateRegion,
+        "Localteam members can read their municipality's derived metadata",
+      );
+      let denied = false;
+      try {
+        await fixture.localteamMember.client.updateItem("municipalities", fixture.municipality.id, {
+          climate_region_type: "Member override",
+        });
+      } catch (error) {
+        denied = error instanceof Error && /failed with 403:/.test(error.message);
+      }
+      assert(denied, "Localteam members must not overwrite the derived climate-region field");
+      const detail = await json(`/api/public/municipalities/${fixture.municipality.slug}?v=${slug}`);
+      assert(
+        detail.directusData.municipalityScore.municipality.climate_region_type === climateRegion,
+        "Checked municipality DTO must retain the climate region",
+      );
+      for (const width of [1440, 390]) {
+        const page = await context.newPage();
+        try {
+          await page.setViewportSize({ width, height: 1000 });
+          await page.goto(`${config.frontendUrl}/municipalities/${fixture.municipality.slug}?v=${slug}`, {
+            waitUntil: "domcontentloaded",
+          });
+          await waitForHydration(page);
+          const label = page.getByText(climateRegion, { exact: true }).filter({ visible: true });
+          await label.waitFor();
+          assert(
+            await label.evaluate((element) => element.scrollWidth <= element.clientWidth),
+            "Climate-region text must wrap inside the information card",
+          );
+        } finally {
+          await page.close();
+        }
       }
     });
 

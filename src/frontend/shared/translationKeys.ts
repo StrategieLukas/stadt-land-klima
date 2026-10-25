@@ -608,6 +608,7 @@ export const translationKeys = [
   "municipality.chart.treemap.description",
   "municipality.chart.treemap.legend.colors",
   "municipality.chart.treemap.legend.size",
+  "municipality.climate_region_type",
   "municipality.localteam_founded",
   "municipality.mayor",
   "municipality.municipality_info",

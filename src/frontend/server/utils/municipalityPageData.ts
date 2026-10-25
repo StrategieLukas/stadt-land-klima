@@ -29,6 +29,7 @@ const municipalityFields = [
   "state",
   "population",
   "municipality_type",
+  "climate_region_type",
   "description",
   "image",
   "image_credits",

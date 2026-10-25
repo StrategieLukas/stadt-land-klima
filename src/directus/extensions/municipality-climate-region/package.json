@@ -1,0 +1,69 @@
+{
+  "name": "municipality-climate-region",
+  "description": "Resolves municipality ARS and climate region types through Stadt-Land-Zahl services.",
+  "version": "1.0.0",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-extension-bundle"
+  ],
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "directus:extension": {
+    "type": "bundle",
+    "host": "^11.0.0",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.js"
+    },
+    "entries": [
+      {
+        "type": "hook",
+        "name": "hook-municipality-climate-region",
+        "source": "src/hook.ts"
+      },
+      {
+        "type": "operation",
+        "name": "operation-resolve-municipality-climate-regions",
+        "source": {
+          "app": "src/operation/app.ts",
+          "api": "src/operation/api.ts"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "validate": "directus-extension validate",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prebuild": "npm run typecheck"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "18.0.6",
+    "@directus/types": "^18.0.0",
+    "@types/node": "24.19.2",
+    "esbuild": "^0.28.2",
+    "knex": "3.1.0",
+    "typescript": "6.0.3"
+  },
+  "overrides": {
+    "esbuild": "^0.28.2",
+    "vite": "^8.3.4",
+    "svgo": "^4.1.0",
+    "browserslist": "^4.29.3",
+    "baseline-browser-mapping": "^2.11.29",
+    "immutable": "^5.1.9",
+    "decode-uri-component": "^0.5.0",
+    "postcss-selector-parser": "^7.1.6",
+    "zod": "4.6.7"
+  },
+  "dependencies": {
+    "@directus/errors": "3.0.0",
+    "zod": "4.6.7"
+  },
+  "private": true,
+  "license": "UNLICENSED"
+}

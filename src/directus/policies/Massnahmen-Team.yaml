@@ -91,6 +91,7 @@ permissions:
       - name
       - slug
       - municipality_type
+      - climate_region_type
       - localteam_id
       - scores
       - notice-kcc40f

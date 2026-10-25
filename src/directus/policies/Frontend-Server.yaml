@@ -528,6 +528,7 @@ permissions:
     fields:
       - slug
       - municipality_type
+      - climate_region_type
       - details
       - scores
       - mayor

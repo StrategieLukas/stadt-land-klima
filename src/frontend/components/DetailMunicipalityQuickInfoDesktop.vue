@@ -104,6 +104,16 @@
         </span>
       </div>
 
+      <div v-if="municipality.climate_region_type" class="flex items-start justify-between gap-4">
+        <div class="flex shrink-0 items-center gap-2">
+          <img src="~/assets/icons/icon_klimachecker.svg" alt="" class="h-5 w-5 opacity-60" />
+          <span class="text-sm text-gray-700">{{ $t("municipality.climate_region_type") }}</span>
+        </div>
+        <span class="min-w-0 text-right text-sm font-bold wrap-anywhere text-gray-900">
+          {{ municipality.climate_region_type }}
+        </span>
+      </div>
+
       <div v-if="municipality?.localteam_id?.date_created" class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
