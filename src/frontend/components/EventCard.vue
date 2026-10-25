@@ -1,10 +1,10 @@
 <template>
   <article :class="cardClasses">
     <NuxtLink :to="`/events/${event.slug}`" class="block">
-      <div v-if="event.image" class="bg-gray-100 relative h-40 overflow-hidden">
+      <div v-if="event.image" class="relative h-40 overflow-hidden bg-gray-100">
         <SmartImg
-          :assetId="event.image?.id || event.image"
-          :isRaster="event.image?.type ? isRaster(event.image.type) : true"
+          :asset-id="typeof event.image === 'string' ? event.image : event.image?.id"
+          :is-raster="typeof event.image === 'object' && event.image?.type ? isRaster(event.image.type) : true"
           :alt="event.title"
           :width="600"
           :height="160"
@@ -35,17 +35,17 @@
         <h3 :class="titleClasses">{{ event.title }}</h3>
         <div :class="metaClasses">
           <span class="flex items-center gap-1">
-            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 2 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"
               />
             </svg>
-            {{ formatEventDateTimeRange(event.start_date, event.end_date, $locale) }}
+            {{ formatEventDateTimeRange(event.start_date, event.end_date, $locale, event.date_only) }}
           </span>
           <span v-if="event.location" class="flex items-center gap-1">
-            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -59,9 +59,9 @@
       </div>
     </NuxtLink>
 
-    <div :class="actionWrapClasses">
+    <div v-if="event.event_category !== 'internal'" :class="actionWrapClasses">
       <a :href="calendarHref" :download="`${event.slug}.ics`" :class="calendarLinkClasses" @click.stop>
-        <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -81,24 +81,26 @@ import { formatEventDateTimeRange } from "~/shared/eventDateTime";
 import { isRaster } from "~/shared/utils";
 
 type EventImage = {
-  id?: string;
-  type?: string;
+  id?: string | undefined;
+  type?: string | null | undefined;
 };
 
 type EventListItem = {
-  end_date?: string | null;
-  event_type?: string | null;
-  image?: EventImage | string | null;
-  location?: string | null;
+  end_date?: string | null | undefined;
+  date_only?: boolean | undefined;
+  event_type?: string | null | undefined;
+  event_category?: string | null | undefined;
+  image?: EventImage | string | null | undefined;
+  location?: string | null | undefined;
   slug: string;
-  start_date?: string | null;
+  start_date?: string | null | undefined;
   title: string;
 };
 
 const props = withDefaults(
   defineProps<{
     event: EventListItem;
-    variant?: "current" | "future" | "past";
+    variant?: "current" | "future" | "past" | undefined;
   }>(),
   {
     variant: "future",
@@ -113,7 +115,7 @@ const { $locale, $t } = useNuxtApp() as unknown as {
 const calendarHref = computed(() => `/api/events/${encodeURIComponent(props.event.slug)}.ics`);
 
 const cardClasses = computed(() => {
-  const base = "bg-white rounded-lg shadow-sm border overflow-hidden transition-all";
+  const base = "bg-white rounded-lg shadow-xs border overflow-hidden transition-all";
 
   if (props.variant === "current") {
     return `${base} border-orange-200 hover:shadow-md hover:border-orange-400`;
@@ -158,7 +160,7 @@ const placeholderClasses = computed(() => {
   const base = "relative flex h-40 items-center justify-center";
 
   if (props.variant === "current") {
-    return `${base} bg-gradient-to-br from-orange-50 to-orange-100`;
+    return `${base} bg-linear-to-br from-orange-50 to-orange-100`;
   }
 
   return `${base} bg-gray-50`;
@@ -190,5 +192,4 @@ function eventTypeLabel(type?: string | null) {
   const translated = $t(`events.type.${type}`);
   return translated === `events.type.${type}` ? type : translated;
 }
-
 </script>

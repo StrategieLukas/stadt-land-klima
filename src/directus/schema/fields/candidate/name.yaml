@@ -3,7 +3,15 @@ field: name
 type: string
 meta:
   collection: candidate
-  conditions: null
+  conditions:
+    - hidden: true
+      name: Bei Parteiwahlchecks ausblenden
+      required: false
+      rule:
+        _and:
+          - election:
+              is_party_election:
+                _eq: true
   display: null
   display_options: null
   field: name

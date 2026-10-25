@@ -1,3 +1,3 @@
 export default {
-  external: ['vue'],
+  external: ["vue"],
 };

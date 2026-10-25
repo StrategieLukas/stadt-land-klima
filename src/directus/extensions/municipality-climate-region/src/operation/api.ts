@@ -1,19 +1,17 @@
-import type { Knex } from 'knex';
-import {
-  resolveMissingMunicipalityData,
-  type ResolverLogger,
-  type ResolutionSummary,
-} from '../resolver.js';
+import { defineOperationApi } from "@directus/extensions-sdk";
+import { createError } from "@directus/errors";
+import { resolveMissingMunicipalityData } from "../resolver.js";
 
-interface OperationRuntime {
-  database: Knex;
-  env: Record<string, unknown>;
-  logger: ResolverLogger;
-}
+const Forbidden = createError(
+  "FORBIDDEN",
+  "Only administrators can resolve climate regions for all municipalities.",
+  403,
+);
 
-export default {
-  id: 'operation-resolve-municipality-climate-regions',
-  handler: async (_options: Record<string, never>, runtime: OperationRuntime): Promise<ResolutionSummary> => {
-    return await resolveMissingMunicipalityData(runtime);
+export default defineOperationApi({
+  id: "operation-resolve-municipality-climate-regions",
+  handler: async (_options, context) => {
+    if (!context.accountability?.admin) throw new Forbidden();
+    return resolveMissingMunicipalityData(context);
   },
-};
+});

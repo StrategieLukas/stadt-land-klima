@@ -7,7 +7,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "~/*": ["../../src/frontend/*"],
+      "#blokkli/types": ["../../src/frontend/node_modules/@blokkli/editor/dist/runtime/types/index.d.ts"],
+      "#blokkli/editor/types/state": [
+        "../../src/frontend/node_modules/@blokkli/editor/dist/runtime/editor/types/state.d.ts"
+      ]
+    },
+    "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "../lib/*.ts", "../../docker/directus/security-patches/*.ts"]
 }

@@ -1,39 +1,32 @@
 <template>
   <div :id="'block-' + uuid" class="blokkli-block-newsletter-signup">
     <div :class="wrapperClass">
-      <div class="max-w-2xl mx-auto text-center">
+      <div class="mx-auto max-w-2xl text-center">
         <!-- Heading (editable) -->
         <div class="mb-6">
           <h2
             v-blokkli-editable:title
-            v-text="props.title"
-            class="font-heading text-2xl font-bold mb-2"
+            class="mb-2 font-heading text-2xl font-bold"
             :class="headingClass"
+            v-text="props.title"
           />
           <p
             v-if="props.description || isEditing"
             v-blokkli-editable:description
-            v-text="props.description"
             class="text-base"
             :class="subtextClass"
+            v-text="props.description"
           />
         </div>
 
         <!-- List selection checkboxes (only shown if multiple lists are available) -->
-        <div
-          v-if="filteredLists.length > 1"
-          class="mb-5 flex flex-wrap justify-center gap-x-6 gap-y-2"
-        >
-          <label
-            v-for="list in filteredLists"
-            :key="list.id"
-            class="flex items-center gap-2 cursor-pointer text-left"
-          >
+        <div v-if="filteredLists.length > 1" class="mb-5 flex flex-wrap justify-center gap-x-6 gap-y-2">
+          <label v-for="list in filteredLists" :key="list.id" class="flex cursor-pointer items-center gap-2 text-left">
             <input
+              v-model="selectedIds"
               type="checkbox"
               :value="list.id"
-              v-model="selectedIds"
-              class="rounded border-gray-300 text-green focus:ring-green"
+              class="rounded-sm border-gray-300 text-green focus:ring-green"
             />
             <span class="text-sm">{{ list.name }}</span>
           </label>
@@ -45,7 +38,7 @@
           class="flex items-center justify-center gap-2 text-sm font-medium"
           :class="successClass"
         >
-          <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path
               fill-rule="evenodd"
               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -56,24 +49,25 @@
         </div>
 
         <!-- Email input + button -->
-        <div v-else class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+        <form v-else class="mx-auto flex max-w-md flex-col gap-2 sm:flex-row" @submit.prevent="subscribe">
           <input
             v-model="email"
             type="email"
+            required
             autocomplete="email"
+            :aria-label="$t('newsletter.email.placeholder')"
             :placeholder="$t('newsletter.email.placeholder')"
-            class="flex-1 min-w-0 px-4 py-2.5 text-sm rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
-            @keydown.enter.prevent="subscribe"
+            class="min-w-0 flex-1 rounded-md border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
           />
           <CanonicalButton
+            type="submit"
             :label="subscribeState === 'subscribing' ? '...' : $t('newsletter.subscribe')"
             icon-slug="icon_newsletter_click"
             :color="newsletterButtonColor"
             :disabled="subscribeState === 'subscribing'"
-            class="flex-shrink-0 sm:w-auto w-full"
-            @click="subscribe"
+            class="w-full shrink-0 sm:w-auto"
           />
-        </div>
+        </form>
 
         <p v-if="subscribeError" class="mt-2 text-xs text-red-500">{{ subscribeError }}</p>
         <p class="mt-2 text-xs" :class="hintClass">{{ $t("newsletter.no_spam_hint") }}</p>
@@ -83,139 +77,150 @@
 </template>
 
 <script setup lang="ts">
+import type { NewsletterRequest } from "~/shared/contracts/submissions";
+import { requestErrorMessage } from "~/shared/requestError";
 interface NewsletterList {
-  id: number
-  name: string
-  description: string
+  id: number;
+  name: string;
+  description: string;
 }
 
 const props = defineProps<{
-  title: string
-  description?: string
-}>()
+  title: string;
+  description?: string | undefined;
+}>();
 
-const { $t } = useNuxtApp()
+const { $t } = useNuxtApp();
 
-const { options, isEditing, uuid } = defineBlokkli({
-  bundle: 'newsletter_signup',
+const isEditing = import.meta.blokkliEditing;
+
+const { options, uuid } = defineBlokkli({
+  bundle: "newsletter_signup",
+  propsFieldMapping: {
+    title: { name: "title", type: "editable" },
+    description: { name: "description", type: "editable" },
+  },
   options: {
     listIds: {
-      type: 'text',
-      label: 'Listen-IDs (kommagetrennt, leer = alle)',
-      default: '',
+      type: "text",
+      label: "Listen-IDs (kommagetrennt, leer = alle)",
+      default: "",
     },
     background: {
-      type: 'radios',
-      label: 'Hintergrund',
-      default: 'light',
+      type: "radios",
+      label: "Hintergrund",
+      default: "light",
       options: {
-        white: 'Weiß',
-        light: 'Hellblau',
-        green: 'Grün',
-        olive: 'Dunkelgrün',
+        white: "Weiß",
+        light: "Hellblau",
+        green: "Grün",
+        olive: "Dunkelgrün",
       },
     },
   },
   editor: {
-    addBehaviour: 'no-form',
-    editTitle: (el) => { return el.textContent?.trim() },
-    mockProps: () => { return { title: 'Newsletter abonnieren', description: 'Bleib auf dem Laufenden mit Neuigkeiten und Tipps zu kommunalem Klimaschutz.' } },
+    addBehaviour: "no-form",
+    editTitle: (el) => {
+      return el.textContent?.trim();
+    },
+    mockProps: () => {
+      return {
+        title: "Newsletter abonnieren",
+        description: "Bleib auf dem Laufenden mit Neuigkeiten und Tipps zu kommunalem Klimaschutz.",
+      };
+    },
   },
-})
+});
 
 // Fetch all public lists from the server once per page load
-const { data: listsData } = await useAsyncData('newsletter-lists', () =>
-  $fetch<{ lists: NewsletterList[] }>('/api/newsletter-lists').catch(() => ({ lists: [] })),
-)
+const { data: listsData } = await useAsyncData("newsletter-lists", () =>
+  $fetch("/api/newsletter-lists").catch(() => ({ lists: [] })),
+);
 
-const allLists = computed<NewsletterList[]>(() => listsData.value?.lists ?? [])
+const allLists = computed<NewsletterList[]>(() => listsData.value?.lists ?? []);
 
 // Parse configured list IDs from the editor option
 const configuredIds = computed<number[]>(() => {
-  const raw = (options.value as any)?.listIds ?? ''
-  if (!raw.trim()) return []
+  const raw = options.value.listIds ?? "";
+  if (!raw.trim()) return [];
   return raw
-    .split(',')
+    .split(",")
     .map((s: string) => parseInt(s.trim(), 10))
-    .filter((n: number) => Number.isInteger(n) && n > 0)
-})
+    .filter((n: number) => Number.isInteger(n) && n > 0);
+});
 
 const filteredLists = computed<NewsletterList[]>(() => {
-  if (configuredIds.value.length === 0) return allLists.value
-  return allLists.value.filter((l) => configuredIds.value.includes(l.id))
-})
+  if (configuredIds.value.length === 0) return allLists.value;
+  return allLists.value.filter((l) => configuredIds.value.includes(l.id));
+});
 
 // Pre-select all visible lists when the list changes
-const selectedIds = ref<number[]>([])
+const selectedIds = ref<number[]>([]);
 watch(
   filteredLists,
   (lists) => {
-    selectedIds.value = lists.map((l) => l.id)
+    selectedIds.value = lists.map((l) => l.id);
   },
   { immediate: true },
-)
+);
 
 // Form state
-const email = ref('')
-const subscribeState = ref<'idle' | 'subscribing' | 'success'>('idle')
-const alreadySubscribed = ref(false)
-const subscribeError = ref('')
+const email = ref("");
+const subscribeState = ref<"idle" | "subscribing" | "success">("idle");
+const alreadySubscribed = ref(false);
+const subscribeError = ref("");
 
 // Dynamic style classes based on background option
-const bg = computed(() => (options.value as any)?.background ?? 'light')
+const bg = computed(() => options.value.background ?? "light");
 
 const wrapperClass = computed(() => {
   const map: Record<string, string> = {
-    white: 'bg-white py-12 px-6',
-    light: 'bg-very-light-blue py-12 px-6',
-    green: 'bg-rating-4-very-light py-12 px-6',
-    olive: 'bg-olive-green text-white py-12 px-6',
-  }
-  return map[bg.value] ?? map.light
-})
+    white: "bg-white py-12 px-6",
+    light: "bg-very-light-blue py-12 px-6",
+    green: "bg-rating-4-very-light py-12 px-6",
+    olive: "bg-olive-green text-white py-12 px-6",
+  };
+  return map[bg.value] ?? map.light;
+});
 
-const headingClass = computed(() =>
-  bg.value === 'olive' ? 'text-white' : 'text-gray-900',
-)
+const headingClass = computed(() => (bg.value === "olive" ? "text-white" : "text-gray-900"));
 
-const subtextClass = computed(() =>
-  bg.value === 'olive' ? 'text-white' : 'text-gray-500',
-)
+const subtextClass = computed(() => (bg.value === "olive" ? "text-white" : "text-gray-500"));
 
-const successClass = computed(() =>
-  bg.value === 'olive' ? 'text-white' : 'text-green',
-)
+const successClass = computed(() => (bg.value === "olive" ? "text-white" : "text-green"));
 
-const hintClass = computed(() =>
-  bg.value === 'olive' ? 'text-white' : 'text-gray-400',
-)
+const hintClass = computed(() => (bg.value === "olive" ? "text-white" : "text-gray-400"));
 
 // olive bg → white button so it contrasts; all others → green
-const newsletterButtonColor = computed(() =>
-  bg.value === 'olive' ? 'dark-green' : 'green',
-)
+const newsletterButtonColor = computed(() => (bg.value === "olive" ? "dark-green" : "green"));
 
 async function subscribe() {
-  subscribeError.value = ''
+  if (subscribeState.value === "subscribing") return;
+  subscribeError.value = "";
   if (!email.value.trim()) {
-    subscribeError.value = $t('newsletter.email.required')
-    return
+    subscribeError.value = $t("newsletter.email.required");
+    return;
   }
   // Prevent form submission in editor mode
-  if (isEditing.value) return
+  if (isEditing) return;
 
-  const listIds = selectedIds.value.length > 0 ? selectedIds.value : undefined
-  subscribeState.value = 'subscribing'
+  if (filteredLists.value.length > 0 && selectedIds.value.length === 0) {
+    subscribeError.value = $t("newsletter.list.required");
+    return;
+  }
+
+  const listIds = selectedIds.value.length > 0 ? selectedIds.value : undefined;
+  subscribeState.value = "subscribing";
   try {
-    const result = await $fetch<{ success: boolean; alreadySubscribed: boolean }>(
-      '/api/newsletter-subscribe',
-      { method: 'POST', body: { email: email.value.trim(), listIds } },
-    )
-    alreadySubscribed.value = result.alreadySubscribed
-    subscribeState.value = 'success'
-  } catch (err: any) {
-    subscribeState.value = 'idle'
-    subscribeError.value = err?.data?.message ?? $t('newsletter.subscribe_failed')
+    const result = await $fetch("/api/newsletter-subscribe", {
+      method: "POST",
+      body: { email: email.value.trim(), listIds } satisfies NewsletterRequest,
+    });
+    alreadySubscribed.value = result.alreadySubscribed;
+    subscribeState.value = "success";
+  } catch (err) {
+    subscribeState.value = "idle";
+    subscribeError.value = requestErrorMessage(err, $t("newsletter.subscribe_failed"));
   }
 }
 </script>

@@ -77,11 +77,7 @@ export interface RolesServiceInstance {
 }
 
 export interface MailServiceInstance {
-  send: (options: {
-    to: string;
-    subject: string;
-    template: { name: string; data: MailTemplateData };
-  }) => Promise<void>;
+  send: (options: { to: string; subject: string; template: { name: string; data: MailTemplateData } }) => Promise<void>;
 }
 
 export interface ItemsServiceInstance {

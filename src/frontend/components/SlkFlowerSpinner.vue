@@ -74,11 +74,11 @@
   </svg>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineProps({
-  size: { type: Number, default: 24 },
-  color: { type: String, default: '#9ca3af' },
-})
+  size: { type: Number as PropType<number | undefined>, default: 24 },
+  color: { type: String as PropType<string | undefined>, default: "#9ca3af" },
+});
 </script>
 
 <style scoped>
@@ -93,7 +93,8 @@ defineProps({
 }
 
 @keyframes slk-petal-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.2;
   }
   50% {

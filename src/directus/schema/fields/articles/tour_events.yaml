@@ -1,0 +1,29 @@
+collection: articles
+field: tour_events
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{events_id.title}}'
+  field: tour_events
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: null
+  options:
+    enableCreate: false
+    template: '{{events_id.title}}'
+  readonly: true
+  required: false
+  searchable: true
+  sort: 35
+  special:
+  - m2m
+  translations:
+  - language: de-DE
+    translation: Veranstaltungen und Tourstopps
+  validation: null
+  validation_message: null
+  width: full

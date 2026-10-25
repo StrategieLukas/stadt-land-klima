@@ -1,0 +1,42 @@
+name: Deployed release acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployed target for public read-only acceptance
+        required: true
+        type: choice
+        options: [staging, production]
+        default: staging
+permissions:
+  contents: read
+jobs:
+  public-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+      - name: Install locked browser tooling
+        run: |
+          npm ci --prefix bin/test_suite --ignore-scripts
+          npm --prefix bin/test_suite exec -- playwright install --with-deps chromium
+      - name: Public routes, production CSP and styles
+        working-directory: bin/test_suite
+        env:
+          SLK_RELEASE_TARGET: ${{ inputs.target }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$SLK_RELEASE_TARGET" in
+            staging) slk_origin=https://staging.stadt-land-klima.de ;;
+            production) slk_origin=https://www.stadt-land-klima.de ;;
+            *) exit 64 ;;
+          esac
+          npm run test:public -- "$slk_origin"
+          npm run test:security:csp -- "$slk_origin"
+          npm run test:styles -- "$slk_origin"

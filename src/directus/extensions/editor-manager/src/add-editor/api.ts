@@ -9,22 +9,22 @@ import type { LocalTeam, DirectusUser, Role, MailTemplateData, OperationContext 
 const InvalidRoleError = createError(
   "INVALID_ROLE",
   "The user already exists but has a different role and cannot be added as an editor.",
-  409
+  409,
 );
-const RoleNotFoundError = createError(
-  "ROLE_NOT_FOUND",
-  `Required role was not found in the database.`,
-  500
+const RoleNotFoundError = createError("ROLE_NOT_FOUND", `Required role was not found in the database.`, 500);
+const LocalteamAccessError = createError(
+  "LOCALTEAM_ACCESS_DENIED",
+  "You can only invite members to one of your own localteams.",
+  403,
 );
 
 const ROLE_NAME = "LokalteamMitglied" as const;
 
 export default {
   id: "operation-add-editor",
-  handler: async (
-    { email, localteam_id }: { email: string; localteam_id: string },
-    context: OperationContext
-  ) => {
+  handler: async ({ email, localteam_id }: { email: string; localteam_id: string }, context: OperationContext) => {
+    const isAdmin = context.accountability.admin;
+
     // Elevate to admin so the operation can manage users regardless of the
     // triggering user's own permissions.
     context.accountability.admin = true;
@@ -54,7 +54,7 @@ export default {
         filter: { name: { _eq: ROLE_NAME } },
       }) as Promise<Role[]>,
       usersService.readOne(context.accountability.user as string, {
-        fields: ["id", "first_name", "last_name", "email"],
+        fields: ["id", "first_name", "last_name", "email", "localteams.localteam_id"],
       }) as Promise<DirectusUser>,
       localteamService.readOne(localteam_id, {
         fields: ["id", "municipality_name"],
@@ -71,9 +71,12 @@ export default {
     const localteam = localteamResult;
     const fullName = `${sender.first_name} ${sender.last_name}`;
 
-    context.logger.info(
-      `${fullName} invited ${email} to localteam "${localteam.municipality_name}".`
-    );
+    const canInviteToLocalteam = sender.localteams.some((membership) => membership.localteam_id === localteam_id);
+    if (!isAdmin && !canInviteToLocalteam) {
+      throw new LocalteamAccessError();
+    }
+
+    context.logger.info(`${fullName} invited ${email} to localteam "${localteam.municipality_name}".`);
 
     if (!isEmpty(existingUser)) {
       // User already exists — only allow if they already carry the expected role.
@@ -130,7 +133,7 @@ export default {
       } else {
         context.logger.warn(
           `Failed to send invitation email to ${email}. ` +
-          `This is expected in development where no mail server is configured.`
+            `This is expected in development where no mail server is configured.`,
         );
       }
     }

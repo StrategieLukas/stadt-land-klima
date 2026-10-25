@@ -1,0 +1,30 @@
+collection: event_series
+field: events
+type: alias
+meta:
+  collection: event_series
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{name}}'
+  field: events
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: Termine dieser Reihe
+  options:
+    enableCreate: true
+    enableSelect: true
+    template: '{{title}}'
+  readonly: false
+  required: false
+  searchable: true
+  sort: 11
+  special:
+  - o2m
+  translations:
+  - language: de-DE
+    translation: Veranstaltungen
+  validation: null
+  validation_message: null
+  width: full

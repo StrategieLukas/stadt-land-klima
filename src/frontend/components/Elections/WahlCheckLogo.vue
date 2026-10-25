@@ -14,6 +14,12 @@
     :alt="alt"
     :class="fallbackClass"
   />
+  <img
+    v-else-if="fallback === 'wahlcheck'"
+    src="~/assets/images/Klima-Wahlcheck-Logo.svg"
+    :alt="alt"
+    :class="fallbackClass"
+  />
 </template>
 
 <script setup lang="ts">
@@ -21,11 +27,11 @@ import { computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
-    logo?: string | { id?: string | null } | null;
-    fallback?: "full" | "flower" | "none";
-    alt?: string;
-    logoClass?: string;
-    fallbackClass?: string;
+    logo?: string | { id?: string | null | undefined } | null | undefined;
+    fallback?: "full" | "flower" | "wahlcheck" | "none" | undefined;
+    alt?: string | undefined;
+    logoClass?: string | undefined;
+    fallbackClass?: string | undefined;
   }>(),
   {
     logo: null,

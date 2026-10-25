@@ -1,0 +1,3 @@
+language: en-GB
+key: tour.approximate_map
+value: Markers show approximate town locations; the dotted line is not a driving route.

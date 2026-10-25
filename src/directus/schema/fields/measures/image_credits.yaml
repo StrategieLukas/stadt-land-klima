@@ -1,0 +1,30 @@
+collection: measures
+field: image_credits
+type: string
+meta:
+  collection: measures
+  conditions: null
+  display: null
+  display_options: null
+  field: image_credits
+  group: null
+  hidden: false
+  interface: input
+  note: null
+  options:
+    trim: true
+  readonly: false
+  required: false
+  sort: 13
+  special: null
+  translations:
+    - language: de-DE
+      translation: Bildunterschrift & Copyright
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: image_credits
+  table: measures
+  data_type: character varying
+  default_value: null

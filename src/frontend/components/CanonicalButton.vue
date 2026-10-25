@@ -2,18 +2,21 @@
   <component
     :is="href ? 'a' : 'button'"
     v-bind="linkAttrs"
-    class="canonical-button inline-flex items-stretch overflow-hidden whitespace-nowrap rounded-md text-sm font-bold no-underline shadow-sm ring-1 ring-inset ring-white transition-all hover:brightness-110"
-    :class="[bgClass, textClass]"
+    class="canonical-button inline-flex items-stretch overflow-hidden rounded-md text-sm font-bold whitespace-nowrap no-underline shadow-xs ring-1 ring-white/20 ring-inset"
+    :class="[textClass, { 'canonical-button--auto-text': !textColor || textColor === 'auto' }]"
+    :style="{ '--btn-color': colorHex }"
   >
     <!-- Local SVG icon -->
     <span
       v-if="currentIconSvg"
+      class="canonical-button__icon"
       :class="
         iconSize === 'lg'
-          ? 'flex w-12 flex-shrink-0 items-center justify-center self-stretch border-r-2 border-current [&>svg]:h-7 [&>svg]:w-7'
-          : 'flex w-9 flex-shrink-0 items-center justify-center self-stretch border-r-2 border-current [&>svg]:h-5 [&>svg]:w-5'
+          ? 'flex w-12 shrink-0 items-center justify-center self-stretch border-r-2 [&>svg]:h-7 [&>svg]:w-7'
+          : 'flex w-9 shrink-0 items-center justify-center self-stretch border-r-2 [&>svg]:h-5 [&>svg]:w-5'
       "
     >
+      <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
       <span
         :class="
           iconSize === 'lg'
@@ -22,20 +25,22 @@
         "
         v-html="currentIconSvg"
       />
+      <!-- eslint-enable vue/no-v-html -->
     </span>
     <!-- Iconify icon (e.g. mdi:arrow-right) -->
     <span
       v-else-if="iconifySlug"
+      class="canonical-button__icon"
       :class="
         iconSize === 'lg'
-          ? 'flex w-12 flex-shrink-0 items-center justify-center self-stretch border-r-2 border-current'
-          : 'flex w-9 flex-shrink-0 items-center justify-center self-stretch border-r-2 border-current'
+          ? 'flex w-12 shrink-0 items-center justify-center self-stretch border-r-2'
+          : 'flex w-9 shrink-0 items-center justify-center self-stretch border-r-2'
       "
     >
       <Icon :icon="iconifySlug" :class="iconSize === 'lg' ? 'h-7 w-7' : 'h-5 w-5'" />
     </span>
     <!-- Label -->
-    <span class="flex flex-1 items-center justify-center" :class="hasIcon ? 'py-2 pl-3 pr-4' : 'px-4 py-2'">{{
+    <span class="flex flex-1 items-center justify-center" :class="hasIcon ? 'py-2 pr-4 pl-3' : 'px-4 py-2'">{{
       label
     }}</span>
   </component>
@@ -48,31 +53,22 @@ import { computed, useAttrs } from "vue";
 defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
+  onClick?: ((event: MouseEvent) => void) | undefined;
+  disabled?: boolean | undefined;
+  type?: "button" | "submit" | "reset" | undefined;
   label: string;
-  href?: string;
-  iconSlug?: string;
-  color?: string;
-  textColor?: "auto" | "white" | "black";
-  iconSize?: "sm" | "lg";
-  external?: boolean;
+  href?: string | undefined;
+  title?: string | undefined;
+  iconSlug?: string | undefined;
+  color?: string | undefined;
+  textColor?: "auto" | "white" | "black" | undefined;
+  iconSize?: "sm" | "lg" | undefined;
+  external?: boolean | undefined;
 }>();
 
 const attrs = useAttrs();
 
-const svgFiles = import.meta.glob("@/assets/icons/*.svg", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
-
-function getRawSvg(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (value && typeof value === "object" && "default" in value) {
-    const defaultExport = (value as { default?: unknown }).default;
-    return typeof defaultExport === "string" ? defaultExport : "";
-  }
-  return "";
-}
+const svgFiles = import.meta.glob("@/assets/icons/*.svg", { query: "?raw", import: "default", eager: true });
 
 /**
  * Like Blokkli Button's prepareIcon, but also strips <circle class="cls-1">
@@ -101,7 +97,7 @@ function prepareIconForButton(raw: string): string {
 const iconMap: Record<string, string> = Object.fromEntries(
   Object.entries(svgFiles).map(([path, svg]) => {
     const name = path.split("/").pop()?.replace(".svg", "") ?? "";
-    return [name, prepareIconForButton(getRawSvg(svg))];
+    return [name, prepareIconForButton(svg as string)];
   }),
 );
 
@@ -117,28 +113,31 @@ const iconifySlug = computed(() => {
 
 const hasIcon = computed(() => !!(currentIconSvg.value || iconifySlug.value));
 
-const colorConfig: Record<string, { bg: string; autoText: string }> = {
-  green: { bg: "bg-ff-green", autoText: "text-white" },
-  "dark-green": { bg: "bg-green", autoText: "text-white" },
-  "bright-green": { bg: "bg-light-green", autoText: "text-black" },
-  blue: { bg: "bg-light-blue", autoText: "text-white" },
-  dark: { bg: "bg-stats-dark", autoText: "text-white" },
-  orange: { bg: "bg-orange", autoText: "text-white" },
-  red: { bg: "bg-red", autoText: "text-white" },
-  yellow: { bg: "bg-localzero-yellow", autoText: "text-gray" },
+const hexMap: Record<string, string> = {
+  green: "#1da64a",
+  "dark-green": "#339737",
+  "bright-green": "#AFCA0B",
+  blue: "#16bae7",
+  dark: "#006e94",
+  gray: "#505050",
+  orange: "#f39200",
+  red: "#e30613",
+  yellow: "#ffc80c",
 };
 
-const cfg = computed(() => colorConfig[props.color ?? "green"] ?? colorConfig["green"]);
-const bgClass = computed(() => cfg.value.bg);
+const colorHex = computed(() => hexMap[props.color ?? "green"] ?? "#1da64a");
 const textClass = computed(() => {
   const tc = props.textColor ?? "auto";
   if (tc === "white") return "text-white";
   if (tc === "black") return "text-black";
-  return cfg.value.autoText;
+  return props.color === "yellow" ? "text-gray" : "text-white";
 });
 
 const linkAttrs = computed(() => {
   const base: Record<string, unknown> = { ...attrs };
+  if (props.onClick) base.onClick = props.onClick;
+  if (props.title !== undefined) base.title = props.title;
+  if (props.disabled !== undefined) base.disabled = props.disabled;
   if (props.href) {
     base.href = props.href;
     if (props.external) {
@@ -146,8 +145,46 @@ const linkAttrs = computed(() => {
       base.rel = "noopener noreferrer";
     }
   } else {
-    if (!base.type) base.type = "button";
+    if (!base.type) base.type = props.type ?? "button";
   }
   return base;
 });
 </script>
+
+<style scoped>
+.canonical-button {
+  background-color: var(--btn-color);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 150ms ease;
+}
+
+.canonical-button__icon {
+  border-color: currentColor;
+}
+
+html[data-theme="staedteChallengeDark"] .canonical-button {
+  background-color: color-mix(in srgb, var(--btn-color) 55%, var(--slk-surface, #17212b));
+  box-shadow:
+    inset 0 0 0 1px var(--slk-border-strong),
+    0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="staedteChallengeDark"] .canonical-button--auto-text {
+  color: white;
+}
+
+html[data-theme="staedteChallengeDark"] .canonical-button__icon {
+  border-color: var(--slk-page, #101820);
+}
+
+.canonical-button:hover,
+.canonical-button:focus-visible {
+  outline-color: var(--btn-color);
+}
+
+.canonical-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+</style>

@@ -1,3 +1,3 @@
 language: de-DE
 key: projects.submit.error.url_invalid
-value: "Bitte gib für :field eine gültige URL ein."
+value: Bitte gib für :field eine gültige URL ein.

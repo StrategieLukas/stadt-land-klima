@@ -18,12 +18,7 @@
         <div class="form-field full">
           <label>Seiten-Slug *</label>
           <div class="slug-input-wrapper">
-            <input
-              v-model="buffer.page_slug"
-              type="text"
-              placeholder="municipalities"
-              @input="$emit('slug-input')"
-            />
+            <input v-model="buffer.page_slug" type="text" placeholder="municipalities" @input="$emit('slug-input')" />
             <div v-if="pageResults.length" class="slug-suggestions">
               <div
                 v-for="page in pageResults"
@@ -69,11 +64,11 @@
 </template>
 
 <script setup lang="ts">
-import type { Page } from '../types';
+import type { Page } from "../types";
 
 interface EditBuffer {
   label: string;
-  link_type: 'page' | 'external' | 'none';
+  link_type: "page" | "external" | "none";
   page_slug: string;
   external_url: string;
   open_new_tab: boolean;
@@ -88,10 +83,10 @@ defineProps<{
 }>();
 
 defineEmits<{
-  (e: 'slug-input'): void;
-  (e: 'select-page', page: Page): void;
-  (e: 'save'): void;
-  (e: 'cancel'): void;
+  (e: "slug-input"): void;
+  (e: "select-page", page: Page): void;
+  (e: "save"): void;
+  (e: "cancel"): void;
 }>();
 </script>
 

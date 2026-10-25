@@ -1,0 +1,29 @@
+collection: localteams
+field: elections
+type: alias
+meta:
+  collection: localteams
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{descriptor}}'
+  field: elections
+  group: null
+  hidden: true
+  interface: list-o2m
+  note: Reverse relation used to validate owned election IDs on question creation
+  options:
+    enableCreate: false
+    enableSelect: false
+    template: '{{descriptor}}'
+  readonly: true
+  required: false
+  searchable: false
+  sort: 100
+  special:
+    - o2m
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema: null

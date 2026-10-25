@@ -1,6 +1,9 @@
+import { abuseProtection } from "../utils/abuseProtection";
+import { directusErrorDetails, errorRecord, requestErrorData, requestErrorStatus } from "~/shared/requestError";
 import { randomBytes } from "node:crypto";
 import type { H3Event } from "h3";
 import {
+  ArticleSubmissionErrorSchema,
   ARTICLE_SUBMISSION_LIMITS,
   ARTICLE_SUBMISSION_MAX_IMAGE_BYTES,
   ARTICLE_SUBMISSION_MAX_MULTIPART_BYTES,
@@ -9,8 +12,11 @@ import {
   type ArticleSubmissionErrorData,
   type ArticleSubmissionTextField,
 } from "~/shared/articleSubmission";
-import { createSlug } from "~/shared/slugify.js";
+import { createSlug } from "~/shared/slugify";
 import { verifyAltcha } from "../utils/verifyAltcha";
+import { verifyMathChallenge } from "../utils/verifyMathChallenge";
+import { sendDirectusMailFlow } from "../utils/sendDirectusMailFlow";
+import { rateLimit } from "../utils/rateLimit";
 
 const ARTICLE_IMAGE_FOLDER_ID = "82d3f1c5-9a8d-4aeb-8335-ca9330a43b90";
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -54,7 +60,7 @@ type MultipartPart = {
   data: Buffer;
 };
 
-type EventWithWebBody = H3Event & {
+type EventWithWebBody = {
   req?: {
     arrayBuffer?: () => Promise<ArrayBuffer>;
   };
@@ -279,7 +285,9 @@ async function readRequestBuffer(event: H3Event) {
     event.node.req.on("data", (chunk: Buffer | string) => {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     });
-    event.node.req.on("end", () => resolve(Buffer.concat(chunks)));
+    event.node.req.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
     event.node.req.on("error", reject);
   });
 }
@@ -305,7 +313,7 @@ function parseContentDisposition(value: string) {
 
 async function readMultipartParts(event: H3Event) {
   const contentTypeHeader = event.node.req.headers["content-type"];
-  const contentType = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : (contentTypeHeader ?? "");
+  const contentType = contentTypeHeader ?? "";
   const boundary =
     /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType)?.[1] ??
     /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType)?.[2];
@@ -350,10 +358,11 @@ async function readMultipartParts(event: H3Event) {
     const { name, filename } = parseContentDisposition(disposition);
     if (!name) continue;
 
+    const contentType = headers.get("content-type");
     parts.push({
       name,
       ...(filename ? { filename } : {}),
-      ...(headers.get("content-type") ? { type: headers.get("content-type") } : {}),
+      ...(contentType ? { type: contentType } : {}),
       data,
     });
   }
@@ -373,10 +382,20 @@ async function submitArticle(event: H3Event) {
   }
 
   const config = useRuntimeConfig();
-  const hmacKey = (config.altchaSecret as string) || "dev-secret-change-in-production";
+  const { hmacKey, devMode } = abuseProtection();
   const altcha = getInternalTextField(parts, "altcha", 4096, true);
+  const mathChallengeToken = getInternalTextField(parts, "mathChallengeToken", 4096, true);
+  const mathChallengeAnswer = getInternalTextField(parts, "mathChallengeAnswer", 10, true);
 
-  if (!verifyAltcha(altcha, hmacKey)) {
+  if (!verifyMathChallenge(mathChallengeToken, mathChallengeAnswer, hmacKey, "article", devMode)) {
+    throw submissionError(
+      400,
+      "math_challenge_failed",
+      "Rechenprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.",
+    );
+  }
+
+  if (!(await verifyAltcha(altcha, hmacKey, { purpose: "article", devMode }))) {
     throw submissionError(
       400,
       "captcha_failed",
@@ -414,7 +433,7 @@ async function submitArticle(event: H3Event) {
   }
   validateImage(image);
 
-  const directusUrl = (config.directusServerUrl as string) || "http://directus:8055";
+  const directusUrl = config.directusServerUrl || "http://directus:8055";
   const adminToken = config.directusAdminToken as string | undefined;
   if (!adminToken) {
     console.error("[submit-article] DIRECTUS_ADMIN_TOKEN not configured");
@@ -424,8 +443,8 @@ async function submitArticle(event: H3Event) {
       "Einreichung kann momentan nicht gespeichert werden. Bitte versuche es später erneut.",
     );
   }
-  if (adminToken === config.public.directusToken) {
-    console.error("[submit-article] DIRECTUS_ADMIN_TOKEN must not be the public frontend token");
+  if (adminToken === (config.directusFrontendServerToken as string | undefined)) {
+    console.error("[submit-article] DIRECTUS_ADMIN_TOKEN must not be the frontend server token");
     throw submissionError(
       503,
       "service_unavailable",
@@ -443,7 +462,7 @@ async function submitArticle(event: H3Event) {
     imageForm.append("image_credits", imageCredits);
     imageForm.append(
       "file",
-      new Blob([image.data], { type: image.type }),
+      new Blob([Uint8Array.from(image.data)], { type: image.type ?? "" }),
       sanitizeFilename(image.filename ?? "erfolgsprojekt-bild"),
     );
 
@@ -479,68 +498,60 @@ async function submitArticle(event: H3Event) {
       body: articlePayload,
     });
 
-    const directusPublicUrl = (config.directusPublicUrl as string) || "https://stadt-land-klima.de/backend";
+    const directusPublicUrl = config.directusPublicUrl || "https://stadt-land-klima.de/backend";
     const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "articles", article.data.id);
     const notifyAdminFlowUrl = config.directusFlowNotifyAdmin as string | undefined;
-    const notificationEmail = (config.erfolgsprojekteNotificationEmail as string) || "presse@stadt-land-klima.de";
+    const notificationEmail = config.erfolgsprojekteNotificationEmail || "presse@stadt-land-klima.de";
     if (!notifyAdminFlowUrl) {
       console.warn(
         "[submit-article] DIRECTUS_FLOW_NOTIFY_ADMIN not configured - skipping Erfolgsprojekte notification",
       );
     } else {
-      await $fetch(notifyAdminFlowUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: {
-          to: notificationEmail,
-          subject: `Neues Erfolgsprojekt eingereicht: ${title}`,
-          body: [
-            "<p>Über das öffentliche Formular wurde ein neues Erfolgsprojekt eingereicht.</p>",
-            `<p><a href="${escapeHtml(directusItemUrl)}">Entwurf in Directus öffnen</a></p>`,
-            "<table>",
-            formatNotificationRows([
-              { label: "id", value: article.data.id },
-              { label: "status", value: article.data.status },
-              { label: "slug", value: articlePayload.slug },
-              { label: "title", value: articlePayload.title },
-              { label: "subtitle", value: subtitle },
-              { label: "author", value: articlePayload.author },
-              { label: "submitter_email", value: articlePayload.submitter_email },
-              { label: "municipality_name", value: articlePayload.municipality_name },
-              { label: "state", value: state },
-              { label: "sectors", value: articlePayload.sectors },
-              { label: "abstract", value: articlePayload.abstract },
-              { label: "article_text", value: articlePayload.article_text },
-              { label: "image", value: articlePayload.image },
-              { label: "image_credits", value: articlePayload.image_credits },
-              { label: "image_rights_confirmed", value: "ja" },
-              { label: "link", value: link },
-              { label: "instagram", value: instagram },
-              { label: "linkedin", value: linkedin },
-            ]),
-            "</table>",
-          ].join("\n"),
-        },
-      }).catch((err) => {
+      await sendDirectusMailFlow(notifyAdminFlowUrl, directusUrl, adminToken, {
+        to: notificationEmail,
+        subject: `Neues Erfolgsprojekt eingereicht: ${title}`,
+        body: [
+          "<p>Über das öffentliche Formular wurde ein neues Erfolgsprojekt eingereicht.</p>",
+          `<p><a href="${escapeHtml(directusItemUrl)}">Entwurf in Directus öffnen</a></p>`,
+          "<table>",
+          formatNotificationRows([
+            { label: "id", value: article.data.id },
+            { label: "status", value: article.data.status },
+            { label: "slug", value: articlePayload.slug },
+            { label: "title", value: articlePayload.title },
+            { label: "subtitle", value: subtitle },
+            { label: "author", value: articlePayload.author },
+            { label: "submitter_email", value: articlePayload.submitter_email },
+            { label: "municipality_name", value: articlePayload.municipality_name },
+            { label: "state", value: state },
+            { label: "sectors", value: articlePayload.sectors },
+            { label: "abstract", value: articlePayload.abstract },
+            { label: "article_text", value: articlePayload.article_text },
+            { label: "image", value: articlePayload.image },
+            { label: "image_credits", value: articlePayload.image_credits },
+            { label: "image_rights_confirmed", value: "ja" },
+            { label: "link", value: link },
+            { label: "instagram", value: instagram },
+            { label: "linkedin", value: linkedin },
+          ]),
+          "</table>",
+        ].join("\n"),
+      }).catch((err: unknown) => {
         console.warn("[submit-article] Erfolgsprojekte notification email failed (non-fatal):", err);
       });
     }
 
     return { success: true, id: article.data.id, status: article.data.status };
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (imageId) {
-      await $fetch(`${directusUrl}/files/${imageId}`, { method: "DELETE", headers }).catch((cleanupErr) => {
+      await $fetch(`${directusUrl}/files/${imageId}`, { method: "DELETE", headers }).catch((cleanupErr: unknown) => {
         console.warn("[submit-article] Failed to clean up uploaded image after article error:", cleanupErr);
       });
     }
-    const directusError = err?.data?.errors?.[0];
-    const directusCode = directusError?.extensions?.code;
-    const directusStatus = err?.statusCode ?? err?.response?.status;
-    console.error("[submit-article] Directus error:", {
-      status: directusStatus,
-      code: directusCode,
-      message: directusError?.message ?? err?.message,
-    });
+    const directusError = directusErrorDetails(err)[0];
+    const directusCode = directusError?.code;
+    const directusStatus = requestErrorStatus(err);
+    console.error("[submit-article] Directus error:", { status: directusStatus, code: directusCode });
     if (directusStatus === 401 || directusStatus === 403 || directusCode === "FORBIDDEN") {
       console.error("[submit-article] DIRECTUS_ADMIN_TOKEN lacks permission to create articles or files");
       throw submissionError(
@@ -558,14 +569,21 @@ async function submitArticle(event: H3Event) {
 }
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, "article"))) {
+    throw createError({ statusCode: 429, message: "Zu viele Anfragen. Bitte versuche es später erneut." });
+  }
   try {
     return await submitArticle(event);
-  } catch (err: any) {
-    const errorData = err?.data as ArticleSubmissionErrorData | undefined;
-    if (errorData?.errorCode) {
-      const statusCode = Number(err.statusCode) || 500;
+  } catch (err: unknown) {
+    const parsedError = ArticleSubmissionErrorSchema.safeParse(requestErrorData(err));
+    if (parsedError.success) {
+      const errorData = parsedError.data;
+      const statusCode = requestErrorStatus(err) || 500;
       event.node.res.statusCode = statusCode;
-      event.node.res.statusMessage = err.statusMessage || submissionStatusMessage(statusCode);
+      const statusMessage = errorRecord(err).statusMessage;
+      event.node.res.statusMessage =
+        typeof statusMessage === "string" ? statusMessage : submissionStatusMessage(statusCode);
       return {
         success: false,
         error: errorData,

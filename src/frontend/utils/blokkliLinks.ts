@@ -22,5 +22,16 @@ export function resolveBlokkliInternalLink(link: unknown): string {
   if (!normalized) return "#";
   if (normalized.startsWith("#") || normalized.startsWith("?")) return normalized;
 
+  // Existing published blocks also store complete URLs as internal-link values.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(normalized)) {
+    try {
+      const url = new URL(normalized);
+      if (["http:", "https:"].includes(url.protocol) && !url.username && !url.password) return normalized;
+    } catch {
+      // Invalid and executable schemes must never become navigation targets.
+    }
+    return "#";
+  }
+
   return `/${normalized.replace(/^\/+/, "")}`;
 }

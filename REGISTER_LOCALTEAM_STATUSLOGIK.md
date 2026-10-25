@@ -63,12 +63,12 @@ ein Fehler ausgelöst, statt stillschweigend eine beliebige Version zu verwenden
 
 Der Formularstatus wird anschließend nach folgender Reihenfolge bestimmt:
 
-| Voraussetzung | Status | Darstellung und Aktion |
-|---|---|---|
-| Kein `localteam_id` vorhanden | `none` | Gründungsformular beziehungsweise „Jetzt Lokalteam gründen“ |
-| Lokalteam vorhanden und Bewertung der aktuellen Version veröffentlicht | `complete` | „Bewertung abgeschlossen“, Bewertungslink soweit ein Slug vorhanden ist, zusätzlich Kontaktmöglichkeit |
-| Lokalteam vorhanden, aktuelle Bewertung unveröffentlicht und Fortschritt größer als 0 Prozent | `in-progress` | „Lokalteam aktiv – Bewertung läuft“ und Kontaktmöglichkeit |
-| Lokalteam vorhanden, aktuelle Bewertung fehlt oder steht bei 0 Prozent | `not-started` | „Lokalteam aktiv – Bewertung noch nicht begonnen“ und Kontaktmöglichkeit |
+| Voraussetzung                                                                                 | Status        | Darstellung und Aktion                                                                                 |
+| --------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------ |
+| Kein `localteam_id` vorhanden                                                                 | `none`        | Gründungsformular beziehungsweise „Jetzt Lokalteam gründen“                                            |
+| Lokalteam vorhanden und Bewertung der aktuellen Version veröffentlicht                        | `complete`    | „Bewertung abgeschlossen“, Bewertungslink soweit ein Slug vorhanden ist, zusätzlich Kontaktmöglichkeit |
+| Lokalteam vorhanden, aktuelle Bewertung unveröffentlicht und Fortschritt größer als 0 Prozent | `in-progress` | „Lokalteam aktiv – Bewertung läuft“ und Kontaktmöglichkeit                                             |
+| Lokalteam vorhanden, aktuelle Bewertung fehlt oder steht bei 0 Prozent                        | `not-started` | „Lokalteam aktiv – Bewertung noch nicht begonnen“ und Kontaktmöglichkeit                               |
 
 `published: true` hat Vorrang vor dem Prozentwert. Damit gilt auch eine
 veröffentlichte Bewertung mit einem ungewöhnlich niedrigen Prozentwert als
@@ -80,18 +80,18 @@ Zustände.
 
 ## Verhalten vorher und jetzt
 
-| Fall | Vorher | Jetzt |
-|---|---|---|
-| Suche nach „Bayern“ | Bundesland und Regierungsbezirke konnten erscheinen | Keine nicht bewertbaren höheren Ebenen |
-| Bewertbarer Stadtstaat | Konnte wegen seiner Verwaltungsebene uneindeutig sein | Bleibt enthalten, wenn `isReasonableForMunicipalRating: true` gesetzt ist |
-| Kommune ohne Lokalteam | Externer oder übergebener Slug konnte ein Team vortäuschen | Gründungsformular wird angezeigt, solange Directus keinen `localteam_id` bestätigt |
-| Lokalteam ohne Slug | Konnte als nicht vorhanden gelten | Wird über `localteam_id` erkannt; nur der Bewertungslink entfällt |
-| Lokalteam ohne Bewertung der aktuellen Version | Beliebige andere Version konnte den Status beeinflussen | „Bewertung noch nicht begonnen“ |
-| Aktuelle Bewertung bei 0 Prozent, unveröffentlicht | „Bewertung läuft“ | „Bewertung noch nicht begonnen“ |
-| Aktuelle Bewertung über 0 Prozent, unveröffentlicht | In Arbeit; ab 98 Prozent teilweise abgeschlossen | Immer „Bewertung läuft“ |
-| Aktuelle Bewertung veröffentlicht | Unter 98 Prozent teilweise noch in Arbeit | Immer „Bewertung abgeschlossen“ |
-| Nur eine ältere Version ist veröffentlicht | Konnte als abgeschlossen erscheinen | Aktuelle Backend-Version bestimmt den Status |
-| Veralteter oder manipulierter URL-Slug | Konnte ein bestehendes Team vortäuschen | Wird nicht als Identitätsnachweis verwendet |
+| Fall                                                | Vorher                                                     | Jetzt                                                                              |
+| --------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Suche nach „Bayern“                                 | Bundesland und Regierungsbezirke konnten erscheinen        | Keine nicht bewertbaren höheren Ebenen                                             |
+| Bewertbarer Stadtstaat                              | Konnte wegen seiner Verwaltungsebene uneindeutig sein      | Bleibt enthalten, wenn `isReasonableForMunicipalRating: true` gesetzt ist          |
+| Kommune ohne Lokalteam                              | Externer oder übergebener Slug konnte ein Team vortäuschen | Gründungsformular wird angezeigt, solange Directus keinen `localteam_id` bestätigt |
+| Lokalteam ohne Slug                                 | Konnte als nicht vorhanden gelten                          | Wird über `localteam_id` erkannt; nur der Bewertungslink entfällt                  |
+| Lokalteam ohne Bewertung der aktuellen Version      | Beliebige andere Version konnte den Status beeinflussen    | „Bewertung noch nicht begonnen“                                                    |
+| Aktuelle Bewertung bei 0 Prozent, unveröffentlicht  | „Bewertung läuft“                                          | „Bewertung noch nicht begonnen“                                                    |
+| Aktuelle Bewertung über 0 Prozent, unveröffentlicht | In Arbeit; ab 98 Prozent teilweise abgeschlossen           | Immer „Bewertung läuft“                                                            |
+| Aktuelle Bewertung veröffentlicht                   | Unter 98 Prozent teilweise noch in Arbeit                  | Immer „Bewertung abgeschlossen“                                                    |
+| Nur eine ältere Version ist veröffentlicht          | Konnte als abgeschlossen erscheinen                        | Aktuelle Backend-Version bestimmt den Status                                       |
+| Veralteter oder manipulierter URL-Slug              | Konnte ein bestehendes Team vortäuschen                    | Wird nicht als Identitätsnachweis verwendet                                        |
 
 ## Kommunenauswahl
 

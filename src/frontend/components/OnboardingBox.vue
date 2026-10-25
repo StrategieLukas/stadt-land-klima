@@ -1,82 +1,68 @@
 <template>
-  <div class="card max-w-md overflow-hidden rounded-none border-2 border-green bg-white p-4 shadow-xl">
-    <!-- Title -->
-    <h2 class="mb-0 mt-0 text-center text-2xl font-bold text-green">
-      {{ $t("onboarding.title") }}
-    </h2>
-
-    <!-- Avatar + Text row -->
-    <div class="my-4 flex items-center gap-4 sm:gap-6">
-      <!-- Avatar -->
-      <div class="avatar">
-        <div class="h-24 w-24 flex-shrink-0 rounded-full">
-          <img v-if="avatarSrc" :src="avatarSrc" :alt="name" class="mt-0 h-full w-full rounded-full object-cover" />
-        </div>
-      </div>
-
-      <!-- Text -->
-      <p class="text-base leading-snug">
-        {{ $t("onboarding.book_appointment.long") }}
-      </p>
-    </div>
-
-    <!-- Book Button -->
-    <div class="flex justify-center">
-      <button @click="openCal" class="flex items-center gap-2 text-green hover:underline">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-          <line x1="16" y1="2" x2="16" y2="6" />
-          <line x1="8" y1="2" x2="8" y2="6" />
-          <line x1="3" y1="10" x2="21" y2="10" />
+  <div class="flex h-36 flex-col border-2 bg-white p-4 shadow-xl" style="border-color: #339737">
+    <div class="flex min-h-0 flex-1 items-center gap-3">
+      <img v-if="avatarSrc" :src="avatarSrc" :alt="name" class="h-12 w-12 shrink-0 rounded-full object-cover" />
+      <div
+        v-else
+        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
+        style="background-color: #339737"
+      >
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
         </svg>
-        <span class="text-lg font-semibold">
-          {{ $t("onboarding.book_appointment.short") }}
-        </span>
-      </button>
+      </div>
+      <div class="min-w-0">
+        <h2 class="font-heading text-base leading-tight font-bold" style="color: #339737">
+          {{ $t("onboarding.title") }}
+        </h2>
+        <p class="mt-0.5 line-clamp-2 text-xs text-gray-500">{{ $t("onboarding.book_appointment.long") }}</p>
+      </div>
     </div>
+    <button
+      class="mt-2 inline-block w-full rounded-md px-3 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+      style="background-color: #339737"
+      @click="openCal"
+    >
+      {{ $t("onboarding.book_appointment.short") }} →
+    </button>
   </div>
   <!-- Teleport overlay -->
   <teleport to="body">
     <transition name="fade">
       <div
         v-if="showCal"
-        class="slk-modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+        class="fixed inset-0 z-9999 flex items-center justify-center bg-black/60"
         @click.self="closeCal"
       >
         <!-- Now sized to viewport -->
-        <div id="my-cal-inline-onboarding" class="h-[90vh] w-[90vw]"></div>
+        <div class="h-[90vh] w-[90vw]"><CalBookingFrame /></div>
 
-        <button @click="closeCal" class="absolute right-3 top-3 text-2xl text-white" aria-label="Close">✕</button>
+        <button class="absolute top-3 right-3 text-2xl text-white" :aria-label="$t('generic.close')" @click="closeCal">
+          ✕
+        </button>
       </div>
     </transition>
   </teleport>
 </template>
 
-<script setup>
-import { ref, nextTick, watch } from "vue";
+<script setup lang="ts">
+import { ref, watch } from "vue";
 const { $t } = useNuxtApp();
 
 defineProps({
-  avatarSrc: { type: String, default: "" },
-  name: { type: String },
+  avatarSrc: { type: String as PropType<string | undefined>, default: "" },
+  name: { type: String as PropType<string | undefined> },
 });
 
 const showCal = ref(false);
+const _renderedOnce = false;
 
-async function openCal() {
+function openCal() {
   showCal.value = true;
-  await nextTick();
-
-  const container = document.getElementById("my-cal-inline-onboarding");
-  if (container) container.innerHTML = ""; // clear old iframe
-
-  if (window?.Cal?.ns?.onboarding) {
-    window.Cal.ns.onboarding("inline", {
-      elementOrSelector: "#my-cal-inline-onboarding",
-      config: { layout: "month_view" },
-      calLink: "stadt-land-klima/onboarding",
-    });
-  }
 }
 
 function closeCal() {

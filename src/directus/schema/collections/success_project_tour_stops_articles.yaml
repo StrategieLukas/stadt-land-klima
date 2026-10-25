@@ -1,0 +1,30 @@
+collection: success_project_tour_stops_articles
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: success_project_tour_stops_articles
+  color: null
+  display_template: null
+  group: success_projects
+  hidden: true
+  icon: link
+  item_duplication_fields: null
+  note: null
+  preview_url: null
+  singleton: false
+  sort: 5
+  sort_field: null
+  translations:
+  - language: de-DE
+    translation: Projekte zum Tourstopp
+  - language: en-GB
+    translation: Tour stop projects
+  - language: it-IT
+    translation: Progetti della tappa
+  unarchive_value: null
+  versioning: false
+schema:
+  name: success_project_tour_stops_articles

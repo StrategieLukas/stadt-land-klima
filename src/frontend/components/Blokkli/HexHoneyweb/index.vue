@@ -1,9 +1,5 @@
 <template>
-  <div
-    ref="fieldEl"
-    class="blokkli-block-hex-honeyweb overflow-x-auto"
-    :id="'block-' + uuid"
-  >
+  <div :id="'block-' + uuid" ref="fieldEl" class="blokkli-block-hex-honeyweb overflow-x-auto">
     <BlokkliField
       name="hexagons"
       :list="props.hexagons || []"
@@ -14,32 +10,39 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldListItem } from '#blokkli/types'
+import type { FieldListItem } from "#blokkli/types";
 
-const { options, isEditing, uuid } = defineBlokkli({
-  bundle: 'hex_grid',
+const isEditing = import.meta.blokkliEditing;
+
+const { options, uuid } = defineBlokkli({
+  bundle: "hex_grid",
+  propsFieldMapping: {
+    hexagons: { name: "hexagons", type: "field" },
+  },
   options: {
     size: {
-      type: 'radios',
-      label: 'Größe',
-      default: 'medium',
+      type: "radios",
+      label: "Größe",
+      default: "medium",
       options: {
-        small: 'Klein',
-        medium: 'Mittel',
-        large: 'Groß',
+        small: "Klein",
+        medium: "Mittel",
+        large: "Groß",
       },
     },
   },
   editor: {
-    addBehaviour: 'no-form',
-    editTitle: () => 'Honeyweb',
-    mockProps: () => { return { hexagons: [] } },
+    addBehaviour: "no-form",
+    editTitle: () => "Honeyweb",
+    mockProps: () => {
+      return { hexagons: [] };
+    },
   },
-})
+});
 
 const props = defineProps<{
-  hexagons?: FieldListItem[]
-}>()
+  hexagons?: FieldListItem[] | undefined;
+}>();
 
 /**
  * Flat-top hexagon math:
@@ -51,14 +54,14 @@ const props = defineProps<{
  * hexagons are ordered COLUMN-MAJOR (3 rows per column, up to 5 columns = 15 hexagons).
  */
 const hexR = computed(() => {
-  const map: Record<string, number> = { small: 55, medium: 75, large: 95 }
-  return map[options.value.size] ?? 75
-})
-const hexW = computed(() => hexR.value * 2)
-const hexH = computed(() => hexR.value * Math.sqrt(3))
-const colStep = computed(() => hexR.value * 1.5)
+  const map: Record<string, number> = { small: 55, medium: 75, large: 95 };
+  return map[options.value.size] ?? 75;
+});
+const hexW = computed(() => hexR.value * 2);
+const hexH = computed(() => hexR.value * Math.sqrt(3));
+const colStep = computed(() => hexR.value * 1.5);
 
-const fieldEl = ref<HTMLElement | null>(null)
+const fieldEl = ref<HTMLElement | null>(null);
 
 /**
  * Apply inline styles to every direct child of the honeycomb container.
@@ -69,23 +72,23 @@ function applyLayout() {
   // fieldEl is the outer wrapper div. BlokkliField is a multi-root fragment,
   // so its $el would be a comment node — instead we use firstElementChild
   // of the wrapper to get the actual rendered container div.
-  const wrapper = fieldEl.value
-  if (!wrapper) return
-  const container = wrapper.firstElementChild as HTMLElement | null
-  if (!container) return
-  const children = Array.from(container.children) as HTMLElement[]
+  const wrapper = fieldEl.value;
+  if (!wrapper) return;
+  const container = wrapper.firstElementChild as HTMLElement | null;
+  if (!container) return;
+  const children = Array.from(container.children) as HTMLElement[];
 
   if (isEditing) {
     // Editor: just give every child a fixed size so the clip-path hex renders
     // correctly inside the flex-wrap. Positioning is handled by flex.
     children.forEach((child) => {
-      child.style.width = `${hexW.value}px`
-      child.style.height = `${hexH.value}px`
-      child.style.position = ''
-      child.style.left = ''
-      child.style.top = ''
-    })
-    return
+      child.style.width = `${hexW.value}px`;
+      child.style.height = `${hexH.value}px`;
+      child.style.position = "";
+      child.style.left = "";
+      child.style.top = "";
+    });
+    return;
   }
 
   // GAP: uniform visual gap between all hex neighbours (px).
@@ -93,71 +96,71 @@ function applyLayout() {
   // same perpendicular clearance on every side we need:
   //   vertical row step increase  : gv = GAP
   //   horizontal col step increase: gc = GAP × (√3 / 2)
-  const GAP = 16
-  const BORDER_EXT = 4  // ::before extends 4 px outside; offset positions by this
-  const SHADOW_PAD = 28 // extra space on all sides so drop-shadow isn't clipped
-  const gv = GAP
-  const gc = GAP * Math.sqrt(3) / 2
-  const rowStep = hexH.value + gv
-  const colStepFull = colStep.value + gc
+  const GAP = 16;
+  const BORDER_EXT = 4; // ::before extends 4 px outside; offset positions by this
+  const SHADOW_PAD = 28; // extra space on all sides so drop-shadow-sm isn't clipped
+  const gv = GAP;
+  const gc = (GAP * Math.sqrt(3)) / 2;
+  const rowStep = hexH.value + gv;
+  const colStepFull = colStep.value + gc;
 
-  const n = children.length
-  if (n === 0) return
+  const n = children.length;
+  if (n === 0) return;
 
   // Find the row count that produces the most square-ish bounding box.
   // Iterate over every possible maxRows (1..n), compute W and H for each, pick
   // the one whose aspect ratio is closest to 1:1.
-  let bestMaxRows = 1
-  let bestRatio = Infinity
+  let bestMaxRows = 1;
+  let bestRatio = Infinity;
   for (let rows = 1; rows <= n; rows++) {
-    const cols = Math.ceil(n / rows)
-    const W = (cols - 1) * colStepFull + hexW.value + 2 * BORDER_EXT
+    const cols = Math.ceil(n / rows);
+    const W = (cols - 1) * colStepFull + hexW.value + 2 * BORDER_EXT;
     // Measure the actual bottom-most pixel reached by any item.
-    let maxBottom = 0
+    let maxBottom = 0;
     for (let i = 0; i < n; i++) {
-      const c = Math.floor(i / rows)
-      const r = i % rows
-      const bottom = r * rowStep + (c % 2 === 1 ? rowStep / 2 : 0) + hexH.value
-      if (bottom > maxBottom) maxBottom = bottom
+      const c = Math.floor(i / rows);
+      const r = i % rows;
+      const bottom = r * rowStep + (c % 2 === 1 ? rowStep / 2 : 0) + hexH.value;
+      if (bottom > maxBottom) maxBottom = bottom;
     }
-    const H = maxBottom + 2 * BORDER_EXT
-    const ratio = Math.max(W / H, H / W)
+    const H = maxBottom + 2 * BORDER_EXT;
+    const ratio = Math.max(W / H, H / W);
     if (ratio < bestRatio) {
-      bestRatio = ratio
-      bestMaxRows = rows
+      bestRatio = ratio;
+      bestMaxRows = rows;
     }
   }
 
-  const totalCols = Math.ceil(n / bestMaxRows)
+  const totalCols = Math.ceil(n / bestMaxRows);
   // Recompute actual container height for the chosen layout.
-  let maxBottom = 0
+  let maxBottom = 0;
   for (let i = 0; i < n; i++) {
-    const c = Math.floor(i / bestMaxRows)
-    const r = i % bestMaxRows
-    const bottom = r * rowStep + (c % 2 === 1 ? rowStep / 2 : 0) + hexH.value
-    if (bottom > maxBottom) maxBottom = bottom
+    const c = Math.floor(i / bestMaxRows);
+    const r = i % bestMaxRows;
+    const bottom = r * rowStep + (c % 2 === 1 ? rowStep / 2 : 0) + hexH.value;
+    if (bottom > maxBottom) maxBottom = bottom;
   }
-  const containerW = colStepFull * (totalCols - 1) + hexW.value + 2 * BORDER_EXT + 2 * SHADOW_PAD
-  const containerH = maxBottom + 2 * BORDER_EXT + 2 * SHADOW_PAD
-  container.style.position = 'relative'
-  container.style.width = `${containerW}px`
-  container.style.height = `${containerH}px`
-  container.style.margin = '0 auto'
+  const containerW = colStepFull * (totalCols - 1) + hexW.value + 2 * BORDER_EXT + 2 * SHADOW_PAD;
+  const containerH = maxBottom + 2 * BORDER_EXT + 2 * SHADOW_PAD;
+  container.style.position = "relative";
+  container.style.width = `${containerW}px`;
+  container.style.height = `${containerH}px`;
+  container.style.margin = "0 auto";
   children.forEach((child, i) => {
-    const col = Math.floor(i / bestMaxRows)
-    const row = i % bestMaxRows
-    const left = col * colStepFull + BORDER_EXT + SHADOW_PAD
-    const top = row * rowStep + (col % 2 === 1 ? rowStep / 2 : 0) + BORDER_EXT + SHADOW_PAD
-    child.style.position = 'absolute'
-    child.style.width = `${hexW.value}px`
-    child.style.height = `${hexH.value}px`
-    child.style.left = `${left}px`
-    child.style.top = `${top}px`
-  })
+    const col = Math.floor(i / bestMaxRows);
+    const row = i % bestMaxRows;
+    const left = col * colStepFull + BORDER_EXT + SHADOW_PAD;
+    const top = row * rowStep + (col % 2 === 1 ? rowStep / 2 : 0) + BORDER_EXT + SHADOW_PAD;
+    child.style.position = "absolute";
+    child.style.width = `${hexW.value}px`;
+    child.style.height = `${hexH.value}px`;
+    child.style.left = `${left}px`;
+    child.style.top = `${top}px`;
+  });
 }
 
-onMounted(applyLayout)
-watch([() => props.hexagons?.length, hexR], () => nextTick(applyLayout))
+onMounted(applyLayout);
+watch([() => props.hexagons?.length, hexR], () => nextTick(applyLayout));
 </script>
 
 <style scoped>

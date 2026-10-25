@@ -1,33 +1,38 @@
 # TypeScript Conversion Plan - Stadt-Land-Klima
 
+> Historical checkpoint. This early conversion plan is superseded. The frontend now uses Nuxt 4, phases 0–8 have a zero-baseline strict gate, and all 14 maintained extensions plus the operational CLI have compiler enforcement. Do not use its old unchecked-JavaScript or suppression examples as current guidance. Current status: [implemented hardening](SECURITY_HARDENING.md) and [remaining work/decisions](REMAINING_TODOS.md).
+
 ## Overview
 
 This project consists of a **Nuxt 3 frontend** + **Directus CMS backend** with ~20 custom extensions. Currently, TypeScript is partially enabled (some files use `.ts`), but most code is JavaScript.
 
 ## Current State
 
-| Area | TypeScript Status |
-|------|------------------|
-| Nuxt config | ✅ `nuxt.config.ts` |
-| Server APIs | ✅ Most `.ts` files |
-| Server utilities | ✅ Most `.ts` files |
-| Frontend plugins | ❌ Most `.js` |
-| Shared utilities | ❌ All `.js` |
-| Vue components | ⚠️ Mixed (some use `lang="ts"`) |
-| Directus extensions | ❌ All `.js` |
+| Area                | TypeScript Status               |
+| ------------------- | ------------------------------- |
+| Nuxt config         | ✅ `nuxt.config.ts`             |
+| Server APIs         | ✅ Most `.ts` files             |
+| Server utilities    | ✅ Most `.ts` files             |
+| Frontend plugins    | ❌ Most `.js`                   |
+| Shared utilities    | ❌ All `.js`                    |
+| Vue components      | ⚠️ Mixed (some use `lang="ts"`) |
+| Directus extensions | ❌ All `.js`                    |
 
 ## Conversion Strategy
 
 ### Phase 1: Low-Risk, High-Impact (Start Here)
+
 1. **Directus Extensions** - Convert one extension as proof-of-concept (e.g., `operation-slugify`)
 2. **Frontend Shared Utilities** - Pure functions in `src/frontend/shared/*.js`
 3. **Frontend Plugins** - Isolated, clear interfaces
 
 ### Phase 2: Medium Complexity
+
 1. **Vue Components** - Gradually convert Blokkli components
 2. **Directus Interface Extensions** - More complex due to Vue integration
 
 ### Phase 3: Full Conversion
+
 1. **All remaining JS files** to TypeScript
 2. **Enable stricter TypeScript config** (strict mode, noImplicitAny, etc.)
 
@@ -36,13 +41,16 @@ This project consists of a **Nuxt 3 frontend** + **Directus CMS backend** with ~
 These can be converted **independently without affecting other parts**:
 
 ### Directus Extensions (Best Candidates)
+
 Each extension is self-contained. Start with:
+
 - `operation-slugify` (simple string transformation)
 - `operation-add-Editor` (user creation logic)
 - `operation-delete-editor` (user deletion logic)
 - `endpoint-unsplash` (proxy endpoint)
 
 ### Frontend Units
+
 - **Shared utilities**: `src/frontend/shared/*.js` (pure functions)
 - **Plugins**: `src/frontend/plugins/*.js` (client-side)
 - **Vue components**: Add `lang="ts"` to `<script setup>` blocks
@@ -56,6 +64,7 @@ Each extension is self-contained. Start with:
 5. Add type definitions for Directus context parameters
 
 ### Example tsconfig.json for Directus Extensions
+
 ```json
 {
   "extends": "@directus/extensions-sdk/tsconfig.json",
@@ -79,22 +88,22 @@ For Directus extensions, create type files for the context:
 // types/directus-context.d.ts
 interface DirectusContext {
   logger: {
-    info: (message: string) => void
-    warn: (message: string) => void
-    error: (message: string) => void
-  }
+    info: (message: string) => void;
+    warn: (message: string) => void;
+    error: (message: string) => void;
+  };
   accountability: {
-    user: string | null
-    admin: boolean
-  }
+    user: string | null;
+    admin: boolean;
+  };
   services: {
-    UsersService: any
-    RolesService: any
-    ItemsService: any
-    MailService: any
-  }
-  getSchema: () => Promise<any>
-  env: Record<string, string>
+    UsersService: any;
+    RolesService: any;
+    ItemsService: any;
+    MailService: any;
+  };
+  getSchema: () => Promise<any>;
+  env: Record<string, string>;
 }
 ```
 

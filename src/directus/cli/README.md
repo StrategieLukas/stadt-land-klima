@@ -5,6 +5,7 @@ This CLI tool provides import/export functionality for Directus v11.17.4 and lat
 ## Overview
 
 Directus v11 introduced a major change to access control:
+
 - **Permissions are no longer attached directly to roles**
 - **Policies** are a new concept that hold permissions
 - Roles can have multiple policies attached to them
@@ -15,28 +16,30 @@ This CLI has been updated to handle this new structure properly.
 ## Key Changes from v10 to v11
 
 ### Old Structure (v10)
+
 ```yaml
 # roles/frontend.yaml
 name: frontend
 permissions:
   - collection: articles
     action: read
-    fields: ['*']
+    fields: ["*"]
 ```
 
 ### New Structure (v11+)
+
 ```yaml
 # policies/frontend.yaml
 name: frontend
 permissions:
   - collection: articles
     action: read
-    fields: ['*']
+    fields: ["*"]
 
 # roles/frontend.yaml
 name: frontend
 policies:
-  - <policy-id>  # Reference to the frontend policy
+  - Frontend # Exact policy name
 ```
 
 ## Installation
@@ -52,6 +55,7 @@ The CLI is already included in the Directus container. No additional installatio
 ```
 
 This will export:
+
 1. `schema/` - Collection and field definitions
 2. `policies/` - Policy definitions with permissions
 3. `roles/` - Role definitions with policy references
@@ -68,6 +72,7 @@ This will export:
 ```
 
 This will import in the correct order:
+
 1. Schema
 2. **Policies** (must be imported before roles)
 3. Roles (references policies)
@@ -76,39 +81,44 @@ This will import in the correct order:
 6. Translations
 7. Settings
 
-Dashboards are intentionally not imported by `import:all` at the moment.
-Use `import:dashboards` manually when dashboard imports are enabled for an environment.
+8. Dashboards
 
 ### Individual Commands
 
 #### Export Policies
+
 ```bash
 ./directus-cli export:policies /path/to/policies
 ```
 
 #### Import Policies
+
 ```bash
 ./directus-cli import:policies /path/to/policies
 ```
 
 #### Export Roles
+
 ```bash
 ./directus-cli export:roles /path/to/roles
 ```
 
 #### Import Roles
+
 ```bash
 ./directus-cli import:roles /path/to/roles
 ```
 
-> **Note:** Policies must be imported before roles, as roles reference policies by ID.
+> **Note:** Policies must be imported before roles, as roles reference policies by name.
 
 #### Export Dashboards
+
 ```bash
 ./directus-cli export:dashboards /path/to/dashboards
 ```
 
 #### Import Dashboards
+
 ```bash
 ./directus-cli import:dashboards /path/to/dashboards
 ```
@@ -116,6 +126,7 @@ Use `import:dashboards` manually when dashboard imports are enabled for an envir
 ## Command Line Options
 
 ### Global Options
+
 - `-v, --verbose` - Run with verbose logging
 - `-f, --force` - Overwrite existing entries
 - `-r, --remove-orphans` - Remove entries not present in the imported data
@@ -139,14 +150,16 @@ Use `import:dashboards` manually when dashboard imports are enabled for an envir
 If you have existing role YAML files from Directus v10 (with permissions directly on roles), you can use the migration helper:
 
 ```bash
-node tasks/shared/migrateRolesToPolicies.mjs /path/to/roles /path/to/policies
+node tasks/shared/migrateRolesToPolicies.ts /path/to/roles /path/to/policies
 ```
 
 This will:
+
 1. Create policy files from the permissions in each role
 2. Update role files to reference the policies instead
 
 After migration:
+
 1. Import policies: `./directus-cli import:policies /path/to/policies`
 2. Import roles: `./directus-cli import:roles /path/to/roles`
 
@@ -168,13 +181,13 @@ permissions:
     permissions: {}
     validation: {}
     presets: null
-    fields: ['*']
+    fields: ["*"]
   - collection: articles
     action: create
     permissions: {}
     validation: {}
     presets: null
-    fields: ['*']
+    fields: ["*"]
 ```
 
 ### Role YAML Format
@@ -186,7 +199,7 @@ description: Editor role
 parent: null
 children: []
 policies:
-  - 8b4474c0-288d-4bb8-b62e-8330646bb6aa  # Policy IDs
+  - Editor Policy # Exact policy name, not a UUID
 ```
 
 ## Troubleshooting
@@ -194,6 +207,7 @@ policies:
 ### "Policy not found" errors during role import
 
 This means you're trying to import roles before importing the policies they reference. Make sure to:
+
 1. Import policies first: `./directus-cli import:policies /path/to/policies`
 2. Then import roles: `./directus-cli import:roles /path/to/roles`
 
@@ -202,22 +216,25 @@ Or use `import:all` which handles the order automatically.
 ### Permissions not working after import
 
 Check that:
+
 1. Policies were imported successfully
 2. Roles have the correct policy IDs
 3. The policy IDs in roles match the actual policy IDs in the database
 
 You can verify by running:
+
 ```bash
 ./directus-cli -v import:all /path/to/input
 ```
 
 ### SDK version compatibility
 
-This CLI uses `@directus/sdk@^21.3.0` which supports the v11 API including policies.
+This CLI uses `@directus/sdk@^27.0.0` which supports the v11 API including policies.
 
 ## Development
 
 To test changes:
+
 1. Make changes to files in `src/directus/cli/`
 2. The changes are automatically available in the mounted volume
 3. Run commands from within the Directus container
@@ -227,3 +244,29 @@ To test changes:
 - [Directus v11 Breaking Changes](https://directus.io/docs/releases/breaking-changes/version-11)
 - [Policies Documentation](https://directus.io/docs/api/policies)
 - [Permissions Documentation](https://directus.io/docs/api/permissions)
+
+## Compiler and regression gates
+
+Install with `npm ci --include=dev`. `npm run typecheck` enforces strict NodeNext checking and source inclusion; `npm run build` runs that gate. `npm test` adds isolated command and failure-gate tests without live services. `npm run test:integration` and `npm run test:tour-migration` require the disposable local Directus/database environment and must be run serially with other CMS fixture suites. Import/export orchestration and container startup reject compiler failures before administrative writes/startup.
+
+The executable remains `index.mjs`; implementation and internal imports are TypeScript loaded by the existing tsx runtime. Source directories must exist, operation references must resolve, and flow operations/dashboard panels must include their required layout coordinates. Legacy development-token provisioning is disabled in production. See `DIRECTUS_CLI_TYPES_REVIEW.md` for verification and deployment details.
+
+## Migrating rating catalogues
+
+`node index.mjs migrate <old> <new>` prompts before copying ratings between
+published measures with the same stable measure identifier and local team. For
+measures requiring a new rating, it carries only internal notes, current progress
+and sources; otherwise it carries the full assessment. A source becomes a draft
+only after the matching destination copy is confirmed.
+
+Back up the database first. The migration checks all matches before writes and
+refuses missing or ambiguous destinations and conflicting existing work. Archived
+sources remain unchanged. Updates check the original rating snapshots to detect
+edits during the migration. A failure stops the run and reports safe record IDs
+and confirmed counts; review those records before retrying. A retry preserves
+populated destinations with the same research when their sources are already
+drafts. There is no cross-request transaction: an interrupted run can leave a
+confirmed destination copy with its source still published, which a retry can
+finish if the destination still matches. Keep editing paused during migration.
+
+Run `npm test` for compiler, source-coverage, migration regression and CLI gates.

@@ -5,18 +5,11 @@ import type { Editor, OperationContext } from "../types";
 // ---------------------------------------------------------------------------
 // Custom typed error for missing keys input.
 // ---------------------------------------------------------------------------
-const NoKeysError = createError(
-  "NO_KEYS_PROVIDED",
-  "At least one editor key must be provided for deletion.",
-  400
-);
+const NoKeysError = createError("NO_KEYS_PROVIDED", "At least one editor key must be provided for deletion.", 400);
 
 export default {
   id: "delete-editor",
-  handler: async (
-    { keys }: { keys: string | string[] },
-    context: OperationContext
-  ) => {
+  handler: async ({ keys }: { keys: string | string[] }, context: OperationContext) => {
     const keysToDelete = Array.isArray(keys) ? keys : [keys];
 
     if (isEmpty(keysToDelete)) {
@@ -39,7 +32,7 @@ export default {
     // ------------------------------------------------------------------
     // Fetch editor records to resolve their linked Directus user emails.
     // ------------------------------------------------------------------
-    const editors = await editorsService.readMany(keysToDelete, { limit: -1 }) as Editor[];
+    const editors = (await editorsService.readMany(keysToDelete, { limit: -1 })) as Editor[];
 
     if (isEmpty(editors)) {
       context.logger.warn(`No editor records found for keys: ${keysToDelete.join(", ")}`);
@@ -53,12 +46,10 @@ export default {
       editors.map(async (editor) => {
         const user = await usersService.getUserByEmail(editor.email);
         if (!user) {
-          context.logger.warn(
-            `No Directus user found for editor "${editor.id}" (${editor.email}). Skipping.`
-          );
+          context.logger.warn(`No Directus user found for editor "${editor.id}" (${editor.email}). Skipping.`);
         }
         return user?.id ?? null;
-      })
+      }),
     );
 
     const userIdsForDeletion = userLookups.filter((id): id is string => id !== null);

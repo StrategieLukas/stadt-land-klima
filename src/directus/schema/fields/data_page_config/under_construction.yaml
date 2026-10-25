@@ -1,0 +1,47 @@
+collection: data_page_config
+field: under_construction
+type: boolean
+meta:
+  collection: data_page_config
+  conditions: null
+  display: null
+  display_options: null
+  field: under_construction
+  group: null
+  hidden: false
+  interface: boolean
+  note: Zeigt einen Aufbauhinweis statt Karten und Datenanalysen auf den Datenseiten an.
+  options: null
+  readonly: false
+  required: false
+  searchable: true
+  sort: 4
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Im Aufbau – Datenanalysen vorübergehend deaktivieren
+    - language: en-GB
+      translation: Under construction – temporarily disable data analyses
+    - language: it-IT
+      translation: In costruzione – disattiva temporaneamente le analisi dei dati
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: under_construction
+  table: data_page_config
+  data_type: boolean
+  default_value: false
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

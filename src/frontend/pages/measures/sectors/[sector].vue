@@ -1,7 +1,11 @@
-<script setup>
+<script setup lang="ts">
+import { singleRouteValue } from "~/shared/routeValues";
+import { sectors } from "~/shared/domain";
 const route = useRoute();
-const sector = route.params.sector;
-const v = route.query.v;
-throw navigateTo(`/measures?sector=${sector}${v ? `&v=${v}` : ''}`, { redirectCode: 301 });
+const sector = singleRouteValue(route.params.sector);
+const catalog = singleRouteValue(route.query.v);
+if (!sector || !sectors.some((value) => value === sector))
+  throw createError({ statusCode: 404, statusMessage: "Sector not found" });
+await navigateTo({ path: "/measures", query: { sector, v: catalog } }, { redirectCode: 301 });
 </script>
-<template></template>
+<template><div /></template>

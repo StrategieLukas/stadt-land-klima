@@ -1,164 +1,106 @@
 <template>
-  <div v-if="event" class="flex w-full flex-col items-center py-8">
-    <div class="w-full max-w-2xl">
-      <!-- Back link -->
-      <NuxtLink :to="backHref" class="text-gray-500 hover:text-gray-800 mb-6 flex items-center gap-1 text-sm">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        {{ backLabel }}
-      </NuxtLink>
-
-      <!-- Teaser image -->
-      <div v-if="event.image" class="mb-6 overflow-hidden rounded-xl">
-        <SmartImg
-          :assetId="event.image?.id || event.image"
-          :isRaster="event.image?.type ? isRaster(event.image.type) : true"
-          :alt="event.title"
-          :width="800"
-          img-class="w-full h-auto block"
-        />
+  <main v-if="event" class="event-detail mx-auto w-full max-w-3xl px-4 py-8">
+    <NuxtLink :to="backHref" class="mb-6 inline-flex text-sm text-stats-dark hover:underline"
+      >← {{ backLabel }}</NuxtLink
+    >
+    <header class="mb-6">
+      <span class="mb-3 inline-block text-xs font-bold text-olive-green uppercase">{{
+        eventTypeLabel(event.event_type)
+      }}</span>
+      <h1 class="mb-4 font-heading text-3xl leading-tight font-black sm:text-5xl">{{ event.title }}</h1>
+      <div class="mb-3 flex flex-wrap gap-4 text-sm">
+        <time :datetime="event.start_date">{{
+          formatEventDateTimeRange(event.start_date, event.end_date, $locale, event.date_only)
+        }}</time>
+        <span v-if="event.location">{{ event.location }}</span>
       </div>
-
-      <!-- Type badge -->
-      <span
-        class="mb-4 inline-block rounded-full bg-solid-light-green-10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-olive-green"
+    </header>
+    <figure v-if="cover" class="event-detail__cover mb-8">
+      <SmartImg
+        :asset-base-url="undefined"
+        :asset-id="relationId(cover)"
+        :is-raster="isRaster(typeof cover === 'string' ? 'image/jpeg' : cover.type || 'image/jpeg')"
+        :alt="event.title"
+        :width="1100"
+        img-class="block max-h-[50svh] w-full object-contain"
+      />
+      <figcaption v-if="coverCredit" class="mt-2 text-xs">{{ coverCredit }}</figcaption>
+    </figure>
+    <div v-if="event.description" class="prose mb-8 max-w-none" v-html="sanitizeHtml(sanitizedDescription)" />
+    <CanonicalButton
+      v-if="event.registration_url && event.event_category !== 'internal'"
+      :href="event.registration_url"
+      :label="event.cta_label || $t('events.register')"
+      icon-slug="mdi:calendar-check"
+      color="green"
+      external
+    />
+    <CanonicalButton
+      v-if="ordinaryReport"
+      :href="`/news/${ordinaryReport.slug}`"
+      :label="$t('tour.read_report')"
+      color="dark"
+      icon-slug="mdi:newspaper"
+    />
+    <nav v-if="event.series || eventProjects.length" class="event-detail__related mt-8 flex flex-wrap gap-3">
+      <CanonicalButton
+        v-if="event.series"
+        class="max-w-full whitespace-normal!"
+        :href="`/events/series/${event.series.slug}#stop-${event.slug}`"
+        :label="$t('tour.back_to_series', { ':title': event.series.title })"
+        color="dark"
+        icon-slug="mdi:map-marker-path"
+      />
+      <NuxtLink
+        v-for="project in eventProjects"
+        :key="project.id"
+        :to="`/projects/${project.slug}`"
+        class="self-center font-semibold text-stats-dark hover:underline"
+        >{{ project.title }} →</NuxtLink
       >
-        {{ eventTypeLabel(event.event_type) }}
-      </span>
-
-      <h1 class="text-gray-900 mb-4 text-3xl font-bold leading-tight">{{ event.title }}</h1>
-
-      <!-- Meta info -->
-      <div class="text-gray-600 mb-6 flex flex-wrap gap-4 text-sm">
-        <div class="flex items-center gap-1">
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-          <time :datetime="event.start_date">{{ formatEventDateTimeRange(event.start_date, event.end_date, $locale) }}</time>
-        </div>
-        <div v-if="event.location" class="flex items-center gap-1">
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-          {{ event.location }}
-        </div>
-      </div>
-
-      <!-- Description -->
-      <div v-if="event.description" class="prose prose-gray mb-8 max-w-none" v-html="event.description" />
-
-      <div class="flex flex-wrap gap-3">
-        <a
-          :href="calendarHref"
-          :download="`${event.slug}.ics`"
-          class="inline-flex items-center gap-2 rounded border border-light-green px-6 py-3 font-bold text-olive-green transition-colors hover:bg-solid-light-green-10"
-        >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 2 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"
-            />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v5m-2.5-2.5H12m0 0h2.5" />
-          </svg>
-          {{ $t("events.add_to_calendar") }}
-        </a>
-
-        <!-- Registration button -->
-        <a
-          v-if="event.registration_url"
-          :href="event.registration_url"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 rounded bg-light-green px-6 py-3 font-bold text-white transition-colors hover:bg-olive-green"
-        >
-          {{ event.cta_label || $t("events.register") }}
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4M14 4h6m0 0v6m0-6L10 14"
-            />
-          </svg>
-        </a>
-      </div>
-    </div>
-    <!-- /.max-w-2xl -->
-  </div>
-
-  <div v-else class="text-gray-500 py-8">
-    {{ $t("events.not_found") }}
-  </div>
+    </nav>
+  </main>
 </template>
-
-<script setup>
+<script setup lang="ts">
+import { routeSlug } from "~/shared/routeValues";
 import { useReferrer } from "~/composables/useReferrer";
-import { formatEventDateTimeRange } from "~/shared/eventDateTime";
 import { isRaster } from "~/shared/utils";
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
-const { backHref, backLabel } = useReferrer("/events", $t("news.all_events"));
+import { relationId } from "~/shared/tour";
+import { formatEventDateTimeRange } from "~/shared/eventDateTime";
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const { $t, $translateDynamic, $locale } = useNuxtApp();
 const route = useRoute();
-
-const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
-  $directus
-    .request(
-      $readItems("events", {
-        filter: {
-          slug: { _eq: route.params.slug },
-          status: { _eq: "published" },
-        },
-        fields: [
-          "id",
-          "title",
-          "slug",
-          "description",
-          "start_date",
-          "end_date",
-          "location",
-          "event_type",
-          "registration_url",
-          "cta_label",
-          { image: ["id", "type"] },
-        ],
-        limit: 1,
-      }),
-    )
-    .then((data) => {
-      return data?.[0] ?? false;
-    }),
+const slug = routeSlug(route.params.slug);
+if (!slug) throw createError({ statusCode: 404, statusMessage: "Not found" });
+const { backHref, backLabel } = useReferrer("/events", $t("events.title"));
+const legacyRedirected = await useLegacyTourRedirect("stop", slug);
+const { data: eventData } = await useAsyncData(`event-${slug}`, () =>
+  $fetch(`/api/public/events/${encodeURIComponent(slug)}`),
 );
-
-if (!event.value) {
-  throw createError({ statusCode: 404, statusMessage: $t("events.not_found"), fatal: import.meta.client });
+const event = computed(() => eventData.value?.event);
+if (!event.value && !legacyRedirected)
+  throw createError({ statusCode: 404, statusMessage: $t("events.not_found"), fatal: true });
+const ordinaryReport = computed(() => eventData.value?.ordinaryReport);
+const eventProjects = computed(() => eventData.value?.eventProjects ?? []);
+const cover = computed(() => event.value?.image);
+const coverCredit = computed(() => event.value?.image_credits);
+const sanitizedDescription = computed(() => sanitizeHtml(event.value?.description));
+function eventTypeLabel(type?: string | null) {
+  return type ? $translateDynamic(`events.type.${type}`) : "";
 }
-
-useHead({ title: computed(() => event.value?.title ?? $t("news.type.event")) });
-
-const calendarHref = computed(() => `/api/events/${encodeURIComponent(event.value.slug)}.ics`);
-
-function eventTypeLabel(type) {
-  if (!type) return "";
-  const translated = $t(`events.type.${type}`);
-  return translated === `events.type.${type}` ? type : translated;
-}
-
+useHead(() => ({ title: event.value?.title }));
 </script>
+<style scoped>
+.event-detail {
+  color: var(--slk-text, #505050);
+}
+.event-detail__media {
+  min-width: 0;
+  border: 3px solid #505050;
+  background: var(--slk-surface, white);
+}
+.event-detail__media button:focus-visible {
+  outline: 3px solid #16bae7;
+  outline-offset: 3px;
+}
+</style>

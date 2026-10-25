@@ -1,3 +1,3 @@
 language: en-GB
 key: localteam.register.error.email_registered
-value: Email address already registered
+value: "An account already exists for this email address. If you want to rate multiple municipalities, please register separate accounts with separate email addresses."

@@ -10,7 +10,7 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: Slug or identifier of parent entity
+  note: Immutable Directus UUID of the parent entity
   options:
     trim: true
   readonly: false

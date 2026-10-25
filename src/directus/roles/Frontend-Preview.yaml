@@ -1,0 +1,5 @@
+name: Frontend-Preview
+icon: key
+description: Private Nuxt municipality preview credential verifier
+policies:
+  - Frontend-Preview

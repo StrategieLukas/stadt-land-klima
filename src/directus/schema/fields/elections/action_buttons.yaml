@@ -22,7 +22,7 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 14
+  sort: 18
   special:
     - cast-json
   translations:

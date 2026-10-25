@@ -1,0 +1,7 @@
+language: en-GB
+key: data.products.contact_content
+value: |
+  Area: :area
+  Page: :url
+
+  My feedback:

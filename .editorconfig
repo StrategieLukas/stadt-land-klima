@@ -19,4 +19,4 @@ indent_size = 2
 
 [*.{js,mjs,vue,ts}]
 js_termination_style = ensure_semicolon
-js_quote_style = singlequoted
+js_quote_style = doublequoted

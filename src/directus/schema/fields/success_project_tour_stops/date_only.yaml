@@ -1,0 +1,47 @@
+collection: success_project_tour_stops
+field: date_only
+type: boolean
+meta:
+  collection: success_project_tour_stops
+  conditions: null
+  display: boolean
+  display_options: null
+  field: date_only
+  group: null
+  hidden: false
+  interface: boolean
+  note: Nur Datum bekannt; die Uhrzeit wird nicht veröffentlicht
+  options: null
+  readonly: false
+  required: false
+  searchable: true
+  sort: 7
+  special:
+  - cast-boolean
+  translations:
+  - language: de-DE
+    translation: Nur Datum anzeigen
+  - language: en-GB
+    translation: Display date only
+  - language: it-IT
+    translation: Mostra solo la data
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: date_only
+  table: success_project_tour_stops
+  data_type: boolean
+  default_value: false
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -3,6 +3,7 @@ import fs from "fs";
 import https from "https";
 import http from "http";
 import path from "path";
+import { fileURLToPath } from "node:url";
 import { createDirectus, staticToken, rest, schemaSnapshot } from "@directus/sdk";
 
 /**
@@ -10,7 +11,7 @@ import { createDirectus, staticToken, rest, schemaSnapshot } from "@directus/sdk
  */
 function readTokenFromEnv() {
   // Resolve .env path relative to the openapi-documentation directory
-  const envPath = path.resolve(__dirname, "../.env");
+  const envPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.env");
   const content = fs.readFileSync(envPath, "utf8");
   const match = content.match(/^CLI_DIRECTUS_STATIC_TOKEN\s*=\s*(.+)$/m);
   if (!match) {
@@ -39,15 +40,13 @@ async function fetchJSON(url, token) {
         res.on("end", () => {
           try {
             // Clean invisible Unicode separators and normalize line endings
-            const cleaned = data
-              .replace(/[\u2028\u2029\u0085\u000B\u000C]/g, "")
-              .replace(/\r\n?/g, "\n");
+            const cleaned = data.replace(/[\u2028\u2029\u0085\u000B\u000C]/g, "").replace(/\r\n?/g, "\n");
             resolve(JSON.parse(cleaned));
           } catch (err) {
             reject(new Error("Invalid JSON response from " + url));
           }
         });
-      }
+      },
     );
     req.on("error", reject);
   });
@@ -99,12 +98,9 @@ async function fetchJSON(url, token) {
   fs.writeFileSync(filteredPath, JSON.stringify(filtered, null, 2));
   console.log(`✅ Filtered spec saved to ${filteredPath}`);
 
-
   console.log("📦 Fetching Directus schema snapshot via SDK...");
 
-  const client = createDirectus("http://localhost:8081")
-    .with(staticToken(ADMIN_TOKEN))
-    .with(rest());
+  const client = createDirectus("http://localhost:8081").with(staticToken(ADMIN_TOKEN)).with(rest());
 
   const snapshot = await client.request(schemaSnapshot());
   fs.writeFileSync("schema.json", JSON.stringify(snapshot, null, 2));
@@ -128,7 +124,7 @@ async function fetchJSON(url, token) {
       name: field.field,
       type: field.type,
       required: field.meta?.required ?? false,
-      is_nullable: field.schema?.is_nullable ?? false
+      is_nullable: field.schema?.is_nullable ?? false,
     };
 
     const iface = field.meta?.interface ?? "";
@@ -138,9 +134,7 @@ async function fetchJSON(url, token) {
     if (rawOptions && !iface.startsWith("input-")) {
       const allowedOptionKeys = ["choices", "min", "max"];
       const filteredOptions = Object.fromEntries(
-        Object.entries(rawOptions).filter(([key]) =>
-          allowedOptionKeys.includes(key)
-        )
+        Object.entries(rawOptions).filter(([key]) => allowedOptionKeys.includes(key)),
       );
 
       if (Object.keys(filteredOptions).length > 0) {
@@ -150,16 +144,12 @@ async function fetchJSON(url, token) {
 
     // Add other optional fields only if not null
     if (field.meta?.validation != null) f.validation = field.meta.validation;
-    if (field.meta?.validation_message != null)
-      f.validation_message = field.meta.validation_message;
+    if (field.meta?.validation_message != null) f.validation_message = field.meta.validation_message;
     if (field.schema?.max_length != null) f.max_length = field.schema.max_length;
-    if (field.schema?.default_value != null)
-      f.default_value = field.schema.default_value;
+    if (field.schema?.default_value != null) f.default_value = field.schema.default_value;
 
     collectionsMap[field.collection].fields.push(f);
   }
-
-
 
   // Filter relations only for relevant collections
   // const filteredRelations = (snapshot.relations || []).filter(
@@ -182,10 +172,8 @@ async function fetchJSON(url, token) {
     "erfolgsprojekte-schema.json",
     JSON.stringify(filteredSnapshot, null, 2)
       .replace(/[\u2028\u2029\u0085\u000B\u000C]/g, "")
-      .replace(/\r\n?/g, "\n")
+      .replace(/\r\n?/g, "\n"),
   );
 
   console.log("✅ Filtered & simplified schema saved to erfolgsprojekte-schema.json");
-
-
 })();

@@ -1,6 +1,5 @@
 <template>
   <div v-if="isExistingRecord" class="election-actions">
-
     <!-- Generate Theses card -->
     <div class="action-card">
       <div class="card-header">
@@ -19,9 +18,7 @@
         </v-chip>
       </div>
 
-      <v-notice v-if="alreadyGenerated" type="success" class="card-notice">
-        Thesen wurden bereits generiert.
-      </v-notice>
+      <v-notice v-if="alreadyGenerated" type="success" class="card-notice"> Thesen wurden bereits generiert. </v-notice>
 
       <div class="card-footer">
         <v-button
@@ -73,7 +70,7 @@
       <div class="card-header">
         <v-icon name="mail" class="card-icon" />
         <div class="card-title-group">
-          <h3 class="card-title">Kandidaten einladen</h3>
+          <h3 class="card-title">{{ participantPlural }} einladen</h3>
           <p class="card-subtitle">Personalisierte E-Mails mit Zugangslink versenden</p>
         </div>
         <v-chip v-if="alreadySent" x-small class="status-chip status-chip--success">
@@ -82,17 +79,10 @@
         </v-chip>
       </div>
 
-      <v-notice v-if="alreadySent" type="success" class="card-notice">
-        E-Mails wurden bereits versendet.
-      </v-notice>
+      <v-notice v-if="alreadySent" type="success" class="card-notice"> E-Mails wurden bereits versendet. </v-notice>
 
       <div class="card-footer">
-        <v-button
-          v-if="!alreadySent"
-          :loading="loadingMails"
-          :disabled="isAnyLoading"
-          @click="handleSendMails"
-        >
+        <v-button v-if="!alreadySent" :loading="loadingMails" :disabled="isAnyLoading" @click="handleSendMails">
           <v-icon name="send" left />
           E-Mails versenden
         </v-button>
@@ -101,14 +91,79 @@
           E-Mails versendet
         </v-button>
 
-        <v-button
-          :loading="loadingTestMail"
-          :disabled="isAnyLoading"
-          secondary
-          @click="handleSendTestMail"
-        >
+        <v-button :loading="loadingTestMail" :disabled="isAnyLoading" secondary @click="handleSendTestMail">
           <v-icon name="forward_to_inbox" left />
           Test-E-Mail senden
+        </v-button>
+      </div>
+    </div>
+
+    <!-- Reminder card — invitations must have been sent first -->
+    <div v-if="isApproved" class="action-card">
+      <div class="card-header">
+        <v-icon name="notifications_active" class="card-icon" />
+        <div class="card-title-group">
+          <h3 class="card-title">{{ participantPlural }} erinnern</h3>
+          <p class="card-subtitle">Einmalig an {{ participantPlural }} ohne eingereichte Antworten senden</p>
+        </div>
+        <v-chip v-if="alreadySentReminder" x-small class="status-chip status-chip--success">
+          <v-icon name="check_circle" x-small left />
+          Versendet
+        </v-chip>
+      </div>
+
+      <v-notice v-if="alreadySentReminder" type="success" class="card-notice">
+        Reminder-E-Mails wurden bereits versendet.
+      </v-notice>
+
+      <div class="card-footer">
+        <v-button
+          v-if="!alreadySentReminder"
+          :loading="loadingReminders"
+          :disabled="isAnyLoading || !alreadySent"
+          @click="handleSendReminders"
+        >
+          <v-icon name="send" left />
+          Reminder-E-Mails versenden
+        </v-button>
+        <v-button v-else disabled>
+          <v-icon name="check" left />
+          Reminder-E-Mails versendet
+        </v-button>
+      </div>
+    </div>
+
+    <!-- Thank-you card -->
+    <div v-if="isApproved" class="action-card">
+      <div class="card-header">
+        <v-icon name="volunteer_activism" class="card-icon" />
+        <div class="card-title-group">
+          <h3 class="card-title">Für Antworten bedanken</h3>
+          <p class="card-subtitle">Einmalig an {{ participantPlural }} mit eingereichten Antworten senden</p>
+        </div>
+        <v-chip v-if="alreadySentThankYou" x-small class="status-chip status-chip--success">
+          <v-icon name="check_circle" x-small left />
+          Versendet
+        </v-chip>
+      </div>
+
+      <v-notice v-if="alreadySentThankYou" type="success" class="card-notice">
+        Dankes-E-Mails wurden bereits versendet.
+      </v-notice>
+
+      <div class="card-footer">
+        <v-button
+          v-if="!alreadySentThankYou"
+          :loading="loadingThankYou"
+          :disabled="isAnyLoading || !alreadySent"
+          @click="handleSendThankYouMails"
+        >
+          <v-icon name="send" left />
+          Dankes-E-Mails versenden
+        </v-button>
+        <v-button v-else disabled>
+          <v-icon name="check" left />
+          Dankes-E-Mails versendet
         </v-button>
       </div>
     </div>
@@ -164,9 +219,7 @@
           <div class="mail-summary-sections">
             <section class="mail-summary-section">
               <h4>Erfolgreich benachrichtigt</h4>
-              <p v-if="sentCandidates.length === 0" class="mail-summary-empty">
-                Keine Kandidat:innen.
-              </p>
+              <p v-if="sentCandidates.length === 0" class="mail-summary-empty">Keine {{ participantPlural }}.</p>
               <ul v-else>
                 <li v-for="candidate in sentCandidates" :key="`sent-${candidate.id}`">
                   <span class="mail-summary-name">{{ candidate.name }}</span>
@@ -177,14 +230,12 @@
 
             <section class="mail-summary-section">
               <h4>Fehlgeschlagen</h4>
-              <p v-if="failedCandidates.length === 0" class="mail-summary-empty">
-                Keine fehlgeschlagenen E-Mails.
-              </p>
+              <p v-if="failedCandidates.length === 0" class="mail-summary-empty">Keine fehlgeschlagenen E-Mails.</p>
               <ul v-else>
                 <li v-for="candidate in failedCandidates" :key="`failed-${candidate.id}`">
                   <span class="mail-summary-name">{{ candidate.name }}</span>
                   <span class="mail-summary-detail">
-                    {{ candidate.email || 'Keine E-Mail-Adresse' }}
+                    {{ candidate.email || "Keine E-Mail-Adresse" }}
                     <template v-if="candidate.message"> · {{ candidate.message }}</template>
                   </span>
                 </li>
@@ -194,13 +245,13 @@
             <section class="mail-summary-section">
               <h4>Übersprungen</h4>
               <p v-if="skippedCandidates.length === 0" class="mail-summary-empty">
-                Keine Kandidat:innen ohne E-Mail-Adresse.
+                Keine {{ participantPlural }} ohne E-Mail-Adresse.
               </p>
               <ul v-else>
                 <li v-for="candidate in skippedCandidates" :key="`skipped-${candidate.id}`">
                   <span class="mail-summary-name">{{ candidate.name }}</span>
                   <span class="mail-summary-detail">
-                    {{ candidate.message || 'Keine E-Mail-Adresse hinterlegt.' }}
+                    {{ candidate.message || "Keine E-Mail-Adresse hinterlegt." }}
                   </span>
                 </li>
               </ul>
@@ -213,13 +264,12 @@
         </div>
       </div>
     </teleport>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
-import { useApi } from '@directus/extensions-sdk';
+import { ref, computed, onMounted, onBeforeUnmount, watch, type Ref } from "vue";
+import { useApi } from "@directus/extensions-sdk";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -236,9 +286,7 @@ const props = defineProps<{
 
 const api = useApi();
 
-const isExistingRecord = computed(
-  () => props.primaryKey != null && props.primaryKey !== '+',
-);
+const isExistingRecord = computed(() => props.primaryKey != null && props.primaryKey !== "+");
 
 // ---------------------------------------------------------------------------
 // Remote state (fetched from API)
@@ -247,14 +295,19 @@ const isExistingRecord = computed(
 const remote = ref({
   alreadyGenerated: false,
   alreadySent: false,
+  alreadySentReminder: false,
+  alreadySentThankYou: false,
   isApproved: false,
   reviewRequested: false,
+  isPartyElection: false,
 });
 
 // Session-level optimistic flags — set immediately on success so the UI
 // reflects the change without waiting for the next fetchStatus call.
 const sessionGenerated = ref(false);
 const sessionSent = ref(false);
+const sessionSentReminder = ref(false);
+const sessionSentThankYou = ref(false);
 const sessionReviewRequested = ref(false);
 
 // ---------------------------------------------------------------------------
@@ -262,29 +315,26 @@ const sessionReviewRequested = ref(false);
 // ---------------------------------------------------------------------------
 
 const alreadyGenerated = computed(
-  () =>
-    sessionGenerated.value ||
-    remote.value.alreadyGenerated ||
-    !!props.values?.already_generated_questions,
+  () => sessionGenerated.value || remote.value.alreadyGenerated || !!props.values?.already_generated_questions,
 );
 
-const alreadySent = computed(
-  () =>
-    sessionSent.value ||
-    remote.value.alreadySent ||
-    !!props.values?.already_sent_mails,
+const alreadySent = computed(() => sessionSent.value || remote.value.alreadySent || !!props.values?.already_sent_mails);
+
+const alreadySentReminder = computed(
+  () => sessionSentReminder.value || remote.value.alreadySentReminder || !!props.values?.already_sent_reminder_mails,
+);
+
+const alreadySentThankYou = computed(
+  () => sessionSentThankYou.value || remote.value.alreadySentThankYou || !!props.values?.already_sent_thank_you_mails,
 );
 
 const reviewRequested = computed(
-  () =>
-    sessionReviewRequested.value ||
-    remote.value.reviewRequested ||
-    !!props.values?.review_requested,
+  () => sessionReviewRequested.value || remote.value.reviewRequested || !!props.values?.review_requested,
 );
 
-const isApproved = computed(
-  () => remote.value.isApproved || !!props.values?.is_approved,
-);
+const isApproved = computed(() => remote.value.isApproved || !!props.values?.is_approved);
+const isPartyElection = computed(() => remote.value.isPartyElection || props.values?.is_party_election === true);
+const participantPlural = computed(() => (isPartyElection.value ? "Parteien" : "Kandidat:innen"));
 
 // ---------------------------------------------------------------------------
 // Loading state
@@ -292,12 +342,16 @@ const isApproved = computed(
 
 const loadingGenerate = ref(false);
 const loadingMails = ref(false);
+const loadingReminders = ref(false);
+const loadingThankYou = ref(false);
 const loadingReview = ref(false);
 const loadingTestMail = ref(false);
 const isAnyLoading = computed(
   () =>
     loadingGenerate.value ||
     loadingMails.value ||
+    loadingReminders.value ||
+    loadingThankYou.value ||
     loadingReview.value ||
     loadingTestMail.value,
 );
@@ -307,7 +361,7 @@ const isAnyLoading = computed(
 // ---------------------------------------------------------------------------
 
 interface Feedback {
-  type: 'success' | 'danger';
+  type: "success" | "danger";
   message: string | null;
 }
 
@@ -325,6 +379,8 @@ interface MailSendResult extends Record<string, unknown> {
   failedCount?: number;
   skippedCount?: number;
   totalCandidates?: number;
+  eligibleCandidates?: number;
+  mailType?: "invitation" | "reminder" | "thank_you";
   sent?: MailCandidateSummary[];
   failed?: MailCandidateSummary[];
   skipped?: MailCandidateSummary[];
@@ -332,15 +388,15 @@ interface MailSendResult extends Record<string, unknown> {
   selectedCandidate?: MailCandidateSummary;
 }
 
-const feedback = ref<Feedback>({ type: 'success', message: null });
+const feedback = ref<Feedback>({ type: "success", message: null });
 const mailSummary = ref<MailSendResult | null>(null);
 let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
 
-function showFeedback(type: Feedback['type'], message: string, durationMs = 6000) {
+function showFeedback(type: Feedback["type"], message: string, durationMs = 6000) {
   if (feedbackTimer) clearTimeout(feedbackTimer);
   feedback.value = { type, message };
   feedbackTimer = setTimeout(() => {
-    feedback.value = { type: 'success', message: null };
+    feedback.value = { type: "success", message: null };
   }, durationMs);
 }
 
@@ -352,13 +408,13 @@ const sentCandidates = computed(() => mailSummary.value?.sent ?? []);
 const failedCandidates = computed(() => mailSummary.value?.failed ?? []);
 const skippedCandidates = computed(() => mailSummary.value?.skipped ?? []);
 const mailSummarySubtitle = computed(() => {
-  if (!mailSummary.value) return '';
+  if (!mailSummary.value) return "";
 
   return [
     `${mailSummary.value.sentCount ?? 0} versendet`,
     `${mailSummary.value.failedCount ?? 0} fehlgeschlagen`,
     `${mailSummary.value.skippedCount ?? 0} ohne E-Mail übersprungen`,
-  ].join(', ');
+  ].join(", ");
 });
 
 function closeMailSummary() {
@@ -374,14 +430,27 @@ async function fetchStatus() {
 
   try {
     const { data } = await api.get(`/items/elections/${props.primaryKey}`, {
-      params: { fields: ['already_generated_questions', 'already_sent_mails', 'is_approved', 'review_requested'] },
+      params: {
+        fields: [
+          "already_generated_questions",
+          "already_sent_mails",
+          "already_sent_reminder_mails",
+          "already_sent_thank_you_mails",
+          "is_approved",
+          "is_party_election",
+          "review_requested",
+        ],
+      },
     });
 
     if (data?.data) {
       remote.value = {
         alreadyGenerated: !!data.data.already_generated_questions,
         alreadySent: !!data.data.already_sent_mails,
+        alreadySentReminder: !!data.data.already_sent_reminder_mails,
+        alreadySentThankYou: !!data.data.already_sent_thank_you_mails,
         isApproved: !!data.data.is_approved,
+        isPartyElection: !!data.data.is_party_election,
         reviewRequested: !!data.data.review_requested,
       };
     }
@@ -397,9 +466,7 @@ watch(() => props.primaryKey, fetchStatus);
 // Actions
 // ---------------------------------------------------------------------------
 
-async function callEndpoint<T extends Record<string, unknown> = Record<string, unknown>>(
-  endpoint: string,
-): Promise<T> {
+async function callEndpoint<T extends Record<string, unknown> = Record<string, unknown>>(endpoint: string): Promise<T> {
   const { data } = await api.post(`/election-actions/${endpoint}`, {
     election_id: String(props.primaryKey),
   });
@@ -411,8 +478,7 @@ async function callEndpoint<T extends Record<string, unknown> = Record<string, u
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error) {
     // Try to surface a Directus API error message if present
-    const apiMessage = (err as any)?.response?.data?.errors?.[0]?.message
-      ?? (err as any)?.response?.data?.error;
+    const apiMessage = (err as any)?.response?.data?.errors?.[0]?.message ?? (err as any)?.response?.data?.error;
     return apiMessage ?? err.message;
   }
   return String(err);
@@ -421,21 +487,19 @@ function extractErrorMessage(err: unknown): string {
 async function handleGenerate() {
   loadingGenerate.value = true;
   try {
-    await callEndpoint('generate');
+    await callEndpoint("generate");
     sessionGenerated.value = true;
-    showFeedback('success', 'Thesen wurden erfolgreich generiert.');
+    showFeedback("success", "Thesen wurden erfolgreich generiert.");
     fetchStatus(); // refresh in background to sync full server state
   } catch (err) {
-    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+    showFeedback("danger", `Fehler: ${extractErrorMessage(err)}`);
   } finally {
     loadingGenerate.value = false;
   }
 }
 
 async function handleRegenerate() {
-  const confirmed = window.confirm(
-    'Bestehende Thesen löschen und neu generieren?',
-  );
+  const confirmed = window.confirm("Bestehende Thesen löschen und neu generieren?");
   if (!confirmed) return;
   await handleGenerate();
 }
@@ -443,84 +507,117 @@ async function handleRegenerate() {
 async function handleRequestReview() {
   loadingReview.value = true;
   try {
-    await callEndpoint('request-review');
+    await callEndpoint("request-review");
     sessionReviewRequested.value = true;
-    showFeedback('success', 'Review der Thesen wurde angefragt.');
+    showFeedback("success", "Review der Thesen wurde angefragt.");
     fetchStatus();
   } catch (err) {
-    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+    showFeedback("danger", `Fehler: ${extractErrorMessage(err)}`);
   } finally {
     loadingReview.value = false;
   }
 }
 
 async function handleSendMails() {
-  const confirmed = window.confirm(
-    'E-Mails wirklich an alle Kandidat:innen mit hinterlegter E-Mail-Adresse versenden? Kandidat:innen ohne E-Mail werden übersprungen.',
-  );
+  await handleBulkMail({
+    endpoint: "send-mails",
+    confirmation: `E-Mails wirklich an alle ${participantPlural.value} mit hinterlegter E-Mail-Adresse versenden? ${participantPlural.value} ohne E-Mail werden übersprungen.`,
+    loading: loadingMails,
+    setSessionSent: () => {
+      sessionSent.value = true;
+    },
+  });
+}
+
+async function handleSendReminders() {
+  await handleBulkMail({
+    endpoint: "send-reminders",
+    confirmation: `Reminder-E-Mails wirklich einmalig an alle ${participantPlural.value} ohne eingereichte Antworten versenden?`,
+    loading: loadingReminders,
+    setSessionSent: () => {
+      sessionSentReminder.value = true;
+    },
+  });
+}
+
+async function handleSendThankYouMails() {
+  await handleBulkMail({
+    endpoint: "send-thank-you-mails",
+    confirmation: `Dankes-E-Mails wirklich einmalig an alle ${participantPlural.value} mit eingereichten Antworten versenden?`,
+    loading: loadingThankYou,
+    setSessionSent: () => {
+      sessionSentThankYou.value = true;
+    },
+  });
+}
+
+async function handleBulkMail({
+  endpoint,
+  confirmation,
+  loading,
+  setSessionSent,
+}: {
+  endpoint: string;
+  confirmation: string;
+  loading: Ref<boolean>;
+  setSessionSent: () => void;
+}) {
+  const confirmed = window.confirm(confirmation);
   if (!confirmed) return;
 
-  loadingMails.value = true;
+  loading.value = true;
   try {
-    const result = await callEndpoint<MailSendResult>('send-mails');
+    const result = await callEndpoint<MailSendResult>(endpoint);
     const sentCount = result.sentCount ?? 0;
     const failedCount = result.failedCount ?? 0;
     const skippedCount = result.skippedCount ?? 0;
 
     mailSummary.value = result;
-    sessionSent.value = sentCount > 0;
+    if (sentCount > 0) setSessionSent();
 
     if (failedCount > 0) {
       showFeedback(
-        'danger',
+        "danger",
         `E-Mail-Versand abgeschlossen: ${sentCount} versendet, ${failedCount} fehlgeschlagen, ${skippedCount} übersprungen.`,
         9000,
       );
     } else if (sentCount > 0) {
       showFeedback(
-        'success',
+        "success",
         `E-Mail-Versand abgeschlossen: ${sentCount} versendet, ${skippedCount} übersprungen.`,
         9000,
       );
     } else {
       showFeedback(
-        'danger',
-        `Keine E-Mails wurden versendet. ${skippedCount} Kandidat:innen ohne E-Mail wurden übersprungen.`,
+        "danger",
+        `Keine E-Mails wurden versendet. ${skippedCount} ${participantPlural.value} ohne E-Mail wurden übersprungen.`,
         9000,
       );
     }
 
     fetchStatus();
   } catch (err) {
-    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+    showFeedback("danger", `Fehler: ${extractErrorMessage(err)}`);
   } finally {
-    loadingMails.value = false;
+    loading.value = false;
   }
 }
 
 async function handleSendTestMail() {
   loadingTestMail.value = true;
   try {
-    const result = await callEndpoint<MailSendResult>('test-mail');
-    const candidateName = result.selectedCandidate?.name ?? 'eine zufällig ausgewählte Person';
-    const recipient = result.testRecipient ?? 'info@stadt-land-klima.de';
+    const result = await callEndpoint<MailSendResult>("test-mail");
+    const candidateName = result.selectedCandidate?.name ?? "eine zufällig ausgewählte Person";
+    const recipient = result.testRecipient ?? "info@stadt-land-klima.de";
 
     if ((result.sentCount ?? 0) > 0) {
-      showFeedback(
-        'success',
-        `Test-E-Mail für ${candidateName} wurde an ${recipient} versendet.`,
-        9000,
-      );
+      showFeedback("success", `Test-E-Mail für ${candidateName} wurde an ${recipient} versendet.`, 9000);
     } else {
       const failure = result.failed?.[0]?.message;
-      showFeedback(
-        'danger',
-        `Test-E-Mail konnte nicht versendet werden.${failure ? ` ${failure}` : ''}`,
-        9000,
-      );
+      showFeedback("danger", `Test-E-Mail konnte nicht versendet werden.${failure ? ` ${failure}` : ""}`, 9000);
     }
   } catch (err) {
-    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+    showFeedback("danger", `Fehler: ${extractErrorMessage(err)}`);
   } finally {
     loadingTestMail.value = false;
   }

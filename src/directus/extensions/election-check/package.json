@@ -2,9 +2,15 @@
   "name": "election-check",
   "description": "Bundle: generate-questions + send-candidate-mails operations, plus an Elections action interface.",
   "version": "2.0.0",
-  "keywords": ["directus", "directus-extension", "directus-custom-bundle"],
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-custom-bundle"
+  ],
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "directus:extension": {
     "type": "bundle",
     "host": "^11.0.0",
@@ -43,20 +49,33 @@
   },
   "scripts": {
     "build": "directus-extension build",
-    "dev":   "directus-extension build -w --no-minify",
-    "link":  "directus-extension link"
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "prebuild": "npm run typecheck"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "17.1.4",
-    "esbuild": "^0.28.0",
+    "@directus/extensions-sdk": "18.0.6",
+    "esbuild": "^0.28.2",
     "knex": "3.1.0",
-    "typescript": "^5.0.0",
-    "vue": "^3.4.21"
+    "typescript": "^5.9.3",
+    "vue": "3.5.43",
+    "@directus/types": "^18.0.0",
+    "vue-tsc": "3.3.13",
+    "@types/express": "^4.17.25"
   },
   "overrides": {
-    "esbuild": "^0.28.0"
+    "esbuild": "^0.28.2",
+    "vite": "^8.3.4",
+    "svgo": "^4.1.0",
+    "browserslist": "^4.29.3",
+    "baseline-browser-mapping": "^2.11.29",
+    "immutable": "^5.1.9",
+    "decode-uri-component": "^0.5.0",
+    "postcss-selector-parser": "^7.1.6",
+    "zod": "4.6.7"
   },
   "dependencies": {
-    "html-validate": "^10.11.3"
+    "html-validate": "^11.16.4"
   }
 }

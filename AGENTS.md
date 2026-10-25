@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Nuxt 3 frontend + Directus CMS backend, running in Docker Compose.
+Nuxt 4 frontend + Directus CMS backend, running in Docker Compose.
 Code language and variables always favour english language.
 ---
 
@@ -23,76 +23,56 @@ docker compose -f docker-compose.yaml exec directus /directus/cli/import-all.sh
 Create `src/directus/schema/fields/<collection>.<field>.yaml`. Follow the exact format of existing files — both `meta:` and `schema:` blocks are required.
 
 **Primary key gotcha:** If the table already exists, check `\d <table>` in psql to confirm the `id` type (UUID vs integer). The YAML `type` / `data_type` / `has_auto_increment` / `special` must match the actual DB column or the import will fail with:
+
 ```
 alter table "<table>" alter column "id" drop not null — column "id" is in a primary key
 ```
 
 ### Adding / changing permissions
 
-The frontend makes client-side requests with a static Bearer token (the **frontend** role). Server-side / unauthenticated requests use the **public** role.
-DO NOT EVER change the public.yaml permissions. Anything shown on the website is read with the frontend.yaml permissions.
-Edit the relevant files in `src/directus/roles/`:
-- `frontend.yaml` — client-side requests that include the frontend Bearer token
+The frontend reads public website data through Nuxt `/api/public/*` routes. Server-side CMS requests use the **private Frontend-Server identity** (`src/directus/policies/Frontend-Server.yaml`); never serialize that credential into public runtime configuration or use it in browser SDK code. `Frontend-Public` is the minimal asset identity, and `Frontend-Preview` is an isolated server-only preview verifier. Editor requests use personal authorization behind opaque HttpOnly website sessions.
 
-**Template — add to the `permissions:` list in both files:**
-
-```yaml
-  - collection: <collection_name>
-    action: read
-    permissions: {}   # no row-level filter = all rows
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-```
-
-Then run `import-all.sh`. Verify with:
-```sql
-SELECT r.name, p.action, p.fields
-FROM directus_permissions p
-LEFT JOIN directus_roles r ON p.role = r.id
-WHERE p.collection = '<collection_name>';
-```
-
+**Never change `src/directus/roles/public.yaml` or public-role permissions.** For a new website collection, add the minimum fields and publication/ownership filters to the private service policy, expose an explicit checked DTO in a Nuxt route, then run `import-all.sh`. Inspect existing routes before adding access; do not blindly grant `*` fields. The legacy Frontend identity exists for coordinated retirement, not new browser integration.
 
 ### Custom interface extensions
 
 Located in `src/directus/extensions/directus-extension-interface-<name>/`.
 
 After editing `src/interface.vue`, rebuild:
+
 ```bash
 cd src/directus/extensions/directus-extension-interface-<name>
 npm run build
 ```
 
 Then restart Directus to pick up the new `dist/index.js`:
+
 ```bash
 docker restart stadt-land-klima-directus-1
 ```
 
 Extensions use **Directus CSS theme variables** (not hardcoded hex) so they render correctly in both light and dark mode:
 
-| Purpose | Variable |
-|---|---|
-| Page background | `var(--theme--background)` |
-| Subdued background | `var(--theme--background-subdued)` |
-| Body text | `var(--theme--foreground)` |
-| Subdued text | `var(--theme--foreground-subdued)` |
-| Border | `var(--theme--border-color)` |
-| Primary accent | `var(--theme--primary)` |
-| Primary background tint | `var(--theme--primary-background)` |
-| Border radius | `var(--theme--border-radius)` |
-| Font family | `var(--theme--fonts--sans--font-family)` |
+| Purpose                 | Variable                                 |
+| ----------------------- | ---------------------------------------- |
+| Page background         | `var(--theme--background)`               |
+| Subdued background      | `var(--theme--background-subdued)`       |
+| Body text               | `var(--theme--foreground)`               |
+| Subdued text            | `var(--theme--foreground-subdued)`       |
+| Border                  | `var(--theme--border-color)`             |
+| Primary accent          | `var(--theme--primary)`                  |
+| Primary background tint | `var(--theme--primary-background)`       |
+| Border radius           | `var(--theme--border-radius)`            |
+| Font family             | `var(--theme--fonts--sans--font-family)` |
 
 ---
 
 ## Frontend data fetching
 
-- `$directus.request($readItems('collection', { ... }))` — list
-- `$directus.request($readSingleton('collection'))` — singleton (e.g. `navigation_config`)
-- Both plugins expose `$directus`, `$readItem`, `$readItems`, `$readSingleton`, `$locale`, `$t`
-
-If a `$readSingleton` / `$readItems` call returns empty data or a 403 error, the **first thing to check** is permissions: add the collection to both `public.yaml` and `frontend.yaml`, then run `import-all.sh`.
+- Browser components use the checked Nuxt API routes, for example `useFetch('/api/public/...')` or `$fetch('/api/public/...')`.
+- Server routes use `createDirectusServerClient()` / `createTypedDirectusServerClient()` and the Directus SDK, followed by checked response schemas and explicit public DTOs.
+- `src/frontend/plugins/directus.client.ts` exposes translations/locale, not a browser CMS client or bearer token. The server plugin handles server-only data.
+- On empty data/403, inspect the server endpoint contract, the private service policy and publication/ownership filters. Apply YAML changes through the importer. Never add public permissions as a shortcut.
 
 ---
 
@@ -100,11 +80,12 @@ If a `$readSingleton` / `$readItems` call returns empty data or a 403 error, the
 
 Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The adapter is `src/frontend/app/blokkli.editAdapter.ts`.
 
-### Adding a new block — all 6 steps are required
+### Adding a new block — all 7 steps are required
 
 **1. Component file** — `src/frontend/components/Blokkli/<Name>/index.vue`
 
 **2. `defineBlokkli()` + `defineProps`**
+
 - `bundle` must match the adapter key exactly.
 - `mockProps` must use explicit `return`: `mockProps: () => { return { ... } }` — arrow shorthand `() => ({...})` breaks the static regex parser.
 - `editTitle` receives the root DOM element: `el.textContent?.trim()`.
@@ -117,6 +98,8 @@ Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The
 
 **6. `getEditableFieldConfig()`** — every field marked `v-blokkli-editable:fieldName` needs a matching entry here. Without it the directive renders but inline editing is never activated. Use `type: 'markup'` for HTML, `type: 'plain'` for plain text.
 
+**7. Checked persistence model** — register the bundle and its actual text/nested props in `src/frontend/shared/editorBlocks.ts`. Keep `BLOCK_DEFINITIONS`, component props, defaults and adapter field configuration aligned. `npm run test:boundaries` from `bin/test_suite` checks this registration against every maintained component. Unsupported or malformed persisted bundles are refused without truncating the draft.
+
 ### `v-blokkli-editable` requirements
 
 - The editable element must be a **descendant** of the block root (never the root itself — `querySelector` does not match the element itself).
@@ -127,15 +110,19 @@ Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The
 ### `BlokkliField` is a multi-root fragment
 
 Its `$el` is a Vue comment node, not an HTMLElement. To get the rendered DOM:
+
 - Put `ref` on a **wrapper element** around `<BlokkliField>`.
 - Access the container via `wrapper.firstElementChild`.
 
-----------
+---
+
 Ensure you obey common coding standards and do not reinvent the wheel for every new task.
+DO NOT update Directus beyond 11.17.4
 
 ## Key rules before implementing
+
 1. See src/frontend/tailwind.config.js for common colors and "Styleguide mobil"
-2. See src/frontend/plugins/directus.client.js for the client config
+2. See src/frontend/plugins/directus.client.ts for the client config
 3. Check any existing page for how directus requests are done properly in this version
 4. Use DaisyUI components for new designs where possible
 5. For notes on deployment and config, you can see README.md
@@ -150,20 +137,55 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 14. However, if in a git worktree where the project root dir folder contains the word "agent", always commit and squash commits + push when done.
 15. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
 16. In German user-facing text and translations, use proper German characters (`ä`, `ö`, `ü`, `ß`) instead of ASCII transliterations (`ae`, `oe`, `ue`, `ss`). Keep ASCII transliterations only for stable identifiers, enum values, slugs, emails, URLs, or other machine-facing keys.
+17. Use `CanonicalButton` for prominent action buttons and links in frontend pages. Keep native buttons or existing filter pills for form submission, tabs, filters, map controls, and other compact controls whose interaction needs a different shape. Do not create one-off decorative call-to-action button styles.
+18. The brand green is `#AFCA0B` (`light-green` in `src/frontend/tailwind.config.js`). Use this token when a design calls for the brand green; `ff-green` (`#1da64a`) is a different green.
+19. In hard-coded page heroes, use `CanonicalButton` for action links, give each button a relevant icon, and match its background color to the hero heading color.
+20. Preserve the shared CSS styling of `CanonicalButton`. Do not override its corners, borders, shadows, colors, or interaction effects on individual instances or through container CSS. Use the component's supported props for customization; apply retro box styling to the surrounding container.
+21. Security is key: Check for outdated/vulnerable dependencies, and check the current diff (review your own work) for potential security misconfigurations or technical attack surfaces. Inform the user when in doubt.
+
+## Feature inventory maintenance
+
+FEATURES.md is the canonical inventory of application functionality and its regression coverage. Review and update it in the same change for every code, configuration, schema, permission, route, endpoint, extension, integration, workflow, or user-facing behavior change. Add rows for new functionality, remove or mark retired functionality, and keep implementation paths and exact test-flow references current. Every row must state whether it has targeted automated coverage, manual-only coverage, partial coverage, or no dedicated automated test; do not claim coverage merely because a page loads incidentally.
 
 ## Project structure:
+
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
 2. src/directus - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
 3. src/directus/extensions - our custom extensions. Compile with `npm install` and then `npm run build`.
 
 ## Applying changes for directus yamls
+
 1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.
 2. The yamls are sorted to be in alphabetical order, ensure that you stick to this formatting.
 
 ## Text
+
 1. Ensure displayed text uses the proper symbols for the language, i.e. German uses proper Umlauts for ä ö ü ß and not ae/oe/ue/ss
 2. When gendered German text is used, prefer ":" over "*" as separator.
 3. Every Directus `string` or `text` field must set `meta.options.trim: true` whenever its interface exposes the trim option. The standard `input`, `input-multiline`, and custom `auto-slug` interfaces support it. Verify support before setting the option; do not add ignored options to interfaces that do not expose trimming.
+4. Address users consistently with the informal German `du` form in user-facing text and translations. Content sent to candidates or parties—including access-token pages and related emails—must use the formal `Sie` form instead.
+
+## Technical Debt
+
+See [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for tracked technical debt items, future upgrades, and items requiring follow-up. Key items:
+
+- **TypeScript 7 upgrade:** Currently on TypeScript 6.0.3, the newest stable compiler supported by typescript-eslint and Blökkli. Recheck their peer ranges and Vue tooling before upgrading to 7.x.
+- **Framework stack:** Nuxt 4.6.2 with Vite 8.3.5 and Blökkli 2.0.0-alpha.73. Keep platform bindings optional and preserve the Blökkli virtual-file Vite integration; see SECURITY_HARDENING.md#framework-editor-and-typescript-phases.
+- **Permanent TypeScript gate:** No diagnostic baseline. `npm run typecheck` enforces strict app/server/shared/node and Vue checking, source coverage, `lint:types`, scripts and checked JS tooling. Keep new maintained sources in these gates; see SECURITY_HARDENING.md#framework-editor-and-typescript-phases.
+
+## Rate limiting
+
+All API endpoints that write data (POST/PUT/PATCH/DELETE) or perform expensive operations must be rate limited. The configuration is centralized in `src/frontend/server/utils/rateLimitConfig.ts`.
+
+**When adding a new API endpoint:**
+
+1. Add a rate limit entry to `RATE_LIMIT_CONFIG` in `rateLimitConfig.ts`
+2. Call `rateLimit(event, 'your-key')` at the start of the endpoint handler
+3. Write endpoints use `max: 5, windowSeconds: 60`; expensive read endpoints use `max: 10`
+4. Simple cached reads may skip rate limiting
+
+See [resource hardening](SECURITY_HARDENING.md#runtime-and-pinned-directus-safeguards) (original finding S14) for context. The rate limiter uses Redis sorted sets with per-IP sliding windows.
 
 ## Checks
+
 1. Run ./test_dev.sh in the bin folder and wait for checks to complete.

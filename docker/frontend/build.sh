@@ -1,7 +1,8 @@
 #!/bin/bash
+set -e
 
 cd /frontend
 
-npm install
+npm ci
 npx update-browserslist-db@latest
 npm run build

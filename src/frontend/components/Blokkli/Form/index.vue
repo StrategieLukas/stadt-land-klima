@@ -5,14 +5,14 @@
         <h2
           v-if="props.title || isEditing"
           v-blokkli-editable:title
-          v-text="props.title"
           class="font-heading text-2xl font-bold text-gray"
+          v-text="props.title"
         />
         <p
           v-if="props.description || isEditing"
           v-blokkli-editable:description
+          class="mt-2 text-gray-500"
           v-text="props.description"
-          class="text-gray-500 mt-2"
         />
       </div>
 
@@ -29,35 +29,50 @@
           class="grid grid-cols-1 gap-4 sm:grid-cols-12"
         />
 
-        <p v-if="fieldDefinitions.length === 0" class="text-gray-500 text-sm">
+        <p v-if="fieldDefinitions.length === 0" class="text-sm text-gray-500">
           {{ $t("form_block.empty_fields") }}
         </p>
 
         <div v-if="!isEditing" class="space-y-2">
-          <label class="text-gray-700 block text-sm font-medium">
+          <!-- Math challenge -->
+          <label class="block text-sm font-medium text-gray-700">
+            {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }}
+            <span class="text-red-500">*</span>
+          </label>
+          <input
+            v-model="mathChallengeAnswer"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]+"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs focus:border-green focus:ring-2 focus:ring-green focus:outline-hidden"
+          />
+          <p v-if="mathChallengeError" class="text-xs text-red-500">{{ mathChallengeError }}</p>
+
+          <!-- Altcha CAPTCHA -->
+          <label class="block text-sm font-medium text-gray-700">
             {{ $t("captcha.title") }} <span class="text-red-500">*</span>
           </label>
           <ClientOnly>
             <altcha-widget
               ref="altchaRef"
-              challenge="/api/altcha"
+              challenge="/api/altcha?purpose=form"
               hidefooter
               :language="$locale.startsWith('en') ? 'en' : 'de'"
               style="--altcha-border-radius: 6px; --altcha-color-border: #d1d5db; width: 100%"
             />
             <template #fallback>
-              <div class="border-gray-200 bg-gray-50 flex h-16 items-center justify-center rounded-md border">
-                <span class="text-gray-400 text-xs">{{ $t("captcha.loading") }}</span>
+              <div class="flex h-16 items-center justify-center rounded-md border border-gray-200 bg-gray-50">
+                <span class="text-xs text-gray-400">{{ $t("captcha.loading") }}</span>
               </div>
             </template>
           </ClientOnly>
-          <p v-if="captchaError" class="text-red-500 text-xs">{{ captchaError }}</p>
+          <p v-if="captchaError" class="text-xs text-red-500">{{ captchaError }}</p>
         </div>
 
-        <p v-if="submitError" class="text-red-600 text-sm">{{ submitError }}</p>
+        <p v-if="submitError" class="text-sm text-red-600">{{ submitError }}</p>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-gray-400 text-xs">{{ $t("generic.privacy.disclaimer") }}</p>
+          <p class="text-xs text-gray-400">{{ $t("generic.privacy.disclaimer") }}</p>
           <button
             type="submit"
             class="btn bg-green px-6 font-semibold text-white hover:bg-green hover:opacity-90"
@@ -71,8 +86,8 @@
         <p
           v-if="isEditing"
           v-blokkli-editable:successMessage
+          class="min-h-4 text-xs text-gray-400"
           v-text="props.successMessage"
-          class="text-gray-400 min-h-4 text-xs"
         />
       </form>
     </div>
@@ -80,6 +95,11 @@
 </template>
 
 <script setup lang="ts">
+import { FORM_SCOPE } from "~/shared/formScope";
+import { GenericFormRequestSchema } from "~/shared/contracts/submissions";
+import { displayScalar } from "~/shared/visualization";
+import { captchaEventData } from "~/shared/requestError";
+
 import type { FieldListItem } from "#blokkli/types";
 
 type SubmittedFieldType = "text" | "email" | "textarea" | "select" | "checkbox";
@@ -94,17 +114,26 @@ type SubmittedFieldDefinition = {
 const FIELD_TYPES = new Set<SubmittedFieldType>(["text", "email", "textarea", "select", "checkbox"]);
 
 const props = defineProps<{
-  title?: string;
-  description?: string;
-  successMessage?: string;
-  fields?: FieldListItem[];
+  title?: string | undefined;
+  description?: string | undefined;
+  successMessage?: string | undefined;
+  fields?: FieldListItem[] | undefined;
 }>();
 
 const { $t, $locale } = useNuxtApp();
 const route = useRoute();
+const formScope = inject(FORM_SCOPE);
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing;
+
+const { options, uuid } = defineBlokkli({
   bundle: "form",
+  propsFieldMapping: {
+    fields: { name: "fields", type: "field" },
+    title: { name: "title", type: "editable" },
+    description: { name: "description", type: "editable" },
+    successMessage: { name: "successMessage", type: "editable" },
+  },
   options: {
     formKey: {
       type: "text",
@@ -154,13 +183,16 @@ const { options, isEditing, uuid } = defineBlokkli({
 });
 
 const formRef = ref<HTMLFormElement | null>(null);
-const altchaRef = ref<(HTMLElement & { value?: string }) | null>(null);
+const altchaRef = ref<(HTMLElement & { value?: string | undefined }) | null>(null);
 const altchaPayload = ref("");
 const captchaError = ref("");
 const submitError = ref("");
 const submissionState = ref<"idle" | "submitting" | "success">("idle");
 
-const background = computed(() => String((options.value as any)?.background || "white"));
+const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } =
+  useMathChallenge("form");
+
+const background = computed(() => String(options.value.background || "white"));
 
 const wrapperClass = computed(() => {
   const map: Record<string, string> = {
@@ -171,11 +203,11 @@ const wrapperClass = computed(() => {
   return map[background.value] || map.white;
 });
 
-const submitLabel = computed(() => String((options.value as any)?.submitLabel || "").trim() || $t("form_block.submit"));
+const submitLabel = computed(() => String(options.value.submitLabel || "").trim() || $t("form_block.submit"));
 const successText = computed(() => props.successMessage?.trim() || $t("form_block.submit.success"));
 
 const formKey = computed(() => {
-  const configured = String((options.value as any)?.formKey || "").trim();
+  const configured = String(options.value.formKey || "").trim();
   return configured || uuid;
 });
 
@@ -184,11 +216,11 @@ const fieldDefinitions = computed<SubmittedFieldDefinition[]>(() => {
     .filter((field) => field.bundle === "form_field")
     .map((field) => {
       const fieldOptions = (field.options || {}) as Record<string, unknown>;
-      const typeCandidate = String(fieldOptions.fieldType || "text") as SubmittedFieldType;
+      const typeCandidate = displayScalar(fieldOptions.fieldType, "text") as SubmittedFieldType;
       const type = FIELD_TYPES.has(typeCandidate) ? typeCandidate : "text";
       const label = getLabelText(field.props?.label);
       return {
-        name: normalizeFieldName(String(fieldOptions.fieldName || "")) || fallbackFieldName(field.uuid),
+        name: normalizeFieldName(displayScalar(fieldOptions.fieldName)) || fallbackFieldName(field.uuid),
         label: label || $t("form_block.field.default_label"),
         type,
         required: fieldOptions.required === true,
@@ -214,7 +246,7 @@ function getLabelText(labelBlocks: unknown) {
   return labelBlocks
     .filter((block): block is FieldListItem => Boolean(block && typeof block === "object"))
     .map((block) => {
-      const text = String((block.props as any)?.text || "").trim();
+      const text = displayScalar((block.props as Record<string, unknown>)?.text).trim();
       return text;
     })
     .filter(Boolean)
@@ -222,7 +254,7 @@ function getLabelText(labelBlocks: unknown) {
 }
 
 function onAltchaStateChange(e: Event) {
-  const { state, payload } = (e as CustomEvent).detail ?? {};
+  const { state, payload } = captchaEventData(e);
   if (state === "verified" && payload) {
     altchaPayload.value = payload;
     captchaError.value = "";
@@ -232,6 +264,7 @@ function onAltchaStateChange(e: Event) {
 }
 
 onMounted(async () => {
+  await loadMathChallenge();
   await nextTick();
   await nextTick();
   altchaRef.value?.addEventListener("statechange", onAltchaStateChange);
@@ -252,7 +285,7 @@ function collectValues(formData: FormData) {
 
     const allValues = formData
       .getAll(field.name)
-      .map((value) => String(value).trim())
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
       .filter(Boolean);
 
     values[field.name] = allValues.length > 1 ? allValues : allValues[0] || "";
@@ -264,8 +297,11 @@ function collectValues(formData: FormData) {
 async function submitForm() {
   submitError.value = "";
   captchaError.value = "";
+  mathChallengeError.value = "";
 
-  if (isEditing.value || submissionState.value === "submitting") return;
+  if (isEditing || submissionState.value === "submitting") return;
+
+  if (!validateMathChallenge()) return;
 
   const payload = altchaPayload.value || altchaRef.value?.value;
   if (!payload) {
@@ -283,16 +319,20 @@ async function submitForm() {
   try {
     await $fetch("/api/submit-form-response", {
       method: "POST",
-      body: {
+      body: GenericFormRequestSchema.parse({
+        formUuid: uuid,
+        entityType: formScope?.value.entityType,
+        entityUuid: formScope?.value.entityUuid,
         formKey: formKey.value,
         formTitle: props.title?.trim() || $t("form_block.default_title"),
         pagePath: route.fullPath,
-        notificationEmail: String((options.value as any)?.notificationEmail || "").trim(),
-        sendCopy: (options.value as any)?.sendCopy !== false,
+        notificationEmail: String(options.value.notificationEmail || "").trim(),
+        sendCopy: options.value.sendCopy !== false,
         fields: fieldDefinitions.value,
         values: collectValues(new FormData(formRef.value)),
         altcha: payload,
-      },
+        mathChallenge: { token: mathChallenge.value.token, answer: mathChallengeAnswer.value },
+      }),
     });
     submissionState.value = "success";
   } catch (err) {

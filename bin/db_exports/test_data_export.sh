@@ -21,58 +21,59 @@ fi
 : "${DB_DATABASE:?DB_DATABASE is required}"
 DB_PORT="${DB_PORT:-5432}"
 
-COMPOSE=(docker compose -f docker-compose.yaml)
-if [ -f docker-compose.prod.yaml ]; then
-  COMPOSE+=(-f docker-compose.prod.yaml)
-fi
+source "$SCRIPT_DIR/../lib/core-service-data.sh"
+core_compose production
+DB_OPERATOR="$("${CORE_COMPOSE[@]}" exec -T db sh -ec 'printf "%s" "$POSTGRES_USER"')"
+# Role identifiers below are interpolated into maintenance SQL, never values from content.
+[[ "$DB_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] || { echo 'Unsupported application role identifier' >&2; exit 1; }
 
 SANITIZED_DB="slk_sanitized_export_$$"
 
 cleanup() {
   set +e
-  "${COMPOSE[@]}" exec -T db psql -q -U "$DB_USER" -d postgres -c \
+  "${CORE_COMPOSE[@]}" exec -T db psql -q -U "$DB_OPERATOR" -d postgres -c \
     "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$SANITIZED_DB' AND pid <> pg_backend_pid();" \
     >/dev/null 2>&1
-  "${COMPOSE[@]}" exec -T db psql -q -U "$DB_USER" -d postgres -c \
+  "${CORE_COMPOSE[@]}" exec -T db psql -q -U "$DB_OPERATOR" -d postgres -c \
     "DROP DATABASE IF EXISTS \"$SANITIZED_DB\";" \
     >/dev/null 2>&1
 }
 trap cleanup EXIT
 
 echo "Creating temporary sanitized database $SANITIZED_DB from $DB_DATABASE..." >&2
-"${COMPOSE[@]}" exec -T db psql -v ON_ERROR_STOP=1 -q -U "$DB_USER" -d postgres -c \
+"${CORE_COMPOSE[@]}" exec -T db psql -v ON_ERROR_STOP=1 -q -U "$DB_OPERATOR" -d postgres -c \
   "CREATE DATABASE \"$SANITIZED_DB\" OWNER \"$DB_USER\";" \
   >/dev/null
 
 echo "Copying source database into temporary database..." >&2
-"${COMPOSE[@]}" exec -T db pg_dump \
+"${CORE_COMPOSE[@]}" exec -T db pg_dump \
   --no-owner \
   --no-privileges \
   -p "$DB_PORT" \
-  -U "$DB_USER" \
+  -U "$DB_OPERATOR" \
   -d "$DB_DATABASE" \
-  | "${COMPOSE[@]}" exec -T db psql \
+  | "${CORE_COMPOSE[@]}" exec -T db psql \
       -v ON_ERROR_STOP=1 \
       -q \
-      -U "$DB_USER" \
+      -U "$DB_OPERATOR" \
       -d "$SANITIZED_DB" \
       >/dev/null
 
 echo "Removing personal data from temporary database..." >&2
-"${COMPOSE[@]}" exec -T db psql \
+"${CORE_COMPOSE[@]}" exec -T db psql \
   -v ON_ERROR_STOP=1 \
   -q \
-  -U "$DB_USER" \
+  -U "$DB_OPERATOR" \
   -d "$SANITIZED_DB" \
   < "$SANITIZE_SQL" \
   >/dev/null
 
 echo "Writing sanitized SQL dump to stdout..." >&2
-"${COMPOSE[@]}" exec -T db pg_dump \
+"${CORE_COMPOSE[@]}" exec -T db pg_dump \
   --clean \
   --if-exists \
   --no-owner \
   --no-privileges \
   -p "$DB_PORT" \
-  -U "$DB_USER" \
+  -U "$DB_OPERATOR" \
   -d "$SANITIZED_DB"

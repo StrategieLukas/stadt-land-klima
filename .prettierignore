@@ -1,0 +1,26 @@
+# Dependencies, generated bundles, private/runtime data and pinned static bytes.
+**/node_modules/
+**/.nuxt/
+**/.output/
+**/dist/
+**/package-lock.json
+**/*.tsbuildinfo
+src/frontend/public/
+src/directus/uploads/
+docker/data/
+backups/
+.reports/
+docs/legacy/
+
+# Code-first Directus exports keep the CLI YAML serializer's canonical layout.
+# Do not rewrite permissions/content as part of source-code formatting.
+src/directus/contents/
+src/directus/dashboards/
+src/directus/flows/
+src/directus/policies/
+src/directus/presets/
+src/directus/roles/
+src/directus/schema/
+src/directus/settings/
+src/directus/translations/
+src/directus/webhooks/
