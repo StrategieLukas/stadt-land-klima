@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic, clientFailure } from "../shared/securityLog";
+import { clientDiagnostic, clientFailure } from "~/shared/securityLog";
 
 import type { ChartData, ChartOptions, Plugin } from "chart.js";
 import { HistogramResponseSchema, BinAreasSchema, type Histogram, type BinAreas } from "~/shared/contracts/histogram";

@@ -48,7 +48,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { clientFailure } from "../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import type { PropType } from "vue";
 import type { MunicipalityScore } from "~/types/components/municipality";

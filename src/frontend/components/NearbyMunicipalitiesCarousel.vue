@@ -152,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic, clientFailure } from "../shared/securityLog";
+import { clientDiagnostic, clientFailure } from "~/shared/securityLog";
 
 // vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
 import { z } from "zod";

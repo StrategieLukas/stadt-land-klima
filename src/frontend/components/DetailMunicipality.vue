@@ -374,7 +374,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientFailure } from "../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import type { Project } from "~/types/components/content";
 import type { MunicipalityScore, RatingsBySector } from "~/types/components/municipality";

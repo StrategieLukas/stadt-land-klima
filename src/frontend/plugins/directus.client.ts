@@ -1,4 +1,4 @@
-import { clientDiagnostic } from "../shared/securityLog";
+import { clientDiagnostic } from "~/shared/securityLog";
 import { defineNuxtPlugin, useCookie, useRuntimeConfig, useState } from "#app";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode";
 import createTranslator from "~/shared/createTranslator";

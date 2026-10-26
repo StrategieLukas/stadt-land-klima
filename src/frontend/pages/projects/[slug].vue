@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic } from "../../shared/securityLog";
+import { clientDiagnostic } from "~/shared/securityLog";
 
 import { routeSlug } from "~/shared/routeValues";
 import ArticlePage from "~/components/ArticlePage.vue";

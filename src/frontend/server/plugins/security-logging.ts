@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getCookie, setResponseHeader, type H3Event } from "h3";
 import { readEditorSession } from "../utils/editorSession";
 import { requestLog } from "../utils/securityLogging";
-import { statusLevel } from "../../shared/securityLog";
+import { statusLevel } from "~/shared/securityLog";
 
 export function logRequestCompletion(event: H3Event, aborted = false): void {
   if (event.context.securityLogCompleted) return;

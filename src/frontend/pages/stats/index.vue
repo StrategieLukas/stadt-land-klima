@@ -830,7 +830,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientFailure } from "../../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import type { LayerSpec, UnitSpec } from "vega-lite/types_unstable/spec/index.d.ts";

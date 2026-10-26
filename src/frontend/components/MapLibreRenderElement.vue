@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic } from "../shared/securityLog";
+import { clientDiagnostic } from "~/shared/securityLog";
 
 import { checkedMapStyle, visualizationUrl } from "~/shared/visualizationSafety";
 import { asRecord } from "~/shared/visualization";

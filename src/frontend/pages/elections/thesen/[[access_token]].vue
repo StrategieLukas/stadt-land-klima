@@ -188,7 +188,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientFailure } from "../../../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import { getWahlcheckAnswerOptions, usesSimpleWahlcheckAnswerMode } from "~/shared/wahlcheckAnswerOptions";
 import { formatBerlinDate, getBerlinEndOfDay } from "~/shared/eventDateTime";

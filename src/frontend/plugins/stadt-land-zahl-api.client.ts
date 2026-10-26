@@ -1,4 +1,4 @@
-import { clientFailure } from "../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 import { serviceBaseUrl } from "~/shared/serviceUrl";
 import { z } from "zod";
 import { AreaSchema, AreaListSchema, type Area, type SearchMode } from "~/shared/contracts/search";

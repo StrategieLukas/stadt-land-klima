@@ -470,7 +470,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic } from "../../shared/securityLog";
+import { clientDiagnostic } from "~/shared/securityLog";
 
 import {
   parseBerlinDateTime,

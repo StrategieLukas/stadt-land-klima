@@ -1,5 +1,5 @@
 import { defineNuxtPlugin, useRequestEvent } from "#app";
-import { configureServerDiagnostics } from "../shared/securityLog";
+import { configureServerDiagnostics } from "~/shared/securityLog";
 import { requestLog, requestFailure, systemLog } from "../server/utils/securityLogging";
 
 export default defineNuxtPlugin({

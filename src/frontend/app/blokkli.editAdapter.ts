@@ -1,4 +1,4 @@
-import { clientDiagnostic, clientFailure } from "../shared/securityLog";
+import { clientDiagnostic, clientFailure } from "~/shared/securityLog";
 /**
  * blökkli Edit Adapter for Directus
  *

@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic } from "../shared/securityLog";
+import { clientDiagnostic } from "~/shared/securityLog";
 
 import { checkedVisualizationSpec, safeVisualizationLoader } from "~/shared/visualizationSafety";
 import type { View } from "vega";

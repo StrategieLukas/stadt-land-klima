@@ -8,8 +8,8 @@ import {
   type ActorType,
   type LogDetails,
   type LogLevel,
-} from "../../shared/securityLog";
-import { SECURITY_LOG_ROUTES } from "../../shared/securityLogRoutes";
+} from "~/shared/securityLog";
+import { SECURITY_LOG_ROUTES } from "~/shared/securityLogRoutes";
 
 export function safeRequestRoute(path: string): string {
   const pathname = (typeof path === "string" ? path : "").split(/[?#]/)[0] ?? "";
