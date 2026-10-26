@@ -183,3 +183,23 @@ TEST_STYLE_BROWSER=webkit npm run test:styles -- http://localhost:8080
 For a local production TLS proxy, use its URL and trust only its temporary certificate in Node HTTP test clients with `NODE_EXTRA_CA_CERTS=/private/test.crt`. Do not disable TLS verification. For Chromium's speculative stylesheet requests, also set `TEST_HTTPS_CERT=/private/test.crt`: the harness pins that certificate's public key, with no blanket certificate-error flag. The public unit fixture contains no private key. Native OS/browser acceptance is distinct from running an engine inside Linux. Production nonce/CSP checks remain `npm run test:security:csp -- <https-origin>`; the full writable profile is for disposable local/staging data, never production.
 
 The style gate waits for Nuxt's build metadata response before forcing another full navigation. This prevents WebKit from reporting an intentionally aborted metadata fetch as an application error; runtime errors are still asserted rather than filtered away.
+
+## Podman deployment checks
+
+The isolated unit suite includes `src/podman.test.ts` for the rootless deployment
+policy, denied host/runtime drift, private environment-file modes, native secret
+transport/rotation and derived
+seccomp syscall rules. After preparing a rootless production acceptance stack,
+run `npm run test:podman`: it audits actual runtime/kernel controls, checks
+read-only roots, Node worker/child support, Typst and seven HTTP/CSP routes. It
+needs local Podman and the same `SLK_PODMAN_PROJECT`/port/environment-file settings
+as the deployment. See [PODMAN.md](../../PODMAN.md) for transfer, rollback and
+remaining full workflow/reboot/mail acceptance.
+
+`npm run test:security:caddy` builds the pinned optional Caddy gateway and validates
+production/staging configs with disposable trusted TLS and Node upstreams. It
+checks encoded query/path guards, forwarding headers, nonce CSP, private
+referrers/logs, body limits, maintenance and independent asset/page budgets. Docker
+and OpenSSL are required. `SLK_CADDY_IMAGE` selects a prebuilt reviewed image;
+`SLK_CADDY_SECCOMP` optionally supplies the derived Podman profile. No real CMS
+data, credentials or email are used. See [Caddy migration](../../caddy/README.md).

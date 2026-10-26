@@ -4,6 +4,8 @@
 
 - [Implemented security hardening](SECURITY_HARDENING.md)
 - [Remaining work and decisions](REMAINING_TODOS.md)
+- [Rootless Podman setup, security controls and Docker migration](PODMAN.md)
+- [Optional Caddy gateway configuration and nginx migration](caddy/README.md)
 
 Designs (Figma): https://www.figma.com/design/xOUA8jmhBBreYvmZRdlFSn/Stadt.Land.Klima!
 

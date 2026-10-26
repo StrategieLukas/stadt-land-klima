@@ -1,0 +1,23 @@
+services:
+  meilisearch:
+    environment:
+      MEILI_ENV: production
+  directus:
+    ports: ["127.0.0.1:${SLK_PODMAN_CMS_PORT:-9001}:8055"]
+    environment:
+      SLK_ENV: production
+      SLK_STARTUP_SECURITY_CHECKS: "true"
+      WEBSOCKETS_ENABLED: "false"
+      MCP_ENABLED: "false"
+      AI_ENABLED: "true"
+      IMPORT_IP_DENY_LIST: "0.0.0.0,169.254.169.254,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128,fc00::/7,fe80::/10"
+      CORS_ORIGIN: "${SLK_ALLOWED_ORIGINS:-https://www.stadt-land-klima.de,https://stadt-land-klima.de}"
+  frontend:
+    ports: ["127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}:3000"]
+    environment: &frontend-environment
+      SLK_ENV: production
+      TRUST_PROXY: "true"
+  frontend-build:
+    environment: *frontend-environment
+  maintenance:
+    ports: ["127.0.0.1:${SLK_PODMAN_MAINTENANCE_PORT:-9090}:8080"]

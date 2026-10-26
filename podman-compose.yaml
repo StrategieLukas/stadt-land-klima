@@ -1,0 +1,233 @@
+# Use bin/podman.sh; never layer this file onto docker-compose.yaml.
+x-podman:
+  in_pod: false
+
+x-security: &security
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges
+    - seccomp=${SLK_PODMAN_SECCOMP:?Run bin/podman.sh to select the host seccomp profile}
+  read_only: true
+  user: "1000:1000"
+  userns_mode: "keep-id:uid=1000,gid=1000"
+  logging:
+    driver: journald
+  restart: unless-stopped
+  stop_grace_period: 60s
+  tmpfs:
+    - /tmp:rw,nosuid,nodev,noexec,size=256m,mode=1777
+    - /run:rw,nosuid,nodev,noexec,size=16m,mode=755
+    - /var/tmp:rw,nosuid,nodev,noexec,size=16m,mode=1777
+
+services:
+  db:
+    <<: *security
+    image: docker.io/postgis/postgis:17-3.6@sha256:d7053f57b0d62c427ffbf412208b6625317124d62eebf40672e990fea81e9d53
+    user: "999:999"
+    userns_mode: "keep-id:uid=999,gid=999"
+    volumes:
+      # :U is restricted to new Podman-owned named volumes, never host bind mounts.
+      - database:/var/lib/postgresql/data:U,nosuid,nodev,noexec
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777
+      - /run:rw,nosuid,nodev,noexec,size=16m,mode=755
+      - /var/tmp:rw,nosuid,nodev,noexec,size=16m,mode=1777
+      - /var/run/postgresql:rw,nosuid,nodev,noexec,size=16m,uid=999,gid=999,mode=700
+    networks: [database]
+    shm_size: 256m
+    mem_limit: "${SLK_DB_MEMORY_LIMIT:-2G}"
+    pids_limit: 512
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h db -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  cache:
+    <<: *security
+    image: docker.io/library/redis:8.10.2-alpine
+    user: "999:1000"
+    userns_mode: "keep-id:uid=999,gid=1000"
+    # Redis holds sessions, rate limits and synchronization; persist across cutover/restarts.
+    command: [redis-server, --appendonly, "yes", --appendfsync, everysec]
+    volumes:
+      - cache:/data:U,nosuid,nodev,noexec
+    networks: [services]
+    mem_limit: "${SLK_REDIS_MEMORY_LIMIT:-512M}"
+    pids_limit: 64
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  meilisearch:
+    <<: *security
+    image: docker.io/getmeili/meilisearch:v1.55.0
+    environment:
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - search:/meili_data:U,nosuid,nodev,noexec
+    networks: [services]
+    mem_limit: "${SLK_MEILI_MEMORY_LIMIT:-1G}"
+    pids_limit: 128
+    healthcheck:
+      test: [CMD, wget, --spider, -q, http://127.0.0.1:7700/health]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  directus:
+    <<: *security
+    image: localhost/slk-podman-directus:${SLK_PODMAN_TAG:-local}
+    build:
+      context: .
+      dockerfile: podman/directus/Containerfile
+    environment:
+      DB_OPTIONS: "-c timezone=Europe/Berlin"
+      CACHE_AUTO_PURGE: "true"
+      LOGGER_HTTP_AUTO_LOGGING: "false"
+      LOG_STYLE: raw
+      LOG_LEVEL: info
+      CACHE_ENABLED: "false"
+      TUS_ENABLED: "false"
+      ASSETS_TRANSFORM_MAX_CONCURRENT: "${SLK_ASSET_TRANSFORM_CONCURRENCY:-8}"
+      NPM_CONFIG_CACHE: /tmp/npm
+      TEMP_PATH: /directus/.tmp
+      XDG_CACHE_HOME: /directus/.tmp/cache
+    command:
+      - sh
+      - -ec
+      - >-
+        umask 077;
+        node /directus/cli.js bootstrap;
+        /directus/cli/node_modules/.bin/tsx /directus/cli/security/startupChecks.ts;
+        exec node /directus/cli.js start
+    volumes:
+      - uploads:/directus/uploads:U,nosuid,nodev,noexec
+      # Shared labels are needed: translations are also read by the frontend image builder.
+      - ./src/directus/dashboards:/directus/dashboards:ro,z
+      - ./src/directus/schema:/directus/schema:ro,z
+      - ./src/directus/roles:/directus/roles:ro,z
+      - ./src/directus/policies:/directus/policies:ro,z
+      - ./src/directus/presets:/directus/presets:ro,z
+      - ./src/directus/webhooks:/directus/webhooks:ro,z
+      - ./src/directus/migrations:/directus/migrations:ro,z
+      - ./src/directus/templates:/directus/templates:ro,z
+      - ./src/directus/translations:/directus/translations:ro,z
+      - ./src/directus/flows:/directus/flows:ro,z
+      - ./src/directus/settings:/directus/settings:ro,z
+      - ./src/directus/contents:/directus/contents:ro,z
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=256m,mode=1777
+      - /directus/.tmp:rw,nosuid,nodev,noexec,size=512m,uid=1000,gid=1000,mode=700
+      - /run:rw,nosuid,nodev,noexec,size=16m,mode=755
+      - /var/tmp:rw,nosuid,nodev,noexec,size=16m,mode=1777
+    networks: [database, services, edge]
+    mem_limit: "${SLK_DIRECTUS_MEMORY_LIMIT:-2G}"
+    pids_limit: 256
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:8055/server/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 36
+
+  frontend: &frontend
+    <<: *security
+    image: localhost/slk-podman-frontend:${SLK_PODMAN_TAG:-local}
+    build:
+      context: .
+      dockerfile: podman/frontend/Containerfile
+    environment:
+      NPM_CONFIG_CACHE: /tmp/npm
+    # Refuse stale output. Dependencies/builds never run in the production server.
+    command:
+      - sh
+      - -ec
+      - >-
+        umask 077;
+        node scripts/productionOutput.mts verify;
+        exec node .output/server/index.mjs
+    volumes:
+      - frontend-output:/frontend/.output:ro,U
+    networks: [services, edge]
+    mem_limit: "${SLK_FRONTEND_MEMORY_LIMIT:-6G}"
+    pids_limit: 512
+    depends_on:
+      directus:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [CMD, node, -e, "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+
+  # Explicit build-only service. It shares the image/env/security controls with frontend.
+  frontend-build:
+    <<: *frontend
+    profiles: [build]
+    restart: "no"
+    read_only: false
+    depends_on: {}
+    healthcheck:
+      disable: true
+    command:
+      - sh
+      - -ec
+      - >-
+        umask 077;
+        rm -rf .output;
+        slk_input=$$(node scripts/productionOutput.mts prepare);
+        npm ci --no-audit --no-fund;
+        npm run build;
+        node scripts/productionOutput.mts stamp "$$slk_input";
+        find /release -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +;
+        cp -a .output/. /release/
+    volumes:
+      - frontend-output:/release:U
+
+  maintenance:
+    <<: *security
+    profiles: [maintenance]
+    build:
+      context: ./docker/maintenance
+    image: localhost/slk-podman-maintenance:${SLK_PODMAN_TAG:-local}
+    # Skip root-only nginx entrypoint edits; pid and temporary files stay in /tmp.
+    entrypoint: [nginx]
+    command: [-g, "daemon off;"]
+    volumes:
+      - ./podman/maintenance/nginx.conf:/etc/nginx/nginx.conf:ro,z
+      - ./docker/maintenance/index.html:/usr/share/nginx/html/index.html:ro,z
+      - ./src/frontend/assets/images/Stadt-Land-Klima-Logotype_bordered.svg:/usr/share/nginx/html/logo.svg:ro,z
+      - ./docker/maintenance/maintenance-meta.js:/usr/share/nginx/html/maintenance-meta.js:ro,z
+    networks: [edge]
+    mem_limit: 64m
+    pids_limit: 32
+
+networks:
+  database:
+    internal: true
+  services:
+    internal: true
+  edge: {}
+
+volumes:
+  database: {}
+  cache: {}
+  search: {}
+  uploads: {}
+  frontend-output: {}

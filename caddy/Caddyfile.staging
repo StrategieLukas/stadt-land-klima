@@ -1,0 +1,14 @@
+# Staging uses the same maintained guards as production.
+import global.caddy
+import application.caddy
+
+http://staging.stadt-land-klima.de {
+	redir https://staging.stadt-land-klima.de{uri} 301
+}
+
+https://staging.stadt-land-klima.de {
+	tls {$SLK_CADDY_CERT:/etc/caddy/tls/staging.stadt-land-klima.de/fullchain.pem} {$SLK_CADDY_KEY:/etc/caddy/tls/staging.stadt-land-klima.de/privkey.pem} {
+		protocols tls1.2 tls1.3
+	}
+	import slk_application
+}
