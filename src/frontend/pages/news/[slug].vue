@@ -195,7 +195,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientFailure } from "../../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import { routeSlug } from "~/shared/routeValues";
 import { useAuth } from "~/composables/useAuth";

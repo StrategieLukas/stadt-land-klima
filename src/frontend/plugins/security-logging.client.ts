@@ -1,5 +1,5 @@
 import { defineNuxtPlugin } from "#app";
-import { clientDiagnostic, configureClientDiagnostics } from "../shared/securityLog";
+import { clientDiagnostic, configureClientDiagnostics } from "~/shared/securityLog";
 import { SECURITY_CLIENT_EVENTS } from "../shared/securityClientEvents";
 
 export default defineNuxtPlugin((app) => {

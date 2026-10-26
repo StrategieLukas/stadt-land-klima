@@ -108,3 +108,9 @@ Dependency audit: the unchanged frontend lockfile reports the existing node-forg
 advisory and its parent graph entries. The permanent `security:check` and node-forge
 regressions verify the repository's source backport; the lockfile audit deliberately
 continues to report the advisory. Extension lockfiles have no high/critical findings.
+
+Production build note: frontend imports of the shared logging modules use
+`~/shared/...` aliases. Relative imports were rewritten to invalid external paths
+by the Vite 8 SSR build; the Nuxt aliases keep the shared modules resolvable during
+Nitro bundling. Validate this boundary with the full `npm run build`, followed by
+startup fingerprint verification and the deployed read-only public smoke checks.

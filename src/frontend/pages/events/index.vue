@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic } from "../../shared/securityLog";
+import { clientDiagnostic } from "~/shared/securityLog";
 
 import type { PublicEvent } from "~/shared/contracts/content";
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";

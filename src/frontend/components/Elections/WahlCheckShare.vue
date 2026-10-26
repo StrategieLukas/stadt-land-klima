@@ -360,7 +360,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic, clientFailure } from "../../shared/securityLog";
+import { clientDiagnostic, clientFailure } from "~/shared/securityLog";
 
 import type { PropType } from "vue";
 import type { Election, WahlcheckResult, ElectionCandidate, UserAnswers } from "~/types/components/elections";

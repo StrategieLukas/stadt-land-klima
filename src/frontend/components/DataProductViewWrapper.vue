@@ -236,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientFailure } from "../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import { HistogramResponseSchema, type BinAreas } from "~/shared/contracts/histogram";
 import type { PropType } from "vue";

@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientFailure } from "../../../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import { FORM_SCOPE } from "~/shared/formScope";
 import { GenericFormRequestSchema } from "~/shared/contracts/submissions";

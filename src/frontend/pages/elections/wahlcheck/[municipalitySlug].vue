@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic, clientFailure } from "../../../shared/securityLog";
+import { clientDiagnostic, clientFailure } from "~/shared/securityLog";
 
 import type { WahlcheckCompletionRequest } from "~/shared/contracts/submissions";
 import { computed, ref, onMounted, watch } from "vue";

@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientDiagnostic, clientFailure } from "../shared/securityLog";
+import { clientDiagnostic, clientFailure } from "~/shared/securityLog";
 
 import type { Map as LeafletMap, LatLngBoundsExpression } from "leaflet";
 import type { PropType } from "vue";

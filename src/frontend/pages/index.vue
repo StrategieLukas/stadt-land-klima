@@ -28,7 +28,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { clientFailure } from "../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";

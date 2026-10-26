@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { clientFailure } from "../shared/securityLog";
+import { clientFailure } from "~/shared/securityLog";
 
 import OnboardingBox from "@/components/OnboardingBox.vue";
 import { useAuth } from "~/composables/useAuth";
