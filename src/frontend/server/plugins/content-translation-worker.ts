@@ -48,7 +48,7 @@ export default defineNitroPlugin((nitro) => {
     return;
   }
   if (import.meta.prerender || process.env.NITRO_PRERENDER === "true") return;
-  if (!config.deeplApiKey || !config.contentTranslationWorkerToken) {
+  if (!config.contentTranslationGenerationEnabled || !config.deeplApiKey || !config.contentTranslationWorkerToken) {
     systemLog("info", "content.translation.generation_paused");
     return;
   }

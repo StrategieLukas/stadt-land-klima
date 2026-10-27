@@ -429,19 +429,25 @@ test("missing key or disabled configuration never starts provider, persistence w
     new URL("../../../src/frontend/server/plugins/content-translation-worker.ts", import.meta.url),
     "utf8",
   ).replaceAll("import.meta.prerender", "false");
-  for (const enabled of [false, true]) {
+  for (const [enabled, generationEnabled, apiKey] of [
+    [false, true, "fixture-key-present"],
+    [true, false, "fixture-key-present"],
+    [true, true, ""],
+  ] as const) {
     const module = { exports: {} as { default?: (nitro: unknown) => void } };
     let starts = 0;
     let timers = 0;
     let aborted = 0;
+    let readers = 0;
     const config = {
       contentTranslationEnabled: enabled,
+      contentTranslationGenerationEnabled: generationEnabled,
       deeplApiEndpoint: "auto",
       deeplModel: "prefer_quality_optimized",
       deeplGlossaryEn: "",
       deeplGlossaryIt: "",
       deeplPolicyRevision: "v1",
-      deeplApiKey: "",
+      deeplApiKey: apiKey,
       directusServerUrl: "http://directus:8055",
       directusFrontendServerToken: "private-server-token",
       contentTranslationWorkerToken: "private-worker-token",
@@ -454,7 +460,10 @@ test("missing key or disabled configuration never starts provider, persistence w
       zod: require("zod"),
       "../utils/contentTranslation": { configureContentTranslationReader() {}, noopContentTranslationReader: {} },
       "../utils/contentTranslationPersistence": {
-        createPersistedTranslationReader: () => ({}),
+        createPersistedTranslationReader: () => {
+          readers++;
+          return {};
+        },
         createTranslationPersistence: forbidden,
       },
       "../utils/deepLTranslation": { deepLNamespace, DeepLSettingsSchema, createDeepLTranslator: forbidden },
@@ -493,6 +502,7 @@ test("missing key or disabled configuration never starts provider, persistence w
     assert.equal(starts, 0);
     assert.equal(timers, 0);
     assert.equal(aborted, 1, "Disabling after a hot reload aborts the preceding worker");
+    assert.equal(readers, enabled ? 1 : 0, "Reader-only mode works with a configured key and generation disabled");
   }
 });
 
@@ -559,4 +569,184 @@ test("offline DeepL plan measures deduplicated text rather than billing markup, 
     codePointsBothTargets: 18,
     unsupportedFields: 0,
   });
+});
+
+test("staging sample planning bounds fields, Unicode characters and explicit apply; dry-run cannot call provider or write", async () => {
+  const { parseSampleOptions, planTranslationSample, runTranslationSample } =
+    await import("./contentTranslationSample.js");
+  const layout = {
+    pages: ["Über uns", "Klimaschutz 🌍", "Mitmachen"].map((name, index) => ({
+      id: String(index),
+      slug: `page-${index}`,
+      name,
+      contents: "Large body excluded",
+      sort_order: index,
+    })),
+    municipalities: [],
+    navigationConfig: null,
+  };
+  const args = ["--frontend-url", "https://staging.example.org", "--directus-url", "http://127.0.0.1:9001"];
+  const options = parseSampleOptions(args);
+  assert.equal(options.apply, false);
+  assert.equal(options.maxCharacters, 200);
+  assert.equal(parseSampleOptions([...args, "--apply"]).apply, true);
+  for (const invalid of [
+    [...args, "--count", "6"],
+    [...args, "--count", "-1"],
+    [...args, "--max-characters", "501"],
+    [...args, "--unknown"],
+    [...args, "--apply", "--apply"],
+    ["--frontend-url", "https://user:secret@staging.example.org", "--directus-url", "http://localhost:9001"],
+  ])
+    assert.throws(() => parseSampleOptions(invalid));
+  const plan = planTranslationSample(layout, 2, 200);
+  assert.equal(plan.pages.length, 2);
+  assert.equal(plan.maximumSourceCharacters, 2 * Array.from("Über unsKlimaschutz 🌍").length);
+  assert(!JSON.stringify(plan).includes("Large body"));
+  assert.throws(() => planTranslationSample(layout, 2, 1));
+  assert.throws(() => planTranslationSample(layout, 0, 200));
+  const calls: string[] = [];
+  const fakeFetch: typeof fetch = async (url, init) => {
+    calls.push(String(url));
+    assert.equal(init?.method, undefined, "Sample planning only performs a public GET");
+    assert.equal(String(url), "https://staging.example.org/api/public/site-layout?contentLocale=de-DE");
+    return Response.json(layout);
+  };
+  const secrets = {
+    CONTENT_TRANSLATION_ENABLED: "true",
+    CONTENT_TRANSLATION_GENERATION_ENABLED: "false",
+    DEEPL_API_KEY: "fixture-valid-key-never-sent",
+    CONTENT_TRANSLATION_WORKER_TOKEN: "private",
+  };
+  const result = await runTranslationSample(options, secrets, fakeFetch);
+  assert.equal(result.mode, "dry-run");
+  assert.equal(calls.length, 1);
+  assert.equal("providerCalls" in result && result.providerCalls, 0);
+  await assert.rejects(
+    runTranslationSample(
+      { ...options, apply: true },
+      { ...secrets, CONTENT_TRANSLATION_GENERATION_ENABLED: "true" },
+      fakeFetch,
+    ),
+    /automatic generation/,
+  );
+  assert.equal(calls.length, 2, "Unsafe apply is refused before private/provider calls or enqueue");
+});
+
+test("bounded staging apply persists both locales, verifies public overlays and reuses all paid units on rerun", async () => {
+  const { parseSampleOptions, runTranslationSample } = await import("./contentTranslationSample.js");
+  const { contentTranslationKey } = await import("../../../src/frontend/server/utils/contentTranslation.js");
+  const store = harness({ pages: [] });
+  const layout = {
+    pages: ["Über uns", "Klimaschutz"].map((name, index) => ({
+      id: String(index),
+      slug: `sample-${index}`,
+      name,
+      contents: null,
+      sort_order: index,
+    })),
+    municipalities: [],
+    navigationConfig: null,
+  };
+  let billed = 0;
+  let paidCalls = 0;
+  let enqueues = 0;
+  const fakeFetch: typeof fetch = async (input, init) => {
+    const url = new URL(String(input));
+    if (url.hostname === "staging.example.org") {
+      const locale = url.searchParams.get("contentLocale");
+      if (locale === "de-DE") return Response.json(layout);
+      return Response.json({
+        ...layout,
+        pages: layout.pages.map((page) => ({
+          ...page,
+          name:
+            store.rows.get(
+              contentTranslationKey(store.persistence.namespace, locale as "en-GB" | "it-IT", {
+                text: page.name,
+                format: "text",
+                context: "name",
+              }),
+            )?.translated_text ?? page.name,
+        })),
+      });
+    }
+    if (url.hostname === "api.deepl.com") {
+      if (url.pathname === "/v2/usage") return Response.json({ character_count: billed, character_limit: 10000 });
+      assert.equal(url.pathname, "/v2/translate");
+      const body = JSON.parse(String(init?.body)) as { text: string[]; target_lang: string };
+      paidCalls++;
+      return Response.json({
+        translations: body.text.map((text) => ({
+          text: `${body.target_lang}|${text}`,
+          billed_characters: Array.from(text).length,
+        })),
+      });
+    }
+    assert.equal(url.host, "127.0.0.1:9001");
+    if (url.pathname === "/content-translations/status")
+      return Response.json({
+        limits: { daily: 38, total: 38 },
+        usage: [
+          { id: "total", reserved_characters: billed, billed_characters: billed },
+          {
+            id: `day:${new Date().toISOString().slice(0, 10)}`,
+            reserved_characters: billed,
+            billed_characters: billed,
+          },
+        ],
+        job: { namespace: store.persistence.namespace, lease_until: null },
+      });
+    if (url.pathname === "/content-translations/memory")
+      return Response.json({
+        rows: [...store.rows.values()].filter((row) => url.searchParams.get("keys")!.split(",").includes(row.id)),
+      });
+    if (url.pathname === "/items/content_translation_memory") {
+      const filter = JSON.parse(url.searchParams.get("filter")!) as { id: { _in: string[] } };
+      return Response.json({
+        data: [...store.rows.values()].filter(
+          (row) => row.kind === "field" && row.state === "ready" && filter.id._in.includes(row.id),
+        ),
+      });
+    }
+    assert.equal(url.pathname, "/content-translations");
+    const body = JSON.parse(String(init?.body)) as TranslationOperation;
+    if (body.op === "enqueue") {
+      enqueues++;
+      return Response.json({ queued: true });
+    }
+    if (body.op === "commit")
+      billed += body.units
+        .filter((unit) => store.rows.get(unit.key)?.state !== "ready")
+        .reduce((total, unit) => total + unit.billed, 0);
+    return Response.json(await store.persistence.operation(body, new AbortController().signal));
+  };
+  const options = parseSampleOptions([
+    "--frontend-url",
+    "https://staging.example.org",
+    "--directus-url",
+    "http://127.0.0.1:9001",
+    "--count",
+    "2",
+    "--apply",
+  ]);
+  const env = {
+    CONTENT_TRANSLATION_ENABLED: "true",
+    CONTENT_TRANSLATION_GENERATION_ENABLED: "false",
+    DEEPL_API_KEY: "fixture-api-key-not-real",
+    CLI_DIRECTUS_STATIC_TOKEN: "private-operator",
+    CONTENT_TRANSLATION_WORKER_TOKEN: "private-worker",
+    DIRECTUS_FRONTEND_SERVER_TOKEN: "private-reader",
+  };
+  const timing = { wait: async () => {}, paceMs: 0 };
+  const first = await runTranslationSample(options, env, fakeFetch, timing);
+  assert.equal(first.mode, "applied");
+  assert.equal(first.providerCalls, 2);
+  assert.equal(first.billedDelta, 38);
+  assert.equal(paidCalls, 2);
+  const second = await runTranslationSample(options, env, fakeFetch, timing);
+  assert.equal(second.providerCalls, 0);
+  assert.equal(second.billedDelta, 0);
+  assert.equal(paidCalls, 2);
+  assert.equal(enqueues, 2);
 });

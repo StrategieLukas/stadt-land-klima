@@ -113,6 +113,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     contentTranslationEnabled: process.env.CONTENT_TRANSLATION_ENABLED === "true",
+    contentTranslationGenerationEnabled: process.env.CONTENT_TRANSLATION_GENERATION_ENABLED === "true",
     contentTranslationWorkerToken: process.env.CONTENT_TRANSLATION_WORKER_TOKEN ?? "",
     deeplApiKey: process.env.DEEPL_API_KEY ?? "",
     deeplApiEndpoint: process.env.DEEPL_API_ENDPOINT ?? "auto",

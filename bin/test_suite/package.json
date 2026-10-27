@@ -35,6 +35,7 @@
     "plan:content-translation": "tsx src/contentTranslationPlan.ts",
     "test:content-translation:database": "SLK_TRANSLATION_DATABASE_TEST=1 tsx --test src/contentTranslationDatabase.test.ts",
     "translation:namespace": "tsx src/deepLNamespace.ts",
+    "sample:content-translation": "tsx src/contentTranslationSample.ts",
     "test:content-translation:reader": "SLK_TRANSLATION_READER_TEST=1 tsx --test src/contentTranslationReader.test.ts"
   },
   "dependencies": {

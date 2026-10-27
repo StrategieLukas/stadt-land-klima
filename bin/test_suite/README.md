@@ -43,6 +43,11 @@ npm run test:unit
 npm run test:public -- https://staging.stadt-land-klima.de
 ```
 
+The manual staging operator command `npm run sample:content-translation -- --help` plans
+at most a few published navigation titles. It defaults to dry-run; `--apply` runs a bounded
+real-provider preparation only with automatic generation disabled. It does not run the
+writable CMS fixture suite. See [the staging sample procedure](../../DYNAMIC_CONTENT_TRANSLATION.md#local-off-and-staging-sample-mode).
+
 `npm run test:boundaries` runs Phase 7 editor/visualization checks: all bundle/prop registrations, malformed/cyclic/duplicate block trees, draft history, actual adapter mutation/recovery/identity handling, supported native/compiled Vega interpreter execution, runtime loader URL/credential policy, MapLibre style/geometry validation and actual map-constructor/error branches. These tests need no services or GPU. `phase7.types.ts` adds negative compiler checks against actual installed Blökkli declarations. The default isolated suite includes all of these cases.
 
 CMS translation checks have three profiles. `npm run test:content-translation` runs the

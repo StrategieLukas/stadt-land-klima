@@ -1,7 +1,7 @@
 # DeepL CMS content translation
 
 The integration is implemented. **Generation is disabled until you supply a private API key
-and enable it.** German (`de-DE`) remains the source; prepared content targets English
+and explicitly enable generation.** German (`de-DE`) remains the source; prepared content targets English
 (`en-GB`) and Italian (`it-IT`). Page requests only read prepared translations. They never
 contact DeepL, create jobs, reserve credits or write translation data.
 
@@ -84,11 +84,12 @@ new deployment, use the following sequence from the repository root. Directus st
    The assignment is `CONTENT_TRANSLATION_WORKER_TOKEN`. Provisioning reuses an existing
    valid identity/token and refuses conflicting accounts; it does not rotate credentials.
 
-5. In private `src/frontend/.env`, add your key and enable the integration:
+5. For full automatic preparation, add your key and enable both switches in private `src/frontend/.env`. For a bounded staging test, use the reader-only setup below instead:
 
    ```dotenv
    DEEPL_API_KEY=your-private-key
    CONTENT_TRANSLATION_ENABLED=true
+   CONTENT_TRANSLATION_GENERATION_ENABLED=true
    ```
 
    `CONTENT_TRANSLATION_WORKER_TOKEN` must already be configured. The key, worker token and
@@ -99,21 +100,133 @@ new deployment, use the following sequence from the repository root. Directus st
 6. Inspect status and a bounded first backfill. Review EN/IT meaning, climate terminology,
    tone and political statements before treating machine output as reviewed editorial copy.
    Real provider quality/account behaviour cannot be verified without your key. You can
-   remove the key to pause generation while continuing to serve prepared translations.
+   set `CONTENT_TRANSLATION_GENERATION_ENABLED=false` to pause generation while continuing to serve prepared translations.
    Setting `CONTENT_TRANSLATION_ENABLED=false` disables the reader as well.
 
-A normal first run starts after the debounce/poll window, generally within 30–90 seconds.
+With both switches enabled, a normal first run starts after the debounce/poll window, generally within 30–90 seconds.
 Preparation continues in the background. A partially translated site remains usable through
 field-level German fallback; supplying a key does not synchronously translate every page.
 
-### Budgets
+Before enabling generation, load and verify any restrictive Directus limits. Docker
+`env_file` changes require container recreation with the same Compose profiles used to
+start the environment; a plain restart retains the old container environment. For local
+development:
 
-These are backend-enforced defaults in `src/directus/.env.example`:
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --no-deps directus
+```
+
+Wait for Directus health, then use the operator `status` command below to verify the
+**effective** limits before allowing provider calls. Keep the applicable production
+Compose files when doing the equivalent deployment recreation.
+
+### Local off and staging sample mode
+
+Both switches default to false. Deploying this change leaves automatic preparation off
+unless the new generation switch is explicitly enabled:
+
+| Enabled | Generation enabled | Behaviour                                                                                                                                 |
+| ------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| false   | either             | No stored CMS translation overlay, notice, background worker or DeepL requests. Existing UI dictionaries and private memory are retained. |
+| true    | false              | Serve stored translations and German fallback. No automatic source sweep or provider calls, even with a valid key.                        |
+| true    | true               | Serve stored translations and run automatic background preparation when private credentials are configured.                               |
+
+Local private configuration now has both switches false, verified after a normal frontend
+restart with the saved key present. This replaces the earlier process-only pause.
+
+On the **staging host**, deploy this change and the schema/extension/private identity from
+Installation above. In staging's private frontend environment use runtime overrides:
 
 ```dotenv
-DEEPL_MAX_TOTAL_CHARACTERS=450000
-DEEPL_MAX_DAILY_CHARACTERS=50000
+NUXT_CONTENT_TRANSLATION_ENABLED=true
+NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED=false
+NUXT_DEEPL_API_KEY=your-private-key
 ```
+
+The unprefixed variants are supported as development/build defaults. Matching `NUXT_`
+variables override the built server at runtime ([Nuxt runtime configuration](https://github.com/nuxt/nuxt/blob/main/docs/3.guide/6.going-further/10.runtime-config.md)).
+Keep all keys private. The sample command accepts either form, with `NUXT_` taking precedence.
+Recreate the staging frontend with the same Compose configuration used to deploy it so the
+environment is reloaded. With the repository's production profile:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --no-deps frontend
+```
+
+Confirm the frontend startup log reports `content.translation.generation_paused` before
+applying samples. Load restrictive Directus limits separately and verify operator `status`
+as described below.
+Use a separate staging DeepL key with its own provider limit if you want independent
+account usage. Do not point the writable development workflow suite at staging for this test.
+
+From the staging repository root, install the operator runner once:
+
+```bash
+npm --prefix bin/test_suite ci
+```
+
+First inspect a **dry run**, using the staging host's local service ports:
+
+```bash
+npm --prefix bin/test_suite run sample:content-translation -- \
+  --frontend-url http://127.0.0.1:9000 --directus-url http://127.0.0.1:9001 \
+  --count 3 --max-characters 200
+```
+
+It reads only the checked German navigation DTO, selects the first three published page
+names and prints a conservative estimate for both languages. It never contacts DeepL,
+enqueues a job or writes data. Large bodies, other pages/blocks and drafts are not selected.
+If the titles exceed 200 characters across both targets, reduce `--count`.
+
+To prepare precisely those titles, add `--apply`:
+
+```bash
+npm --prefix bin/test_suite run sample:content-translation -- \
+  --frontend-url http://127.0.0.1:9000 --directus-url http://127.0.0.1:9001 \
+  --count 3 --max-characters 200 --apply
+```
+
+The command reads private credentials from this checkout's frontend/Directus `.env` files;
+process environment overrides them. It supports the configured frontend Basic Auth. Use
+matching staging files and URLs, not local credentials against a remote deployment.
+
+Apply refuses automatic-generation mode, active worker leases, namespace changes and
+insufficient budget. It uses the real persistence/worker pipeline with a bounded source,
+waits for the normal 30-second debounce and respects control pacing. Allow roughly 1–2
+minutes. A second guard permits at most two provider POSTs and the specified number of
+source characters **in total across both languages**. The CLI ceiling cannot exceed 500;
+page count cannot exceed five. Ambiguous requests are never automatically retried.
+
+Check `providerCalls`, `submittedCharacters`, `billedDelta` and the EN/IT title results.
+The command also verifies those fields through the running staging public API. Browse an
+EN/IT page to inspect navigation, SSR and the machine-translation notice. Unprepared fields
+fall back to German. Visiting or reloading pages cannot generate more translations.
+
+Run the identical apply command again: with unchanged titles and settings, expect
+`providerCalls: 0` and `billedDelta: 0`. Existing complete fields can be reused even after
+the local budget is exhausted. Keep automatic generation false after the test. Set the
+master switch false as well to deactivate the integration fully on staging.
+
+The local disable/staging-tool change passed the full frontend and operator typechecks,
+28 focused translation tests and the default development wrapper (245 application tests,
+41 CLI tests, 24 integration/browser steps). Real local DE and IT CMS responses matched
+exactly after a normal restart, and the rendered machine-translation notice was absent.
+The new CLI dry-run used no provider calls or writes. The EN/IT apply and exhausted-budget
+reuse path is covered with mocked provider/private transports; no staging deployment or
+additional real provider generation was performed for this change. Stored billed usage
+remained 1,597 characters.
+
+### Budgets
+
+The current `src/directus/.env.example` explicitly sets these backend-enforced limits:
+
+```dotenv
+DEEPL_MAX_TOTAL_CHARACTERS=500000
+DEEPL_MAX_DAILY_CHARACTERS=100000
+```
+
+If the variables are omitted, the endpoint falls back to 450,000 total and 50,000/day.
+The active private `.env` may intentionally set smaller limits than the examples.
 
 The total is a **lifetime local reservation ceiling**. It does not reset on deployment,
 restart, API-key rotation, glossary changes or namespace changes. The daily ceiling uses
@@ -273,7 +386,7 @@ source-inventory regression traversed 146 checked source responses in the local 
 On a local sample of 10 checked responses, complete source fields contained 290,036 code
 points across both targets. Parsing and shared text-unit deduplication reduced the cold
 DeepL estimate to 131,740 (about 55% less), with no unsupported fields. This sample is not
-the full site; the first real provider run and translation quality still require your key.
+the full site; broader prose and terminology review remains separate from the bounded live check below.
 
 ## Implementation and regression coverage
 
@@ -303,7 +416,7 @@ The database profile requires the local imported/restarted Directus and frontend
 transaction tests use a temporary isolated schema and clean up their fixtures. It never
 calls DeepL. Dependencies remain subject to the repository's raw audit/backport checks.
 
-## Local verification (2026-10-27)
+## Pre-key implementation verification (2026-10-27)
 
 - YAML import completed; transaction-bound outbox installed for 30 source collections.
   Compiled endpoint loaded after restarting pinned Directus 11.17.4; private worker identity
@@ -321,6 +434,39 @@ calls DeepL. Dependencies remain subject to the repository's raw audit/backport 
   Directus were preserved. This does not claim a clean raw frontend audit.
 - No real DeepL requests or credits were used. Provider authentication, account-specific
   behaviour and real translation quality remain the only provider activation checks.
+
+## Bounded live provider check (2026-10-27)
+
+A real key authenticated successfully through the usage endpoint. The automatically started
+worker had already prepared 50 English units / 24 fields using 1,561 characters while the
+old container limits were still active. Generation was paused before further inspection.
+The development Directus container was recreated with the correct Compose overlay; status
+then confirmed the latest private limits: **100,000 overall and 5,000/day**. No limit was
+raised or usage counter reset for this check.
+
+A separate bounded run selected only three published navigation titles, with a hard
+200-character ceiling on its provider transport. English reused existing memory. Italian
+needed one paid request for **36 characters**, preparing three fields. Total billed usage
+became **1,597**; DeepL's reported remaining allowance decreased by exactly 36.
+
+| German source          | Prepared English           | Prepared Italian           |
+| ---------------------- | -------------------------- | -------------------------- |
+| Ranking                | Ranking                    | Classifica                 |
+| Mitmachen \| Lokalteam | Get involved \| Local team | Partecipa \| Gruppo locale |
+| Über uns               | About us                   | Chi siamo                  |
+
+All six fields matched the live public API. Repeated stored reads returned identical values
+without provider calls. A real reservation exceeding the active daily cap was rejected
+before generation, with no charged reservation. The existing key was retained privately.
+Broader prose/terminology quality review remains manual-only. The post-check
+`cd bin && ./test_dev.sh` run passed 243 application tests, 41 CLI tests and all 24 fast
+integration/browser steps without further provider usage. The raw dependency audit reports
+the existing single `node-forge` advisory; its maintained backport check passes.
+
+The initial check used temporary empty API-key process overrides to pause automatic
+preparation while serving stored results. The key stayed private in `.env`. That temporary
+pause has now been replaced by both translation switches being false in local private
+configuration. A normal local frontend restart keeps the integration fully disabled.
 
 ## Scope retained for separate work
 
