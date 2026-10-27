@@ -297,6 +297,8 @@
 <script setup lang="ts">
 import type { TeamMember } from "~/shared/contracts/content";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const fetchContent = useContentFetch();
+
 const { $t } = useNuxtApp();
 const { isDark } = useTheme();
 
@@ -375,9 +377,9 @@ const TEAM_LAYOUT = [
 ] as const;
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
-const { data: members } = await useAsyncData("org-members", () => $fetch("/api/org-members"));
+const { data: members } = await useAsyncData("org-members", () => fetchContent("/api/org-members"));
 
-const { data: cmsTeams } = await useAsyncData("org-teams", () => $fetch("/api/public/organisation-teams"));
+const { data: cmsTeams } = await useAsyncData("org-teams", () => fetchContent("/api/public/organisation-teams"));
 
 // Merge SVG layout with CMS data; fall back to sensible defaults when CMS is unavailable
 const TEAMS = computed(() =>

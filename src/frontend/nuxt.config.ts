@@ -112,6 +112,14 @@ export default defineNuxtConfig({
     pattern: ["~/components/Blokkli/**/*.vue"],
   },
   runtimeConfig: {
+    contentTranslationEnabled: process.env.CONTENT_TRANSLATION_ENABLED === "true",
+    contentTranslationWorkerToken: process.env.CONTENT_TRANSLATION_WORKER_TOKEN ?? "",
+    deeplApiKey: process.env.DEEPL_API_KEY ?? "",
+    deeplApiEndpoint: process.env.DEEPL_API_ENDPOINT ?? "auto",
+    deeplModel: process.env.DEEPL_MODEL ?? "prefer_quality_optimized",
+    deeplGlossaryEn: process.env.DEEPL_GLOSSARY_EN ?? "",
+    deeplGlossaryIt: process.env.DEEPL_GLOSSARY_IT ?? "",
+    deeplPolicyRevision: process.env.DEEPL_POLICY_REVISION ?? "v1",
     // The private keys which are only available within server-side
     meilisearchUrl: process.env.MEILISEARCH_URL ?? "",
     meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY ?? process.env.MEILI_MASTER_KEY ?? "",

@@ -516,6 +516,7 @@ import { useReferrer } from "~/composables/useReferrer";
 import { MunicipalityPageSchema } from "~/shared/contracts/municipality";
 import { parseGeoCenter } from "~/shared/contracts/geometry";
 import { routeSlug, singleRouteValue } from "~/shared/routeValues";
+const fetchContent = useContentFetch();
 
 const { $t } = useNuxtApp();
 const router = useRouter();
@@ -540,7 +541,7 @@ const municipalityPath = encodeURIComponent(slug);
 const pageDataKey = `municipality-page-${useId()}`;
 const loadPage = async (preview: boolean) =>
   MunicipalityPageSchema.parse(
-    await $fetch(
+    await fetchContent(
       preview ? `/api/previews/municipality/${municipalityPath}` : `/api/public/municipalities/${municipalityPath}`,
       {
         query: { v: singleRouteValue(route.query.v) },

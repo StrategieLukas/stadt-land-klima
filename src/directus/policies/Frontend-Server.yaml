@@ -253,6 +253,22 @@ permissions:
       - date_created
       - date_updated
       - status
+  - collection: content_translation_memory
+    action: read
+    permissions:
+      _and:
+        - kind:
+            _eq: field
+        - state:
+            _eq: ready
+    validation: null
+    presets: null
+    fields:
+      - id
+      - namespace
+      - kind
+      - state
+      - translated_text
   - collection: data_page_config
     action: read
     permissions: {}

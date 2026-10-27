@@ -190,6 +190,7 @@ import { computed } from "vue";
 import { useReferrer } from "~/composables/useReferrer";
 import { isRaster } from "~/shared/utils";
 import { routeSlug } from "~/shared/routeValues";
+const fetchContent = useContentFetch();
 
 const { $t } = useNuxtApp();
 const route = useRoute();
@@ -218,7 +219,7 @@ const markdownSanitizeOptions = {
 };
 
 const { data: jobData, error } = await useAsyncData(`job-${slug}`, () =>
-  $fetch(`/api/public/jobs/${encodeURIComponent(slug)}`),
+  fetchContent(`/api/public/jobs/${encodeURIComponent(slug)}`),
 );
 
 if (error.value && error.value.status !== 404) throw error.value;

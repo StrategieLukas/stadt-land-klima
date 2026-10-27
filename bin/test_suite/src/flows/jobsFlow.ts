@@ -162,10 +162,12 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
         // relation through the public contract without changing that constraint.
         await page.goto(`${config.frontendUrl}/jobs`, { waitUntil: "domcontentloaded" });
         await waitForHydration(page);
-        await page.route(`**/api/public/jobs/${slug}-sparse`, (route) =>
-          route.fulfill({
-            json: { job: { ...data.job, organisation: null }, organisation: null },
-          }),
+        await page.route(
+          (url) => url.pathname === `/api/public/jobs/${slug}-sparse`,
+          (route) =>
+            route.fulfill({
+              json: { job: { ...data.job, organisation: null }, organisation: null },
+            }),
         );
         await page.getByRole("link", { name: new RegExp(`Sparse role ${config.runId}`, "i") }).click();
         await page.waitForURL(`**/jobs/${slug}-sparse`);
@@ -191,7 +193,10 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
         await page.evaluate(() => {
           (window as Window & { jobsDocument?: boolean }).jobsDocument = true;
         });
-        await page.route("**/api/public/jobs", (route) => route.fulfill({ json: { jobs: [] } }));
+        await page.route(
+          (url) => url.pathname === "/api/public/jobs",
+          (route) => route.fulfill({ json: { jobs: [] } }),
+        );
         const response = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/public/jobs");
         await page.locator('a[href="/jobs"]').first().click();
         await response;

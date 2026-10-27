@@ -58,6 +58,7 @@ import { clientDiagnostic } from "~/shared/securityLog";
 
 import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 import { onMounted, ref, computed } from "vue";
+const fetchContent = useContentFetch();
 
 // ─── Rating → hex colour map (inline so they work in dynamic inline styles) ───
 const RATING_HEX = {
@@ -270,7 +271,7 @@ onMounted(async () => {
   try {
     const catalog = await getCurrentFrontendCatalogVersion();
     if (!catalog) return;
-    const result = await $fetch(`/api/public/stats/${encodeURIComponent(catalog.name)}`);
+    const result = await fetchContent(`/api/public/stats/${encodeURIComponent(catalog.name)}`);
     const data = result.scores
       .filter(isMunicipalityScoreComplete)
       .sort((a, b) => Number(b.municipality?.population ?? 0) - Number(a.municipality?.population ?? 0))

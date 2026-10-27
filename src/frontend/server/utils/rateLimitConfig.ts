@@ -16,6 +16,8 @@ export interface RateLimitPreset {
 }
 
 export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
+  "content-translation-control": { max: 5, windowSeconds: 60 },
+  "content-translation-status": { max: 10, windowSeconds: 60 },
   "client-event": { max: 5, windowSeconds: 60 },
   "editor-login": { max: 10, windowSeconds: 60 },
   "editor-session": { max: 120, windowSeconds: 60 },

@@ -239,6 +239,8 @@
 import { computed, ref } from "vue";
 import { isRaster } from "~/shared/utils";
 import { pointLatLng } from "~/shared/tour";
+const fetchContent = useContentFetch();
+
 const { $t, $translateDynamic } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
@@ -246,7 +248,7 @@ const isMapView = computed(() => route.query.view === "map");
 
 // Use server routes — $directus is only available during SSR, not on client
 const { data: projectList } = await useAsyncData("articles-index", async () => {
-  const result = await $fetch("/api/public/articles");
+  const result = await fetchContent("/api/public/articles");
   return result.articles ?? [];
 });
 
@@ -263,7 +265,7 @@ const municipalityLocations = computed(() => {
 });
 
 const { data: tourData } = await useAsyncData("project-tour-options", async () => {
-  return await $fetch("/api/public/projects-tours");
+  return await fetchContent("/api/public/projects-tours");
 });
 
 const featuredTours = computed(() => (tourData.value?.series ?? []).filter((tour) => tour.featured_on_projects));

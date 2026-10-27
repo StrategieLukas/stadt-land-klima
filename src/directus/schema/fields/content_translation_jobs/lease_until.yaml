@@ -1,0 +1,40 @@
+collection: content_translation_jobs
+field: lease_until
+type: timestamp
+meta:
+  collection: content_translation_jobs
+  conditions: null
+  display: null
+  display_options: null
+  field: lease_until
+  group: null
+  hidden: true
+  interface: datetime
+  note: null
+  options: null
+  readonly: true
+  required: false
+  searchable: false
+  sort: 5
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: lease_until
+  table: content_translation_jobs
+  data_type: timestamp with time zone
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

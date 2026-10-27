@@ -846,6 +846,8 @@ import { getCatalogVersion } from "~/composables/getCatalogVersion";
 import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions";
 import sectorImages from "~/shared/sectorImages";
 import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";
+const fetchContent = useContentFetch();
+
 type Measure = Statistics["measures"][number];
 type MunicipalitySummary = { id: string; name: string; slug: string; score_total?: number | null | undefined };
 type SectorStats = {
@@ -1328,7 +1330,7 @@ const meanMeasureRatings = computed(() => {
 async function fetchStatsForCatalog(catalogVersionId: string) {
   const catalog = catalogVersions.value.find((version) => version.id === catalogVersionId);
   if (!catalog) throw new Error("Catalog not found");
-  const result = await $fetch(`/api/public/stats/${encodeURIComponent(catalog.name)}`);
+  const result = await fetchContent(`/api/public/stats/${encodeURIComponent(catalog.name)}`);
   return { ...result, municipalityScores: result.scores };
 }
 

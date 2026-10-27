@@ -488,6 +488,8 @@ import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 import sectorImages from "~/shared/sectorImages";
 
 import { isRaster } from "~/shared/utils";
+const fetchContent = useContentFetch();
+
 type FeedItem = {
   type: string;
   id: string | number;
@@ -586,7 +588,7 @@ useHead({ title: "Neuigkeiten" });
 
 // ── Data fetching ──────────────────────────────────────────────────────────────
 
-const { data: feedData } = await useAsyncData("public-news-feed", () => $fetch("/api/public/news"));
+const { data: feedData } = await useAsyncData("public-news-feed", () => fetchContent("/api/public/news"));
 const newsData = computed(() => feedData.value?.news ?? []);
 const articlesData = computed(() => feedData.value?.articles ?? []);
 const eventsData = computed(() => feedData.value?.events ?? []);

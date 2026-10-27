@@ -7,6 +7,7 @@ import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import * as municipalityContracts from "../../../src/frontend/shared/contracts/municipality.js";
 import * as searchContracts from "../../../src/frontend/shared/contracts/search.js";
+import { CONTENT_LOCALE_QUERY } from "../../../src/frontend/shared/contentTranslation.js";
 
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 type Row = Record<string, any>;
@@ -41,6 +42,7 @@ function load(path: string, dependencies: Record<string, unknown>, globals: Row 
           if (id === "zod") return frontend("zod");
           if (id === "~/shared/contracts/municipality") return municipalityContracts;
           if (id === "~/shared/contracts/search") return searchContracts;
+          if (id === "~/shared/contentTranslation") return { CONTENT_LOCALE_QUERY };
           if (id === "~/server/utils/parseCms" || id === "./parseCms")
             return load("server/utils/parseCms.ts", { h3, zod: frontend("zod") });
           if (id === "./publicQuery") return load("server/utils/publicQuery.ts", { h3 });
@@ -213,6 +215,36 @@ test("measure projections select real columns rather than the feasibility interf
   assert.ok(!publicMeasureFields.includes("feasibility"));
   assert.ok(publicMeasureFields.includes("feasibility_economical"));
   assert.ok(publicMeasureFields.includes("description_about"));
+});
+
+test("municipality public query accepts content locale without widening preview or unknown query access", async () => {
+  const transport = cms(() => []);
+  const { municipalityPageHandler } = load("server/utils/municipalityPageData.ts", {
+    ...transport.dependencies,
+    "./municipalityPreview": { verifyMunicipalityPreview: async () => false },
+  });
+  for (const locale of ["de-DE", "en-GB", "it-IT", "unsupported"]) {
+    // With no catalogs the authorized lookup returns 404, proving locale passed query validation.
+    await assert.rejects(
+      () => municipalityPageHandler({ params: { slug: "city" }, query: { v: "v1.0", contentLocale: locale } }, false),
+      { statusCode: 404 },
+    );
+  }
+  assert.equal(transport.commands.length, 4);
+  for (const query of [
+    { contentLocale: ["en-GB", "it-IT"] },
+    { contentLocale: "x".repeat(65) },
+    { contentLocale: "en-GB", arbitrary: "value" },
+    { preview: "token" },
+  ])
+    await assert.rejects(() => municipalityPageHandler({ params: { slug: "city" }, query }, false), {
+      statusCode: 400,
+    });
+  await assert.rejects(
+    () => municipalityPageHandler({ params: { slug: "city" }, query: { contentLocale: "it-IT" } }, true),
+    { statusCode: 400 },
+  );
+  assert.equal(transport.commands.length, 4, "Invalid and preview locale queries must fail before CMS access");
 });
 
 test("area enrichment joins municipality scores, keeps catalog metadata and prefers the requested catalog", async () => {

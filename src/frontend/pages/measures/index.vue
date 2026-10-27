@@ -387,6 +387,7 @@ import { ref, computed, watch } from "vue";
 import sectorImages from "~/shared/sectorImages";
 
 import { singleRouteValue } from "~/shared/routeValues";
+const fetchContent = useContentFetch();
 
 const SECTORS = ["energy", "agriculture", "transport", "industry", "buildings", "management"] as const;
 const { $t, $translateDynamic } = useNuxtApp();
@@ -409,11 +410,11 @@ useHead({ title });
 
 // Public contracts work during SSR and subsequent client navigation.
 const { data: allVersions } = await useAsyncData("measure-catalog-versions", async () =>
-  (await $fetch("/api/public/catalogs")).slice().sort((a, b) => b.name.localeCompare(a.name)),
+  (await fetchContent("/api/public/catalogs")).slice().sort((a, b) => b.name.localeCompare(a.name)),
 );
 const { data: measuresData } = await useAsyncData(
   () => `measures-index-${currentCatalogVersion.value.name}`,
-  () => $fetch("/api/public/measures", { query: { v: currentCatalogVersion.value.name } }),
+  () => fetchContent("/api/public/measures", { query: { v: currentCatalogVersion.value.name } }),
 );
 const measureList = computed(() => measuresData.value?.measures ?? []);
 watch(

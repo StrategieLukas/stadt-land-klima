@@ -85,6 +85,8 @@ import { isRaster } from "~/shared/utils";
 import { relationId, visitDaysAway, visitHasEnded } from "~/shared/tour";
 import { getCatalogVersion } from "~/composables/getCatalogVersion";
 import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
+const fetchContent = useContentFetch();
+
 const { $t } = useNuxtApp();
 
 const route = useRoute();
@@ -93,7 +95,7 @@ if (!slug) throw createError({ statusCode: 404, statusMessage: "Not found" });
 
 // Use server routes — $directus is only available during SSR, not on client
 const { data: articleResult } = await useAsyncData(`article-detail-${slug}`, async () =>
-  $fetch(`/api/public/articles/${slug}`),
+  fetchContent(`/api/public/articles/${slug}`),
 );
 const article = computed(() => articleResult.value?.article ?? null);
 
@@ -103,7 +105,7 @@ if (!article.value) {
 
 // Tour visits for this article
 const { data: tourVisitsResult } = await useAsyncData(`article-tour-visits-${article.value!.id}`, async () =>
-  $fetch("/api/public/article-tour-visits", { query: { articleId: article.value!.id } }),
+  fetchContent("/api/public/article-tour-visits", { query: { articleId: article.value!.id } }),
 );
 const tourVisits = computed(() => tourVisitsResult.value?.visits ?? []);
 
@@ -126,7 +128,7 @@ const { data: municipalityResult } = await useAsyncData(
   `municipality-by-name-${article.value!.municipality_name}`,
   async () => {
     if (!article.value!.municipality_name) return { municipality: null };
-    const result = await $fetch("/api/public/municipality-by-name", {
+    const result = await fetchContent("/api/public/municipality-by-name", {
       query: { name: article.value!.municipality_name },
     });
     return result;

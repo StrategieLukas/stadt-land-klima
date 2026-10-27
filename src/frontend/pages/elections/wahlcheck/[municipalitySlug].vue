@@ -131,6 +131,7 @@ import { checkedWahlcheckState } from "~/shared/contracts/elections";
 import type { z } from "zod";
 import type { WahlcheckSchema } from "~/shared/contracts/elections";
 import type { UserAnswers } from "~/types/components/elections";
+const fetchContent = useContentFetch();
 
 const route = useRoute();
 const { $t } = useNuxtApp();
@@ -355,7 +356,7 @@ async function loadElectionData() {
   errorMessage.value = "";
 
   try {
-    const data = await $fetch(`/api/public/wahlcheck/${municipalitySlug}`);
+    const data = await fetchContent(`/api/public/wahlcheck/${municipalitySlug}`);
 
     electionData.value = {
       ...data,

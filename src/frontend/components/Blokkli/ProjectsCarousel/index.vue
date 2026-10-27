@@ -115,6 +115,7 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { isRaster } from "~/shared/utils";
+const fetchContent = useContentFetch();
 
 const isEditing = import.meta.blokkliEditing;
 
@@ -157,7 +158,7 @@ const { data: projects } = await useAsyncData(
   `projects-carousel-${uuid}`,
   async () => {
     try {
-      const result = await $fetch("/api/public/articles");
+      const result = await fetchContent("/api/public/articles");
       return result.articles.slice(0, parseInt(options.value.limit) || 10);
     } catch {
       return [];

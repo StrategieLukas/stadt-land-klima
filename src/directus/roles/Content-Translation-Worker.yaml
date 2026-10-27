@@ -1,0 +1,6 @@
+name: Content-Translation-Worker
+icon: translate
+description: Private background translation worker. No browser, editor or normal
+  CMS collection access.
+policies:
+  - Content-Translation-Worker

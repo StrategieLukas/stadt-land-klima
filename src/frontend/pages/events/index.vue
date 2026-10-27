@@ -181,6 +181,8 @@ import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 import { formatEventMonth, getEventMonthKey, getEventPhase } from "~/shared/eventDateTime";
+const fetchContent = useContentFetch();
+
 const { $t, $locale } = useNuxtApp();
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
@@ -196,7 +198,7 @@ useHead({ title: computed(() => $t("events.title")) });
 
 const { data: eventsResult } = await useAsyncData("events-list", async () => {
   try {
-    const result = await $fetch("/api/public/events", {
+    const result = await fetchContent("/api/public/events", {
       query: { excludeInternal: "true", limit: "-1", sort: "start_date" },
     });
     return result;

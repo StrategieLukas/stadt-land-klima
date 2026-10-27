@@ -153,6 +153,8 @@ import type { TourMedia } from "~/shared/tourMedia";
 import { STOP_FIELDS, tourHref } from "~/shared/successProjectTour";
 import type { SuccessProjectTourStop, SuccessProjectTour } from "~/shared/successProjectTour";
 import { routeSlug } from "~/shared/routeValues";
+const fetchContent = useContentFetch();
+
 const { $t, $translateDynamic, $locale } = useNuxtApp();
 const route = useRoute();
 const tourSlug = routeSlug(route.params.tourSlug);
@@ -162,11 +164,11 @@ const config = useRuntimeConfig();
 const { initialize, isAuthenticated, getAuthenticatedClient } = useAuth();
 const filter = { slug: { _eq: stopSlug }, tour: { slug: { _eq: tourSlug } } };
 const { data: rows } = await useAsyncData(`tour-stop-${tourSlug}-${stopSlug}`, async () => {
-  const { series } = await $fetch<{ series: SuccessProjectTour | null }>("/api/public/tour-detail", {
+  const { series } = await fetchContent<{ series: SuccessProjectTour | null }>("/api/public/tour-detail", {
     query: { slug: tourSlug },
   });
   if (!series) return [];
-  const { stops } = await $fetch<{ stops: SuccessProjectTourStop[] }>("/api/public/tour-stops-by-tour", {
+  const { stops } = await fetchContent<{ stops: SuccessProjectTourStop[] }>("/api/public/tour-stops-by-tour", {
     query: { tourId: series.id },
   });
   return stops.filter((stop) => stop.slug === route.params.stopSlug);
@@ -186,9 +188,12 @@ const coverCredit = computed(() =>
 const media = computed(() => (reportVisible.value ? orderedMedia(stop.value) : []));
 const { data: links } = await useAsyncData(`tour-stop-projects-${stopSlug}`, () =>
   stop.value
-    ? $fetch<{ articles_id: { id: string; slug: string; title: string } | null }[]>("/api/public/tour-stop-articles", {
-        query: { stopIds: stop.value.id },
-      })
+    ? fetchContent<{ articles_id: { id: string; slug: string; title: string } | null }[]>(
+        "/api/public/tour-stop-articles",
+        {
+          query: { stopIds: stop.value.id },
+        },
+      )
     : Promise.resolve([]),
 );
 const projects = computed(() =>

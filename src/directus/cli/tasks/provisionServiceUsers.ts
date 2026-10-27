@@ -7,10 +7,15 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { CONCEALED_TOKEN, createStoredTokenReader, type StoredTokenReader } from "../security/storedUserToken.ts";
 
-export async function provisionServiceUsers(url: string, adminToken: string, readStoredToken?: StoredTokenReader) {
+export async function provisionServiceUsers(
+  url: string,
+  adminToken: string,
+  readStoredToken?: StoredTokenReader,
+  requestedDefinitions?: readonly { role: string; email: string; lastName: string; variable: string }[],
+) {
   const client = createDirectus<{}>(url).with(staticToken(adminToken)).with(rest());
   // Directus validates IANA top-level domains; reserved .local addresses are rejected.
-  const definitions = [
+  const definitions = requestedDefinitions ?? [
     {
       role: "Frontend-Server",
       email: "frontend-server@stadt-land-klima.de",

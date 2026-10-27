@@ -1,0 +1,40 @@
+collection: content_translation_memory
+field: attempts
+type: integer
+meta:
+  collection: content_translation_memory
+  conditions: null
+  display: null
+  display_options: null
+  field: attempts
+  group: null
+  hidden: true
+  interface: input
+  note: null
+  options: null
+  readonly: true
+  required: true
+  searchable: false
+  sort: 12
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: attempts
+  table: content_translation_memory
+  data_type: integer
+  default_value: 0
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -241,6 +241,8 @@ import type { PropType } from "vue";
 
 import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 import { ref, computed, watch } from "vue";
+const fetchContent = useContentFetch();
+
 type SankeyMunicipality = {
   key: string;
   name: string;
@@ -341,14 +343,14 @@ async function fetchAll() {
     async function fetchRatings(versionId: string) {
       const measureId = vIdToMeasureId[versionId];
       if (!measureId) return [];
-      const result = await $fetch("/api/public/measure-ratings", { query: { measureId } });
+      const result = await fetchContent("/api/public/measure-ratings", { query: { measureId } });
       return result.ratings;
     }
 
     const coverageMunicipalities = new Map<string, CoverageMunicipality>();
     async function fetchCoverageIds(versionId: string) {
       const version = orderedVersions.value.find((version) => version.id === versionId);
-      const { scores } = await $fetch(`/api/public/stats/${encodeURIComponent(version?.label ?? "")}`);
+      const { scores } = await fetchContent(`/api/public/stats/${encodeURIComponent(version?.label ?? "")}`);
       const ids = new Set<string>();
       for (const score of scores.filter(isMunicipalityScoreComplete)) {
         const municipality = score.municipality;
