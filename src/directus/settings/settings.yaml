@@ -50,6 +50,9 @@ module_bar:
     id: users
     enabled: true
   - type: module
+    id: role-invitations
+    enabled: true
+  - type: module
     id: files
     enabled: true
   - type: module

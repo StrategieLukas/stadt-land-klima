@@ -1,0 +1,24 @@
+collection: role_invitation_requests
+meta:
+  accountability: null
+  archive_app_filter: true
+  archive_field: null
+  archive_value: null
+  collapse: closed
+  collection: role_invitation_requests
+  color: null
+  display_template: null
+  group: admin_tools
+  hidden: true
+  icon: person_add
+  item_duplication_fields: null
+  note: Private rolling invitation rate limits. No browser or editor access.
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: null
+  translations: null
+  unarchive_value: null
+  versioning: false
+schema:
+  name: role_invitation_requests
