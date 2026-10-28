@@ -208,6 +208,7 @@ import { ref, onMounted } from "vue";
 
 import type { z } from "zod";
 import type { PublicElectionListSchema } from "~/shared/contracts/elections";
+const fetchContent = useContentFetch();
 
 const { $t, $locale } = useNuxtApp();
 const publicElections = ref<z.output<typeof PublicElectionListSchema>[]>([]);
@@ -237,7 +238,7 @@ async function loadElections() {
   errorMessage.value = "";
 
   try {
-    const elections = await $fetch("/api/public/wahlcheck");
+    const elections = await fetchContent("/api/public/wahlcheck");
 
     if (!elections || elections.length === 0) {
       publicElections.value = [];

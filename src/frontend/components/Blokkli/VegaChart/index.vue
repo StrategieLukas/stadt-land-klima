@@ -91,6 +91,8 @@ import { ref, computed, watch, onMounted, nextTick, unref } from "vue";
 
 import { INJECT_PROVIDER_CONTEXT } from "#blokkli/helpers/injections";
 import { defaultVegaQuery as defaultQuery } from "~/shared/vegaQuery";
+const fetchContent = useContentFetch();
+
 const querySchema = z.object({
   collection: z.string().optional(),
   method: z.string().optional(),
@@ -364,7 +366,7 @@ async function fetchQueryData(input: unknown, source: string): Promise<Visualiza
                 import("@directus/sdk").Query<Record<string, Record<string, unknown>[]>, Record<string, unknown>>
               >(queryConfig.collection, typeof queryConfig.query === "object" ? queryConfig.query : {}),
             )
-          : await $fetch(`/api/public/chart-data/${encodeURIComponent(uuid)}`, {
+          : await fetchContent(`/api/public/chart-data/${encodeURIComponent(uuid)}`, {
               query: { entityType: publicContext?.value.type, entityUuid: publicContext?.value.uuid },
             });
       const data = Array.isArray(result) ? result : [result];

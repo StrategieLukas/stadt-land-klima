@@ -39,6 +39,7 @@ import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publish
 const debounce = lodash.debounce.bind(lodash);
 
 export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersionName?: MaybeRef<string | null> } = {}) {
+  const fetchContent = useContentFetch();
   const { $t } = useNuxtApp();
 
   const catalogRef = isRef(catalogVersionName) ? catalogVersionName : ref(catalogVersionName);
@@ -228,12 +229,12 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
         ),
 
         // 2. Published municipalities matched by name via server route
-        $fetch("/api/public/municipalities", {
+        fetchContent("/api/public/municipalities", {
           query: { search: term.trim(), limit: 8, sort: "name" },
         }).then((res) => MunicipalitiesResponseSchema.parse(res).municipalities),
 
         // 3. Meilisearch content
-        $fetch(`/api/content-search?q=${encodeURIComponent(term.trim())}`),
+        fetchContent(`/api/content-search?q=${encodeURIComponent(term.trim())}`),
       ]);
 
       // Build a localteam map from the Directus name-search result
@@ -249,7 +250,7 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
         .map((n) => n.ars);
       if (uncoveredArs.length > 0) {
         try {
-          const result = await $fetch("/api/public/area-municipalities", {
+          const result = await fetchContent("/api/public/area-municipalities", {
             query: { ars: uncoveredArs.join(",") },
           });
           MunicipalitiesResponseSchema.parse(result).municipalities.forEach((r) => {

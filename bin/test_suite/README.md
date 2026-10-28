@@ -43,7 +43,22 @@ npm run test:unit
 npm run test:public -- https://staging.stadt-land-klima.de
 ```
 
+The manual staging operator command `npm run sample:content-translation -- --help` plans
+at most a few published navigation titles. It defaults to dry-run; `--apply` runs a bounded
+real-provider preparation only with automatic generation disabled. It does not run the
+writable CMS fixture suite. See [the staging sample procedure](../../DYNAMIC_CONTENT_TRANSLATION.md#local-off-and-staging-sample-mode).
+
 `npm run test:boundaries` runs Phase 7 editor/visualization checks: all bundle/prop registrations, malformed/cyclic/duplicate block trees, draft history, actual adapter mutation/recovery/identity handling, supported native/compiled Vega interpreter execution, runtime loader URL/credential policy, MapLibre style/geometry validation and actual map-constructor/error branches. These tests need no services or GPU. `phase7.types.ts` adds negative compiler checks against actual installed Blökkli declarations. The default isolated suite includes all of these cases.
+
+CMS translation checks have three profiles. `npm run test:content-translation` runs the
+isolated field, format, provider-contract and economical worker tests without services.
+`npm run test:content-translation:database` requires the imported local Directus/frontend
+and checks actual PostgreSQL transactions, concurrency, budgets, private roles and public
+source enumeration. `npm run test:content-translation:reader` starts its own Nuxt server
+with both DeepL key variables forced empty, then checks persisted EN/IT overlays, SSR,
+restart/revert reuse and publication revocation. Stop other Nuxt dev processes before that
+last profile because they share `.nuxt`. Run these service profiles serially; they clean up
+their fixtures and never call DeepL. See [setup and coverage](../../DYNAMIC_CONTENT_TRANSLATION.md).
 
 `npm run test:pages` runs the focused Phase 6 contracts in `src/phase6.test.ts`: route/query values, page/template-check coverage, projection/privacy, submission/PDF/newsletter validation, candidate answer ownership, nullable statistics, SLZ metadata, search filtering/sanitization, signed CAPTCHA metadata/replay and municipality project filters. The fast public-navigation flow also solves a challenge with the actual installed ALTCHA web component, checks draft news/series filtering and exercises native chart navigation. `test:unit` needs no running services. Phase 4 cases in `src/phase4.test.ts` check translation generation and real compiler key rejection, session validation/SSR isolation/auth races, malformed external replies, pagination cycles, cache retries and late search responses. It runs actual handlers, helpers, the adapter,
 and Vue search reactivity with transport boundaries replaced. Stadt.Land.Zahl

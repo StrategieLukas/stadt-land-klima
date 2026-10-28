@@ -9,13 +9,15 @@
 </template>
 <script setup lang="ts">
 import { routeSlug } from "~/shared/routeValues";
+const fetchContent = useContentFetch();
+
 const { $t } = useNuxtApp();
 const route = useRoute();
 const slug = routeSlug(route.params.slug);
 if (!slug) throw createError({ statusCode: 404, statusMessage: "Not found" });
 const legacyRedirected = await useLegacyTourRedirect("tour", slug);
 const { data: seriesData } = await useAsyncData(`ordinary-event-series-${slug}`, () =>
-  $fetch(`/api/public/event-series/${encodeURIComponent(slug)}`),
+  fetchContent(`/api/public/event-series/${encodeURIComponent(slug)}`),
 );
 const series = computed(() => seriesData.value?.series);
 if (!series.value && !legacyRedirected)

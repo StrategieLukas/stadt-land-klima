@@ -15,6 +15,8 @@ import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
 import { TOUR_REPORT_MEDIA, type SuccessProjectTourStop } from "~/shared/successProjectTour";
 import { relationId } from "~/shared/tour";
+const fetchContent = useContentFetch();
+
 const props = defineProps<{ stop: SuccessProjectTourStop; canEdit: boolean; editorPreview?: boolean | undefined }>();
 provide(
   TOUR_REPORT_MEDIA,
@@ -32,7 +34,7 @@ const { data } = await useAsyncData(
   getBlokkliDataKey("success_project_tour_stops", props.stop.id),
   async () => {
     if (!import.meta.client || !props.canEdit) {
-      const result = await $fetch("/api/public/blocks", {
+      const result = await fetchContent("/api/public/blocks", {
         query: { entityType: "success_project_tour_stops", entityUuid: props.stop.id, fieldName: "content" },
       });
       return mapBlokkliBlocks(result.blocks);

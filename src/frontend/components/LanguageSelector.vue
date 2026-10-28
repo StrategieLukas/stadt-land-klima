@@ -23,11 +23,14 @@
 
 <script setup lang="ts">
 import { Icon, addIcon } from "@iconify/vue";
+import { nextTick } from "vue";
+import type { Locale } from "~/shared/i18n";
+import type { TranslationKey } from "~/shared/translationKeys";
 
 type LanguageOption = {
   icon: string;
-  labelKey: string;
-  locale: string;
+  labelKey: TranslationKey;
+  locale: Locale;
   shortLabel: string;
 };
 
@@ -82,17 +85,14 @@ const themeClasses = computed(() => {
   };
 });
 
-const localeCookie = useCookie<string>("slk_locale", {
+const localeCookie = useCookie<Locale>("slk_locale", {
   maxAge: 60 * 60 * 24 * 365,
   sameSite: "lax",
 });
-const { $locale, $t } = useNuxtApp() as unknown as {
-  $locale: string;
-  $t: (key: string) => string;
-};
+const { $locale, $t } = useNuxtApp();
 const selectedLocale = ref(languages.some((language) => language.locale === $locale) ? $locale : "de-DE");
 
-function changeLanguage(locale: string) {
+async function changeLanguage(locale: Locale) {
   if (locale === $locale) {
     return;
   }
@@ -101,6 +101,8 @@ function changeLanguage(locale: string) {
   localeCookie.value = locale;
 
   if (import.meta.client) {
+    // useCookie persists through a Vue watcher; flush it before the next SSR request.
+    await nextTick();
     window.location.reload();
   }
 }

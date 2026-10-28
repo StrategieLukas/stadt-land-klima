@@ -1078,6 +1078,7 @@ export const translationKeys = [
   "tour.visit_today",
   "tour.visit_tomorrow",
   "tour.what_is_project",
-  "tour.whole_route"
+  "tour.whole_route",
+  "translation.machine_notice"
 ] as const;
 export type TranslationKey = (typeof translationKeys)[number];

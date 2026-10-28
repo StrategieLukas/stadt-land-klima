@@ -1,6 +1,7 @@
 import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { CatalogSchema, type Catalog } from "~/shared/contracts/search";
+import { CONTENT_LOCALE_QUERY } from "~/shared/contentTranslation";
 import {
   MunicipalityIdentitySchema,
   MunicipalityDetailSchema,
@@ -271,9 +272,11 @@ export async function municipalityPageHandler(event: H3Event, preview: boolean) 
   setResponseHeader(event, "Cache-Control", "private, no-store");
   const slug = getRouterParam(event, "slug") ?? "";
   const query = getQuery(event);
+  const contentLocale = query[CONTENT_LOCALE_QUERY];
   if (
     !/^[a-z0-9-]{1,160}$/.test(slug) ||
-    Object.keys(query).some((key) => key !== "v") ||
+    Object.keys(query).some((key) => key !== "v" && (preview || key !== CONTENT_LOCALE_QUERY)) ||
+    (contentLocale !== undefined && (typeof contentLocale !== "string" || contentLocale.length > 64)) ||
     (query.v !== undefined && (typeof query.v !== "string" || query.v.length > 100))
   ) {
     throw createError({ statusCode: 400, statusMessage: "Invalid municipality request" });

@@ -37,6 +37,8 @@ import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
 import { routeSlug } from "~/shared/routeValues";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const fetchContent = useContentFetch();
+
 const { $t } = useNuxtApp();
 const config = useRuntimeConfig();
 const { isAuthenticated, initialize } = useAuth();
@@ -54,7 +56,7 @@ if (!slug) throw createError({ statusCode: 404, statusMessage: "Page not found" 
 
 // Fetch page by slug
 const { data: pageResult } = await useAsyncData(`page-${slug}`, () => {
-  return $fetch(`/api/public/pages/${encodeURIComponent(slug)}`);
+  return fetchContent(`/api/public/pages/${encodeURIComponent(slug)}`);
 });
 const page = computed(() => pageResult.value?.page || null);
 
@@ -71,7 +73,7 @@ const { data: blocksData } = await useAsyncData(
   async () => {
     if (!page.value) return [];
     try {
-      const result = await $fetch("/api/public/blocks", {
+      const result = await fetchContent("/api/public/blocks", {
         query: { entityUuid: page.value.id, entityType: "pages", fieldName: "content" },
       });
       return mapBlokkliBlocks(result.blocks || []);

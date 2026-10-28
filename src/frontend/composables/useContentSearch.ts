@@ -3,6 +3,7 @@ import lodash from "lodash";
 const debounce = lodash.debounce.bind(lodash);
 
 export function useContentSearch() {
+  const fetchContent = useContentFetch();
   const results = ref<ContentHit[]>([]);
   const isLoading = ref(false);
   let searchGeneration = 0;
@@ -16,7 +17,7 @@ export function useContentSearch() {
     }
     isLoading.value = true;
     try {
-      const data = await $fetch(`/api/content-search?q=${encodeURIComponent(q.trim())}`);
+      const data = await fetchContent(`/api/content-search?q=${encodeURIComponent(q.trim())}`);
       if (generation !== searchGeneration) return;
       results.value = ContentResponseSchema.parse(data).hits;
     } catch {

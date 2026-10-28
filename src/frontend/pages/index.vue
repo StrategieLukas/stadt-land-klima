@@ -33,6 +33,8 @@ import { clientFailure } from "~/shared/securityLog";
 import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const fetchContent = useContentFetch();
+
 const { $t } = useNuxtApp();
 const { isAuthenticated, initialize } = useAuth();
 useBlockHashNavigation();
@@ -45,7 +47,7 @@ onMounted(() => {
 });
 
 const { data: indexPageResult } = await useAsyncData("indexPage", () => {
-  return $fetch("/api/public/pages/index");
+  return fetchContent("/api/public/pages/index");
 });
 const page = computed(() => indexPageResult.value?.page || null);
 
@@ -57,7 +59,7 @@ const { data: blocksData } = await useAsyncData(
   async () => {
     if (!page.value) return [];
     try {
-      const result = await $fetch("/api/public/blocks", {
+      const result = await fetchContent("/api/public/blocks", {
         query: { entityUuid: page.value.id, bundle: "page" },
       });
       return mapBlokkliBlocks(result.blocks || []);

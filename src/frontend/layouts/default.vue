@@ -38,6 +38,9 @@
         <!-- Main Content -->
         <main class="flex min-w-0 grow flex-col bg-mild-white px-2">
           <div class="mx-auto flex w-full max-w-(--breakpoint-xl) min-w-0 flex-col">
+            <p v-if="showMachineTranslationNotice" class="my-3 alert text-sm alert-info" role="note">
+              {{ $t("translation.machine_notice") }}
+            </p>
             <slot />
           </div>
         </main>
@@ -100,9 +103,19 @@ import { SiteLayoutSchema } from "~/shared/contracts/navigation";
 import type { NuxtApp } from "#app";
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import { useHeaderSpacerHeight } from "~/composables/useHeaderHeight";
+const fetchContent = useContentFetch();
 
 const { $locale } = useNuxtApp();
 const analyticsRoute = useRoute();
+const machineTranslations = useState("slk-machine-translations", () => false);
+const showMachineTranslationNotice = computed(
+  () =>
+    machineTranslations.value &&
+    $locale !== "de-DE" &&
+    !/^\/(?:backend|previews|auth|api|elections\/thesen)(?:\/|$)/.test(analyticsRoute.path) &&
+    !analyticsRoute.query.preview &&
+    !analyticsRoute.query.preview_token,
+);
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 
 const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();
@@ -198,7 +211,7 @@ onUnmounted(() => {
 
 // getCachedData: serve from SSR payload on client-side navigations instead of
 // re-fetching Directus on every page change. These datasets change rarely.
-const fetchLayout = () => $fetch("/api/public/site-layout");
+const fetchLayout = () => fetchContent("/api/public/site-layout");
 const pageInMenu = (page: Record<string, unknown>, menu: string) =>
   Array.isArray(page.menus) && (page.menus as unknown[]).includes(menu);
 const cachedPayload = (key: string, nuxtApp: NuxtApp) => {

@@ -68,6 +68,8 @@ import { isRaster } from "~/shared/utils";
 import { relationId } from "~/shared/tour";
 import { formatEventDateTimeRange } from "~/shared/eventDateTime";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const fetchContent = useContentFetch();
+
 const { $t, $translateDynamic, $locale } = useNuxtApp();
 const route = useRoute();
 const slug = routeSlug(route.params.slug);
@@ -75,7 +77,7 @@ if (!slug) throw createError({ statusCode: 404, statusMessage: "Not found" });
 const { backHref, backLabel } = useReferrer("/events", $t("events.title"));
 const legacyRedirected = await useLegacyTourRedirect("stop", slug);
 const { data: eventData } = await useAsyncData(`event-${slug}`, () =>
-  $fetch(`/api/public/events/${encodeURIComponent(slug)}`),
+  fetchContent(`/api/public/events/${encodeURIComponent(slug)}`),
 );
 const event = computed(() => eventData.value?.event);
 if (!event.value && !legacyRedirected)

@@ -101,7 +101,7 @@ test("every maintained Directus extension has a strict source-complete compiler 
       sources++;
     }
   }
-  assert.equal(packages, 15);
+  assert.equal(packages, 16);
   assert.ok(sources >= 62);
 });
 

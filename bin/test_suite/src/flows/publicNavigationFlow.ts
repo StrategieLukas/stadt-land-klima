@@ -743,19 +743,21 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         "Organisation teams endpoint must return CMS teams",
       );
       // Exercise mounted CMS team labels/tasks without overwriting a shared real team.
-      await page.route("**/api/public/organisation-teams", (route) =>
-        route.fulfill({
-          json: [
-            ...teams.filter((team: { team_key: string }) => team.team_key !== "lokalteams"),
-            {
-              team_key: "lokalteams",
-              label: `Public team ${config.runId}`,
-              email: "public@example.org",
-              tasks: ["Public team regression task"],
-              color: "#505050",
-            },
-          ],
-        }),
+      await page.route(
+        (url) => url.pathname === "/api/public/organisation-teams",
+        (route) =>
+          route.fulfill({
+            json: [
+              ...teams.filter((team: { team_key: string }) => team.team_key !== "lokalteams"),
+              {
+                team_key: "lokalteams",
+                label: `Public team ${config.runId}`,
+                email: "public@example.org",
+                tasks: ["Public team regression task"],
+                color: "#505050",
+              },
+            ],
+          }),
       );
       await page.goto(`${config.frontendUrl}/tools`, { waitUntil: "domcontentloaded" });
       await waitForHydration(page);
@@ -778,34 +780,36 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       );
       // The cloud reads the global frontend catalog. Supply a deterministic public
       // contract without changing global CMS catalog flags or depending on seed data.
-      await page.route(`**/api/public/stats/${encodeURIComponent(current.name)}`, (route) =>
-        route.fulfill({
-          json: {
-            scores: [
-              ...Array.from({ length: 12 }, (_, index) => ({
-                published: true,
-                percentage_rated: 100,
-                score_total: 75,
-                municipality: {
-                  id: `cloud-${index}`,
-                  name: `Public cloud ${index}`,
-                  slug: fixture.municipality.slug,
-                  population: 100000,
+      await page.route(
+        (url) => url.pathname === `/api/public/stats/${encodeURIComponent(current.name)}`,
+        (route) =>
+          route.fulfill({
+            json: {
+              scores: [
+                ...Array.from({ length: 12 }, (_, index) => ({
+                  published: true,
+                  percentage_rated: 100,
+                  score_total: 75,
+                  municipality: {
+                    id: `cloud-${index}`,
+                    name: `Public cloud ${index}`,
+                    slug: fixture.municipality.slug,
+                    population: 100000,
+                  },
+                })),
+                {
+                  published: false,
+                  percentage_rated: 100,
+                  municipality: { id: "private", name: hidden, slug: "private" },
                 },
-              })),
-              {
-                published: false,
-                percentage_rated: 100,
-                municipality: { id: "private", name: hidden, slug: "private" },
-              },
-              {
-                published: true,
-                percentage_rated: 50,
-                municipality: { id: "incomplete", name: hidden, slug: "incomplete" },
-              },
-            ],
-          },
-        }),
+                {
+                  published: true,
+                  percentage_rated: 50,
+                  municipality: { id: "incomplete", name: hidden, slug: "incomplete" },
+                },
+              ],
+            },
+          }),
       );
       await page.evaluate(() => {
         (window as unknown as Record<string, unknown>).publicNavigationMarker = true;

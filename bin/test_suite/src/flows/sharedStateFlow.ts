@@ -18,7 +18,9 @@ export async function runSharedStateFlow(runner: TestRunner, frontendUrl: string
             if (locale === "it-IT") await context.addCookies([{ name: "slk_locale", value: locale, url: frontendUrl }]);
             const page = await context.newPage();
             const errors = collectPublicPageErrors(page);
-            const response = await page.goto(`${frontendUrl}/tools`, { waitUntil: "domcontentloaded" });
+            const response = await page.goto(`${frontendUrl}/tools?language-check=1#language-check`, {
+              waitUntil: "domcontentloaded",
+            });
             if (!response) throw new Error(`${locale}: navigation returned no response`);
             assert(response.ok(), `${locale}: public SSR returns 200`);
             assert(
@@ -61,6 +63,30 @@ export async function runSharedStateFlow(runner: TestRunner, frontendUrl: string
             await page.locator('[role="dialog"]:visible').waitFor();
             await page.keyboard.press("Escape");
             await page.locator('[role="dialog"]:visible').waitFor({ state: "hidden" });
+            const nextLanguage =
+              locale === "de-DE"
+                ? { locale: "en-GB", label: "EN" }
+                : locale === "en-GB"
+                  ? { locale: "it-IT", label: "IT" }
+                  : { locale: "de-DE", label: "DE" };
+            const previousUrl = page.url();
+            await page.locator(".settings-trigger:visible").first().click();
+            const [reload] = await Promise.all([
+              page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+              page.locator('header [role="group"]:visible button').filter({ hasText: nextLanguage.label }).click(),
+            ]);
+            await waitForHydration(page);
+            const actualLocale = await page.locator("html").getAttribute("lang");
+            const savedLocale = (await context.cookies()).find((cookie) => cookie.name === "slk_locale")?.value;
+            const requestLocale = /(?:^|;\s*)slk_locale=([^;]*)/.exec(
+              (await reload?.request().headerValue("cookie")) ?? "",
+            )?.[1];
+            assert(
+              actualLocale === nextLanguage.locale,
+              `${locale}: selector reloads into ${nextLanguage.locale} (HTML=${actualLocale}, saved=${savedLocale}, request=${requestLocale})`,
+            );
+            assert(page.url() === previousUrl, `${locale}: switching preserves the route, query and fragment`);
+            assert(savedLocale === nextLanguage.locale, `${locale}: selector persists the chosen locale`);
             assert(
               errors.length === 0,
               `${locale}: no public request, runtime or hydration errors: ${errors.join("; ")}`,

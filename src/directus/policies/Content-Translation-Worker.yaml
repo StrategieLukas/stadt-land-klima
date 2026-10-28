@@ -1,0 +1,8 @@
+name: Content-Translation-Worker
+icon: translate
+description: Private identity accepted only by the bounded content-translations
+  persistence endpoint.
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions: []

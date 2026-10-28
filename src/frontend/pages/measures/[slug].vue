@@ -201,6 +201,8 @@ import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 import { routeSlug } from "~/shared/routeValues";
+const fetchContent = useContentFetch();
+
 const { $t, $translateDynamic } = useNuxtApp();
 const route = useRoute();
 const slug = routeSlug(route.params.slug);
@@ -255,7 +257,7 @@ onUnmounted(() => {
 const { data: measureData } = await useAsyncData(
   () => `measure-${slug}-${currentCatalogVersion.value.id}`,
   () =>
-    $fetch(`/api/public/measures/${encodeURIComponent(slug!)}`, {
+    fetchContent(`/api/public/measures/${encodeURIComponent(slug!)}`, {
       query: { v: currentCatalogVersion.value.name },
     }),
 );
@@ -351,7 +353,7 @@ const { data: measureRatings } = await useAsyncData(
   () => `measure-ratings-${measure.value?.id ?? "none"}`,
   () => {
     if (!measure.value?.id) return Promise.resolve([]);
-    return $fetch("/api/public/measure-ratings", { query: { measureId: measure.value.id } }).then(
+    return fetchContent("/api/public/measure-ratings", { query: { measureId: measure.value.id } }).then(
       (result) => result.ratings,
     );
   },
@@ -362,7 +364,7 @@ const { data: measureRatings } = await useAsyncData(
 const { data: siblingMeasuresRaw } = await useAsyncData(
   () => `measure-siblings-${slug}-${currentCatalogVersion.value.id}`,
   async () => {
-    const result = await $fetch("/api/public/measures", {
+    const result = await fetchContent("/api/public/measures", {
       query: { v: currentCatalogVersion.value.name, sector: measure.value?.sector ?? undefined },
     });
     return result;

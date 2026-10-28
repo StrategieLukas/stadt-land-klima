@@ -510,6 +510,7 @@
 import { ref, onMounted, computed, nextTick, watch } from "vue";
 import lodash from "lodash";
 import { isRaster } from "~/shared/utils";
+const fetchContent = useContentFetch();
 
 const majorCitySelected = "/icons/major-city-light.svg";
 const majorCityNotSelected = "/icons/major-city-dark.svg";
@@ -570,7 +571,7 @@ onMounted(() => {
 // Share the complete public score projection with the map and statistics pages.
 const { data: rankingData } = await useAsyncData(
   () => `municipalities_ranking_scores_${selectedCatalogVersion.value.name}`,
-  () => $fetch(`/api/public/stats/${encodeURIComponent(selectedCatalogVersion.value.name)}`),
+  () => fetchContent(`/api/public/stats/${encodeURIComponent(selectedCatalogVersion.value.name)}`),
 );
 const municipalityScores = computed(() =>
   (rankingData.value?.scores ?? [])
@@ -580,7 +581,7 @@ const municipalityScores = computed(() =>
 );
 
 const { data: projects } = await useAsyncData("articles_ranking", async () => {
-  const result = await $fetch("/api/public/articles", { query: { limit: 100, sort: "-date_created" } });
+  const result = await fetchContent("/api/public/articles", { query: { limit: 100, sort: "-date_created" } });
   return result.articles || [];
 });
 

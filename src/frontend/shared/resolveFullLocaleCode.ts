@@ -15,7 +15,7 @@ function normalizeLocale(locale: unknown): Locale | null {
   const code = locale.trim().toLowerCase();
   const language = code.split("-")[0];
 
-  return shorthands[language ?? ""] || null;
+  return language && Object.hasOwn(shorthands, language) ? shorthands[language]! : null;
 }
 
 function parseAcceptLanguageHeader(header: unknown): string[] {

@@ -13,6 +13,7 @@ export default defineNuxtPlugin(async () => {
   );
   useHead({ htmlAttrs: { lang: locale } });
   useState("slk-locale", () => locale).value = locale;
+  useState("slk-machine-translations", () => config.contentTranslationEnabled).value = config.contentTranslationEnabled;
   const directus = createDirectus(serviceBaseUrl(config.directusServerUrl, "http://directus:8055"))
     .with(rest())
     .with(staticToken(config.directusFrontendServerToken));

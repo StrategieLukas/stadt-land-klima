@@ -42,6 +42,7 @@ function load(path: string, dependencies: Row = {}, globals: Row = {}, client = 
     module,
     exports: module.exports,
     console: { warn() {}, error() {}, log() {} },
+    useContentFetch: () => globals.$fetch,
     require: (id: string) => {
       const logging = loggingModule(id);
       if (logging && !(id in dependencies)) return logging;
@@ -91,7 +92,9 @@ test("locale resolution supports all three languages, weighted headers, invalid 
     ["it;q=2, en;q=0.9", "en-GB"],
   ] as const)
     assert.equal(resolveLocale(input), expected);
-  for (const input of [null, [], {}, "unsupported"]) assert.equal(resolveLocale(input), "de-DE");
+  for (const input of [null, [], {}, "unsupported", "constructor", "__proto__", "toString", "hasOwnProperty"])
+    assert.equal(resolveLocale(input), "de-DE");
+  assert.equal(resolveLocale("constructor;q=1, it;q=0.8"), "it-IT");
 });
 
 test("translation placeholders, CMS dynamic keys, missing/empty fallbacks and prototype-like keys remain safe", () => {

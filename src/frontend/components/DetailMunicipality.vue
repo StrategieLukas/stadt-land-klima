@@ -387,6 +387,7 @@ import MarkdownIt from "markdown-it";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 
 import { isRaster, formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
+const fetchContent = useContentFetch();
 
 const md = new MarkdownIt({
   html: false, // XSS safety
@@ -445,7 +446,7 @@ async function fetchMunicipalityProjects() {
 
   loadingProjects.value = true;
   try {
-    const { articles } = await $fetch("/api/public/articles", {
+    const { articles } = await fetchContent("/api/public/articles", {
       query: { municipality: municipality.name, limit: 5, sort: "-date_created" },
     });
     municipalityProjects.value = articles.map((article) => ({

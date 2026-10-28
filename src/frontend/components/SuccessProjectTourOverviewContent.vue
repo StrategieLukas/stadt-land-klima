@@ -16,6 +16,7 @@ import { customEndpoint, readItems } from "@directus/sdk";
 import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
 import type { SuccessProjectTour } from "~/shared/successProjectTour";
+const fetchContent = useContentFetch();
 
 const props = defineProps<{ tour: SuccessProjectTour }>();
 const { initialize, isAuthenticated, getAuthenticatedClient } = useAuth();
@@ -26,7 +27,7 @@ const { data } = await useAsyncData(
   getBlokkliDataKey("success_project_tours", props.tour.id),
   async () => {
     if (!import.meta.client || !canEdit.value) {
-      const result = await $fetch("/api/public/blocks", {
+      const result = await fetchContent("/api/public/blocks", {
         query: { entityType: "success_project_tours", entityUuid: props.tour.id, fieldName: "content" },
       });
       return mapBlokkliBlocks(result.blocks);

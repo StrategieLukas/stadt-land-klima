@@ -3,6 +3,8 @@ import { ref } from "vue";
 import { routeSlug } from "~/shared/routeValues";
 import type { z } from "zod";
 import type { MunicipalityPageSchema } from "~/shared/contracts/municipality";
+const fetchContent = useContentFetch();
+
 const route = useRoute();
 const slug = routeSlug(route.params.slug);
 if (!slug) throw createError({ statusCode: 404, statusMessage: "Municipality not found" });
@@ -20,7 +22,7 @@ const directusData = ref<
 >(null);
 const results = await Promise.all(
   catalogs.map((catalog) =>
-    $fetch(`/api/public/municipalities/${encodeURIComponent(slug)}`, { query: { v: catalog.name } }),
+    fetchContent(`/api/public/municipalities/${encodeURIComponent(slug)}`, { query: { v: catalog.name } }),
   ),
 );
 const municipalityMissing = results.every((result) => !result.municipality);

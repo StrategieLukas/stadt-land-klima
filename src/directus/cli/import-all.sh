@@ -14,6 +14,10 @@ npm --prefix "$SCRIPT_DIR" run typecheck
 # Use the new import:all command which clears cache once and imports sequentially
 "$SCRIPT_DIR/index.mjs" -f -r import:all
 
+# Triggers are not part of the Directus YAML format. Install their maintained
+# TypeScript definition only after the private outbox tables exist.
+"$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/installTranslationOutbox.ts"
+
 # Directus bootstrap can run migrations before newly declared collections exist.
 # Seed content after the schema import so fresh and existing databases both work.
 "$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/seedTourOst2026.ts"

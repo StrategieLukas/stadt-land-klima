@@ -83,12 +83,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { JobType } from "~/shared/contracts/jobs";
+const fetchContent = useContentFetch();
 
 const { $t } = useNuxtApp();
 
 useHead({ title: $t("jobs.title") });
 
-const { data: jobsData } = await useAsyncData("jobs-list", () => $fetch("/api/public/jobs"));
+const { data: jobsData } = await useAsyncData("jobs-list", () => fetchContent("/api/public/jobs"));
 
 const jobs = computed(() => jobsData.value?.jobs ?? []);
 

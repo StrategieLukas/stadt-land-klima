@@ -1,0 +1,41 @@
+collection: content_translation_usage
+field: id
+type: string
+meta:
+  collection: content_translation_usage
+  conditions: null
+  display: null
+  display_options: null
+  field: id
+  group: null
+  hidden: true
+  interface: input
+  note: null
+  options:
+    trim: true
+  readonly: true
+  required: true
+  searchable: false
+  sort: 1
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: id
+  table: content_translation_usage
+  data_type: character varying
+  default_value: null
+  max_length: 64
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: true
+  is_indexed: false
+  is_primary_key: true
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

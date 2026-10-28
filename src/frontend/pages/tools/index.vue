@@ -163,6 +163,7 @@ import { computed, ref } from "vue";
 import { isRaster } from "~/shared/utils";
 
 import type { ClimateTool } from "~/shared/contracts/content";
+const fetchContent = useContentFetch();
 
 const { $t } = useNuxtApp();
 
@@ -174,7 +175,7 @@ const {
   data: toolData,
   pending,
   error,
-} = await useAsyncData("climate-tools-list", () => $fetch("/api/public/climate-tools"));
+} = await useAsyncData("climate-tools-list", () => fetchContent("/api/public/climate-tools"));
 const tools = computed(() => toolData.value?.tools ?? []);
 
 const hasLoadError = computed(() => Boolean(error.value));

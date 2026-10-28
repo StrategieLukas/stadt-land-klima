@@ -356,6 +356,7 @@ import { isRaster } from "~/shared/utils";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const fetchContent = useContentFetch();
 
 type Project = { id: number; slug: string; title: string; profile_stage?: string | null | undefined };
 type Stop = SuccessProjectTourStop;
@@ -371,7 +372,7 @@ const isDesktop = useState<boolean>("layout-isDesktop");
 
 // Use server routes — $directus is only available during SSR, not on client
 const { data: seriesResult } = await useAsyncData(`tour-${slug}`, async () =>
-  $fetch("/api/public/tour-detail", { query: { slug } }),
+  fetchContent("/api/public/tour-detail", { query: { slug } }),
 );
 const series = computed<Series | null>(() => seriesResult.value?.series ?? null);
 if (!series.value) throw createError({ statusCode: 404, statusMessage: $t("page_not_found"), fatal: true });
@@ -379,7 +380,7 @@ const sanitizedIntroduction = computed(() => sanitizeHtml(series.value?.introduc
 const sanitizedClosingReflection = computed(() => sanitizeHtml(series.value?.closing_reflection));
 
 const { data: stopsResult } = await useAsyncData(`tour-stops-${series.value.id}`, async () =>
-  $fetch("/api/public/tour-stops-by-tour", { query: { tourId: series.value!.id } }),
+  fetchContent("/api/public/tour-stops-by-tour", { query: { tourId: series.value!.id } }),
 );
 const stops = computed<Stop[]>(() =>
   [...(stopsResult.value?.stops ?? [])].sort(
@@ -393,7 +394,7 @@ const stopIds = stops.value.map((stop) => stop.id);
 
 const { data: projectLinks } = await useAsyncData(`tour-projects-${series.value.id}`, async () => {
   if (!stopIds.length) return [];
-  return $fetch("/api/public/tour-stop-articles", { query: { stopIds: stopIds.join(",") } });
+  return fetchContent("/api/public/tour-stop-articles", { query: { stopIds: stopIds.join(",") } });
 });
 
 const projectsByStop = computed(() => {

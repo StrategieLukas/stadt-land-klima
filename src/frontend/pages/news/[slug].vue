@@ -207,6 +207,8 @@ import { requestErrorMessage } from "~/shared/requestError";
 import type { z } from "zod";
 import type { NewsDetailSchema } from "~/shared/contracts/content";
 import { isRaster } from "~/shared/utils";
+const fetchContent = useContentFetch();
+
 const { $t, $locale } = useNuxtApp();
 const { backHref, backLabel } = useReferrer("/news", $t("news.back_to_overview"));
 
@@ -220,7 +222,9 @@ const slug = routeSlug(route.params.slug);
 if (!slug) throw createError({ statusCode: 404, statusMessage: "Not found" });
 
 // Use server route — $directus is only available during SSR, not on client
-const { data: newsResult } = await useAsyncData(`news-item-${slug}`, async () => $fetch(`/api/public/news/${slug}`));
+const { data: newsResult } = await useAsyncData(`news-item-${slug}`, async () =>
+  fetchContent(`/api/public/news/${slug}`),
+);
 // Draft metadata stays in a browser-local ref, outside serialized/cached Nuxt data.
 const editorItem = shallowRef<z.output<typeof NewsDetailSchema> | null>(null);
 const item = computed(() => editorItem.value ?? newsResult.value?.item ?? null);
@@ -267,7 +271,7 @@ const { data: blocksData } = await useAsyncData(
   async () => {
     if (!item.value) return [];
     try {
-      const result = await $fetch("/api/public/blocks", {
+      const result = await fetchContent("/api/public/blocks", {
         query: {
           entityType: "news_items",
           entityUuid: item.value.id,
