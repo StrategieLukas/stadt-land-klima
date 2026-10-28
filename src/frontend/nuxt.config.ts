@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
+import { resolveSiteOrigin } from "./shared/serviceUrl";
 import { staticIconStyleHashes } from "./scripts/securityStyles.mts";
 
 const publicCmsOrigins = (() => {
@@ -161,6 +162,7 @@ export default defineNuxtConfig({
     cartoBasemapApiKey: process.env.CARTO_BASEMAP_API_KEY ?? "",
     // Keys within public, will be also exposed to the client-side
     public: {
+      siteUrl: resolveSiteOrigin(process.env.PUBLIC_URL),
       // Browser Directus tokens removed — all content data is served through Nuxt server routes.
       // The Frontend-Public policy is limited to directus_files/directus_folders read only.
       clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL ?? "",

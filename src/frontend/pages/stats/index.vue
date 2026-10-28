@@ -937,7 +937,7 @@ const selectedCatalogVersion = ref(await getCatalogVersion(route));
 const selectedCatalogVersionId = ref(selectedCatalogVersion.value.id);
 const catalogVersions = ref(await getAllCatalogVersions());
 
-useHead({ title: ref($t("stats.title")) });
+usePageSeo({ title: ref($t("stats.title")) });
 
 // ── Filter state ─────────────────────────────────────────────────────────────
 const filterState = ref<string | null>(null);

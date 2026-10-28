@@ -334,7 +334,7 @@ async function submitAnswers() {
   }
 }
 
-useHead({
+usePageSeo({
   title: "Thesen-Check - Stadt.Land.Klima",
 });
 </script>

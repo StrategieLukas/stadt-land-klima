@@ -46,7 +46,7 @@ if (selected?.directusData) {
 
 // Set title
 const title = ref(directusData?.value?.municipalityScore?.municipality?.name ?? "404");
-useHead({
+usePageSeo({
   title,
 });
 </script>

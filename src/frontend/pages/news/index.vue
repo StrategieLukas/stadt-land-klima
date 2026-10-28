@@ -584,7 +584,8 @@ onMounted(async () => {
   }
 });
 
-useHead({ title: "Neuigkeiten" });
+const seoText = useSeoText();
+usePageSeo({ title: () => seoText("seo.news.title") });
 
 // ── Data fetching ──────────────────────────────────────────────────────────────
 

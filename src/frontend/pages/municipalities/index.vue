@@ -555,7 +555,7 @@ watchEffect(() => {
 
 //MetaTags
 const title = ref($t("municipalities.nav_label"));
-useHead({
+usePageSeo({
   title,
 });
 

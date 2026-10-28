@@ -23,5 +23,9 @@ const series = computed(() => seriesData.value?.series);
 if (!series.value && !legacyRedirected)
   throw createError({ statusCode: 404, statusMessage: $t("page_not_found"), fatal: true });
 const events = computed(() => seriesData.value?.events ?? []);
-useHead(() => ({ title: series.value?.title }));
+usePageSeo({
+  title: () => series.value?.title,
+  description: () => series.value?.introduction,
+  image: () => series.value?.cover_image,
+});
 </script>

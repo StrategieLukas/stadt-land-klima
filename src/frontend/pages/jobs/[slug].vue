@@ -229,7 +229,7 @@ if (!jobData.value) {
 
 const job = computed(() => jobData.value?.job);
 
-useHead({ title: job.value?.role_title ?? $t("jobs.title") });
+usePageSeo({ title: job.value?.role_title ?? $t("jobs.title") });
 
 const paidTypes = new Set(["full_time", "part_time", "working_student", "internship"]);
 

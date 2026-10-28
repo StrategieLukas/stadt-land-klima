@@ -261,7 +261,7 @@ const pageTitle = computed(() => {
   return t("region.title_fallback");
 });
 
-useHead({ title: pageTitle });
+usePageSeo({ title: pageTitle });
 
 onMounted(async () => {
   loadingMunicipalities.value = true;

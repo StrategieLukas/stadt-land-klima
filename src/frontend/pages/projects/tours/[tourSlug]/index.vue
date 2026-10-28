@@ -665,7 +665,11 @@ onUnmounted(() => {
   window.removeEventListener("resize", onJourneyScroll);
 });
 
-useHead({ title: series.value.title });
+usePageSeo({
+  title: () => series.value?.title,
+  description: () => series.value?.introduction,
+  image: () => series.value?.cover_image,
+});
 </script>
 
 <style scoped>

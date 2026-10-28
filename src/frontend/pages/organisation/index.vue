@@ -302,7 +302,7 @@ const fetchContent = useContentFetch();
 const { $t } = useNuxtApp();
 const { isDark } = useTheme();
 
-useHead({ title: $t("organisation") });
+usePageSeo({ title: $t("organisation") });
 // ── SVG layout — coordinates from the original Illustrator SVG ──────────────
 // These are purely geometric/layout values that never need to change via CMS.
 // Label, email, color and tasks come from the organisation_teams Directus collection.
