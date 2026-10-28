@@ -1,0 +1,245 @@
+(slk_security_headers) {
+	header {
+		defer
+		-Server
+		-X-Powered-By
+		X-Permitted-Cross-Domain-Policies none
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+		Referrer-Policy {http.vars.slk_referrer_policy}
+		# Append the fallback policy; preserve the application's nonce policy.
+		+Content-Security-Policy "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
+	}
+}
+
+(slk_proxy_headers) {
+	header_up Host {host}
+	header_up -Forwarded
+	header_up X-Real-IP {remote_host}
+	header_down -Server
+	header_down -X-Powered-By
+}
+
+(slk_long_transport) {
+	transport http {
+		dial_timeout 1h
+		response_header_timeout 1h
+		read_timeout 1h
+		write_timeout 1h
+	}
+}
+
+(slk_short_transport) {
+	transport http {
+		dial_timeout 60s
+		response_header_timeout 60s
+		read_timeout 60s
+		write_timeout 60s
+	}
+}
+
+(slk_maintenance) {
+	reverse_proxy {$SLK_CADDY_MAINTENANCE_UPSTREAM:127.0.0.1:9090} {
+		import slk_proxy_headers
+		# A static fallback has no reason to receive credentials or replay a write body.
+		header_up -Authorization
+		header_up -Cookie
+		method GET
+		transport http {
+			dial_timeout 3s
+			response_header_timeout 10s
+		}
+	}
+}
+
+(slk_application) {
+	map {header.User-Agent} {slk_user_agent} {
+		~(?i)bot|spider|crawler bot
+		~(?i)curl curl
+		~(?i)wget wget
+		~(?i)headless headless
+		~(?i)firefox firefox
+		~(?i)edg/ edge
+		~(?i)chrome|chromium chromium
+		~(?i)safari safari
+		default other
+	}
+	map {path} {slk_route} {
+		~^/backend/ cms
+		~^/ai/ ai
+		~^/_nuxt/ assets
+		~^/(?:elections/thesen|api/candidate)(?:/|$) private
+		default frontend
+	}
+	log {
+		output stdout
+		format filter {
+			wrap json
+			fields {
+				request>uri delete
+				request>headers delete
+				request>remote_ip delete
+				request>client_ip delete
+				request>remote_port delete
+				request>tls delete
+				resp_headers delete
+				user_id delete
+			}
+		}
+	}
+	log_append <route {slk_route}
+	log_append userAgent {slk_user_agent}
+	# Gateway cannot verify the website/CMS session. Application audit logs own user identity.
+	log_append actorType unknown
+	log_append userId {http.vars.slk_unknown_user_id}
+	@legacy_private path /api/candidate /api/candidate/* /elections/thesen /elections/thesen/*
+	log_skip @legacy_private
+
+	# Fixed order ensures denied requests never reach the limiter/upstream.
+	route {
+		vars slk_referrer_policy strict-origin-when-cross-origin
+		@private_referrer expression `path('/api/candidate', '/api/candidate/*', '/elections/thesen', '/elections/thesen/*') || query({'preview':'*'}) || query({'preview_token':'*'}) || query({'blokkliPreview':'*'}) || query({'access_token':'*'}) || query({'token':'*'})`
+		vars @private_referrer slk_referrer_policy no-referrer
+		import slk_security_headers
+		vars slk_maintenance false
+		@blocked_cms path /backend/graphql /backend/graphql/* /backend/utils/hash /backend/utils/hash/*
+		respond @blocked_cms 403
+		@opaque_deep expression `path('/backend/*') && {http.request.uri.query}.matches('(?i)(^|&)(d|%64)(e|%65)(e|%65)(p|%70)=')`
+		respond @opaque_deep 400
+		@cms_upgrade {
+			path /backend/*
+			header Upgrade *
+		}
+		respond @cms_upgrade 403
+
+		# Pinned external module; dual windows retain separate burst/sustained budgets.
+		rate_limit {
+			disable_metrics
+			sweep_interval 10s
+			zone slk_api_burst {
+				match {
+					path /backend/* /ai/*
+				}
+				key {remote_host}
+				events 21
+				window 1s
+			}
+			zone slk_api_sustained {
+				match {
+					path /backend/* /ai/*
+				}
+				key {remote_host}
+				events 620
+				window 1m
+			}
+			zone slk_ai_burst {
+				match {
+					path /ai/*
+				}
+				key {remote_host}
+				events 11
+				window 1s
+			}
+			zone slk_frontend_burst {
+				match {
+					not path /backend/* /ai/* /_nuxt/*
+				}
+				key {remote_host}
+				events 61
+				window 1s
+			}
+			zone slk_frontend_sustained {
+				match {
+					not path /backend/* /ai/* /_nuxt/*
+				}
+				key {remote_host}
+				events 1860
+				window 1m
+			}
+			zone slk_assets_burst {
+				match {
+					path /_nuxt/*
+				}
+				key {remote_host}
+				events 501
+				window 1s
+			}
+			zone slk_assets_sustained {
+				match {
+					path /_nuxt/*
+				}
+				key {remote_host}
+				events 6500
+				window 1m
+			}
+		}
+
+		handle_path /backend/* {
+			vars slk_maintenance true
+			request_body {
+				max_size 536870912
+			}
+			reverse_proxy {$SLK_CADDY_CMS_UPSTREAM:127.0.0.1:9001} {
+				import slk_proxy_headers
+				import slk_long_transport
+				@unavailable status 502 503 504
+				handle_response @unavailable {
+					import slk_maintenance
+				}
+			}
+		}
+		handle /ai/* {
+			request_body {
+				max_size 10485760
+			}
+			reverse_proxy {$SLK_CADDY_CMS_UPSTREAM:127.0.0.1:9001} {
+				import slk_proxy_headers
+				import slk_long_transport
+			}
+		}
+		handle @legacy_private {
+			request_body {
+				max_size 1048576
+			}
+			reverse_proxy {$SLK_CADDY_FRONTEND_UPSTREAM:127.0.0.1:9000} {
+				import slk_proxy_headers
+				import slk_short_transport
+			}
+		}
+		handle /_nuxt/* {
+			request_body {
+				max_size 1048576
+			}
+			reverse_proxy {$SLK_CADDY_FRONTEND_UPSTREAM:127.0.0.1:9000} {
+				import slk_proxy_headers
+				import slk_short_transport
+			}
+		}
+		handle {
+			vars slk_maintenance true
+			request_body {
+				max_size 536870912
+			}
+			reverse_proxy {$SLK_CADDY_FRONTEND_UPSTREAM:127.0.0.1:9000} {
+				import slk_proxy_headers
+				import slk_long_transport
+				@unavailable status 502 503 504
+				handle_response @unavailable {
+					import slk_maintenance
+				}
+			}
+		}
+	}
+	handle_errors {
+		import slk_security_headers
+		@fallback expression `{http.vars.slk_maintenance} == true && {err.status_code} in [502, 503, 504]`
+		handle @fallback {
+			import slk_maintenance
+		}
+		handle {
+			respond "{err.status_text}" {err.status_code}
+		}
+	}
+}

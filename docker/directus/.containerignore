@@ -1,0 +1,10 @@
+# Podman base-image context: retain checked patch sources and locked manifests.
+**/node_modules
+**/.env
+**/.env.*
+**/.npm
+**/*.log
+
+**/.npmrc
+**/.yarnrc
+**/.yarnrc.yml

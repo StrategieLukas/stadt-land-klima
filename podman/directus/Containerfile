@@ -1,0 +1,22 @@
+# Built first from docker/directus/Dockerfile, including all pinned security patches.
+FROM localhost/slk-podman-directus-runtime:local
+USER node
+COPY --chown=1000:1000 src/directus/cli /directus/cli
+COPY --chown=1000:1000 src/directus/extensions /directus/extensions
+# Extension bundles share the portable logger with Nuxt; retain its real source path.
+COPY --chown=1000:1000 src/frontend/shared/securityLog.ts /frontend/shared/securityLog.ts
+RUN npm ci --prefix /directus/cli --include=dev --no-audit --no-fund \
+    && npm --prefix /directus/cli run typecheck \
+    && for extension in /directus/extensions/*; do \
+         if [ -f "$extension/package.json" ]; then \
+           npm ci --prefix "$extension" --include=dev --no-audit --no-fund \
+             && npm --prefix "$extension" run build \
+             && npm prune --prefix "$extension" --omit=dev --ignore-scripts --no-audit --no-fund || exit 1; \
+         fi; \
+       done
+# Runtime source and dependencies belong to a different UID and cannot be modified.
+USER root
+RUN chown -R root:root /directus/cli /directus/extensions \
+    && chmod -R go-w /directus/cli /directus/extensions
+USER node
+WORKDIR /directus

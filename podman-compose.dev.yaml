@@ -1,0 +1,23 @@
+services:
+  db:
+    ports: ["127.0.0.1:5432:5432"]
+  directus:
+    ports: ["127.0.0.1:${SLK_PODMAN_CMS_PORT:-8081}:8055"]
+    environment:
+      SLK_ENV: development
+  frontend:
+    ports: ["127.0.0.1:${SLK_PODMAN_WEB_PORT:-8080}:3000", "127.0.0.1:24678:24678"]
+    command: [sh, /start_dev.sh]
+    environment:
+      SLK_ENV: development
+    volumes:
+      - ./src/frontend:/frontend:rw,z
+      - ./src/directus/translations:/directus/translations:ro,z
+      - frontend-dependencies:/frontend/node_modules:U
+      - frontend-nuxt:/frontend/.nuxt:U
+  maintenance:
+    ports: ["127.0.0.1:${SLK_PODMAN_MAINTENANCE_PORT:-9090}:8080"]
+
+volumes:
+  frontend-dependencies: {}
+  frontend-nuxt: {}

@@ -1,0 +1,35 @@
+{
+	# Existing certificate renewal remains with the host operator/Certbot.
+	auto_https off
+	admin unix//run/caddy/admin.sock
+	persist_config off
+	http_port {$SLK_CADDY_HTTP_PORT:80}
+	https_port {$SLK_CADDY_HTTPS_PORT:443}
+	servers {
+		protocols h1 h2
+		max_header_size 32KB
+		timeouts {
+			read_header 10s
+			read_body 1h
+			write 1h
+			idle 2m
+		}
+	}
+	# Runtime error/request objects can contain paths, credentials and peer addresses.
+	log {
+		level INFO
+		output stderr
+		format filter {
+			wrap json
+			fields {
+				request delete
+				remote_ip delete
+				client_ip delete
+				key delete
+				error delete
+				uri delete
+				msg replace gateway.runtime_event
+			}
+		}
+	}
+}

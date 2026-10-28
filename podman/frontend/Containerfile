@@ -1,0 +1,6 @@
+FROM localhost/slk-podman-frontend-runtime:local
+COPY --chown=1000:1000 src/frontend /frontend
+COPY --chown=1000:1000 src/directus/translations /directus/translations
+USER node
+WORKDIR /frontend
+RUN mkdir -p /frontend/.output

@@ -14,7 +14,7 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -56,6 +56,8 @@ jobs:
           SLK_SECURITY_IMAGE=slk-directus-security:ci npm --prefix bin/test_suite run audit:directus-image:reviewed -- "$RUNNER_TEMP/directus-image-audit"
       - name: Verify actual nginx guards and static asset bursts
         run: npm --prefix bin/test_suite run test:security:nginx
+      - name: Verify optional Caddy gateway security and privacy
+        run: npm --prefix bin/test_suite run test:security:caddy
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:

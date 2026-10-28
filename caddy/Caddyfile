@@ -1,0 +1,21 @@
+# Host deployment; run from this directory or install the companion files in /etc/caddy.
+import global.caddy
+import application.caddy
+
+http://stadt-land-klima.de, http://www.stadt-land-klima.de {
+	redir https://www.stadt-land-klima.de{uri} 301
+}
+
+https://stadt-land-klima.de {
+	tls {$SLK_CADDY_APEX_CERT:/etc/caddy/tls/stadt-land-klima.de/fullchain.pem} {$SLK_CADDY_APEX_KEY:/etc/caddy/tls/stadt-land-klima.de/privkey.pem} {
+		protocols tls1.2 tls1.3
+	}
+	redir https://www.stadt-land-klima.de{uri} 301
+}
+
+https://www.stadt-land-klima.de {
+	tls {$SLK_CADDY_CERT:/etc/caddy/tls/www.stadt-land-klima.de/fullchain.pem} {$SLK_CADDY_KEY:/etc/caddy/tls/www.stadt-land-klima.de/privkey.pem} {
+		protocols tls1.2 tls1.3
+	}
+	import slk_application
+}

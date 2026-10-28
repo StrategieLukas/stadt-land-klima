@@ -1,0 +1,19 @@
+# Install as ~/.config/systemd/user/slk.service after adjusting the checkout path.
+[Unit]
+Description=Stadt-Land-Klima rootless Podman stack
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=%h/stadt-land-klima/podman-compose.yaml
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/stadt-land-klima
+ExecStart=%h/stadt-land-klima/bin/podman.sh production start
+ExecStop=%h/stadt-land-klima/bin/podman.sh production stop
+Environment=SLK_PODMAN_PROJECT=slk-podman-production
+TimeoutStartSec=30min
+TimeoutStopSec=180
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,26 @@
+# Rate limiting is an explicit dependency: stock Caddy must fail validation.
+FROM caddy:2.11.7-builder@sha256:c2fc374fd352439d76e1777b28d97d9f6d9c1dd86116db9227460374d46097d5 AS builder
+ENV XCADDY_SKIP_CLEANUP=1
+RUN xcaddy build v2.11.7 \
+    --with github.com/mholt/caddy-ratelimit@5625512f24f6f59d6f64fb3aafe5eecff0b286db \
+    --replace golang.org/x/net=golang.org/x/net@v0.60.0 \
+    --output /usr/bin/caddy
+
+# The generic binary scanner reports an OpenPGP advisory against x/crypto as a
+# whole. Forbid those unused packages in the exact generated entrypoint graph.
+RUN cd /tmp/buildenv_* \
+    && go list -mod=readonly -deps -f '{{.ImportPath}}' . > /tmp/slk-imports.txt \
+    && if grep -Eq '^golang.org/x/crypto/openpgp(/|$)' /tmp/slk-imports.txt; then \
+         echo 'Unsafe OpenPGP package entered the gateway build' >&2; exit 1; \
+       fi \
+    && cp go.mod /tmp/slk-go.mod && cp go.sum /tmp/slk-go.sum
+
+FROM caddy:2.11.7-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f
+RUN apk upgrade --no-cache
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY --from=builder /tmp/slk-imports.txt /tmp/slk-go.mod /tmp/slk-go.sum /usr/share/slk-caddy/
+# Runtime uses high container ports with cap_drop ALL; no file capability is needed.
+RUN if getcap /usr/bin/caddy | grep -q .; then setcap -r /usr/bin/caddy; fi
+USER 1000:1000
+ENTRYPOINT ["/usr/bin/caddy"]
+CMD ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

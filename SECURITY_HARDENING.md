@@ -463,3 +463,29 @@ Live acceptance of merged revision `42e705d6` found deployment cases missing fro
 The server work uses the existing PostgreSQL 17/Redis/Meilisearch storage, preserves the bootstrap operator, runs Directus as a non-superuser app role and retains Directus 11.17.4. SMTP uses the existing Stalwart container with canonical TLS server-name validation; other applications and their networks are not recreated. Host nginx's already-unmanaged master is gracefully reloaded because its systemd unit was already failed. Detailed final target acceptance and backup locations are retained in the private deployment report, not inferred from local tests.
 
 Final staging acceptance: eight public routes pass hydration/request checks after restart; nonce/CSP checks and four desktop/mobile light/dark style scenarios pass. The old browser token is revoked; all 13 original candidate credentials and all 90 original municipality preview values match the off-host pre-deployment SQL backup. All 21 unrelated containers retain their original IDs, start times and restart counts. The maintenance fallback is stopped. Local required checks pass 176 unit/security tests, 34 CLI tests and 17 browser workflows (36.87 seconds for the workflows), with strict CLI/harness/script types and zero-warning frontend lint passing. Production and native-platform acceptance remain separate.
+
+## Rootless Podman deployment
+
+The optional [Podman setup](PODMAN.md) reuses the patched Directus 11.17.4 and
+frontend runtime definitions. It adds rootless user mappings, capless non-root
+services, read-only production roots/source, isolated private storage/networks,
+bounded temporary/resource use, private environment files, native environment secrets that avoid exposing dotenv
+values in provider command arguments/errors, and an explicit derived
+seccomp allowlist. The policy preserves thread/JIT/PDF behavior while denying
+nested namespaces, tracing and kernel administration; clone3/io_uring use ENOSYS
+for supported fallback behavior. Startup audits effective kernel confinement
+before removing maintenance. Docker remains available for a verified migration
+and rollback. Actual rootless engine, reboot, stateful workflow and SMTP-route
+acceptance must run on the intended deployment host.
+
+## Optional Caddy gateway
+
+The [Caddy migration configuration](caddy/README.md) preserves nginx's routing,
+CMS guards, fallback CSP alongside Nuxt nonces, body limits, trusted forwarding
+and maintenance behavior. It pins Caddy 2.11.7 and a reviewed rate-limit module,
+keeps separate page/API/asset budgets, and documents the sliding-window/memory
+differences. Filtered JSON logs omit paths, credentials and peer IPs; the gateway
+records unknown identity while application audit logs retain authoritative user
+IDs. A capless high-port image and restricted host systemd example are provided.
+The disposable TLS/proxy security regression runs in CI; live renewal, boot and
+full application cutover require deployment acceptance.
