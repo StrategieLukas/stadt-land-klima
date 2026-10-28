@@ -34,13 +34,8 @@ import { BETTERPLACE_PROJECT_URL } from "~/shared/donation";
 
 const { $t } = useNuxtApp();
 
-useHead({
+usePageSeo({
   title: $t("donate.page.title"),
-  meta: [
-    {
-      name: "description",
-      content: $t("donate.page.description"),
-    },
-  ],
+  description: $t("donate.page.description"),
 });
 </script>

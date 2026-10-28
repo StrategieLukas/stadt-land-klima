@@ -302,8 +302,9 @@ async function saveStop(publish: boolean) {
     saving.value = false;
   }
 }
-useHead(() => ({
+usePageSeo(() => ({
   title: reportVisible.value && stop.value?.report_title ? stop.value.report_title : stop.value?.title,
+  description: reportVisible.value ? stop.value?.teaser : stop.value?.visit_details,
 }));
 </script>
 <style scoped>

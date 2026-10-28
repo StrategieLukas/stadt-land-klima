@@ -4,7 +4,10 @@ const root = new URL("../../directus/translations/", import.meta.url);
 if (readdirSync(root).some((name) => name.endsWith(".yaml")))
   throw new Error("Move translations into their supported language directory");
 const languages = ["de-DE", "en-GB", "it-IT"];
+const seoMessages: Record<string, Record<string, string>> = {};
 const sets = languages.map((language) => {
+  const seo: Record<string, string> = {};
+  seoMessages[language] = seo;
   const dir = new URL(`${language}/`, root);
   const keys = new Set<string>();
   for (const filename of readdirSync(dir)
@@ -25,6 +28,7 @@ const sets = languages.map((language) => {
       throw new Error(`Invalid or duplicate translation: ${language}/${filename}`);
     }
     keys.add(entry.key);
+    if (entry.key.startsWith("seo.")) seo[entry.key] = entry.value;
   }
   return keys;
 });
@@ -39,4 +43,10 @@ if (process.argv.includes("--check")) {
   if (readFileSync(target, "utf8") !== output)
     throw new Error("Translation keys changed; run npm run translations:generate");
 } else writeFileSync(target, output);
+const seoOutput = `// Generated from the SEO translation YAML files; do not edit.\n// prettier-ignore\nexport const seoMessages = ${JSON.stringify(seoMessages, null, 2)} as const;\n`;
+const seoTarget = new URL("../shared/seoMessages.ts", import.meta.url);
+if (process.argv.includes("--check")) {
+  if (readFileSync(seoTarget, "utf8") !== seoOutput)
+    throw new Error("SEO translations changed; run npm run translations:generate");
+} else writeFileSync(seoTarget, seoOutput);
 console.log(`Translations complete: ${keys.length} keys × ${languages.length} languages`);

@@ -90,7 +90,7 @@ const sanitizedDescription = computed(() => sanitizeHtml(event.value?.descriptio
 function eventTypeLabel(type?: string | null) {
   return type ? $translateDynamic(`events.type.${type}`) : "";
 }
-useHead(() => ({ title: event.value?.title }));
+usePageSeo({ title: () => event.value?.title, description: () => event.value?.description, image: cover });
 </script>
 <style scoped>
 .event-detail {

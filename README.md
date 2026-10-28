@@ -388,3 +388,11 @@ enabled. Only the newsletter app was recreated, retaining the same image.
 Container connectivity and SMTP TLS/authentication were checked without sending
 mail. A private Compose backup is retained alongside the service configuration
 as `docker-compose.yml.before-smtp-routing-20261025T092239Z`.
+
+## Search and messenger previews
+
+Set `PUBLIC_URL` to the externally reachable website origin when building the frontend (currently `https://future.stadt-land-klima.de`; later `https://stadt-land-klima.de`). An existing build can use `NUXT_PUBLIC_SITE_URL` as a runtime override. Canonical links, Open Graph URLs, robots.txt and sitemap.xml use this configured origin instead of incoming host headers. `CLIENT_DIRECTUS_URL` must be a publicly reachable CMS URL or same-origin path so anonymous crawlers can fetch published preview images.
+
+Public pages render their title, summary and image in the initial HTML. Detail pages reuse the checked public CMS excerpts; missing excerpts use localized defaults. The existing logo is the fallback image. SEO copy lives in `src/directus/translations/{de-DE,en-GB,it-IT}/seo.*.yaml`; after edits, run `npm run translations:generate` in `src/frontend` and the normal Directus YAML importer. The generated fallback keeps metadata available before import or during a translation outage. No additional public CMS permissions are needed. Candidate-token and editor-preview pages use noindex and omit canonical/social URLs.
+
+Run `npm run test:seo -- http://localhost:8080` in `bin/test_suite` for SSR metadata tests, anonymous image requests, configured robots/sitemap checks and hydrated navigation. Messenger services may retain old preview data after deployment; verify a newly shared URL and refresh the service's preview cache where supported.

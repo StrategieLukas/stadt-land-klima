@@ -167,7 +167,7 @@ const fetchContent = useContentFetch();
 
 const { $t } = useNuxtApp();
 
-useHead({ title: $t("tools.title") });
+usePageSeo({ title: $t("tools.title") });
 
 const selectedCategory = ref<string | null>(null);
 

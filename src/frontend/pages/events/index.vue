@@ -194,7 +194,7 @@ const pillTop = computed(() => {
   return isDesktop.value ? headerHeight.value : mobileHeaderHidden.value ? 0 : 64;
 });
 
-useHead({ title: computed(() => $t("events.title")) });
+usePageSeo({ title: computed(() => $t("events.title")) });
 
 const { data: eventsResult } = await useAsyncData("events-list", async () => {
   try {

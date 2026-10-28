@@ -1,4 +1,5 @@
 import { defineEventHandler, setHeader } from "h3";
+import { resolveSiteOrigin } from "~/shared/serviceUrl";
 import { rateLimit } from "../utils/rateLimit";
 
 const successPage = `<!doctype html>
@@ -286,5 +287,8 @@ export default defineEventHandler(async (event) => {
   }
 
   setHeader(event, "Content-Type", "text/html; charset=utf-8");
-  return successPage;
+  return successPage.replaceAll(
+    "https://www.stadt-land-klima.de",
+    resolveSiteOrigin(useRuntimeConfig().public.siteUrl),
+  );
 });

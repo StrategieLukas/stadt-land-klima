@@ -87,7 +87,7 @@ const fetchContent = useContentFetch();
 
 const { $t } = useNuxtApp();
 
-useHead({ title: $t("jobs.title") });
+usePageSeo({ title: $t("jobs.title") });
 
 const { data: jobsData } = await useAsyncData("jobs-list", () => fetchContent("/api/public/jobs"));
 

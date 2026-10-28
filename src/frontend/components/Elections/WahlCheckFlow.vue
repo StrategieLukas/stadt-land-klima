@@ -475,7 +475,7 @@ watch(
   { deep: true },
 );
 
-useHead({
+usePageSeo({
   title: computed(() =>
     electionData.value?.election?.descriptor
       ? $t("elections.wahlcheck.head_title_for", { ":descriptor": electionData.value.election.descriptor })

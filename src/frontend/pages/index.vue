@@ -74,10 +74,11 @@ const pageBlocks = computed(() => blocksData.value || []);
 const sanitizedContents = computed(() => sanitizeHtml(page.value?.contents));
 
 //MetaTags
-const title = computed(() => (page.value ? page.value.name : $t("page_not_found")));
+const seoText = useSeoText();
+const title = computed(() => seoText("seo.title"));
 
 //MetaTags
-useHead({
+usePageSeo({
   title,
 }); //
 </script>
