@@ -188,6 +188,16 @@ export default defineNuxtConfig({
         (plugin) =>
           !/\/nuxt\/dist\/app\/plugins\/dev-error-overlay\.client(?:\.js)?$/.test(plugin.src.replaceAll("\\", "/")),
       );
+      // Vendor DevTools eagerly import storage-dependent code. Keep their order,
+      // but load them only in a top-level development page with usable storage.
+      for (const plugin of app.plugins) {
+        const source = plugin.src.replaceAll("\\", "/");
+        if (/(?:^|\/)(?:runtime\.)?vue-devtools-client(?:\.[^/]+)?\.js$/.test(source)) {
+          plugin.src = fileURLToPath(new URL("./app/optionalVueDevtools.client.ts", import.meta.url));
+        } else if (/\/@nuxt\/devtools\/dist\/runtime\/plugins\/devtools\.client\.js$/.test(source)) {
+          plugin.src = fileURLToPath(new URL("./app/optionalNuxtDevtools.client.ts", import.meta.url));
+        }
+      }
     },
   },
   devtools: {
@@ -246,7 +256,12 @@ export default defineNuxtConfig({
     },
   },
   vite: {
-    resolve: { alias: [{ find: /^zod$/, replacement: fileURLToPath(new URL("./shared/zod.ts", import.meta.url)) }] },
+    resolve: {
+      alias: [
+        { find: /^zod$/, replacement: fileURLToPath(new URL("./shared/zod.ts", import.meta.url)) },
+        { find: /^@vue\/devtools-api$/, replacement: fileURLToPath(new URL("./app/devtoolsApi.ts", import.meta.url)) },
+      ],
+    },
     optimizeDeps: {
       // These app libraries are also used inside virtual editor components,
       // which the dependency scanner cannot read from disk.

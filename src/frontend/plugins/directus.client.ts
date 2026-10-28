@@ -1,15 +1,16 @@
 import { clientDiagnostic } from "~/shared/securityLog";
-import { defineNuxtPlugin, useCookie, useRuntimeConfig, useState } from "#app";
+import { defineNuxtPlugin, useRuntimeConfig, useState } from "#app";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode";
 import createTranslator from "~/shared/createTranslator";
 import { TranslationsSchema, type TranslationEntry } from "~/shared/i18n";
 
 export default defineNuxtPlugin(async () => {
   const config = useRuntimeConfig();
-  const requestedLocale = resolveFullLocaleCode(
-    useCookie<unknown>("slk_locale").value || document.documentElement.getAttribute("lang"),
-  );
-  const locale = useState("slk-locale", () => requestedLocale).value;
+  // SSR already resolves the locale cookie/header. Reuse it without touching
+  // document.cookie, which browsers may deny in a third-party frame.
+  const locale = useState("slk-locale", () =>
+    resolveFullLocaleCode(document.documentElement.getAttribute("lang")),
+  ).value;
   const state = useState<TranslationEntry[]>("directus-translations", () => []);
   const parsed = TranslationsSchema.safeParse(state.value);
   state.value = parsed.success ? parsed.data : [];

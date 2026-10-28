@@ -6,6 +6,7 @@ import type { TestFixture } from "../lib/fixture.js";
 import { PNG_1X1 } from "../lib/images.js";
 import type { TestRunner } from "../lib/runner.js";
 import { waitFor } from "../lib/wait.js";
+import { assertWahlcheckEmbed } from "../wahlcheckEmbed.js";
 
 interface CatalogVersion {
   id: string;
@@ -1818,6 +1819,12 @@ export async function runRatingWahlcheckFlow(
         custom_logo: customLogoId,
       });
     }
+  });
+
+  await runner.step("Wahlcheck: foreign-origin embed and standalone result links", async () => {
+    const slug = fixture.municipality.slug;
+    assert(slug, "The embed fixture needs a municipality slug");
+    await assertWahlcheckEmbed(browser, fixture.config.frontendUrl, slug);
   });
 
   await runner.step("Wahlcheck: count two distinct completions in one browser session", async () => {
