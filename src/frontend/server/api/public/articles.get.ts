@@ -1,3 +1,5 @@
+import { ProjectMunicipalitySchema, createProjectLocationResolver } from "~/shared/projectMap";
+import { pointLatLng } from "~/shared/tour";
 import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { ProjectListSchema } from "~/shared/contracts/content";
@@ -27,6 +29,8 @@ export default defineEventHandler(async (event) => {
           "author",
           "date_created",
           "municipality_name",
+          "geolocation",
+          "location_label",
           "state",
           "sectors",
           "can_do_autonomously",
@@ -46,5 +50,25 @@ export default defineEventHandler(async (event) => {
     )
     .then(cmsRows);
 
-  return { articles: parseCms(z.array(ProjectListSchema), articles) };
+  const projects = parseCms(z.array(ProjectListSchema), articles);
+  // Only geographical facts from published municipality records enter automatic name matching.
+  const needsFallback = projects.some(
+    (project) => !pointLatLng(project.geolocation) && !project.municipality && project.municipality_name?.trim(),
+  );
+  const municipalities = needsFallback
+    ? parseCms(
+        z.array(ProjectMunicipalitySchema),
+        cmsRows(
+          await client.request(
+            readItems("municipalities", {
+              filter: { status: { _eq: "published" } },
+              fields: ["id", "name", "state", "geolocation"],
+              limit: -1,
+            }),
+          ),
+        ),
+      )
+    : [];
+  const resolveLocation = createProjectLocationResolver(municipalities);
+  return { articles: projects.map((project) => ({ ...project, map_location: resolveLocation(project) })) };
 });

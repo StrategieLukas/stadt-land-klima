@@ -2,25 +2,47 @@
   <LMap
     ref="mapRef"
     :zoom="6"
-    :center="initialCenter"
+    :center="[51.1657, 10.4515]"
     :use-global-leaflet="false"
     :options="{ scrollWheelZoom: false }"
-    class="h-full w-full"
+    class="project-map h-full w-full"
     @ready="fitProjects"
   >
-    <LTileLayer :url="tileUrl" :subdomains="subdomains" :attribution="attribution" :max-zoom="20" />
-    <template v-if="markerIcon">
+    <LTileLayer :key="tileUrl" :url="tileUrl" :subdomains="subdomains" :attribution="attribution" :max-zoom="20" />
+    <LControl position="topright">
+      <button type="button" class="btn bg-base-100 text-base-content btn-sm" @click="fitProjects">
+        {{ $t("projects.map.fit") }}
+      </button>
+    </LControl>
+    <template v-if="createIcon">
       <LMarker
         v-for="location in locations"
-        :key="location.key"
+        :key="`${location.key}:${location.projects.map((project) => project.id).join(',')}`"
         :lat-lng="location.point"
-        v-bind="leafletMarkerProps(leafletMarkerIcon(markerIcon))"
+        :options="{
+          title: $t('projects.map.marker_label', { ':count': location.projects.length }),
+          alt: $t('projects.map.marker_label', { ':count': location.projects.length }),
+          keyboard: true,
+        }"
+        v-bind="leafletMarkerProps(leafletMarkerIcon(markerIcon(location.projects.length)))"
       >
-        <LPopup>
-          <strong>{{ location.municipalityName }}</strong>
-          <ul class="mt-2 space-y-1">
+        <LPopup :options="{ maxHeight: 240, autoPanPadding: [20, 20] }">
+          <p class="font-bold">{{ $t("projects.map.marker_label", { ":count": location.projects.length }) }}</p>
+          <ul class="mt-2 space-y-3">
             <li v-for="project in location.projects" :key="project.id">
-              <a :href="`/projects/${project.slug}`">{{ project.title }} ↗</a>
+              <NuxtLink :to="`/projects/${encodeURIComponent(project.slug)}`" class="font-bold">{{
+                project.title
+              }}</NuxtLink>
+              <p v-if="project.label" class="mt-1">{{ project.label }}</p>
+              <p class="text-xs">
+                {{
+                  $t(
+                    project.location.source === "project"
+                      ? "projects.map.project_location"
+                      : "projects.map.municipality_location",
+                  )
+                }}
+              </p>
             </li>
           </ul>
         </LPopup>
@@ -30,62 +52,92 @@
 </template>
 
 <script setup lang="ts">
-import { leafletMarkerIcon, leafletMarkerProps } from "~/shared/leafletMarker";
 import { computed, nextTick, onMounted, shallowRef, watch } from "vue";
-import type { DivIcon } from "leaflet";
+import type { DivIcon, divIcon, Map as LeafletMap } from "leaflet";
+import { leafletMarkerIcon, leafletMarkerProps } from "~/shared/leafletMarker";
+import { groupProjectLocations, type ProjectMapItem } from "~/shared/projectMap";
 import pinSvg from "~/assets/images/Pin.svg?raw";
 
-type ProjectLocation = {
-  id: number;
-  slug: string;
-  title: string;
-  municipalityName: string;
-  point: [number, number];
-};
-
-const props = defineProps<{ projects: ProjectLocation[] }>();
+const props = defineProps<{ projects: ProjectMapItem[] }>();
+const { $t } = useNuxtApp();
 const { tileUrl, subdomains, attribution } = useCartoBasemap();
-const mapRef = shallowRef<{ leafletObject?: import("leaflet").Map | undefined } | null>(null);
-const markerIcon = shallowRef<DivIcon | null>(null);
-
+const mapRef = shallowRef<{ leafletObject?: LeafletMap | undefined } | null>(null);
+const createIcon = shallowRef<typeof divIcon | null>(null);
+const icons = new Map<number, DivIcon>();
+const locations = computed(() => groupProjectLocations(props.projects));
 onMounted(async () => {
-  const { divIcon } = await import("leaflet");
-  markerIcon.value = divIcon({
-    className: "",
-    html: `<div class="h-8 w-8" style="color: #16bae7; width: 32px; height: 32px">${pinSvg}</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  });
+  createIcon.value = (await import("leaflet")).divIcon;
 });
 
-const locations = computed(() => {
-  const groups = new Map<
-    string,
-    { key: string; point: [number, number]; municipalityName: string; projects: ProjectLocation[] }
-  >();
-  for (const project of props.projects) {
-    const key = project.point.join(",");
-    if (!groups.has(key))
-      groups.set(key, { key, point: project.point, municipalityName: project.municipalityName, projects: [] });
-    groups.get(key)?.projects.push(project);
+function markerIcon(count: number): DivIcon | undefined {
+  if (!createIcon.value) return undefined;
+  let icon = icons.get(count);
+  if (!icon) {
+    // SVG is a maintained local asset; only the numeric group count enters its HTML.
+    icon = createIcon.value({
+      className: "project-map-icon",
+      html: `<span class="project-map-pin">${pinSvg}${count > 1 ? `<span class="project-map-count">${count}</span>` : ""}</span>`,
+      iconSize: [32, 42],
+      iconAnchor: [16, 42],
+      popupAnchor: [0, -42],
+    });
+    icons.set(count, icon);
   }
-  return [...groups.values()];
-});
-
-const initialCenter = computed<[number, number]>(() => locations.value[0]?.point ?? [51.1657, 10.4515]);
-
-function fitProjects() {
-  const points = locations.value.map((location) => location.point);
-  if (points.length > 1) mapRef.value?.leafletObject?.fitBounds(points, { padding: [35, 35], maxZoom: 10 });
-  else if (points.length === 1) mapRef.value?.leafletObject?.setView(points[0]!, 10);
+  return icon;
 }
-
+function fitProjects() {
+  const map = mapRef.value?.leafletObject;
+  if (!map) return;
+  map.invalidateSize();
+  const points = locations.value.map((location) => location.point);
+  if (points.length > 1) map.fitBounds(points, { padding: [40, 40], maxZoom: 12, animate: false });
+  else if (points.length === 1) map.setView(points[0]!, 12, { animate: false });
+}
 watch(
-  () => props.projects,
+  () =>
+    locations.value
+      .map((location) => location.key)
+      .sort()
+      .join(";"),
   async () => {
     await nextTick();
     fitProjects();
   },
 );
 </script>
+<style scoped>
+@reference "../assets/css/main.css";
+:deep(.project-map-pin) {
+  display: block;
+  position: relative;
+  width: 32px;
+  height: 42px;
+  @apply text-light-blue;
+}
+:deep(.project-map-pin svg) {
+  width: 100%;
+  height: 100%;
+}
+:deep(.project-map-count) {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 999px;
+  @apply bg-light-green;
+  @apply text-black;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+}
+:deep(.project-map-icon:focus-visible) {
+  @apply outline-light-blue;
+  outline-width: 3px;
+  outline-style: solid;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+</style>

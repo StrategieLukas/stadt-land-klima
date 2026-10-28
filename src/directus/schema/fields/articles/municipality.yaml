@@ -11,7 +11,7 @@ meta:
   group: null
   hidden: false
   interface: select-dropdown-m2o
-  note: Optionaler Kartenstandort; bisherige Ortsangaben bleiben erhalten
+  note: Fallback für die Karte, wenn kein Projektstandort gesetzt ist. Die Markierung zeigt dann die Kommunenmitte.
   options:
     template: '{{name}}'
   readonly: false

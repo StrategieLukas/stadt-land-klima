@@ -15,6 +15,8 @@ permissions:
   - slug
   - author
   - municipality_name
+  - geolocation
+  - location_label
   - municipality
   - state
   - content
@@ -99,6 +101,8 @@ permissions:
   - author
   - date_created
   - municipality_name
+  - geolocation
+  - location_label
   - municipality
   - state
   - content
@@ -162,6 +166,8 @@ permissions:
   - slug
   - author
   - municipality_name
+  - geolocation
+  - location_label
   - municipality
   - state
   - content
