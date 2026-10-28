@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProjectPointSchema, ProjectMunicipalitySchema, ProjectMapLocationSchema } from "../projectMap";
 
 export const EntityIdSchema = z.union([z.string().min(1), z.number().int()]);
 export const NullableTextSchema = z
@@ -107,14 +108,12 @@ export const ProjectListSchema = ProjectIdentitySchema.extend({
   profile_stage: NullableTextSchema,
   image: FileSchema.nullish().transform((value) => value ?? null),
   image_credits: NullableTextSchema,
-  municipality: z
-    .object({
-      id: z.string(),
-      name: z.string(),
-      state: NullableTextSchema,
-      geolocation: z.object({ type: z.literal("Point"), coordinates: z.tuple([z.number(), z.number()]) }).nullable(),
-    })
-    .nullable(),
+  geolocation: ProjectPointSchema.nullish()
+    .catch(null)
+    .transform((value) => value ?? null),
+  location_label: NullableTextSchema,
+  map_location: ProjectMapLocationSchema.nullish().transform((value) => value ?? null),
+  municipality: ProjectMunicipalitySchema.nullable(),
   organisation: OrganisationSchema.omit({ link: true }).nullable(),
   measures: z.array(z.object({ measures_id: ProjectMeasureSchema.nullable() })).nullable(),
 });

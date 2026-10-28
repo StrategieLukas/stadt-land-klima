@@ -1,0 +1,3 @@
+key: projects.map.count
+language: en-GB
+value: "Success projects on the map: :mapped / :total"

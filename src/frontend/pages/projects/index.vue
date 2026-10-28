@@ -25,7 +25,29 @@
       </div>
     </header>
 
-    <h2 id="database" class="mb-5 font-heading text-3xl font-bold text-stats-dark">{{ $t("tour.database") }}</h2>
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <h2 id="database" class="font-heading text-3xl font-bold text-stats-dark">{{ $t("tour.database") }}</h2>
+      <div class="slk-filter-theme-blue flex gap-2" role="group" :aria-label="$t('projects.map.view_label')">
+        <button
+          type="button"
+          class="slk-filter-pill"
+          :class="{ 'slk-filter-pill--active': !isMapView }"
+          :aria-pressed="!isMapView"
+          @click="router.replace({ query: { ...route.query, view: undefined } })"
+        >
+          {{ $t("generic.view.list") }}
+        </button>
+        <button
+          type="button"
+          class="slk-filter-pill"
+          :class="{ 'slk-filter-pill--active': isMapView }"
+          :aria-pressed="isMapView"
+          @click="router.replace({ query: { ...route.query, view: 'map' } })"
+        >
+          {{ $t("municipalities.view.map") }}
+        </button>
+      </div>
+    </div>
 
     <!-- Filter + Sort bar -->
     <div class="slk-filter-panel slk-filter-theme-blue mb-6 flex flex-col gap-0 p-3 shadow-md">
@@ -125,42 +147,6 @@
 
         <div class="slk-filter-rule my-0.5 border-t" />
 
-        <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-2 py-1.5">
-          <svg
-            class="slk-filter-panel-icon h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-            />
-          </svg>
-          <div class="flex flex-wrap gap-2">
-            <button
-              type="button"
-              class="slk-filter-pill"
-              :class="!isMapView ? 'slk-filter-pill--active' : ''"
-              @click="router.replace({ query: { ...route.query, view: undefined } })"
-            >
-              {{ $t("generic.view.list") }}
-            </button>
-            <button
-              type="button"
-              class="slk-filter-pill"
-              :class="isMapView ? 'slk-filter-pill--active' : ''"
-              @click="router.replace({ query: { ...route.query, view: 'map' } })"
-            >
-              {{ $t("municipalities.view.map") }}
-            </button>
-          </div>
-        </div>
-
-        <div class="slk-filter-rule my-0.5 border-t" />
-
         <!-- Sort row -->
         <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-2 py-1.5">
           <!-- Sort icon -->
@@ -198,15 +184,26 @@
       {{ selectedTour ? $t("tour.no_published_projects") : $t("projects.empty_placeholder") }}
     </div>
 
-    <div v-if="isMapView" class="h-[65vh] min-h-112 overflow-hidden rounded-xl border border-solid-stats-dark-20">
-      <ClientOnly v-if="mapProjects.length">
-        <ProjectsMap :projects="mapProjects" />
-        <template #fallback
-          ><p class="p-6">{{ $t("tour.map_unavailable") }}</p></template
-        >
-      </ClientOnly>
-      <p v-else class="p-6 text-gray">{{ $t("projects.map.empty") }}</p>
-    </div>
+    <section v-if="isMapView" :aria-label="$t('projects.map.view_label')">
+      <p class="mb-2 font-semibold" role="status">
+        {{ $t("projects.map.count", { ":mapped": mapProjects.length, ":total": filteredProjects.length }) }}
+      </p>
+      <p class="mb-4 text-sm text-gray">{{ $t("projects.map.legend") }}</p>
+      <p v-if="unlocatedCount > 0" class="mb-4 alert" role="status">
+        {{ $t("projects.map.missing", { ":count": unlocatedCount }) }}
+      </p>
+      <div class="relative z-0 h-[65svh] min-h-96 overflow-hidden rounded-xl border border-solid-stats-dark-20">
+        <ClientOnly v-if="mapProjects.length">
+          <ProjectsMap :projects="mapProjects" />
+          <template #fallback
+            ><p class="p-6">{{ $t("projects.map.loading") }}</p></template
+          >
+        </ClientOnly>
+        <p v-else class="p-6 text-gray">
+          {{ filteredProjects.length ? $t("projects.map.empty") : $t("projects.empty_placeholder") }}
+        </p>
+      </div>
+    </section>
 
     <div v-else class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       <div v-for="project in filteredProjects" :key="project.id" class="relative">
@@ -238,7 +235,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { isRaster } from "~/shared/utils";
-import { pointLatLng } from "~/shared/tour";
+import type { ProjectMapItem } from "~/shared/projectMap";
 const fetchContent = useContentFetch();
 
 const { $t, $translateDynamic } = useNuxtApp();
@@ -250,18 +247,6 @@ const isMapView = computed(() => route.query.view === "map");
 const { data: projectList } = await useAsyncData("articles-index", async () => {
   const result = await fetchContent("/api/public/articles");
   return result.articles ?? [];
-});
-
-// Municipality locations are already included in article data via the municipality relation
-const municipalityLocations = computed(() => {
-  const seen = new Map<string, NonNullable<NonNullable<typeof projectList.value>[number]["municipality"]>>();
-  for (const project of projectList.value ?? []) {
-    const m = project.municipality;
-    if (m?.id && !seen.has(m.id)) {
-      seen.set(m.id, m);
-    }
-  }
-  return [...seen.values()];
 });
 
 const { data: tourData } = await useAsyncData("project-tour-options", async () => {
@@ -312,7 +297,6 @@ const activeFilterCount = computed(() => {
   if (selectedOrgId.value) count++;
   if (selectedMunicipality.value) count++;
   if (selectedTour.value) count++;
-  if (isMapView.value) count++;
   if (filterAutonomous.value) count++;
   if (filterProfitable.value) count++;
   if (filterRoleModel.value) count++;
@@ -430,30 +414,22 @@ const filteredProjects = computed(() => {
   return filtered;
 });
 
-const mapProjects = computed(() =>
-  filteredProjects.value.flatMap((project) => {
-    const linkedMunicipality = project.municipality;
-    let municipality = linkedMunicipality?.geolocation ? linkedMunicipality : null;
-    if (!municipality && project.municipality_name) {
-      const matches = (municipalityLocations.value ?? []).filter(
-        (item) => item.name === project.municipality_name && (!project.state || item.state === project.state),
-      );
-      if (matches.length === 1) municipality = matches[0] ?? null;
-    }
-    const point = pointLatLng(municipality?.geolocation);
-    return point
+const mapProjects = computed<ProjectMapItem[]>(() =>
+  filteredProjects.value.flatMap((project) =>
+    project.map_location
       ? [
           {
             id: project.id,
             slug: project.slug,
             title: project.title,
-            municipalityName: municipality?.name ?? "",
-            point,
+            label: project.location_label || project.map_location.municipality_name || project.municipality_name || "",
+            location: project.map_location,
           },
         ]
-      : [];
-  }),
+      : [],
+  ),
 );
+const unlocatedCount = computed(() => filteredProjects.value.length - mapProjects.value.length);
 
 // ── Meta ─────────────────────────────────────────────────────────────────────
 const title = ref($t("projects.title"));
