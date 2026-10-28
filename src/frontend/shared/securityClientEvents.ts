@@ -42,6 +42,7 @@ export const SECURITY_CLIENT_EVENTS = [
   "app.components.VegaChart.downloadPng.degraded",
   "app.components.VegaChart.render.degraded",
   "app.components.VegaChart.resizeVegaView.degraded",
+  "app.devtools.optional.degraded",
   "app.pages._slug_.failed",
   "app.pages.data._slug_.index.loadNearbyAreasForCurrentArea.degraded",
   "app.pages.elections.thesen.__access_token__.submitAnswers.failed",

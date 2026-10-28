@@ -43,6 +43,19 @@ npm run test:unit
 npm run test:public -- https://staging.stadt-land-klima.de
 ```
 
+For a published Wahlcheck, run `npm run test:wahlcheck-embed -- http://localhost:8080 nettetal`.
+This read-only browser check serves the actual static iframe test page on a separate
+origin, verifies answering and shared results without site navigation/footer, copies
+a standalone result link through the delegated clipboard permission, and checks that
+the normal page retains its header. It also checks automatic content height through
+mobile resizing, result expansion and restart, rejects forged/malformed sizing
+messages, and verifies visible explanation dialogs and host-page step scrolling.
+Non-read requests are blocked, so no completion
+is recorded. The command also runs Firefox with `network.cookie.cookieBehavior=2`,
+verifies that frame storage is actually denied, and checks question input and shared
+results without startup exceptions. The full rating/Wahlcheck fixture flow runs the same check against its
+published disposable election. See [the manual iframe setup](../wahlcheck-iframe/README.md).
+
 The manual staging operator command `npm run sample:content-translation -- --help` plans
 at most a few published navigation titles. It defaults to dry-run; `--apply` runs a bounded
 real-provider preparation only with automatic generation disabled. It does not run the

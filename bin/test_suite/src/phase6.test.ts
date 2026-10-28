@@ -22,6 +22,7 @@ import {
   ElectionPdfRequestSchema,
 } from "../../../src/frontend/shared/contracts/submissions.js";
 import { checkedWahlcheckState, ElectionTeamSchema } from "../../../src/frontend/shared/contracts/elections.js";
+import { WahlcheckEmbedHostMessageSchema } from "../../../src/frontend/shared/wahlcheckEmbed.js";
 import { StatisticsSchema } from "../../../src/frontend/shared/contracts/municipality.js";
 import { SummarySchema, CollectionsResponseSchema } from "../../../src/frontend/shared/contracts/slz.js";
 import { kMeans, pairwiseDominance, statisticsDatum } from "../../../src/frontend/shared/statistics.js";
@@ -103,6 +104,24 @@ test("route values distinguish absent, repeated, invalid and supported input", (
   assert.equal(routeSlug("some-page-2"), "some-page-2");
   assert.equal(routeText("äöü", 3), "äöü");
   assert.equal(routeText("long", 3), "");
+});
+
+test("Wahlcheck embed messages reject malformed, unbounded and unexpected host data", () => {
+  assert.ok(WahlcheckEmbedHostMessageSchema.safeParse({ type: "slk:wahlcheck:init", version: 1 }).success);
+  const viewport = { type: "slk:wahlcheck:viewport", version: 1, top: 120, height: 800 };
+  assert.ok(WahlcheckEmbedHostMessageSchema.safeParse(viewport).success);
+  for (const input of [
+    null,
+    { type: "slk:wahlcheck:init", version: 2 },
+    { type: "slk:wahlcheck:init", version: 1, answers: {} },
+    { ...viewport, top: -1 },
+    { ...viewport, height: Infinity },
+    { ...viewport, top: NaN },
+    { ...viewport, height: "800" },
+    { ...viewport, height: 1_000_001 },
+    { ...viewport, type: "slk:wahlcheck:resize" },
+  ])
+    assert.equal(WahlcheckEmbedHostMessageSchema.safeParse(input).success, false);
 });
 
 test("content contracts project private fields and reject unsafe links and malformed records", () => {

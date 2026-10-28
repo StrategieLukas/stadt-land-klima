@@ -321,6 +321,9 @@ test("server and client plugins share the request locale and translations withou
       { useState: state, useHead() {} },
       false,
     ).default();
+    app.useCookie = () => {
+      throw new Error("Browser cookie access denied");
+    };
     const client = await load("plugins/directus.client.ts", dependencies, {
       useState: state,
       document: { documentElement: { getAttribute: () => "de" } },

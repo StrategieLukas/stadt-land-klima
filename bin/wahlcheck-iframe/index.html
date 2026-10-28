@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wahlcheck iframe test</title>
+    <style>
+      body {
+        max-width: 80rem;
+        margin: 1rem auto;
+        padding: 0 1rem;
+        font-family: system-ui, sans-serif;
+      }
+      form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        gap: 0.75rem;
+      }
+      label {
+        display: grid;
+        flex: 1 1 30rem;
+        gap: 0.25rem;
+      }
+      input,
+      select,
+      button {
+        padding: 0.5rem;
+        font: inherit;
+      }
+      iframe {
+        display: block;
+        width: 100%;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 data-i18n="title"></h1>
+    <form method="get">
+      <label>
+        <span data-i18n="url"></span>
+        <input name="url" type="url" required />
+      </label>
+      <select name="lang" aria-label="Language">
+        <option value="de">DE</option>
+        <option value="en">EN</option>
+        <option value="it">IT</option>
+      </select>
+      <button type="submit" data-i18n="load"></button>
+    </form>
+    <p><a id="standalone" target="_blank" rel="noopener noreferrer" data-i18n="standalone"></a></p>
+    <p>
+      <a href="?url=http%3A%2F%2Flocalhost%3A8080%2Felections%2Fwahlcheck%2Fnettetal" data-i18n="localPreview"></a>
+    </p>
+    <p data-i18n="hint"></p>
+    <iframe
+      id="wahlcheck"
+      height="600"
+      allow="clipboard-write; web-share"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox"
+      referrerpolicy="no-referrer"
+    ></iframe>
+    <script type="module">
+      const translations = {
+        de: {
+          title: "Wahlcheck im iframe testen",
+          url: "Vollständige Wahlcheck-URL",
+          language: "Sprache der Testseite",
+          load: "Laden",
+          standalone: "Wahlcheck in einem neuen Tab öffnen",
+          localPreview: "Lokale Vorschau der aktuellen Änderungen öffnen",
+          hint: "Der Frame passt seine Höhe automatisch an den Wahlcheck an. Der Quellserver muss die Embed-Ansicht bereitstellen und diese Host-Seite in seiner Framing-Richtlinie erlauben. Auf future müssen diese Änderungen zuerst bereitgestellt werden. Prüfe bei einem Fehler die Konsole und Netzwerkanfragen in den Browser-Entwicklertools.",
+          invalid: "Verwende die vollständige HTTP- oder HTTPS-URL eines einzelnen Wahlchecks ohne Zugangsdaten.",
+          frame: "Klimawahlcheck",
+        },
+        en: {
+          title: "Test Wahlcheck in an iframe",
+          url: "Full Wahlcheck URL",
+          language: "Test page language",
+          load: "Load",
+          standalone: "Open Wahlcheck in a new tab",
+          localPreview: "Open the local preview of these changes",
+          hint: "The frame automatically fits the Wahlcheck content. The source server must provide the embed view and permit this host page in its framing policy. These changes must first be deployed on future. For errors, inspect the browser developer console and network requests.",
+          invalid: "Use the full HTTP or HTTPS URL of an individual Wahlcheck without credentials.",
+          frame: "Climate election check",
+        },
+        it: {
+          title: "Prova Wahlcheck in un iframe",
+          url: "URL completo di Wahlcheck",
+          language: "Lingua della pagina di prova",
+          load: "Carica",
+          standalone: "Apri Wahlcheck in una nuova scheda",
+          localPreview: "Apri l'anteprima locale delle modifiche",
+          hint: "Il frame adatta automaticamente la propria altezza al contenuto di Wahlcheck. Il server di origine deve fornire la vista incorporata e consentire questa pagina ospitante nella propria politica di incorporamento. Queste modifiche devono prima essere distribuite su future. In caso di errore, controlla la console e le richieste di rete negli strumenti di sviluppo del browser.",
+          invalid: "Usa l'URL HTTP o HTTPS completo di un singolo Wahlcheck senza credenziali.",
+          frame: "Confronto elettorale sul clima",
+        },
+      };
+      const params = new URLSearchParams(location.search);
+      const language = params.get("lang");
+      const locale = language === "en" || language === "it" ? language : "de";
+      const text = translations[locale];
+      document.documentElement.lang = locale;
+      document.title = text.title;
+      document.querySelectorAll("[data-i18n]").forEach((element) => {
+        element.textContent = text[element.dataset.i18n];
+      });
+      const languageSelect = document.querySelector('[name="lang"]');
+      languageSelect.value = locale;
+      languageSelect.setAttribute("aria-label", text.language);
+      const input = document.querySelector('[name="url"]');
+      input.value =
+        params.get("url") || "https://future.stadt-land-klima.de/elections/wahlcheck/sachsen-anhalt-landesebene";
+      input.addEventListener("input", () => input.setCustomValidity(""));
+      const frame = document.querySelector("#wahlcheck");
+      frame.title = text.frame;
+      try {
+        const target = new URL(input.value);
+        const detailPath = /^\/(?:elections|embed)\/wahlcheck\/[a-z0-9-]{1,160}\/?$/;
+        if (
+          !["http:", "https:"].includes(target.protocol) ||
+          target.username ||
+          target.password ||
+          !detailPath.test(target.pathname)
+        ) {
+          throw new Error("Invalid iframe URL");
+        }
+        target.pathname = target.pathname.replace(/^\/embed\/wahlcheck\//, "/elections/wahlcheck/");
+        document.querySelector("#standalone").href = target.href;
+        target.pathname = target.pathname.replace(/^\/elections\/wahlcheck\//, "/embed/wahlcheck/");
+        const childOrigin = target.origin;
+        let connected = false;
+        let retryTimer;
+        let viewportFrame = 0;
+        const send = (message) => frame.contentWindow?.postMessage({ ...message, version: 1 }, childOrigin);
+        const updateViewport = () => {
+          viewportFrame = 0;
+          if (!connected) return;
+          const rect = frame.getBoundingClientRect();
+          send({
+            type: "slk:wahlcheck:viewport",
+            top: Math.max(0, Math.round(-rect.top)),
+            height: Math.max(0, Math.round(Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0))),
+          });
+        };
+        const queueViewport = () => {
+          if (!viewportFrame) viewportFrame = requestAnimationFrame(updateViewport);
+        };
+        window.addEventListener("message", (event) => {
+          if (event.origin !== childOrigin || event.source !== frame.contentWindow) return;
+          const data = event.data;
+          if (!data || data.version !== 1) return;
+          if (
+            data.type === "slk:wahlcheck:resize" &&
+            Number.isInteger(data.height) &&
+            data.height > 0 &&
+            data.height <= 1_000_000
+          ) {
+            connected = true;
+            clearInterval(retryTimer);
+            frame.height = String(data.height);
+            frame.dataset.resized = "true";
+            queueViewport();
+          } else if (
+            connected &&
+            data.type === "slk:wahlcheck:scroll" &&
+            Number.isFinite(data.top) &&
+            data.top >= 0 &&
+            data.top <= 1_000_000
+          ) {
+            const top = scrollY + frame.getBoundingClientRect().top + data.top - 16;
+            window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+          }
+        });
+        window.addEventListener("scroll", queueViewport, { passive: true });
+        window.addEventListener("resize", queueViewport);
+        frame.addEventListener("load", () => {
+          connected = false;
+          clearInterval(retryTimer);
+          let attempts = 0;
+          const initialize = () => {
+            send({ type: "slk:wahlcheck:init" });
+            if (++attempts >= 120) clearInterval(retryTimer);
+          };
+          retryTimer = setInterval(initialize, 250);
+          initialize();
+        });
+        frame.src = target.href;
+      } catch {
+        input.setCustomValidity(text.invalid);
+        input.reportValidity();
+      }
+    </script>
+  </body>
+</html>
