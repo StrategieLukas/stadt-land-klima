@@ -360,5 +360,10 @@ async function saveMetadata() {
   }
 }
 
-useHead({ title: computed(() => item.value?.title || $t("news.type.news")) });
+usePageSeo({
+  title: () => item.value?.title || $t("news.type.news"),
+  description: () => item.value?.teaser,
+  image: () => item.value?.image,
+  type: "article",
+});
 </script>

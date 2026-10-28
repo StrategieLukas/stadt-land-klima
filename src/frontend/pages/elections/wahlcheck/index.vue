@@ -260,14 +260,9 @@ onMounted(() => {
   void loadElections();
 });
 
-useHead({
+usePageSeo({
   title: $t("elections.wahlcheck.title"),
-  meta: [
-    {
-      name: "description",
-      content: $t("elections.wahlcheck.meta_description"),
-    },
-  ],
+  description: $t("elections.wahlcheck.meta_description"),
 });
 </script>
 

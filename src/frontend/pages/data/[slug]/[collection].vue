@@ -275,7 +275,7 @@ function scrollToStep(index: number) {
 
 // ── SEO ───────────────────────────────────────────────────────────────────────
 
-useHead({
+usePageSeo({
   title: computed(() =>
     collection.value ? `${t(collection.value.title)} – ${area.value?.name ?? ""}` : collectionSlug.value,
   ),

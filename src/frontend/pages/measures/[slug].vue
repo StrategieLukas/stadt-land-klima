@@ -401,7 +401,9 @@ watch(
 
 //MetaTags
 const title = computed(() => measure.value?.name);
-useHead({
+usePageSeo({
   title,
+  description: () => measure.value?.description || measure.value?.description_about,
+  image: () => measure.value?.image,
 });
 </script>

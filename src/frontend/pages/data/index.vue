@@ -351,16 +351,11 @@ const GERMANY_AREA = {
   stadtlandklimaDataAll: [],
 };
 
-useHead(() => ({
+usePageSeo(() => ({
   title: $t("data.overview.title"),
-  meta: [
-    {
-      name: "description",
-      content: underConstruction.value
-        ? dataPageConfig.value.under_construction_explanation || $t("data.construction.explanation")
-        : $t("data.overview.intro"),
-    },
-  ],
+  description: underConstruction.value
+    ? dataPageConfig.value.under_construction_explanation || $t("data.construction.explanation")
+    : $t("data.overview.intro"),
 }));
 </script>
 

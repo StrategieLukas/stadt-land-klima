@@ -663,5 +663,6 @@ const previewMuniName = computed(
 // MetaTags
 const pageTitle = directusData?.municipalityScore?.municipality?.name ?? slzArea.value?.name ?? slug;
 const title = ref(pageTitle);
-useHead({ title });
+const seoText = useSeoText();
+usePageSeo({ title, description: () => seoText("seo.municipality.description", { ":name": title.value }) });
 </script>

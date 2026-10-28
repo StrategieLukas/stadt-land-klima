@@ -165,8 +165,11 @@ const articleLink = computed(() => {
 
 //MetaTags
 const title = computed(() => article.value!.title || "");
-useHead({
+usePageSeo({
   title,
+  description: () => article.value?.abstract || article.value?.subtitle,
+  image: () => article.value?.image,
+  type: "article",
 });
 </script>
 

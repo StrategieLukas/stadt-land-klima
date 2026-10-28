@@ -30,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+import { contentDescription } from "~/shared/seo";
 import { clientFailure } from "~/shared/securityLog";
 
 import OnboardingBox from "@/components/OnboardingBox.vue";
@@ -113,7 +114,8 @@ const processedPageContent = computed(() => {
 // MetaTags
 const title = computed(() => (page.value ? page.value.name : $t("page_not_found")));
 
-useHead({
+usePageSeo({
   title,
+  description: () => contentDescription(page.value?.contents, pageBlocks.value),
 });
 </script>

@@ -137,7 +137,7 @@ const { $t, $locale } = useNuxtApp();
 const route = useRoute();
 const runtimeConfig = useRuntimeConfig();
 
-useHead({ title: ref($t("feedback.nav_label")) });
+usePageSeo({ title: ref($t("feedback.nav_label")) });
 
 const ALLOWED_TYPES = ["legal", "bug", "inaccuracy", "suggestion", "cooperation", "other"];
 

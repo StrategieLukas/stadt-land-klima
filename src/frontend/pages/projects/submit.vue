@@ -342,7 +342,7 @@ type ArticleSubmissionForm = {
 
 const { $translateDynamic, $t, $locale } = useNuxtApp();
 
-useHead({ title: $t("projects.submit.title") });
+usePageSeo({ title: $t("projects.submit.title") });
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const ARTICLE_SUBMISSION_MAX_IMAGE_MB = ARTICLE_SUBMISSION_MAX_IMAGE_BYTES / 1024 / 1024;
