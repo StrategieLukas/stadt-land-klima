@@ -23,5 +23,5 @@ watch(
     selectedCatalogVersion.value = await getCatalogVersion(route);
   },
 );
-useHead({ title: () => $t("map.title") });
+usePageSeo({ title: () => $t("map.title") });
 </script>

@@ -81,6 +81,7 @@
 import { computed } from "vue";
 import { useError, clearError } from "#app";
 
+useSeoMeta({ robots: "noindex, nofollow, noarchive" });
 const error = useError();
 
 const isDev = process.env.APP_ENV === "development";

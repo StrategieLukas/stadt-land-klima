@@ -406,7 +406,7 @@ onMounted(() => {
 });
 
 const title = ref($t("measures.nav_label"));
-useHead({ title });
+usePageSeo({ title });
 
 // Public contracts work during SSR and subsequent client navigation.
 const { data: allVersions } = await useAsyncData("measure-catalog-versions", async () =>

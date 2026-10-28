@@ -229,19 +229,10 @@ const pages = computed(() => layoutData.value?.pages || []);
 const publishedMunicipalities = computed(() => layoutData.value?.municipalities || []);
 const navigationConfig = computed(() => layoutData.value?.navigationConfig);
 
-//MetaTags
-const description = ref("Stadt.Land.Klima!  Description");
 useHead({
   htmlAttrs: {
     lang: $locale,
   },
-  titleTemplate: "%s - Stadt.Land.Klima!",
-  meta: [
-    {
-      name: "description",
-      content: description,
-    },
-  ],
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
   script:
     plausibleAnalyticsUrl &&

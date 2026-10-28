@@ -473,5 +473,5 @@ watch(
 );
 
 // Meta
-useHead({ title: $t("localteam.create") });
+usePageSeo({ title: $t("localteam.create") });
 </script>

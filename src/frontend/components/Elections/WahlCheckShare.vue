@@ -372,6 +372,7 @@ import {
   getCandidatePartyConfig as _getCandidatePartyConfig,
 } from "~/shared/candidateParties";
 import { useTheme } from "~/composables/useTheme";
+import { wahlcheckStandaloneUrl } from "~/shared/wahlcheckUrls";
 
 const props = defineProps({
   election: {
@@ -479,7 +480,7 @@ function getProgressColorHex(percentage: number) {
 // Generate share URL
 function getShareUrl() {
   if (typeof window === "undefined") return "";
-  return window.location.href;
+  return wahlcheckStandaloneUrl(window.location.href);
 }
 
 // Check native Web Share support on mount

@@ -887,19 +887,15 @@ function isReasonableArea(areaValue: Area) {
   return (areaValue?.is_reasonable_for_municipal_rating ?? areaValue?.isReasonableForMunicipalRating ?? true) === true;
 }
 
+const seoText = useSeoText();
+
 // ── SEO ──────────────────────────────────────────────────────────────────────
 
-useHead({
-  title: computed(() => (area.value?.name ? `${area.value.prefix} ${area.value.name} – Klimadaten` : "Klimadaten")),
-  meta: [
-    {
-      name: "description",
-      content: computed(() =>
-        area.value?.name
-          ? `Klimadaten und Maßnahmen-Bewertungen für ${area.value.prefix} ${area.value.name}.`
-          : "Klimadaten für Kommunen und Regionen in Deutschland.",
-      ),
-    },
-  ],
+usePageSeo({
+  title: () => seoText("seo.data.title", { ":name": area.value?.name ?? "" }),
+  description: () =>
+    area.value?.name
+      ? seoText("seo.data.area_description", { ":name": area.value.name })
+      : seoText("seo.data.description"),
 });
 </script>

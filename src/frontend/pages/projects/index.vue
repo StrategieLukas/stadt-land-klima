@@ -457,5 +457,5 @@ const mapProjects = computed(() =>
 
 // ── Meta ─────────────────────────────────────────────────────────────────────
 const title = ref($t("projects.title"));
-useHead({ title });
+usePageSeo({ title });
 </script>
