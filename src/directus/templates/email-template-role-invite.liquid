@@ -1,0 +1,11 @@
+{% layout "custom-base" %} {% block content %}
+<h1>Deine Einladung: {{ roleLabel | escape }}</h1>
+<p>Hallo {{ firstName | escape }},</p>
+<p>{{ inviterName | escape }} hat dich eingeladen, bei Stadt.Land.Klima! mitzuarbeiten.</p>
+<p><strong>Deine Rolle: {{ roleLabel | escape }}</strong></p>
+<p>{{ roleDescription | escape }}</p>
+<p>Über den folgenden Button kannst du die Einladung annehmen und dein eigenes Passwort festlegen. Anschließend kannst du dich im Redaktionssystem anmelden.</p>
+<p><a class="button" href="{{ url | escape }}" rel="noopener" target="_blank">Einladung annehmen und Passwort festlegen</a></p>
+<p>Der Einladungslink ist zeitlich begrenzt gültig und kann nach der Annahme nicht erneut verwendet werden. Falls er abgelaufen ist, bitte die einladende Person um eine neue Einladung.</p>
+<p>Falls du diese Einladung nicht erwartet hast, kannst du diese E-Mail ignorieren. Bei Fragen erreichst du uns unter <a href="mailto:info@stadt-land-klima.de">info@stadt-land-klima.de</a>.</p>
+{% endblock %}

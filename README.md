@@ -4,6 +4,7 @@
 
 - [Implemented security hardening](SECURITY_HARDENING.md)
 - [Remaining work and decisions](REMAINING_TODOS.md)
+- [Administrator role invitations](ROLE_INVITATIONS.md)
 - [DeepL CMS translation setup, usage controls and operation](DYNAMIC_CONTENT_TRANSLATION.md)
 - [Rootless Podman setup, security controls and Docker migration](PODMAN.md)
 - [Optional Caddy gateway configuration and nginx migration](caddy/README.md)

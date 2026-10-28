@@ -4,7 +4,8 @@
  * Each key corresponds to a rate-limited endpoint. Values define the maximum
  * number of requests allowed per IP within the sliding window (in seconds).
  *
- * All entries below are enforced in code via `rateLimit(event, 'key')`.
+ * Nuxt routes use `rateLimit(event, 'key')`. Directus invitation/translation
+ * endpoints reuse these presets with their transactional database limiter.
  * Adjust these values without modifying endpoint code.
  */
 
@@ -16,6 +17,8 @@ export interface RateLimitPreset {
 }
 
 export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
+  "role-invitation": { max: 5, windowSeconds: 60 },
+  "role-invitation-roles": { max: 10, windowSeconds: 60 },
   "content-translation-control": { max: 5, windowSeconds: 60 },
   "content-translation-status": { max: 10, windowSeconds: 60 },
   "client-event": { max: 5, windowSeconds: 60 },
