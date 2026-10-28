@@ -5,6 +5,7 @@ COPY --chown=1000:1000 src/directus/cli /directus/cli
 COPY --chown=1000:1000 src/directus/extensions /directus/extensions
 # Extension bundles share the portable logger with Nuxt; retain its real source path.
 COPY --chown=1000:1000 src/frontend/shared/securityLog.ts /frontend/shared/securityLog.ts
+COPY --chown=1000:1000 src/frontend/server/utils/rateLimitConfig.ts /frontend/server/utils/rateLimitConfig.ts
 RUN npm ci --prefix /directus/cli --include=dev --no-audit --no-fund \
     && npm --prefix /directus/cli run typecheck \
     && for extension in /directus/extensions/*; do \
