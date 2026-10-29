@@ -1,9 +1,10 @@
 <template>
-  <div class="slk-dock flex items-center justify-around border-t border-gray-200 bg-white text-black">
+  <div class="slk-dock flex items-center justify-around border-t">
     <button
       v-for="page in navigationPages"
       :key="page.id"
       :class="{ 'slk-dock-active': isPageActive(page.slug) }"
+      :aria-current="isPageActive(page.slug) ? 'page' : undefined"
       class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
       @click="
         followLink(page.slug);
@@ -76,11 +77,26 @@ const followLink = (pageSlug: string) => {
 </script>
 
 <style scoped>
-.slk-dock-active {
-  color: #afca0b !important;
+.slk-dock {
+  background-color: var(--slk-surface);
+  border-color: var(--slk-border);
+  color: var(--slk-text-strong);
 }
 
-.slk-dock-active svg {
-  color: #afca0b !important;
+.slk-dock-active {
+  color: var(--slk-accent-green);
+}
+
+/* CMS SVGs can carry fixed paint attributes; preserve unpainted geometry. */
+.slk-dock :deep(svg:not([fill])) {
+  fill: currentColor;
+}
+
+.slk-dock :deep([fill]:not([fill="none"]):not([fill="transparent"])) {
+  fill: currentColor;
+}
+
+.slk-dock :deep([stroke]:not([stroke="none"]):not([stroke="transparent"])) {
+  stroke: currentColor;
 }
 </style>

@@ -50,6 +50,7 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
   const rawContentResults = ref<ContentHit[]>([]); // Meilisearch hits
   const isLoading = ref(false);
   let searchGeneration = 0;
+  let searchController: AbortController | undefined;
 
   // --- Area enrichment (mirrors the logic in useAreaSearch) ---
 
@@ -221,73 +222,92 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
     }
 
     isLoading.value = true;
-    try {
-      const [areasResult, directusResult, contentResult] = await Promise.allSettled([
-        // 1. StadtLandZahl (via the server-side proxy route that now uses REST)
-        $fetch("/api/area-search", { query: { term: term.trim(), mode: "normal" } }).then((value) =>
-          AreaListSchema.parse(value),
-        ),
+    const controller = new AbortController();
+    searchController = controller;
+    const options = { signal: controller.signal };
+    const current = () => generation === searchGeneration;
 
-        // 2. Published municipalities matched by name via server route
-        fetchContent("/api/public/municipalities", {
-          query: { search: term.trim(), limit: 8, sort: "name" },
-        }).then((res) => MunicipalitiesResponseSchema.parse(res).municipalities),
+    // Publish each provider immediately; an external area lookup must not hold up content.
+    const contentRequest = fetchContent(`/api/content-search?q=${encodeURIComponent(term.trim())}`, options)
+      .then((result) => {
+        if (current()) rawContentResults.value = ContentResponseSchema.parse(result).hits;
+      })
+      .catch(() => {
+        if (current()) rawContentResults.value = [];
+      });
+    const directusRequest = fetchContent("/api/public/municipalities", {
+      ...options,
+      query: { search: term.trim(), limit: 8, sort: "name" },
+    })
+      .then((result) => {
+        const municipalities = MunicipalitiesResponseSchema.parse(result).municipalities;
+        if (current()) rawDirectusMunis.value = municipalities;
+        return municipalities;
+      })
+      .catch(() => {
+        if (current()) rawDirectusMunis.value = [];
+        return [];
+      });
+    const areaRequest = $fetch("/api/area-search", {
+      ...options,
+      query: { term: term.trim(), mode: "normal" },
+    }).then((value) => AreaListSchema.parse(value));
 
-        // 3. Meilisearch content
-        fetchContent(`/api/content-search?q=${encodeURIComponent(term.trim())}`),
-      ]);
-
-      // Build a localteam map from the Directus name-search result
-      const directusMunis = directusResult.status === "fulfilled" ? directusResult.value : [];
-      const municipalityByArs = new Map(directusMunis.filter((m) => m.ars).map((m) => [m.ars, m]));
-
-      // For municipality ARS codes from StadtLandZahl not covered by the name search,
-      // do a secondary lookup so hasLocalteam stays accurate.
-      const nodes =
-        areasResult.status === "fulfilled" ? (Array.isArray(areasResult.value) ? areasResult.value : []) : [];
-      const uncoveredArs = nodes
-        .filter((n) => (n.level ?? 4) >= 4 && n.ars && !municipalityByArs.has(n.ars))
-        .map((n) => n.ars);
-      if (uncoveredArs.length > 0) {
-        try {
-          const result = await fetchContent("/api/public/area-municipalities", {
-            query: { ars: uncoveredArs.join(",") },
-          });
-          MunicipalitiesResponseSchema.parse(result).municipalities.forEach((r) => {
-            if (r.ars) municipalityByArs.set(r.ars, r);
-          });
-        } catch {
-          /* silently ignore — falls back to slug-only detection */
+    const enrichedAreaRequest = (async () => {
+      try {
+        const nodes = await areaRequest;
+        if (!current()) return;
+        rawAreaResults.value = nodes;
+        const directusMunis = await directusRequest;
+        if (!current()) return;
+        const municipalityByArs = new Map(directusMunis.filter((m) => m.ars).map((m) => [m.ars, m]));
+        const updateAreas = () => {
+          if (!current()) return;
+          rawAreaResults.value = nodes.map((n) => ({
+            ...n,
+            hasLocalteam: !!municipalityByArs.get(n.ars)?.localteam_id,
+            directusCatalogStatus: municipalityByArs.get(n.ars) ?? null,
+          }));
+        };
+        updateAreas();
+        const uncoveredArs = nodes
+          .filter((n) => (n.level ?? 4) >= 4 && n.ars && !municipalityByArs.has(n.ars))
+          .map((n) => n.ars);
+        if (uncoveredArs.length) {
+          try {
+            const result = await fetchContent("/api/public/area-municipalities", {
+              ...options,
+              query: { ars: uncoveredArs.join(",") },
+            });
+            MunicipalitiesResponseSchema.parse(result).municipalities.forEach((municipality) => {
+              if (municipality.ars) municipalityByArs.set(municipality.ars, municipality);
+            });
+            updateAreas();
+          } catch {
+            // Keep the initial results if optional local-team enrichment is unavailable.
+          }
         }
+      } catch {
+        if (current()) rawAreaResults.value = [];
       }
-
-      if (generation !== searchGeneration) return;
-      rawAreaResults.value = nodes.map((n) => ({
-        ...n,
-        hasLocalteam: !!municipalityByArs.get(n.ars)?.localteam_id,
-        directusCatalogStatus: municipalityByArs.get(n.ars) ?? null,
-      }));
-      rawDirectusMunis.value = directusMunis;
-      rawContentResults.value =
-        contentResult.status === "fulfilled" ? ContentResponseSchema.parse(contentResult.value).hits : [];
-    } catch {
-      if (generation !== searchGeneration) return;
-      rawAreaResults.value = [];
-      rawDirectusMunis.value = [];
-      rawContentResults.value = [];
-    } finally {
-      if (generation === searchGeneration) isLoading.value = false;
-    }
+    })();
+    await Promise.allSettled([contentRequest, directusRequest, enrichedAreaRequest]);
+    if (current()) isLoading.value = false;
   }, 300);
 
   function search(term: string) {
     const generation = ++searchGeneration;
-    if (term && term.trim()) isLoading.value = true;
+    searchController?.abort();
+    rawAreaResults.value = [];
+    rawDirectusMunis.value = [];
+    rawContentResults.value = [];
+    isLoading.value = !!term.trim();
     void _doSearch(term, generation);
   }
 
   function clear() {
     searchGeneration++;
+    searchController?.abort();
     rawAreaResults.value = [];
     rawDirectusMunis.value = [];
     rawContentResults.value = [];

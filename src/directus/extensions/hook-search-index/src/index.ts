@@ -143,6 +143,8 @@ interface Page {
   slug: string;
   name?: string;
   contents?: string;
+  title?: string;
+  teaser?: string;
   status?: string;
 }
 
@@ -217,11 +219,13 @@ interface Measure {
   slug: string;
   name?: string;
   sector?: string;
+  status?: string;
+  catalog_version?: string;
   [key: string]: any;
 }
 
-// Return type is SearchDoc (never null) — callers no longer need a null check.
-function buildMeasureDoc(measure: Measure): SearchDoc {
+function buildMeasureDoc(measure: Measure): SearchDoc | null {
+  if (measure.status !== "published") return null;
   const text = MEASURE_DESC_FIELDS.map((f) => stripHtml(measure[f] || ""))
     .filter(Boolean)
     .join(" ");
@@ -261,10 +265,20 @@ function buildMemberDoc(user: User): SearchDoc | null {
 
 interface HookContext {
   action: (event: string, handler: (...args: any[]) => void) => void;
-  filter: (
-    event: string,
-    handler: (keys: (string | number)[], meta: ActionPayload, context: ActionContext) => Promise<(string | number)[]>,
-  ) => void;
+  filter: {
+    (
+      event: "items.delete",
+      handler: (keys: (string | number)[], meta: ActionPayload, context: ActionContext) => Promise<(string | number)[]>,
+    ): void;
+    (
+      event: "items.update",
+      handler: (
+        payload: Record<string, unknown>,
+        meta: ActionPayload,
+        context: ActionContext,
+      ) => Promise<Record<string, unknown>>,
+    ): void;
+  };
   logger: Logger;
   env: Record<string, string>;
 }
@@ -347,23 +361,58 @@ export default (
   // Resolve identifiers while records still exist. Removal before deletion is
   // conservative: failed DB deletions can hide a result, never disclose a draft.
   filter("items.delete", async (keys, { collection }, { database }) => {
-    if (!collection || !["blocks", "pages", "events", "articles", "measures"].includes(collection)) return keys;
+    if (!collection || !["blocks", "pages", "news_items", "events", "articles", "measures"].includes(collection))
+      return keys;
     const rows = await database(collection).whereIn("id", keys).select("*");
     for (const row of rows) {
       if (collection === "blocks") await remove(`block_${row.uuid}`);
+      else if (collection === "measures") await syncMeasureSlug(row.slug, database, keys);
       else {
-        const prefix = { pages: "page", events: "event", articles: "article", measures: "measure" }[collection];
+        const prefix = {
+          pages: "page",
+          news_items: "news_item",
+          events: "event",
+          articles: "article",
+          measures: "measure",
+        }[collection];
         await remove(`${prefix}_${row.slug}`);
-        if (collection === "pages") await removeBlocksForPage(row as Page, database);
+        if (collection === "pages" || collection === "news_items")
+          await removeBlocksForPage(row as Page, database, collection);
       }
     }
     return keys;
   });
 
+  filter("items.update", async (payload, { collection, keys = [] }, { database }) => {
+    const prefixes: Record<string, string> = {
+      pages: "page",
+      news_items: "news_item",
+      events: "event",
+      articles: "article",
+      measures: "measure",
+    };
+    if (!collection || !prefixes[collection] || !Object.hasOwn(payload, "slug")) return payload;
+    const rows = await database(collection).whereIn("id", keys).select("id", "slug");
+    for (const row of rows) {
+      if (row.slug === payload.slug) continue;
+      if (collection === "measures") await syncMeasureSlug(row.slug, database, keys);
+      else {
+        await remove(`${prefixes[collection]}_${row.slug}`);
+        if (collection === "pages" || collection === "news_items")
+          await removeBlocksForPage(row as Page, database, collection);
+      }
+    }
+    return payload;
+  });
+
   // ── blocks ──
 
   async function syncBlock(row: BlockRow, database: Database): Promise<void> {
-    if (SKIP_BUNDLES.includes(row.bundle) || row.entity_type !== "pages" || row.field_name !== "content") {
+    if (
+      SKIP_BUNDLES.includes(row.bundle) ||
+      !["pages", "news_items"].includes(row.entity_type) ||
+      row.field_name !== "content"
+    ) {
       await remove(`block_${row.uuid}`);
       return;
     }
@@ -373,7 +422,7 @@ export default (
       return;
     }
 
-    const pageRows = await database("pages")
+    const pageRows = await database(row.entity_type)
       .where((builder) => {
         if (UUID_PATTERN.test(row.entity_uuid)) {
           builder.where("id", row.entity_uuid);
@@ -381,7 +430,7 @@ export default (
           builder.where("slug", row.entity_uuid);
         }
       })
-      .select("name", "slug", "status")
+      .select(row.entity_type === "pages" ? "name" : "title", "slug", "status")
       .limit(1);
 
     // Don't index blocks belonging to unpublished pages
@@ -390,20 +439,22 @@ export default (
       return;
     }
 
-    const pageName = pageRows[0]?.name || row.entity_uuid;
+    const pageName = pageRows[0]?.name || pageRows[0]?.title || row.entity_uuid;
     const doc = buildBlockDoc(row as unknown as Block, pageName, pageRows[0]?.slug || row.entity_uuid);
-    if (doc) await upsert(doc);
-    else await remove(`block_${row.uuid}`);
+    if (doc) {
+      if (row.entity_type === "news_items") doc.url = `/news${doc.url}`;
+      await upsert(doc);
+    } else await remove(`block_${row.uuid}`);
   }
 
   /**
    * Removes all indexed block documents belonging to a page, called when a page
    * is unpublished or deleted so draft blocks cannot escape through search.
    */
-  async function removeBlocksForPage(page: Page, database: Database): Promise<void> {
+  async function removeBlocksForPage(page: Page, database: Database, collection = "pages"): Promise<void> {
     try {
       const rows = await database("blocks")
-        .where("entity_type", "pages")
+        .where("entity_type", collection)
         .where("field_name", "content")
         .whereIn(
           "entity_uuid",
@@ -564,6 +615,54 @@ export default (
     }
   });
 
+  async function syncNews(key: string | number, database: Database): Promise<void> {
+    const rows = await database("news_items")
+      .where("id", key)
+      .select("id", "slug", "title", "teaser", "status")
+      .limit(1);
+    const news = rows[0] as Page | undefined;
+    if (!news) return;
+    if (news.status !== "published") {
+      await remove(`news_item_${news.slug}`);
+      await removeBlocksForPage(news, database, "news_items");
+      return;
+    }
+    await upsert({
+      id: `news_item_${news.slug}`,
+      type: "news_item",
+      title: news.title || "",
+      text: stripHtml(news.teaser),
+      url: `/news/${news.slug}`,
+      meta: null,
+    });
+    const blocks = await database("blocks")
+      .where("entity_type", "news_items")
+      .where("field_name", "content")
+      .whereIn(
+        "entity_uuid",
+        [news.id, news.slug].filter((value): value is string => Boolean(value)),
+      )
+      .select("*");
+    for (const block of blocks) await syncBlock(block as BlockRow, database);
+  }
+
+  action("items.create", async ({ collection, key }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "news_items" || key == null) return;
+    try {
+      await syncNews(key, database);
+    } catch (error) {
+      extensionError(logger, "app.hook-search-index.index.failed", error);
+    }
+  });
+  action("items.update", async ({ collection, keys = [] }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "news_items") return;
+    try {
+      for (const key of keys) await syncNews(key, database);
+    } catch (error) {
+      extensionError(logger, "app.hook-search-index.index.failed", error);
+    }
+  });
+
   // ── events ──
 
   action("items.create", async ({ collection, payload }: ActionPayload) => {
@@ -652,22 +751,56 @@ export default (
 
   // ── measures ──
 
-  action("items.create", async ({ collection, payload }: ActionPayload) => {
-    if (collection !== "measures") return;
-    await upsert(buildMeasureDoc(payload as Measure));
+  // Slugs are shared across catalog versions. Recompute the public document so
+  // changing an old/draft version cannot remove the current published version.
+  async function syncMeasureSlug(
+    slug: string,
+    database: Database,
+    excludedIds: (string | number)[] = [],
+  ): Promise<void> {
+    const catalogs = await database("measure_catalog")
+      .where("hidden", false)
+      .where("isCurrentFrontend", true)
+      .select("id")
+      .limit(1);
+    const rows = catalogs[0]
+      ? await database("measures")
+          .where("slug", slug)
+          .where("catalog_version", catalogs[0].id)
+          .where("status", "published")
+          .whereNotIn("id", excludedIds)
+          .select("slug", "name", "sector", "status", ...MEASURE_DESC_FIELDS)
+          .limit(1)
+      : [];
+    const doc = rows[0] ? buildMeasureDoc(rows[0] as Measure) : null;
+    if (doc) await upsert(doc);
+    else await remove(`measure_${slug}`);
+  }
+
+  async function syncMeasure(key: string | number, database: Database): Promise<void> {
+    const rows = await database("measures").where("id", key).select("slug").limit(1);
+    if (rows[0]) await syncMeasureSlug(rows[0].slug, database);
+  }
+
+  action("items.create", async ({ collection, key }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "measures" || key == null) return;
+    try {
+      await syncMeasure(key, database);
+    } catch (error) {
+      extensionError(logger, "app.hook-search-index.index.failed", error);
+    }
   });
 
-  action("items.update", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== "measures") return;
-    for (const key of keys as (string | number)[]) {
-      try {
-        const fields = ["slug", "name", "sector", ...MEASURE_DESC_FIELDS];
-        const rows = await database("measures").where("id", key).select(fields).limit(1);
-        if (!rows[0]) continue;
-        await upsert(buildMeasureDoc(rows[0] as Measure));
-      } catch (e: any) {
-        extensionError(logger, "app.hook-search-index.index.failed", e);
-      }
+  action("items.update", async ({ collection, keys = [] }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "measures" && collection !== "measure_catalog") return;
+    try {
+      const measureKeys =
+        collection === "measures"
+          ? keys
+          : (await database("measures").whereIn("catalog_version", keys).select("id")).map((row) => row.id);
+      for (const key of measureKeys) await syncMeasure(key, database);
+    } catch (error) {
+      extensionError(logger, "app.hook-search-index.index.failed", error);
     }
   });
 

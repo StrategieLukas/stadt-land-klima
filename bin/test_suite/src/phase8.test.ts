@@ -142,7 +142,10 @@ test("search document builders preserve valid content and refuse malformed exter
     )?.url,
     "/page-slug#block-b",
   );
-  assert.equal(buildMeasureDoc({ slug: "solar", name: "Solar", description: "<p>Energy</p>" }, "v2")?.text, "Energy");
+  assert.equal(
+    buildMeasureDoc({ slug: "solar", name: "Solar", description: "<p>Energy</p>", status: "published" }, "v2")?.text,
+    "Energy",
+  );
   assert.equal(buildMemberDoc({ id: "u", first_name: "Ada", show_on_team_page: true })?.title, "Ada");
   assert.equal(buildMemberDoc({ id: "u", first_name: "Ada", show_on_team_page: false }), null);
   for (const input of [null, [], { title: {} }, { status: "published", slug: 42 }])

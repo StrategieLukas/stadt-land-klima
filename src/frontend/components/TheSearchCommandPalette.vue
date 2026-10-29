@@ -76,7 +76,10 @@
             <!-- Results -->
             <div class="palette-results-scroll flex-1 overflow-y-auto">
               <!-- Loading -->
-              <div v-if="isLoading" class="flex items-center justify-center gap-2 py-10 text-sm text-gray-400">
+              <div
+                v-if="isLoading && !flatResults.length"
+                class="flex items-center justify-center gap-2 py-10 text-sm text-gray-400"
+              >
                 <SlkFlowerSpinner :size="20" />
                 {{ $t("generic.search") }}
               </div>
@@ -211,8 +214,6 @@ import { useUnifiedSearch } from "~/composables/useUnifiedSearch";
 import { getCurrentFrontendCatalogVersion } from "~/composables/getCatalogVersion";
 import { useHeaderHeight, useNavInputRect } from "~/composables/useHeaderHeight";
 import sectorImages from "~/shared/sectorImages";
-import lodash from "lodash";
-const debounce = lodash.debounce.bind(lodash);
 
 const { $t } = useNuxtApp();
 const { isOpen, query, embeddedInput, open, close } = useSearchPalette();
@@ -258,12 +259,9 @@ watch(isOpen, async (val) => {
 });
 
 // Drive search from the shared query ref (works for both embedded and palette inputs)
-const debouncedSearch = debounce((q: string) => {
-  runSearch(q);
-}, 300);
 watch(query, (q) => {
   focusedIndex.value = -1;
-  debouncedSearch(q);
+  runSearch(q);
 });
 
 function runSearch(q: string) {

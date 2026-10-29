@@ -252,3 +252,55 @@ test("public block search requires a live published parent and its current URL",
   assert.equal(visible.length, 1);
   assert.equal(visible[0].url, "/current#block-block");
 });
+
+test("page and measure extractors refuse draft, archived and missing publication state", () => {
+  for (const status of ["draft", "archived", undefined, null]) {
+    assert.equal(extract.buildPageDoc({ slug: "hidden", contents: "Private", status }), null);
+    assert.equal(extract.buildMeasureDoc({ slug: "hidden", name: "Private", status }), null);
+  }
+  assert.ok(extract.buildPageDoc({ slug: "live", contents: "Public", status: "published" }));
+  assert.ok(extract.buildMeasureDoc({ slug: "live", name: "Public", status: "published" }));
+});
+
+test("measure search checks live publication even when an old document still exists", async () => {
+  const hits = ["live", "draft"].map((slug) => ({ id: `measure_${slug}`, type: "measure", url: `/measures/${slug}` }));
+  const visible = await visibility.publicSearchHits(
+    {
+      request: async ({ collection, query }: Row) => {
+        assert.equal(collection, "measures");
+        assert.equal(query.filter.status._eq, "published");
+        assert.equal(query.filter.catalog_version.hidden._eq, false);
+        assert.equal(query.filter.catalog_version.isCurrentFrontend._eq, true);
+        assert.ok(query.fields.includes("status"));
+        return [
+          { slug: "live", status: "published" },
+          { slug: "draft", status: "draft" },
+        ];
+      },
+    },
+    hits,
+  );
+  assert.deepEqual(
+    Array.from(visible, (hit: Row) => hit.id),
+    ["measure_live"],
+  );
+});
+
+test("snapshot measures explicitly request publication state and exclude nonpublished records", async () => {
+  const { docs } = await snapshot.collectSearchSnapshot({
+    request: async ({ collection, query }: Row) => {
+      if (collection === "measure_catalog") return [{ id: "catalog", name: "Current" }];
+      if (collection === "measures") {
+        assert.equal(query.filter.status._eq, "published");
+        assert.ok(query.fields.includes("status"));
+        return [
+          { slug: "live", status: "published" },
+          { slug: "draft", status: "draft" },
+        ];
+      }
+      return [];
+    },
+  });
+  assert.ok(docs.some((doc: Row) => doc.id === "measure_live"));
+  assert.ok(!docs.some((doc: Row) => doc.id === "measure_draft"));
+});

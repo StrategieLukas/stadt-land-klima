@@ -313,6 +313,9 @@ test("search cleanup removes UUID and legacy-slug children before deletion and e
   const page = { id: "12345678-1234-4234-8234-123456789abc", slug: "example", name: "Example", status: "draft" };
   const rows: Row = {
     pages: [page],
+    measures: [{ id: 1, slug: "measure", status: "draft", catalog_version: "catalog" }],
+    measure_catalog: [{ id: "catalog", hidden: false, isCurrentFrontend: true }],
+    news_items: [{ ...page, title: "News", teaser: "Public news" }],
     blocks: [
       {
         id: 1,
@@ -351,6 +354,10 @@ test("search cleanup removes UUID and legacy-slug children before deletion and e
       },
       whereIn(field: string, values: unknown[]) {
         tests.push((row) => values.includes(row[field]));
+        return builder;
+      },
+      whereNotIn(field: string, values: unknown[]) {
+        tests.push((row) => !values.includes(row[field]));
         return builder;
       },
       select() {
@@ -409,6 +416,69 @@ test("search cleanup removes UUID and legacy-slug children before deletion and e
     added.some((doc) => doc.id === "block_legacy-block"),
     "republishing restores published child results",
   );
+  const update = async (collection: string, keys: (string | number)[]) => {
+    for (const fn of actions.get("items.update")!) await fn({ collection, keys }, { database });
+  };
+  const create = async (collection: string, key: string | number) => {
+    for (const fn of actions.get("items.create")!) await fn({ collection, key }, { database });
+  };
+  added.length = 0;
+  removed.length = 0;
+  await create("measures", 1);
+  assert.equal(added.length, 0);
+  assert.ok(removed.includes("measure_measure"));
+  rows.measures[0].status = "published";
+  await update("measures", [1]);
+  assert.ok(added.some((doc) => doc.id === "measure_measure"));
+  added.length = 0;
+  rows.measure_catalog[0].hidden = true;
+  await update("measure_catalog", ["catalog"]);
+  assert.equal(added.length, 0);
+  rows.measure_catalog[0].hidden = false;
+  rows.measure_catalog[0].isCurrentFrontend = false;
+  await update("measures", [1]);
+  assert.equal(added.length, 0);
+  rows.measure_catalog[0].isCurrentFrontend = true;
+  await update("measure_catalog", ["catalog"]);
+  assert.ok(added.some((doc) => doc.id === "measure_measure"));
+  removed.length = 0;
+  await filters.get("items.update")!({ slug: "renamed" }, { collection: "measures", keys: [1] }, { database });
+  assert.ok(removed.includes("measure_measure"));
+
+  rows.measures.push({ id: 2, slug: "measure", status: "draft", catalog_version: "old-catalog" });
+  added.length = 0;
+  removed.length = 0;
+  await update("measures", [2]);
+  assert.ok(
+    added.some((doc) => doc.id === "measure_measure"),
+    "old draft versions preserve the current published measure",
+  );
+  assert.ok(!removed.includes("measure_measure"));
+  await filters.get("items.delete")!([2], { collection: "measures" }, { database });
+  assert.ok(!removed.includes("measure_measure"), "deleting an old version preserves the current result");
+  await filters.get("items.update")!({ slug: "old-renamed" }, { collection: "measures", keys: [2] }, { database });
+  assert.ok(!removed.includes("measure_measure"), "renaming an old version preserves the current result");
+
+  removed.length = 0;
+  await filters.get("items.update")!({ slug: "page-renamed" }, { collection: "pages", keys: [page.id] }, { database });
+  assert.ok(removed.includes("page_example"));
+  assert.ok(removed.includes("block_block-uuid"));
+  assert.ok(removed.includes("block_legacy-block"), "renames clean up legacy slug-linked block documents");
+
+  const news = rows.news_items[0];
+  rows.blocks.push({ ...rows.blocks[1], id: 3, uuid: "news-child", entity_type: "news_items", entity_uuid: page.id });
+  added.length = 0;
+  await create("news_items", news.id);
+  assert.equal(added.length, 0);
+  news.status = "published";
+  await update("news_items", [news.id]);
+  assert.ok(added.some((doc) => doc.id === "news_item_example" && doc.url === "/news/example"));
+  assert.ok(added.some((doc) => doc.id === "block_news-child" && doc.url === "/news/example#block-news-child"));
+  removed.length = 0;
+  news.status = "draft";
+  await update("news_items", [news.id]);
+  assert.ok(removed.includes("news_item_example"));
+  assert.ok(removed.includes("block_news-child"));
 });
 
 test("PDF compilation passes a native kill timeout and bounded binary buffers to execFile", async () => {

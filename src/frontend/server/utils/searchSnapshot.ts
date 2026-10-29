@@ -173,8 +173,9 @@ export async function collectSearchSnapshot(directus: ReturnType<typeof createSe
         .request(
           readItems("measures", {
             limit: -1,
-            filter: { catalog_version: { _eq: frontendCatalog.id } },
+            filter: { status: { _eq: "published" }, catalog_version: { _eq: frontendCatalog.id } },
             fields: [
+              "status",
               "slug",
               "name",
               "sector",

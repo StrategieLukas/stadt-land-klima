@@ -48,6 +48,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import { openPdf } from "~/utils/openPdf";
 import { clientFailure } from "~/shared/securityLog";
 
 import type { PropType } from "vue";
@@ -97,18 +98,16 @@ async function fetchPDF() {
 
   isGeneratingPdf.value = true;
   try {
-    const response = await $fetch<Blob>(`/api/pdf/municipality/${municipality.slug}`, {
-      method: "POST",
-      responseType: "blob",
-      body: {
-        slug: municipality.slug,
-        catalogVersion: props.municipalityScore.catalog_version?.name,
-      },
-    });
-
-    const blob = new Blob([response], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
+    await openPdf(() =>
+      $fetch<Blob>(`/api/pdf/municipality/${municipality.slug}`, {
+        method: "POST",
+        responseType: "blob",
+        body: {
+          slug: municipality.slug,
+          catalogVersion: props.municipalityScore.catalog_version?.name,
+        },
+      }),
+    );
   } catch (err) {
     clientFailure("app.components.ItemRanking.fetchPDF.failed", err);
   } finally {

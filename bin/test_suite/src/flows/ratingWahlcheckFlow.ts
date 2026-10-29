@@ -276,7 +276,15 @@ async function assertPdfButtonGeneratesValidPdf(
 
   const pdfButton = page.getByRole("button", { name: /^PDF$/ }).first();
   await pdfButton.waitFor({ state: "visible", timeout: 20_000 });
+  let viewerDownloaded = false;
+  const viewerPromise = page.waitForEvent("popup").then((viewer) => {
+    viewer.on("download", () => {
+      viewerDownloaded = true;
+    });
+    return viewer;
+  });
   await pdfButton.click();
+  const viewer = await viewerPromise;
 
   const response = await responsePromise;
   const contentType = response.headers()["content-type"] ?? "";
@@ -290,6 +298,12 @@ async function assertPdfButtonGeneratesValidPdf(
     advertisedLength > 1_000,
     `${label} PDF button response must advertise a non-empty PDF. Got ${advertisedLength} byte(s).`,
   );
+
+  await waitFor(
+    `${label} PDF viewer navigation or download`,
+    async () => viewerDownloaded || viewer.url().startsWith("blob:"),
+  );
+  await viewer.close();
 
   // Re-fetch the PDF via the same server route to validate the binary content
   const pdfResponse = await page.request.post(response.url(), {

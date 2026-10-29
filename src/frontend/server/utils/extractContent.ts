@@ -293,7 +293,7 @@ export function buildPageDoc(input: unknown): SiteContentDoc | null {
   const parsed = content.safeParse(input);
   if (!parsed.success) return null;
   const page = parsed.data;
-  if (!page.contents) return null;
+  if (page.status !== "published" || !page.contents) return null;
   return {
     id: `page_${page.slug}`,
     type: "page",
@@ -352,6 +352,7 @@ export function buildMeasureDoc(input: unknown, catalogVersionName?: string): Si
   const parsed = content.safeParse(input);
   if (!parsed.success) return null;
   const measure = parsed.data;
+  if (measure.status !== "published") return null;
   const text = MEASURE_DESC_FIELDS.map((f) => stripHtml(measure[f as keyof typeof measure]))
     .filter(Boolean)
     .join(" ");

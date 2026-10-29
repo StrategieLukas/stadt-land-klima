@@ -98,13 +98,12 @@ export async function publicSearchHits<T extends Hit>(
       if (!collection) return;
       const filter =
         type === "measure"
-          ? { catalog_version: { hidden: { _eq: false }, isCurrentFrontend: { _eq: true } } }
+          ? {
+              status: { _eq: "published" },
+              catalog_version: { hidden: { _eq: false }, isCurrentFrontend: { _eq: true } },
+            }
           : { status: { _eq: "published" } };
-      const published = await rows(
-        collection,
-        { ...filter, slug: { _in: ids } },
-        type === "measure" ? ["slug"] : ["slug", "status"],
-      );
+      const published = await rows(collection, { ...filter, slug: { _in: ids } }, ["slug", "status"]);
       const prefix = { page: "", event: "/events", article: "/projects", news_item: "/news", measure: "/measures" }[
         type
       ];
@@ -112,7 +111,7 @@ export async function publicSearchHits<T extends Hit>(
         if (
           published.some(
             (row) =>
-              (type === "measure" || row.status === "published") &&
+              row.status === "published" &&
               `${type}_${String(row.slug)}` === hit.id &&
               new URL(hit.url, "https://search.invalid").pathname === `${prefix}/${String(row.slug)}`,
           )

@@ -43,6 +43,7 @@
       <div class="mt-6 flex justify-center">
         <button
           class="btn rounded-lg px-6 py-3 font-semibold text-white transition-transform btn-primary hover:scale-105"
+          :disabled="isGeneratingPdf"
           @click="fetchPDF()"
         >
           <svg
@@ -145,6 +146,7 @@
     <div class="mt-8 flex justify-center py-4">
       <button
         class="btn rounded-lg px-6 py-3 font-semibold text-white transition-transform btn-primary hover:scale-105"
+        :disabled="isGeneratingPdf"
         @click="fetchPDF()"
       >
         <svg
@@ -168,6 +170,7 @@
 </template>
 
 <script setup lang="ts">
+import { openPdf } from "~/utils/openPdf";
 import { clientFailure } from "~/shared/securityLog";
 
 import type { NumericValue } from "~/shared/domain";
@@ -264,23 +267,27 @@ function fetchPoliticalDemandString(measureId: string, rating: NumericValue) {
 
 const municipality = props.municipalityScore.municipality;
 
-async function fetchPDF() {
-  try {
-    const response = await $fetch<Blob>("/api/election-pdf", {
-      responseType: "blob",
-      method: "POST",
-      body: {
-        municipalitySlug: municipality.slug,
-        catalogVersion: props.municipalityScore.catalog_version.name,
-        measures: sortedMeasures.slice(0, 10),
-      },
-    });
+const isGeneratingPdf = ref(false);
 
-    const blob = new Blob([response], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
+async function fetchPDF() {
+  if (isGeneratingPdf.value) return;
+  isGeneratingPdf.value = true;
+  try {
+    await openPdf(() =>
+      $fetch<Blob>("/api/election-pdf", {
+        responseType: "blob",
+        method: "POST",
+        body: {
+          municipalitySlug: municipality.slug,
+          catalogVersion: props.municipalityScore.catalog_version.name,
+          measures: sortedMeasures.slice(0, 10),
+        },
+      }),
+    );
   } catch (err) {
     clientFailure("app.components.ElectionInfo.fetchPDF.failed", err);
+  } finally {
+    isGeneratingPdf.value = false;
   }
 }
 </script>

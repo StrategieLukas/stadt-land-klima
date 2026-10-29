@@ -328,6 +328,41 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         assert(icon && icon.width > 0 && icon.width <= 48, "CMS SVG must render inside its dock icon slot");
         await link.click();
         await page.waitForURL((url) => url.pathname === `/${slug}`);
+        await waitFor(
+          "active dock route after Nuxt page transition",
+          async () => (await link.getAttribute("aria-current")) === "page",
+        );
+        for (const theme of ["staedteChallemgeTheme", "staedteChallengeDark"]) {
+          const colors = await link.evaluate((button, selectedTheme) => {
+            document.documentElement.dataset.theme = selectedTheme;
+            const accentProbe = document.createElement("span");
+            accentProbe.style.color = "var(--slk-accent-green)";
+            const foregroundProbe = document.createElement("span");
+            foregroundProbe.style.color = "var(--slk-text-strong)";
+            document.body.append(accentProbe, foregroundProbe);
+            const accent = getComputedStyle(accentProbe).color;
+            const foreground = getComputedStyle(foregroundProbe).color;
+            accentProbe.remove();
+            foregroundProbe.remove();
+            const label = button.querySelector(".slk-dock-label")!;
+            const painted = button.querySelector("svg [fill]:not([fill='none'])") ?? button.querySelector("svg")!;
+            return {
+              current: button.getAttribute("aria-current"),
+              button: getComputedStyle(button).color,
+              label: getComputedStyle(label).color,
+              icon: getComputedStyle(painted).fill,
+              accent,
+              inactive: getComputedStyle(document.querySelector("#page-drawer-toggle")!).color,
+              foreground,
+            };
+          }, theme);
+          assert(colors.current === "page", `${theme}: current dock page is exposed to assistive technology`);
+          assert(
+            colors.button === colors.accent && colors.label === colors.accent && colors.icon === colors.accent,
+            `${theme}: active button, CMS SVG and label use the theme accent`,
+          );
+          assert(colors.inactive === colors.foreground, `${theme}: inactive menu uses the theme foreground`);
+        }
       } finally {
         await mobile.close();
       }
