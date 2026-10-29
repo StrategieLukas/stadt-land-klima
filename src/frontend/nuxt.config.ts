@@ -229,6 +229,21 @@ export default defineNuxtConfig({
   ],
   routeRules: {
     "/api/**": { security: { enabled: false } },
+    "/embed/wahlcheck/*": {
+      security: {
+        headers: {
+          contentSecurityPolicy: {
+            "frame-ancestors": [
+              "'self'",
+              "https://localzero.net",
+              "https://www.localzero.net",
+              "https://germanzero.de",
+              "https://www.germanzero.de",
+            ],
+          },
+        },
+      },
+    },
     "/**": {
       headers: { "Referrer-Policy": "strict-origin-when-cross-origin" },
     },

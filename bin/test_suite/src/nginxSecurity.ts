@@ -147,6 +147,31 @@ try {
     assert.equal(response.headers["referrer-policy"], "no-referrer", path);
     assert.equal(response.headers["x-powered-by"], undefined, "Private routes suppress upstream identification too");
   }
+  const embed = await fetch("/embed/wahlcheck/example?answers=1");
+  assert.equal(embed.headers["x-frame-options"], undefined, "Partner embeds must omit X-Frame-Options");
+  const embedCsp = String(embed.headers["content-security-policy"]);
+  for (const origin of [
+    "https://localzero.net",
+    "https://www.localzero.net",
+    "https://germanzero.de",
+    "https://www.germanzero.de",
+  ])
+    assert.ok(embedCsp.includes(origin), origin);
+  assert.doesNotMatch(embedCsp, /frame-ancestors 'self';/, "A second restrictive policy must not block partners");
+  for (const path of [
+    "/elections/wahlcheck/example",
+    "/elections/thesen/private",
+    "/backend/embed/wahlcheck/example",
+    "/embed/wahlcheck-other/example",
+    "/embed/wahlcheck/example/other",
+    "/embed/wahlcheck/example/../../api/candidate/private",
+    "/embed/wahlcheck/example/%2e%2e/%2e%2e/api/candidate/private",
+  ]) {
+    const response = await fetch(path);
+    assert.equal(response.headers["x-frame-options"], "SAMEORIGIN", path);
+    assert.match(String(response.headers["content-security-policy"]), /frame-ancestors 'self';/);
+    assert.doesNotMatch(String(response.headers["content-security-policy"]), /localzero\.net|germanzero\.de/);
+  }
   const publicResponse = await fetch("/");
   assert.equal(publicResponse.headers["referrer-policy"], "strict-origin-when-cross-origin");
   assert.equal(publicResponse.headers["x-powered-by"], undefined);

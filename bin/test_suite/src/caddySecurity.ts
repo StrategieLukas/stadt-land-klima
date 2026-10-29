@@ -1,5 +1,7 @@
 /** Optional real proxy gate. Uses disposable Caddy, trusted fixture TLS and isolated upstreams. */
 import assert from "node:assert/strict";
+import { chromium } from "playwright";
+import { chromiumCertificateArguments } from "./lib/browser.js";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -238,12 +240,96 @@ try {
     assert.equal(response.headers["referrer-policy"], "no-referrer");
     assert.equal(response.headers["x-powered-by"], undefined);
   }
+  const embed = await fetch("/embed/wahlcheck/example?answers=1");
+  assert.equal(embed.headers["x-frame-options"], undefined, "Partner embeds must omit X-Frame-Options");
+  const embedCsp = String(embed.headers["content-security-policy"]);
+  for (const origin of [
+    "https://localzero.net",
+    "https://www.localzero.net",
+    "https://germanzero.de",
+    "https://www.germanzero.de",
+  ])
+    assert.ok(embedCsp.includes(origin), origin);
+  assert.doesNotMatch(embedCsp, /frame-ancestors 'self';/, "A second restrictive policy must not block partners");
+  for (const path of [
+    "/elections/wahlcheck/example",
+    "/elections/thesen/private",
+    "/backend/embed/wahlcheck/example",
+    "/embed/wahlcheck-other/example",
+    "/embed/wahlcheck/example/other",
+    "/embed/wahlcheck/example/../../api/candidate/private",
+    "/embed/wahlcheck/example/%2e%2e/%2e%2e/api/candidate/private",
+  ]) {
+    const response = await fetch(path);
+    assert.equal(response.headers["x-frame-options"], "SAMEORIGIN", path);
+    assert.match(String(response.headers["content-security-policy"]), /frame-ancestors 'self';/);
+    assert.doesNotMatch(String(response.headers["content-security-policy"]), /localzero\.net|germanzero\.de/);
+  }
   const page = await fetch("/");
   assert.equal(page.headers["referrer-policy"], "strict-origin-when-cross-origin");
   assert.equal(page.headers.server, undefined);
   const csp = String(page.headers["content-security-policy"]);
   assert.match(csp, /nonce-syntheticNonce/);
   assert.match(csp, /frame-ancestors 'self'/);
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      ...chromiumCertificateArguments(join(directory, "cert.pem")),
+      "--host-resolver-rules=MAP www.stadt-land-klima.de 127.0.0.1",
+    ],
+  });
+  try {
+    const sourceOrigin = `https://www.stadt-land-klima.de:${port}`;
+    for (const [parentOrigin, path, allowed] of [
+      ["https://localzero.net", "/embed/wahlcheck/example", true],
+      ["https://www.localzero.net", "/embed/wahlcheck/example", true],
+      ["https://germanzero.de", "/embed/wahlcheck/example", true],
+      ["https://www.germanzero.de", "/embed/wahlcheck/example", true],
+      ["https://localzero.net.attacker.example", "/embed/wahlcheck/example", false],
+      ["https://localzero.net", "/elections/wahlcheck/example", false],
+      ["https://germanzero.de", "/elections/thesen/private", false],
+    ] as const) {
+      const context = await browser.newContext({ serviceWorkers: "block" });
+      try {
+        // These synthetic HTTPS parents reach only the isolated loopback proxy.
+        await context.grantPermissions(["local-network-access"], { origin: parentOrigin });
+        const parentUrl = parentOrigin + "/framing-test";
+        await context.route("**/*", async (route) => {
+          if (route.request().url() === parentUrl) {
+            await route.fulfill({ contentType: "text/html", body: `<iframe src="${sourceOrigin}${path}"></iframe>` });
+          } else if (new URL(route.request().url()).origin === sourceOrigin) {
+            await route.continue();
+          } else await route.abort();
+        });
+        const page = await context.newPage();
+        const diagnostics: string[] = [];
+        page.on("console", (message) => {
+          if (message.type() === "error") diagnostics.push(message.text());
+        });
+        page.on("requestfailed", (request) => {
+          diagnostics.push(request.failure()?.errorText ?? "request failed");
+        });
+        const denied = allowed
+          ? undefined
+          : page.waitForEvent("console", {
+              predicate: (message) => /frame-ancestors|X-Frame-Options/i.test(message.text()),
+              timeout: 10_000,
+            });
+        await page.goto(parentUrl, { waitUntil: "domcontentloaded" });
+        if (allowed) {
+          const body = page.frameLocator("iframe").locator("body").filter({ hasText: "frontend" });
+          await body.waitFor({ timeout: 10_000 }).catch((error: unknown) => {
+            throw new Error(`${parentOrigin}: ${diagnostics.join("; ")}`, { cause: error });
+          });
+          assert.equal(await body.innerText(), "frontend");
+        } else await denied;
+      } finally {
+        await context.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
   await fetch("/municipalities/example?preview=private-query-canary", {
     Referer: "https://example.test/private-referrer-canary",
     Authorization: "Bearer private-auth-canary",

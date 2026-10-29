@@ -18,6 +18,17 @@ map $request_uri $slk_referrer_policy {
   ~[?&](?:preview|preview_token|blokkliPreview|access_token|token)= "no-referrer";
 }
 
+# Only the dedicated Wahlcheck view may be embedded by these HTTPS partners.
+map $uri $slk_frame_ancestors {
+  default "'self'";
+  "~^/embed/wahlcheck/[a-z0-9-]{1,160}/?$" "'self' https://localzero.net https://www.localzero.net https://germanzero.de https://www.germanzero.de";
+}
+
+map $uri $slk_frame_options {
+  default "SAMEORIGIN";
+  "~^/embed/wahlcheck/[a-z0-9-]{1,160}/?$" "";
+}
+
 # Rate limiting zones — protect public endpoints from abuse
 limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
 limit_req_zone $binary_remote_addr zone=frontend:10m rate=30r/s;
@@ -114,10 +125,10 @@ server {
   add_header X-Permitted-Cross-Domain-Policies "none" always;
   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
   add_header X-Content-Type-Options "nosniff" always;
-  add_header X-Frame-Options "SAMEORIGIN" always;
+  add_header X-Frame-Options $slk_frame_options always;
   add_header Permissions-Policy "camera=(), microphone=(), geolocation=(self)" always;
   add_header Referrer-Policy $slk_referrer_policy always;
-  add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" always;
+  add_header Content-Security-Policy "frame-ancestors $slk_frame_ancestors; object-src 'none'; base-uri 'self'" always;
 
   # The site uses REST; StadtLandZahl's separate GraphQL proxy is unaffected.
   location ~* ^/backend/(?:graphql|utils/hash)(?:/|$) {

@@ -6,11 +6,19 @@
 		X-Permitted-Cross-Domain-Policies none
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options nosniff
-		X-Frame-Options SAMEORIGIN
 		Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
 		Referrer-Policy {http.vars.slk_referrer_policy}
-		# Append the fallback policy; preserve the application's nonce policy.
+	}
+	# Both enforcing policies must permit the partner; retain the app's nonce policy.
+	header @slk_same_origin {
+		defer
+		X-Frame-Options SAMEORIGIN
 		+Content-Security-Policy "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
+	}
+	header @slk_wahlcheck_embed {
+		defer
+		-X-Frame-Options
+		+Content-Security-Policy "frame-ancestors 'self' https://localzero.net https://www.localzero.net https://germanzero.de https://www.germanzero.de; object-src 'none'; base-uri 'self'"
 	}
 }
 
@@ -55,6 +63,9 @@
 }
 
 (slk_application) {
+	# Original paths keep CMS prefix stripping and error routing out of this exception.
+	@slk_wahlcheck_embed expression `{http.request.orig_uri.path}.matches('^/embed/wahlcheck/[a-z0-9-]{1,160}/?$')`
+	@slk_same_origin expression `!{http.request.orig_uri.path}.matches('^/embed/wahlcheck/[a-z0-9-]{1,160}/?$')`
 	map {header.User-Agent} {slk_user_agent} {
 		~(?i)bot|spider|crawler bot
 		~(?i)curl curl

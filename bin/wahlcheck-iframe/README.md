@@ -24,8 +24,8 @@ standalone Wahlcheck.
 
 The default source is
 `https://future.stadt-land-klima.de/elections/wahlcheck/sachsen-anhalt-landesebene`.
-On 2026-10-28 the live future deployment did not yet include the embed route and
-blocked foreign framing. See the deployment requirements below. The local-preview
+The source must have the embed route and partner framing policy deployed; see
+the deployment requirements below. The local-preview
 link switches to `http://localhost:8080/elections/wahlcheck/nettetal`, a published
 test election in the current local database. Start the development stack first
 (`bin/start_development.sh`) and choose another local published election if that
@@ -91,40 +91,32 @@ is a server-rendering error: inspect the document response and frontend logs
 (`docker logs --tail 50 stadt-land-klima-frontend-1`). It is not fixed by adding
 CORS permissions or hiding the error page.
 
-The checked-in production Nuxt and Nginx/Caddy policies restrict framing to
-`'self'`. This test does not bypass those policies: if active, the browser will
-block this foreign origin until the application owner explicitly permits it.
-Allowlisting the final partner domain would not also allow `http://127.0.0.1:8090`.
-The test page's language selector changes only its own controls, not Wahlcheck's
-language.
+The checked-in production Nuxt and Nginx/Caddy policies allow these exact origins
+on `/embed/wahlcheck/{slug}` only:
 
-## Future source and hardened deployment
+- `https://localzero.net`
+- `https://www.localzero.net`
+- `https://germanzero.de`
+- `https://www.germanzero.de`
 
-Read-only HTTP and Chromium checks on 2026-10-28 confirmed that future's normal
-Wahlcheck pages send two enforcing CSP headers with `frame-ancestors 'self'`, plus
-`X-Frame-Options: SAMEORIGIN`. The iframe is blocked before the app starts. Its
-`/embed/wahlcheck/nettetal` route currently returns 404; that does not mean Nettetal
-must exist in the future database. The route itself must first be deployed.
+Other origins, including `http://127.0.0.1:8090`, HTTP partner URLs and arbitrary
+subdomains, are not allowed by the production policy. The test page's language
+selector changes only its own controls, not Wahlcheck's language.
 
-For future to be the iframe source on a foreign website:
+## Deploying partner framing
 
-1. Deploy this frontend's `/embed/wahlcheck/{slug}` route, layout and message bridge.
-2. For that route only, allow the exact host origin in both the Nuxt CSP and the
-   gateway fallback CSP, for example
-   `frame-ancestors 'self' https://partner.example`. Adding a permissive policy
-   alongside the unchanged restrictive policy does not allow framing.
-3. Omit `X-Frame-Options` on the permitted embed route. Keep the existing framing
-   restrictions on the rest of the site, including CMS/editor/candidate pages.
-4. Permit the source origin in the foreign site's own `frame-src`, if restricted.
-   Its script CSP must also permit the host controller. Preserve the child's full
-   script/style nonce policy; postMessage and ResizeObserver need no CSP exception.
+Rebuild/deploy the frontend and install/reload the matching gateway configuration
+together. Both enforcing CSP headers must permit the partner; an unchanged
+`frame-ancestors 'self'` header would still block it. The gateway omits
+`X-Frame-Options` only on the dedicated embed route. The full nonce/script policy
+and same-origin framing restrictions on other pages, including the standalone
+Wahlcheck, CMS/editor and candidate pages, remain in force.
 
-The local static page's origin is `http://127.0.0.1:8090`. It is different from
-`http://localhost:8090` and from the eventual HTTPS partner. If testing future from
-that local page, explicitly permit that exact test origin in the scoped frame
-policy during testing. Do not add the partner to Directus CORS or public-role
-permissions. API calls still originate inside the Wahlcheck source document.
-No live deployment, gateway or permission configuration is changed by this test.
+The partner must use `/embed/wahlcheck/{slug}` and allow the source site in its own
+`frame-src`, if restricted. Its script CSP must also permit the host controller.
+postMessage and ResizeObserver need no CSP exception. Do not add the partner to
+Directus CORS or public-role permissions: API calls originate inside the Wahlcheck
+source document. This test itself changes no live deployment or permissions.
 
 To run the targeted read-only Chromium regression against a published local election:
 

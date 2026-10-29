@@ -59,6 +59,12 @@ systemd controls and a reboot on the deployment host before rollout.
 | Headers on all responses                                 | HSTS, nosniff, frame policy, permissions and referrer policy on success/rejections/error routes; upstream Server/X-Powered-By hidden        |
 | Private invitation/preview referrers                     | `no-referrer`, including percent-encoded preview keys; public fallback is `strict-origin-when-cross-origin`                                 |
 
+Only `/embed/wahlcheck/{slug}` permits framing by the exact HTTPS apex and `www`
+origins of `localzero.net` and `germanzero.de`. Its fallback CSP matches Nuxt's
+route policy and omits `X-Frame-Options`; other routes retain `'self'` and
+`SAMEORIGIN`. Rebuild the frontend and reload the gateway configuration together.
+No wildcard subdomain or HTTP-origin framing is granted.
+
 The static maintenance backend receives GET without Authorization/Cookie headers;
 it does not need write bodies or account credentials. This is intentionally more
 restrictive than nginx's generic fallback proxy. The fallback remains a routing
