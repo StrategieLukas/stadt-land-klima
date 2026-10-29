@@ -1,3 +1,4 @@
+import * as pdfFilename from "../../../src/directus/extensions/endpoint-pdf-service/src/filename.ts";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -486,6 +487,7 @@ test("PDF compilation passes a native kill timeout and bounded binary buffers to
   const extension = load(
     "src/directus/extensions/endpoint-pdf-service/src/index.ts",
     {
+      "./filename.ts": pdfFilename,
       child_process: {
         execFile: (...args: unknown[]) => {
           captured = args[2] as Row;
@@ -1124,4 +1126,56 @@ test("tour media uses private runtime CMS configuration, checks publication and 
   reports = false;
   await assert.rejects(handler(event), { statusCode: 404 });
   assert.equal(requests.length, 1, "Unpublished media must never be fetched");
+});
+
+test("PDF report data refuses unpublished/incomplete assessments and reads only public catalog ratings", async () => {
+  const extension = load(
+    "src/directus/extensions/endpoint-pdf-service/src/index.ts",
+    {
+      "./filename.ts": pdfFilename,
+      "html-to-text": { convert: (value: unknown) => value },
+    },
+    {},
+    "\nexports.fetchReportDataForTest = fetchReportData;",
+  );
+  const score = {
+    published: true,
+    percentage_rated: 100,
+    catalog_version: { hidden: false },
+    municipality: { status: "published", localteam_id: "team" },
+  };
+  const commands: Row[] = [];
+  class ItemsService {
+    constructor(readonly collection: string) {}
+    async readByQuery(query: Row) {
+      commands.push({ collection: this.collection, query });
+      if (this.collection === "municipality_scores") return [score];
+      if (this.collection === "measures") return [{ id: "measure", sector: "energy" }];
+      return [{ measure_id: "measure", rating: 1, applicable: true, date_updated: "2026-01-01" }];
+    }
+  }
+  const read = () =>
+    extension.fetchReportDataForTest(
+      { params: { slug: "town", version: "v2026" }, accountability: { admin: false } },
+      {},
+      ItemsService,
+    );
+  await read();
+  const ratings = commands.find((command) => command.collection === "ratings_measures")!.query;
+  assert.equal(ratings.filter.status._eq, "published");
+  assert.equal(ratings.filter.approved._eq, true);
+  assert.equal(ratings.filter.measure_id.catalog_version.name._eq, "v2026");
+  assert.equal(ratings.fields.includes("*"), false);
+  assert.equal(ratings.limit, 501);
+  score.published = false;
+  await assert.rejects(read(), { status: 404 });
+  score.published = true;
+  score.percentage_rated = 99;
+  await assert.rejects(read(), { status: 404 });
+  score.percentage_rated = 100;
+  score.municipality.status = "draft";
+  await assert.rejects(read(), { status: 404 });
+  score.municipality.status = "published";
+  score.catalog_version.hidden = true;
+  await assert.rejects(read(), { status: 404 });
 });

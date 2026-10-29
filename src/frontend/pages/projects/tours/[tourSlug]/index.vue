@@ -74,31 +74,16 @@
               <button v-if="mapOpen" type="button" class="tour-explorer__reset" @click="showWholeRoute">
                 {{ $t("tour.whole_route") }}
               </button>
-              <div
-                class="tour-view-toggle join"
-                role="group"
-                :aria-label="`${$t('tour.list_view')} / ${$t('tour.map_view')}`"
+              <CanonicalToggleGroup
+                :model-value="mapOpen ? 'map' : 'list'"
+                :label="$t('generic.view.label')"
                 aria-controls="tour-explorer-content"
-              >
-                <button
-                  type="button"
-                  class="tour-view-toggle__option join-item"
-                  :class="{ 'is-active': !mapOpen }"
-                  :aria-pressed="!mapOpen"
-                  @click="setMapView(false)"
-                >
-                  {{ $t("generic.view.list") }}
-                </button>
-                <button
-                  type="button"
-                  class="tour-view-toggle__option join-item"
-                  :class="{ 'is-active': mapOpen }"
-                  :aria-pressed="mapOpen"
-                  @click="setMapView(true)"
-                >
-                  {{ $t("municipalities.view.map") }}
-                </button>
-              </div>
+                :options="[
+                  { value: 'list', label: $t('generic.view.list'), icon: 'mdi:format-list-bulleted' },
+                  { value: 'map', label: $t('municipalities.view.map'), icon: 'mdi:map' },
+                ]"
+                @update:model-value="(view) => setMapView(view === 'map')"
+              />
             </div>
           </div>
           <div class="tour-explorer__stop-strip" @keydown="onStopNavigationKeydown">
@@ -1840,33 +1825,6 @@ usePageSeo({
   background: #fff;
   color: #182127;
 }
-.tour-view-toggle {
-  display: inline-flex;
-  flex-shrink: 0;
-  padding: 0.2rem;
-  border: 1px solid #fff;
-  border-radius: 0;
-  gap: 0.15rem;
-}
-.tour-view-toggle__option {
-  padding: 0.3rem 0.75rem;
-  border-radius: 0;
-  color: #fff;
-  font:
-    700 0.85rem Inter,
-    sans-serif;
-}
-.tour-view-toggle__option.is-active {
-  background: #b9efff;
-  color: #182127;
-}
-.tour-view-toggle__option:hover:not(.is-active) {
-  background: #ffffff20;
-}
-.tour-view-toggle__option:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
 .tour-explorer__scrolly {
   position: relative;
   --scene-height: max(30rem, calc(100svh - var(--tour-header) - var(--tour-local-header-height)));
@@ -2304,9 +2262,6 @@ usePageSeo({
   .tour-explorer__actions {
     grid-column: 1;
     justify-self: stretch;
-  }
-  .tour-view-toggle {
-    flex: 1;
   }
   .tour-explorer__actions button {
     flex: 1;

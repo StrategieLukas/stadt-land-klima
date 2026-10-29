@@ -1,42 +1,21 @@
 <template>
   <!-- Content when municipality data is available -->
   <div>
+    <CanonicalButton
+      v-if="municipalityScore.published"
+      :href="historyHref"
+      class="mb-6"
+      :label="$t('municipality.updates.title')"
+      icon-slug="mdi:history"
+      color="bright-green"
+    />
     <!-- Mobile: Single column layout -->
     <div class="block w-full flex-col justify-center lg:hidden">
       <div class="mb-8">
         <ItemRanking :municipality-score="municipalityScore" />
       </div>
       <div class="mb-4">
-        <div role="tablist" class="slk-chart-tabs tabs tabs-box w-fit">
-          <a
-            role="tab"
-            class="tab gap-1.5"
-            :class="{ 'tab-active': activeTab === 'polar' }"
-            @click="activeTab = 'polar'"
-          >
-            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
-              <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
-              <line x1="12" y1="2" x2="12" y2="22" />
-              <line x1="2" y1="8.5" x2="22" y2="8.5" />
-              <line x1="2" y1="15.5" x2="22" y2="15.5" />
-            </svg>
-            {{ $t("municipality.chart.polar") }}
-          </a>
-          <a
-            role="tab"
-            class="tab gap-1.5"
-            :class="{ 'tab-active': activeTab === 'treemap' }"
-            @click="activeTab = 'treemap'"
-          >
-            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="2" width="9" height="20" rx="1" />
-              <rect x="13" y="2" width="9" height="9" rx="1" />
-              <rect x="13" y="13" width="9" height="9" rx="1" />
-            </svg>
-            {{ $t("generic.view.treemap") }}
-          </a>
-        </div>
+        <CanonicalToggleGroup v-model="activeTab" :label="$t('generic.view.label')" :options="chartOptions" />
         <div class="slk-chart-panel mt-4 rounded-box border-base-300 bg-base-100 p-6">
           <MunicipalityPolarChart
             v-if="activeTab === 'polar'"
@@ -157,36 +136,7 @@
           <item-ranking :municipality-score="municipalityScore" />
         </div>
         <div class="mb-4">
-          <div role="tablist" class="slk-chart-tabs tabs tabs-box w-fit">
-            <a
-              role="tab"
-              class="tab gap-1.5"
-              :class="{ 'tab-active': activeTab === 'polar' }"
-              @click="activeTab = 'polar'"
-            >
-              <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
-                <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
-                <line x1="12" y1="2" x2="12" y2="22" />
-                <line x1="2" y1="8.5" x2="22" y2="8.5" />
-                <line x1="2" y1="15.5" x2="22" y2="15.5" />
-              </svg>
-              {{ $t("municipality.chart.polar") }}
-            </a>
-            <a
-              role="tab"
-              class="tab gap-1.5"
-              :class="{ 'tab-active': activeTab === 'treemap' }"
-              @click="activeTab = 'treemap'"
-            >
-              <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="2" width="9" height="20" rx="1" />
-                <rect x="13" y="2" width="9" height="9" rx="1" />
-                <rect x="13" y="13" width="9" height="9" rx="1" />
-              </svg>
-              {{ $t("generic.view.treemap") }}
-            </a>
-          </div>
+          <CanonicalToggleGroup v-model="activeTab" :label="$t('generic.view.label')" :options="chartOptions" />
           <div class="slk-chart-panel mt-4 rounded-box border-base-300 bg-base-100 p-6">
             <MunicipalityPolarChart
               v-if="activeTab === 'polar'"
@@ -423,7 +373,15 @@ const sanitizedOverallStatusComment = computed(() =>
 );
 
 // Tab state
-const activeTab = ref("polar");
+const historyHref = computed(
+  () =>
+    `/municipalities/updates?${new URLSearchParams({ municipality: props.municipalityScore.municipality.slug, v: props.municipalityScore.catalog_version.name })}`,
+);
+const activeTab = ref<"polar" | "treemap">("polar");
+const chartOptions = computed(() => [
+  { value: "polar" as const, label: $t("municipality.chart.polar"), icon: "mdi:chart-donut" },
+  { value: "treemap" as const, label: $t("generic.view.treemap"), icon: "mdi:view-dashboard" },
+]);
 
 // Fetch projects associated with this municipality
 const municipalityProjects = ref<Project[]>([]);

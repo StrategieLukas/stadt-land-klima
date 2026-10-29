@@ -169,44 +169,17 @@
                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
               />
             </svg>
-            <div class="flex gap-2">
-              <button
-                class="slk-filter-pill"
-                :class="{ 'slk-filter-pill--active': !isMapView }"
-                @click="router.replace({ query: { ...route.query, view: undefined } })"
-              >
-                <svg
-                  class="h-3.5 w-3.5 shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-                {{ $t("municipalities.view.ranking") }}
-              </button>
-              <button
-                class="slk-filter-pill"
-                :class="{ 'slk-filter-pill--active': isMapView }"
-                @click="router.replace({ query: { ...route.query, view: 'map' } })"
-              >
-                <svg
-                  class="h-3.5 w-3.5 shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                  />
-                </svg>
-                {{ $t("municipalities.view.map") }}
-              </button>
-            </div>
+            <CanonicalToggleGroup
+              :model-value="isMapView ? 'map' : 'ranking'"
+              :label="$t('generic.view.label')"
+              :options="[
+                { value: 'ranking', label: $t('municipalities.view.ranking'), icon: 'mdi:format-list-numbered' },
+                { value: 'map', label: $t('municipalities.view.map'), icon: 'mdi:map' },
+              ]"
+              @update:model-value="
+                (view) => router.replace({ query: { ...route.query, view: view === 'map' ? 'map' : undefined } })
+              "
+            />
           </div>
 
           <!-- Vertical divider (hidden when row wraps) -->
@@ -577,7 +550,12 @@ const municipalityScores = computed(() =>
   (rankingData.value?.scores ?? [])
     .filter((score) => Number(score.percentage_rated) > 0)
     .slice()
-    .sort((a, b) => Number(b.score_total) - Number(a.score_total)),
+    .sort(
+      (a, b) =>
+        Number(b.score_total) - Number(a.score_total) ||
+        a.municipality.name.localeCompare(b.municipality.name, "de") ||
+        a.id.localeCompare(b.id),
+    ),
 );
 
 const { data: projects } = await useAsyncData("articles_ranking", async () => {
@@ -606,10 +584,7 @@ const filteredMunicipalityScores = computed(() => {
 });
 
 function getSublist(condition: (score: NonNullable<typeof municipalityScores.value>[number]) => boolean) {
-  return (municipalityScores.value?.filter(condition) || []).map((item, index) => ({
-    ...item,
-    rank: index + 1,
-  }));
+  return municipalityScores.value?.filter(condition) || [];
 }
 
 const lastUpdatedAtStr = ref("");

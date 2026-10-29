@@ -1,3 +1,4 @@
+import { MunicipalityUpdatesSchema } from "../../../../src/frontend/shared/contracts/municipalityUpdates.js";
 import type { Browser } from "playwright";
 import { assert, assertEqual, assertIncludes } from "../lib/assert.js";
 import { gotoDirectusContent, loginDirectus, newContext } from "../lib/browser.js";
@@ -225,9 +226,73 @@ export async function runMunicipalityPublishingFlow(runner: TestRunner, fixture:
         await member.client.updateItem("municipality_scores", scoreId, { published: true });
         await member.client.updateItem("municipality_scores", scoreId, { preview_enabled: false });
         assertEqual((await score()).published, true, "Disabling preview must not unpublish complete work");
-        await member.client.updateItem("municipality_scores", scoreId, { published: false });
       },
     );
+    await runner.step("Publishing history: published updates persist and disappear while unpublished", async () => {
+      const params = new URLSearchParams({
+        municipality: fixture.municipality.slug!,
+        v: `publishing-${fixture.config.runId}`,
+      });
+      const url = `${fixture.config.frontendUrl}/api/public/municipality-updates?${params}`;
+      const readHistory = async () => {
+        const response = await fetch(url);
+        assertEqual(response.status, 200, "History must load through the private-service DTO");
+        return MunicipalityUpdatesSchema.parse(await response.json()).updates;
+      };
+      const waitForEntries = async (count: number) =>
+        waitFor("persisted assessment history", async () => {
+          const entries = await admin.readItems<{ id: string }>("municipality_rating_updates", {
+            filter: { score: { _eq: scoreId } },
+            fields: ["id"],
+            limit: 10,
+          });
+          return entries.length === count;
+        });
+      await waitForEntries(1);
+      const first = await readHistory();
+      assertEqual(first.length, 1, "First explicit publication creates one permanent entry");
+      await admin.updateItem("ratings_measures", ratings[0]!.id, {
+        current_progress: "Updated public assessment text",
+      });
+      await waitForEntries(2);
+      const changed = await readHistory();
+      assertEqual(changed.length, 2, "Public text changes are recorded even if the score stays the same");
+      assert(
+        changed.some((entry) => entry.id === first[0]!.id),
+        "Existing entries must remain immutable",
+      );
+      await member.client.updateItem("municipality_scores", scoreId, { published: false });
+      assertEqual((await readHistory()).length, 0, "Unpublished assessments must hide their entire history");
+      assertEqual(
+        (
+          await fetch(
+            `${fixture.config.frontendUrl}/api/public/municipalities/${fixture.municipality.slug}/social-image?v=${encodeURIComponent(`publishing-${fixture.config.runId}`)}`,
+          )
+        ).status,
+        404,
+        "Unpublished assessments cannot produce social preview images",
+      );
+      assertEqual(
+        (
+          await fetch(`${fixture.config.frontendUrl}/api/pdf/municipality/${fixture.municipality.slug}`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ catalogVersion: `publishing-${fixture.config.runId}` }),
+          })
+        ).status,
+        404,
+        "Unpublished assessments cannot produce public PDFs",
+      );
+      await member.client.updateItem("municipality_scores", scoreId, { published: true });
+      await waitForEntries(3);
+      const republished = await readHistory();
+      assertEqual(republished.length, 3, "Republishing appends an entry and restores the retained history");
+      assert(
+        republished.some((entry) => entry.id === first[0]!.id),
+        "Republishing preserves the original publication entry",
+      );
+      await member.client.updateItem("municipality_scores", scoreId, { published: false });
+    });
   } finally {
     await admin.updateUser(member.id, { verified: originalMember.verified });
     await admin.updateUser(owner.id, { verified: originalOwner.verified });

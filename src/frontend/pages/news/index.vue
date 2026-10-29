@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-2 py-6 sm:px-4 sm:py-8">
     <header class="mb-10 flex flex-wrap items-start justify-between gap-4">
       <div>
         <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t("news.title") }}</h1>
@@ -12,6 +12,12 @@
         color="dark"
         :disabled="creating"
         @click="createNewsItem"
+      />
+      <CanonicalButton
+        href="/municipalities/updates"
+        :label="$t('municipality.updates.title')"
+        icon-slug="mdi:history"
+        color="dark"
       />
     </header>
 
@@ -46,7 +52,7 @@
     <!-- Sidebar + feed layout -->
     <!-- Mobile sticky scroll nav -->
     <nav
-      class="sticky z-10 -mx-4 mb-6 border-b border-gray-100 bg-white/90 px-4 backdrop-blur-xs xl:hidden"
+      class="sticky z-10 -mx-4 mb-6 border-b border-gray-100 bg-base-100 px-4 xl:hidden"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
@@ -120,7 +126,7 @@
           v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')"
           id="section-zukunftig"
           class="mb-10"
-          :style="`scroll-margin-top: ${headerHeight + 16}px`"
+          :style="`scroll-margin-top: ${sectionOffset}px`"
         >
           <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-2">
             <h2 class="text-base font-semibold tracking-wide text-gray-500 uppercase">Zukünftig</h2>
@@ -253,7 +259,7 @@
           :id="`section-${group.monthKey}`"
           :key="group.monthKey"
           class="mb-10"
-          :style="`scroll-margin-top: ${headerHeight + 16}px`"
+          :style="`scroll-margin-top: ${sectionOffset}px`"
         >
           <!-- Month heading -->
           <h2 class="mb-4 border-b border-gray-200 pb-2 text-base font-semibold tracking-wide text-gray-500 uppercase">
@@ -337,13 +343,6 @@
                   class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[#006e94]/20 via-[#006e94]/10 to-[#006e94]/30"
                 >
                   <img src="~/assets/icons/icon_klimachecker.svg" alt="" class="h-16 w-16 opacity-20" />
-                </div>
-                <!-- Municipality: yellow-green gradient + location icon -->
-                <div
-                  v-else-if="item.type === 'municipality'"
-                  class="absolute inset-0 flex items-center justify-center bg-linear-to-br from-[#afca0b]/20 via-[#afca0b]/10 to-[#afca0b]/30"
-                >
-                  <img src="~/assets/icons/icon_location_green_marker.svg" alt="" class="h-16 w-16 opacity-20" />
                 </div>
                 <span v-else class="text-4xl opacity-20">{{ typeEmoji(item.type) }}</span>
                 <span
@@ -480,11 +479,9 @@ import {
   formatEventMonth,
 } from "~/shared/eventDateTime";
 import { visitHasEnded } from "~/shared/tour";
-import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from "vue";
+import { computed, ref, watch, resolveComponent, onMounted } from "vue";
 import { requestErrorMessage } from "~/shared/requestError";
 import { useAuth } from "~/composables/useAuth";
-import { useHeaderHeight } from "~/composables/useHeaderHeight";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 import sectorImages from "~/shared/sectorImages";
 
 import { isRaster } from "~/shared/utils";
@@ -521,50 +518,7 @@ const NuxtLinkComponent = resolveComponent("NuxtLink");
 const { $t } = useNuxtApp();
 
 const { isAuthenticated, initialize } = useAuth();
-const headerHeight = useHeaderHeight();
-const mobileHeaderHidden = useMobileHeaderHidden();
-const isDesktop = useState("layout-isDesktop");
-// On desktop use actual header height (no CSS transition needed — headerHeight updates
-// every frame via ResizeObserver so the pill follows the nav strip animation precisely).
-// On mobile use a fixed 64px / 0 with a CSS transition to match the header slide.
-const pillTop = computed(() => {
-  return isDesktop.value ? headerHeight.value : mobileHeaderHidden.value ? 0 : 64;
-});
-
-// ── Section nav active tracking ────────────────────────────────────────────────
-const activeSection = ref<string | null>(null);
-const mobilePillStrip = ref<HTMLElement | null>(null);
-let sectionObserver: IntersectionObserver | null = null;
-
-watch(activeSection, (id) => {
-  if (!id || !mobilePillStrip.value) return;
-  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`);
-  if (pill) pill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-});
-
-onMounted(() => {
-  const observe = () => {
-    const sections = document.querySelectorAll('[id^="section-"]');
-    if (!sections.length) return;
-    sectionObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            activeSection.value = entry.target.id;
-          }
-        }
-      },
-      { rootMargin: "-20% 0px -70% 0px", threshold: 0 },
-    );
-    sections.forEach((s) => sectionObserver?.observe(s));
-  };
-  // Wait one tick for v-for sections to be rendered
-  setTimeout(observe, 100);
-});
-
-onUnmounted(() => {
-  sectionObserver?.disconnect();
-});
+const { headerHeight, isDesktop, pillTop, sectionOffset, activeSection, mobilePillStrip } = useTimelineNavigation();
 
 // Null until the admin re-fetch completes; when set, overrides the SSR news list
 const editor = useNewsEditor();
@@ -593,7 +547,6 @@ const { data: feedData } = await useAsyncData("public-news-feed", () => fetchCon
 const newsData = computed(() => feedData.value?.news ?? []);
 const articlesData = computed(() => feedData.value?.articles ?? []);
 const eventsData = computed(() => feedData.value?.events ?? []);
-const municipalitiesData = computed(() => feedData.value?.municipalities ?? []);
 const catalogData = computed(() => feedData.value?.catalogs ?? []);
 const visitReports = computed(() => feedData.value?.visitReports ?? []);
 
@@ -668,20 +621,6 @@ const allItems = computed(() => {
     });
   }
 
-  for (const m of municipalitiesData.value || []) {
-    items.push({
-      type: "municipality",
-      id: m.id,
-      title: m.name,
-      teaser: m.description || null,
-      imageId: m.image?.id || null,
-      imageType: m.image?.type || null,
-      imageCredits: m.image_credits || null,
-      date: m.date_updated,
-      href: `/municipalities/${m.slug}`,
-    });
-  }
-
   for (const c of catalogData.value || []) {
     items.push({
       type: "catalog",
@@ -709,7 +648,6 @@ const filterOptions = [
   { value: "news", label: "Neuigkeiten", activeClass: "bg-teal-600 text-white border-teal-600" },
   { value: "project", label: "Erfolgsprojekte", activeClass: "bg-[#006e94] text-white border-[#006e94]" },
   { value: "event", label: "Veranstaltungen", activeClass: "bg-[#1da64a] text-white border-[#1da64a]" },
-  { value: "municipality", label: "Kommunen", activeClass: "bg-[#afca0b] text-white border-[#afca0b]" },
   { value: "catalog", label: "Maßnahmenkataloge", activeClass: "bg-[#6b7280] text-white border-[#6b7280]" },
 ];
 
@@ -752,9 +690,8 @@ function typeLabel(type: string) {
       news: "Neuigkeit",
       project: "Erfolgsprojekt",
       event: "Veranstaltung",
-      municipality: "Bewertung geupdated",
       catalog: "Maßnahmenkatalog",
-    }[type as "news" | "project" | "event" | "municipality" | "catalog"] ?? type
+    }[type as "news" | "project" | "event" | "catalog"] ?? type
   );
 }
 
@@ -764,17 +701,14 @@ function typeBadgeClass(type: string) {
       news: "bg-teal-600 text-white",
       project: "bg-[#006e94] text-white",
       event: "bg-[#1da64a] text-white",
-      municipality: "bg-[#afca0b] text-white",
       catalog: "bg-[#6b7280] text-white",
-    }[type as "news" | "project" | "event" | "municipality" | "catalog"] ?? "bg-gray-200 text-gray-700"
+    }[type as "news" | "project" | "event" | "catalog"] ?? "bg-gray-200 text-gray-700"
   );
 }
 
 function typeEmoji(type: string) {
   return (
-    { news: "📰", project: "🏆", event: "📅", municipality: "🏙️", catalog: "📋" }[
-      type as "news" | "project" | "event" | "municipality" | "catalog"
-    ] ?? "•"
+    { news: "📰", project: "🏆", event: "📅", catalog: "📋" }[type as "news" | "project" | "event" | "catalog"] ?? "•"
   );
 }
 

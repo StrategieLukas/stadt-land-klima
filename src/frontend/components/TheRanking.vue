@@ -33,15 +33,7 @@ const completeMunicipalityScores = computed(() => {
   if (!props.municipalityScores || !Array.isArray(props.municipalityScores)) {
     return [];
   }
-  return (
-    props.municipalityScores
-      .filter(isMunicipalityScoreComplete)
-      // Recalculate indices
-      .map((item, index) => ({
-        ...item,
-        rank: index + 1,
-      })) || []
-  );
+  return props.municipalityScores.filter(isMunicipalityScoreComplete);
 });
 </script>
 <style lang=""></style>

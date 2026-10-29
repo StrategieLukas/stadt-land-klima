@@ -26,69 +26,19 @@ function load(name: string, dependencies: Record<string, unknown> = {}, globals:
 }
 const tick = () => new Promise<void>((resolve) => setImmediate(resolve));
 
-test("PDF viewer opens during the click, navigates only after generation and releases its URL later", async () => {
-  const events: string[] = [];
-  let resolve!: (pdf: Blob) => void;
-  let cleanup = () => {};
-  const viewer = { opener: {}, closed: false, location: { replace: (url: string) => events.push(url) }, close() {} };
-  const { openPdf } = load(
-    "utils/openPdf.ts",
-    {},
-    {
-      Blob,
-      URL: { createObjectURL: () => "blob:pdf", revokeObjectURL: (url: string) => events.push(`revoke:${url}`) },
-      window: {
-        open: () => {
-          events.push("open");
-          return viewer;
-        },
-        setTimeout: (callback: () => void, delay: number) => {
-          assert.equal(delay, 60_000);
-          cleanup = callback;
-        },
-      },
-    },
+test("PDF forms preserve the native response and only accept checked JSON or a single form payload", () => {
+  const { pdfRequestBody, pdfResponseDisposition } = load("server/utils/pdfResponse.ts");
+  assert.equal(pdfRequestBody({ request: '{"slug":"berlin"}' }).slug, "berlin");
+  assert.equal(pdfRequestBody({ slug: "berlin" }).slug, "berlin");
+  assert.throws(() => pdfRequestBody({ request: "{", slug: "hidden" }));
+  assert.throws(() => pdfRequestBody({ request: "{" }));
+  const header = `inline; filename="StadtLandKlima-Bewertung_Munchen.pdf"; filename*=UTF-8''StadtLandKlima-Bewertung_M%C3%BCnchen.pdf`;
+  assert.equal(pdfResponseDisposition(header), header);
+  assert.equal(pdfResponseDisposition('attachment; filename="bad.pdf"'), 'inline; filename="StadtLandKlima.pdf"');
+  assert.equal(
+    pdfResponseDisposition('inline; filename="bad.pdf"\r\nX-Injected: true'),
+    'inline; filename="StadtLandKlima.pdf"',
   );
-  const pending = openPdf(() => {
-    events.push("generate");
-    return new Promise<Blob>((done) => (resolve = done));
-  });
-  assert.deepEqual(events, ["open", "generate"]);
-  assert.equal(viewer.opener, null);
-  resolve(new Blob(["%PDF-test"]));
-  await pending;
-  assert.deepEqual(events, ["open", "generate", "blob:pdf"]);
-  cleanup();
-  assert.equal(events.at(-1), "revoke:blob:pdf");
-});
-
-test("PDF uses the same tab if popups are blocked and closes an empty viewer on generation failure", async () => {
-  let destination = "";
-  let closed = false;
-  let blocked = true;
-  const { openPdf } = load(
-    "utils/openPdf.ts",
-    {},
-    {
-      Blob,
-      URL: { createObjectURL: () => "blob:pdf", revokeObjectURL() {} },
-      window: {
-        open: () => (blocked ? null : { opener: {}, close: () => (closed = true) }),
-        location: { assign: (url: string) => (destination = url) },
-        setTimeout() {},
-      },
-    },
-  );
-  await openPdf(async () => new Blob(["%PDF-test"]));
-  assert.equal(destination, "blob:pdf");
-  blocked = false;
-  await assert.rejects(
-    openPdf(async () => {
-      throw Error("generation failed");
-    }),
-    /generation failed/,
-  );
-  assert.equal(closed, true);
 });
 
 test("unified search shows content before slow areas, aborts replaced queries and refuses stale responses", async () => {

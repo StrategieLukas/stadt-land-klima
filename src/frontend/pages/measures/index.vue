@@ -86,48 +86,15 @@
             <!-- vertical divider -->
             <div class="slk-filter-divider mx-1 w-px self-stretch" />
 
-            <!-- View toggle -->
-            <button
-              type="button"
-              class="slk-filter-pill"
-              :class="viewMode === 'list' ? 'slk-filter-pill--active' : ''"
-              @click="viewMode = 'list'"
-            >
-              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-              {{ $t("generic.view.list") }}
-            </button>
-            <button
-              type="button"
-              class="slk-filter-pill"
-              :class="viewMode === 'cards' ? 'slk-filter-pill--active' : ''"
-              @click="viewMode = 'cards'"
-            >
-              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                />
-              </svg>
-              {{ $t("generic.view.cards") }}
-            </button>
-            <button
-              type="button"
-              class="slk-filter-pill"
-              :class="viewMode === 'treemap' ? 'slk-filter-pill--active' : ''"
-              @click="viewMode = 'treemap'"
-            >
-              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"
-                />
-              </svg>
-              {{ $t("generic.view.treemap") }}
-            </button>
+            <CanonicalToggleGroup
+              v-model="viewMode"
+              :label="$t('generic.view.label')"
+              :options="[
+                { value: 'list', label: $t('generic.view.list'), icon: 'mdi:format-list-bulleted' },
+                { value: 'cards', label: $t('generic.view.cards'), icon: 'mdi:view-grid' },
+                { value: 'treemap', label: $t('generic.view.treemap'), icon: 'mdi:view-dashboard' },
+              ]"
+            />
           </div>
         </div>
 

@@ -267,26 +267,26 @@ async function assertPdfButtonGeneratesValidPdf(
   catalogVersion: string,
 ): Promise<void> {
   assert(fixture.municipality.slug, "Fixture municipality must have a slug before PDF generation");
-  const responsePromise = page.waitForResponse(
-    (response) =>
+  const responsePromise = page.context().waitForEvent("response", {
+    predicate: (response) =>
       response.request().method() === "POST" &&
       response.url().includes(`/api/pdf/municipality/${fixture.municipality.slug}`),
-    { timeout: 90_000 },
-  );
+    timeout: 90_000,
+  });
 
   const pdfButton = page.getByRole("button", { name: /^PDF$/ }).first();
   await pdfButton.waitFor({ state: "visible", timeout: 20_000 });
-  let viewerDownloaded = false;
-  const viewerPromise = page.waitForEvent("popup").then((viewer) => {
-    viewer.on("download", () => {
-      viewerDownloaded = true;
-    });
-    return viewer;
-  });
+  const viewerPromise = page.context().waitForEvent("page");
   await pdfButton.click();
   const viewer = await viewerPromise;
 
   const response = await responsePromise;
+  const disposition = response.headers()["content-disposition"] ?? "";
+  assert(
+    disposition.startsWith('inline; filename="StadtLandKlima-Bewertung_'),
+    `${label} PDF must open inline with a descriptive filename`,
+  );
+  assert(disposition.includes("_vom-"), `${label} PDF must include the assessment date`);
   const contentType = response.headers()["content-type"] ?? "";
   const advertisedLength = Number.parseInt(response.headers()["content-length"] ?? "0", 10);
   assert(response.ok(), `${label} PDF response must be successful. Got HTTP ${response.status()}.`);
@@ -299,9 +299,9 @@ async function assertPdfButtonGeneratesValidPdf(
     `${label} PDF button response must advertise a non-empty PDF. Got ${advertisedLength} byte(s).`,
   );
 
-  await waitFor(
-    `${label} PDF viewer navigation or download`,
-    async () => viewerDownloaded || viewer.url().startsWith("blob:"),
+  assert(
+    response.request().isNavigationRequest(),
+    `${label} PDF must use native document navigation so the browser retains its filename`,
   );
   await viewer.close();
 

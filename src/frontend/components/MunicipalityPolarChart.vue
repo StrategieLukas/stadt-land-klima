@@ -1,9 +1,11 @@
 <template>
-  <div class="flex w-full justify-center">
+  <div ref="container" class="flex w-full justify-center" data-testid="municipality-polar-chart">
     <div class="relative flex h-96 w-full items-center justify-center">
       <div class="relative flex h-96 w-full cursor-pointer items-center justify-center">
         <div class="z-10 h-58/100 w-58/100">
-          <PolarArea :data="chartData" :options="chartOptions" />
+          <ClientOnly>
+            <PolarArea v-if="visible" :data="chartData" :options="chartOptions" />
+          </ClientOnly>
         </div>
       </div>
       <div class="absolute h-full w-full items-center justify-center">
@@ -13,7 +15,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import type { PropType } from "vue";
+import { computed, onMounted, onBeforeUnmount, ref, type PropType } from "vue";
 import type { SubScores } from "~/types/components/municipality";
 
 /* import resolveConfig from "tailwindcss/resolveConfig";
@@ -55,9 +57,21 @@ const props = defineProps({
     required: true,
   },
 });
-const subScoresArray = createSubScoreArray(props.subScores);
-const colorsArray = createColorArray(subScoresArray);
-const subScoresArrayScaled = scaleToArea(subScoresArray);
+const container = ref<HTMLElement | null>(null);
+const visible = ref(false);
+let resizeObserver: ResizeObserver | undefined;
+onMounted(() => {
+  const update = () => {
+    visible.value = !!container.value && container.value.getBoundingClientRect().width > 0;
+  };
+  resizeObserver = new ResizeObserver(update);
+  if (container.value) resizeObserver.observe(container.value);
+  update();
+});
+onBeforeUnmount(() => resizeObserver?.disconnect());
+const subScoresArray = computed(() => createSubScoreArray(props.subScores));
+const colorsArray = computed(() => createColorArray(subScoresArray.value));
+const subScoresArrayScaled = computed(() => scaleToArea(subScoresArray.value));
 const labels = [
   $t("measure_sectors.energy.title"),
   $t("measure_sectors.transport.title"),
@@ -66,17 +80,17 @@ const labels = [
   $t("measure_sectors.buildings.title"),
   $t("measure_sectors.management.title"),
 ];
-const chartData = {
+const chartData = computed(() => ({
   labels: labels,
   datasets: [
     {
-      label: props.nameMunicipality + " Scores",
-      data: subScoresArrayScaled,
-      backgroundColor: colorsArray,
+      label: props.nameMunicipality,
+      data: subScoresArrayScaled.value,
+      backgroundColor: colorsArray.value,
       borderWidth: 0,
     },
   ],
-};
+}));
 // Mapping from chart data index to sector keys
 const sectorKeys = ["energy", "transport", "agriculture", "industry", "buildings", "management"];
 
@@ -99,7 +113,7 @@ const chartOptions: ChartOptions<"polarArea"> = {
     tooltip: {
       callbacks: {
         label: function (context) {
-          const label = `${subScoresArray[context.dataIndex] ?? 0}%`;
+          const label = `${subScoresArray.value[context.dataIndex] ?? 0}%`;
           return label;
         },
       },
@@ -137,7 +151,9 @@ function createSubScoreArray(subScoreObject: SubScores) {
   scoresArray.push(subScoreObject.score_industry);
   scoresArray.push(subScoreObject.score_buildings);
   scoresArray.push(subScoreObject.score_management);
-  return scoresArray.map((value) => Math.round(Number(value) * 10) / 10);
+  return scoresArray.map((value) =>
+    Number.isFinite(Number(value)) ? Math.min(100, Math.max(0, Math.round(Number(value) * 10) / 10)) : 0,
+  );
 }
 function scaleToArea(scoresArray: number[]) {
   return scoresArray.map((value) => Math.sqrt(value / 100) * 100);
