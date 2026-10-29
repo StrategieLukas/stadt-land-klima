@@ -1,3 +1,4 @@
+import { municipalityRanks, type RankedMunicipalityScore } from "./ranks.ts";
 import { extensionLog, extensionError } from "../../shared/securityLogger.ts";
 import type { ApiExtensionContext, SchemaOverview } from "@directus/types";
 import {
@@ -7,6 +8,7 @@ import {
   logPublication,
   type PublicationEventContext,
 } from "./publication.ts";
+import { recordRatingHistory } from "./history.ts";
 import { calculateScores } from "./calculateScores.ts";
 
 type Logger = ApiExtensionContext["logger"];
@@ -28,13 +30,6 @@ interface ServiceContext {
 
 const adminAccountability = { admin: true, role: null, roles: [], user: null, app: false, ip: null };
 
-type RankedMunicipalityScore = {
-  id: number | string;
-  score_total: number | string | null;
-  published: boolean | null;
-  rank: number | string | null;
-};
-
 type RelationId = number | string | { id?: number | string | null } | null;
 type MunicipalityStatus = "draft" | "published";
 type MeasureSnapshot = {
@@ -43,8 +38,23 @@ type MeasureSnapshot = {
   catalogVersionId: number | string | null;
 };
 
+type RatingScope = {
+  id: string | number;
+  localteam_id?: { municipality_id?: RelationId | RelationId[] } | null;
+  measure_id?: { catalog_version?: RelationId } | null;
+};
+const pendingRatingScopes = new Map<string, RatingScope>();
 const pendingMeasureSnapshots = new Map<string, MeasureSnapshot>();
-const ratingScoreFields = ["rating", "applicable", "approved"] as const;
+const ratingScoreFields = [
+  "rating",
+  "applicable",
+  "approved",
+  "status",
+  "measure_published",
+  "current_progress",
+  "source",
+  "why_not_applicable",
+] as const;
 
 /** ---------- Utility Functions ---------- **/
 
@@ -81,6 +91,7 @@ const recalculateCatalogVersions = async (
   for (const catalogVersionId of new Set(catalogVersionIds)) {
     await calculateScores({ catalogVersionId }, ctx);
     await updateRanks({ catalogVersionId }, ctx);
+    await recordRatingHistory(ctx, { catalog_version: { _eq: catalogVersionId } });
   }
 };
 
@@ -99,29 +110,14 @@ const updateRanks = async (
     filter: {
       catalog_version: { _eq: catalogVersionId },
     },
-    fields: ["id", "score_total", "published", "rank"],
+    fields: ["id", "score_total", "published", "rank", "percentage_rated", "municipality.status", "municipality.name"],
   });
 
   if (!scores?.length) {
     return;
   }
 
-  const sortedScores = scores
-    .filter((score) => score.published === true)
-    .sort((a, b) => (Number(b.score_total) || 0) - (Number(a.score_total) || 0));
-
-  const ranked: Array<{ id: number | string; rank: number }> = [];
-  for (let index = 0; index < sortedScores.length; index++) {
-    const score = sortedScores[index];
-    const previousScore = sortedScores[index - 1];
-    const previousRank = ranked[index - 1]?.rank;
-    ranked.push({
-      id: score.id,
-      rank: index === 0 || score.score_total !== previousScore.score_total ? index + 1 : (previousRank ?? index + 1),
-    });
-  }
-
-  const rankById = new Map(ranked.map((entry) => [String(entry.id), entry.rank]));
+  const rankById = municipalityRanks(scores);
 
   for (const score of scores) {
     const nextRank = rankById.get(String(score.id)) ?? -1;
@@ -507,7 +503,7 @@ const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceConte
   }
 
   const schema = await ctx.getSchema();
-  const ratingsService = new ctx.services.ItemsService("ratings_measures", {
+  const ratingsService = new ctx.services.ItemsService<RatingScope>("ratings_measures", {
     schema,
     accountability: adminAccountability,
   });
@@ -520,14 +516,18 @@ const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceConte
     return;
   }
 
-  const ratings: Array<{
-    localteam_id?: { municipality_id?: RelationId | RelationId[] } | null;
-    measure_id?: { catalog_version?: RelationId } | null;
-  }> = await ratingsService.readByQuery({
-    limit: -1,
-    filter: { id: { _in: ratingIds } },
-    fields: ["localteam_id.municipality_id", "measure_id.catalog_version"],
-  });
+  const ratings: RatingScope[] =
+    meta.event === "delete"
+      ? ratingIds.flatMap((id) => {
+          const rating = pendingRatingScopes.get(String(id));
+          pendingRatingScopes.delete(String(id));
+          return rating ? [rating] : [];
+        })
+      : await ratingsService.readByQuery({
+          limit: -1,
+          filter: { id: { _in: ratingIds } },
+          fields: ["localteam_id.municipality_id", "measure_id.catalog_version"],
+        });
   const municipalityIdsByCatalog = new Map<
     string,
     {
@@ -561,6 +561,10 @@ const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceConte
       ctx,
     );
     await updateRanks({ catalogVersionId }, ctx);
+    await recordRatingHistory(ctx, {
+      catalog_version: { _eq: catalogVersionId },
+      municipality: { id: { _in: [...municipalityIds] } },
+    });
   }
 };
 
@@ -632,6 +636,7 @@ const handleMunicipalityScoreUpdated = async (meta: any, ctx: ServiceContext): P
     await updateRanks({ catalogVersionId }, ctx);
   }
   await logPublication(meta, ctx.event, ctx);
+  if (meta.payload.published === true) await recordRatingHistory(ctx, { id: { _in: scoreIds } }, "published");
 };
 
 /** ---------- Safe wrapper for diagnostic logging ---------- **/
@@ -652,12 +657,18 @@ const safeCall =
 
 /** ---------- Hook Registration ---------- **/
 
-export default ({ action, filter }: HookContext, extensionContext: ServiceContext) => {
+export default ({ action, filter, schedule }: HookContext, extensionContext: ServiceContext) => {
   const { services, getSchema, logger } = extensionContext;
 
   // Run initial sync at startup — all context variables are in scope here
-  syncAllMunicipalityScores({ services, getSchema, logger }).catch((err: unknown) => {
-    extensionError(logger, "directus.score_initialization.failed", err);
+  syncAllMunicipalityScores({ services, getSchema, logger })
+    .then(() => recordRatingHistory(extensionContext, {}, "initial"))
+    .catch((err: unknown) => {
+      extensionError(logger, "directus.score_initialization.failed", err);
+    });
+
+  schedule?.("*/5 * * * *", async () => {
+    await recordRatingHistory(extensionContext, {}, "initial");
   });
 
   filter("items.update", async (payload, meta, eventContext) => {
@@ -670,6 +681,19 @@ export default ({ action, filter }: HookContext, extensionContext: ServiceContex
   );
 
   filter("items.delete", async (keys, meta) => {
+    if (meta.collection === "ratings_measures") {
+      const schema = await getSchema();
+      const ratingsService = new services.ItemsService<RatingScope>("ratings_measures", {
+        schema,
+        accountability: adminAccountability,
+      });
+      const ratings: RatingScope[] = await ratingsService.readByQuery({
+        limit: -1,
+        filter: { id: { _in: keys } },
+        fields: ["id", "localteam_id.municipality_id", "measure_id.catalog_version"],
+      });
+      for (const rating of ratings) pendingRatingScopes.set(String(rating.id), rating);
+    }
     await captureMeasureSnapshots({ ...meta, keys }, extensionContext);
     return keys;
   });
@@ -712,9 +736,9 @@ export default ({ action, filter }: HookContext, extensionContext: ServiceContex
   action(
     "items.delete",
     safeCall("items.delete", extensionContext, async (meta, ctx) => {
-      if (meta.collection === "measures") {
-        return handleMeasuresDeleted(meta, ctx);
-      }
+      if (meta.collection === "measures") return handleMeasuresDeleted(meta, ctx);
+      if (meta.collection === "ratings_measures")
+        return handleRatingsMeasureUpdatedOrCreated({ ...meta, event: "delete" }, ctx);
     }),
   );
 };

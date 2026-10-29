@@ -1,5 +1,6 @@
 import { extensionDiagnostic } from "../../shared/securityLogger.ts";
 import path from "path";
+import { reportFilename, inlinePdfDisposition } from "./filename.ts";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
@@ -24,6 +25,8 @@ const PDF_COMPILE_TIMEOUT_MS = 30_000; // 30 seconds
 // ---------------------------------------------------------------------------
 
 interface MunicipalityScore {
+  published: boolean;
+  catalog_version: { hidden: boolean };
   date_updated: string;
   score_total: number;
   score_buildings: number;
@@ -35,6 +38,7 @@ interface MunicipalityScore {
   percentage_rated: number;
   rank: number;
   municipality: {
+    status: string;
     id: number;
     name: string;
     slug: string;
@@ -51,6 +55,8 @@ interface Measure {
 }
 
 interface RatingMeasure {
+  date_updated?: string | null;
+  date_created?: string | null;
   measure_id: number;
   measure?: Measure;
 }
@@ -190,6 +196,9 @@ async function fetchReportData(
   const [scores, measures] = await Promise.all([
     makeService("municipality_scores").readByQuery({
       fields: [
+        "published",
+        "catalog_version.hidden",
+        "municipality.status",
         "date_updated",
         "score_total",
         "score_buildings",
@@ -209,18 +218,40 @@ async function fetchReportData(
         "municipality.overall_status_comment",
       ],
       filter: {
-        catalog_version: { name: { _eq: catalogVersionName } },
-        municipality: { slug: { _eq: municipalitySlug } },
+        published: { _eq: true },
+        percentage_rated: { _gte: 100 },
+        catalog_version: { name: { _eq: catalogVersionName }, hidden: { _eq: false } },
+        municipality: { slug: { _eq: municipalitySlug }, status: { _eq: "published" } },
       },
       limit: 1,
     }) as Promise<MunicipalityScore[]>,
 
     makeService("measures").readByQuery({
-      filter: { catalog_version: { name: { _eq: catalogVersionName } } },
+      filter: {
+        catalog_version: { name: { _eq: catalogVersionName }, hidden: { _eq: false } },
+        status: { _eq: "published" },
+      },
+      fields: [
+        "id",
+        "measure_id",
+        "name",
+        "sector",
+        "weight",
+        "impact",
+        "feasibility_political",
+        "feasibility_economical",
+      ],
+      limit: 501,
     }) as Promise<Measure[]>,
   ]);
 
-  if (!scores?.[0]) {
+  if (
+    !scores?.[0] ||
+    scores[0].published !== true ||
+    Number(scores[0].percentage_rated) < 100 ||
+    scores[0].municipality.status !== "published" ||
+    scores[0].catalog_version.hidden !== false
+  ) {
     throw new HttpError(404, `No scores found for municipality "${municipalitySlug}" or access denied`);
   }
   if (!measures?.length) {
@@ -231,7 +262,14 @@ async function fetchReportData(
   const { localteam_id } = municipalityScore.municipality;
 
   const ratingMeasures = (await makeService("ratings_measures").readByQuery({
-    filter: { localteam_id: { _eq: localteam_id } },
+    filter: {
+      localteam_id: { _eq: localteam_id },
+      approved: { _eq: true },
+      status: { _eq: "published" },
+      measure_id: { catalog_version: { name: { _eq: catalogVersionName } }, status: { _eq: "published" } },
+    },
+    fields: ["measure_id", "rating", "applicable", "date_updated", "date_created"],
+    limit: 501,
   })) as RatingMeasure[];
 
   // An empty array is valid (municipality has no rated measures yet).
@@ -239,6 +277,7 @@ async function fetchReportData(
     throw new HttpError(404, "Rating measures not found or access denied");
   }
 
+  if (measures.length > 500 || ratingMeasures.length > 500) throw new HttpError(502, "Report data limit exceeded");
   return [municipalityScore, sortMeasuresBySector(ratingMeasures, measures)];
 }
 
@@ -273,9 +312,17 @@ async function compilePdf(
   return result.stdout;
 }
 
+function reportDates(measures: SortedMeasures, fallback: string): string[] {
+  const dates = Object.values(measures)
+    .flat()
+    .map((measure) => measure.date_updated || measure.date_created)
+    .filter((value): value is string => Boolean(value));
+  return dates.length ? dates : [fallback];
+}
+
 function sendPdf(res: Response, pdf: Buffer, filename = "output.pdf"): void {
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
+  res.setHeader("Content-Disposition", inlinePdfDisposition(filename));
   res.status(200).send(pdf);
 }
 
@@ -366,7 +413,14 @@ export default {
             municipalityScore: inputs.municipalityScore,
             measures: inputs.measures,
           });
-          return { pdf, filename: `${municipalityScore.municipality.slug}_summary.pdf` };
+          return {
+            pdf,
+            filename: reportFilename(
+              municipalityScore.municipality.name,
+              reportDates(sortedMeasures, municipalityScore.date_updated),
+              "Bewertung",
+            ),
+          };
         } finally {
           cleanup();
         }
@@ -398,7 +452,14 @@ export default {
               measures: inputs.measures,
             },
           );
-          return { pdf, filename: `${req.params.slug}_election_guide.pdf` };
+          return {
+            pdf,
+            filename: reportFilename(
+              municipalityScore.municipality.name,
+              reportDates(sortedMeasures, municipalityScore.date_updated),
+              "Wahlcheck",
+            ),
+          };
         } finally {
           cleanup();
         }

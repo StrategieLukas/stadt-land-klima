@@ -235,11 +235,19 @@ export async function calculateScores(
           municipality: { _eq: municipality.id },
           catalog_version: { _eq: catalogVersionId },
         },
-        fields: ["id"],
+        fields: ["id", ...Object.keys(scoresToPush)],
       })) as MunicipalityScore[];
 
       if (scoreRecord?.id) {
-        await municipalityScoresService.updateOne(scoreRecord.id, scoresToPush);
+        // Database decimals have five places; avoid rewriting identical scores and dates.
+        const existing = scoreRecord as unknown as Record<string, unknown>;
+        if (
+          Object.entries(scoresToPush).some(
+            ([field, value]) => existing[field] == null || Math.abs(Number(existing[field]) - value) > 0.000005,
+          )
+        ) {
+          await municipalityScoresService.updateOne(scoreRecord.id, scoresToPush);
+        }
       } else {
         extensionLog(logger, "warn", "directus.scores.record_missing", {
           municipalityId: municipality.id,

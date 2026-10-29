@@ -198,6 +198,22 @@ try {
       return bounds.top >= map.top && bounds.bottom <= map.bottom;
     }),
   );
+  const light = await page
+    .locator(".leaflet-popup-content-wrapper")
+    .evaluate((node) => getComputedStyle(node).backgroundColor);
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "staedteChallengeDark";
+  });
+  const dark = await page
+    .locator(".leaflet-popup-content-wrapper")
+    .evaluate((node) => getComputedStyle(node).backgroundColor);
+  assert.notEqual(light, dark, "Popup follows the active theme");
+  const popupSize = await popup.boundingBox();
+  assert.ok(popupSize && popupSize.width <= 300 && popupSize.height <= 260, "Popup remains compact");
+  await page.screenshot({ path: "/tmp/slk-project-map-dark.png" });
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "staedteChallemgeTheme";
+  });
   await page.screenshot({ path: "/tmp/slk-project-map-desktop.png" });
   await page.locator(".leaflet-popup-close-button").click();
   await popup.waitFor({ state: "detached" });
@@ -208,19 +224,19 @@ try {
   await popup.getByText("Kommunenmitte (ungefähr)", { exact: true }).waitFor();
   await page.getByRole("button", { name: town.state!, exact: true }).click();
   await page.getByRole("button", { name: "Alle Bundesländer", exact: true }).click();
-  await page.getByRole("button", { name: "Liste", exact: true }).click();
+  await page.getByRole("radio", { name: "Liste", exact: true }).click();
   await page.getByText(`Ohne Standort ${suffix}`, { exact: true }).waitFor();
   assert.ok(new URL(page.url()).searchParams.get("municipality") === name);
   assert.equal(await page.locator(".leaflet-container").count(), 0);
   console.log("PASS desktop markers, grouped popups, location precision, state filtering and list parity");
 
   await page.setViewportSize({ width: 375, height: 812 });
-  const view = page.getByRole("group", { name: "Ansicht der Erfolgsprojekte" });
-  const mapButton = view.getByRole("button", { name: "Karte", exact: true });
+  const view = page.getByRole("radiogroup", { name: "Ansicht der Erfolgsprojekte" });
+  const mapButton = view.getByRole("radio", { name: "Karte", exact: true });
   assert.equal(await mapButton.isVisible(), true, "Map switch remains outside collapsed phone filters");
   await mapButton.click();
   await waitFor("phone map markers", async () => (await page.locator(".project-map-icon").count()) === 2);
-  assert.equal(await mapButton.getAttribute("aria-pressed"), "true");
+  assert.equal(await mapButton.getAttribute("aria-checked"), "true");
   await page.getByRole("button", { name: "Alle Standorte anzeigen", exact: true }).click();
   await page.screenshot({ path: "/tmp/slk-project-map-phone.png", fullPage: false });
   assert.deepEqual(errors, [], "Map view must hydrate without browser errors");

@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-2 py-6 sm:px-4 sm:py-8">
     <header class="mb-10">
       <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t("events.title") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("events.hero.description") }}</p>
@@ -7,7 +7,7 @@
 
     <!-- Mobile sticky scroll nav -->
     <nav
-      class="sticky z-10 -mx-4 mb-6 border-b border-gray-100 bg-white px-4 backdrop-blur-xs xl:hidden"
+      class="sticky z-10 -mx-4 mb-6 border-b border-gray-100 bg-base-100 px-4 xl:hidden"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
@@ -105,7 +105,7 @@
           v-if="currentEvents.length"
           id="section-momentan"
           class="mb-10"
-          :style="`scroll-margin-top: ${headerHeight + 16}px`"
+          :style="`scroll-margin-top: ${sectionOffset}px`"
         >
           <h2
             class="mb-4 flex items-center border-b border-orange-200 pb-2 text-base font-semibold tracking-wide text-orange-600 uppercase"
@@ -125,7 +125,7 @@
             :id="`section-${group.monthKey}`"
             :key="group.monthKey"
             class="mb-10"
-            :style="`scroll-margin-top: ${headerHeight + 16}px`"
+            :style="`scroll-margin-top: ${sectionOffset}px`"
           >
             <h2
               class="mb-4 border-b border-gray-200 pb-2 text-base font-semibold tracking-wide text-gray-500 uppercase"
@@ -146,7 +146,7 @@
           v-if="pastGroups.length"
           id="section-vergangen"
           class="mt-10"
-          :style="`scroll-margin-top: ${headerHeight + 16}px`"
+          :style="`scroll-margin-top: ${sectionOffset}px`"
         >
           <h2 class="mb-6 border-b border-gray-100 pb-2 text-base font-semibold tracking-wide text-gray-400 uppercase">
             {{ $t("events.past") }}
@@ -156,7 +156,7 @@
             :id="`section-${group.monthKey}`"
             :key="group.monthKey"
             class="mb-10"
-            :style="`scroll-margin-top: ${headerHeight + 16}px`"
+            :style="`scroll-margin-top: ${sectionOffset}px`"
           >
             <h2 class="mb-4 border-b border-gray-100 pb-2 text-sm font-semibold tracking-wide text-gray-400 uppercase">
               {{ group.label }}
@@ -177,22 +177,12 @@
 import { clientDiagnostic } from "~/shared/securityLog";
 
 import type { PublicEvent } from "~/shared/contracts/content";
-import { computed, ref, watch, onMounted, onUnmounted } from "vue";
-import { useHeaderHeight } from "~/composables/useHeaderHeight";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
+import { computed } from "vue";
 import { formatEventMonth, getEventMonthKey, getEventPhase } from "~/shared/eventDateTime";
 const fetchContent = useContentFetch();
 
 const { $t, $locale } = useNuxtApp();
-const headerHeight = useHeaderHeight();
-const mobileHeaderHidden = useMobileHeaderHidden();
-const isDesktop = useState("layout-isDesktop");
-// On desktop use actual header height (no CSS transition needed — headerHeight updates
-// every frame via ResizeObserver so the pill follows the nav strip animation precisely).
-// On mobile use a fixed 64px / 0 with a CSS transition to match the header slide.
-const pillTop = computed(() => {
-  return isDesktop.value ? headerHeight.value : mobileHeaderHidden.value ? 0 : 64;
-});
+const { headerHeight, isDesktop, pillTop, sectionOffset, activeSection, mobilePillStrip } = useTimelineNavigation();
 
 usePageSeo({ title: computed(() => $t("events.title")) });
 
@@ -245,37 +235,5 @@ const pastGroups = computed(() => {
     (a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
   );
   return groupByMonth(sorted);
-});
-
-// ── Section nav active tracking ────────────────────────────────────────────────
-const activeSection = ref<string | null>(null);
-const mobilePillStrip = ref<HTMLElement | null>(null);
-let sectionObserver: IntersectionObserver | null = null;
-
-watch(activeSection, (id) => {
-  if (!id || !mobilePillStrip.value) return;
-  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`);
-  if (pill) pill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-});
-
-onMounted(() => {
-  const observe = () => {
-    const sections = document.querySelectorAll('[id^="section-"]');
-    if (!sections.length) return;
-    sectionObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) activeSection.value = entry.target.id;
-        }
-      },
-      { rootMargin: "-20% 0px -70% 0px", threshold: 0 },
-    );
-    sections.forEach((s) => sectionObserver?.observe(s));
-  };
-  setTimeout(observe, 100);
-});
-
-onUnmounted(() => {
-  sectionObserver?.disconnect();
 });
 </script>

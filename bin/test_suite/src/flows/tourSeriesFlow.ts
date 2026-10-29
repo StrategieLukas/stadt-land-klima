@@ -1026,13 +1026,13 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           await page.getByRole("button", { name: "Ganze Route zeigen" }).isVisible(),
           "Whole-route control should be available in map view",
         );
-        await page.getByRole("button", { name: "Liste", exact: true }).click();
+        await page.getByRole("radio", { name: "Liste", exact: true }).click();
         assert(
           (await page.getByRole("button", { name: "Ganze Route zeigen" }).count()) === 0,
           "Whole-route control should disappear in list view",
         );
         assert(
-          (await page.getByRole("button", { name: "Liste", exact: true }).getAttribute("aria-pressed")) === "true",
+          (await page.getByRole("radio", { name: "Liste", exact: true }).getAttribute("aria-checked")) === "true",
           "The labelled toggle should identify list view as selected",
         );
         assert(await page.locator(".tour-explorer__map").isHidden(), "Desktop list view should hide the map");
@@ -1069,10 +1069,10 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
             .evaluate((el) => Math.abs(el.getBoundingClientRect().height - 224) < 1),
           "Card media should have a fixed 14rem height",
         );
-        await page.getByRole("button", { name: "Karte", exact: true }).focus();
+        await page.getByRole("radio", { name: "Karte", exact: true }).focus();
         await page.keyboard.press("Enter");
         assert(
-          (await page.getByRole("button", { name: "Karte", exact: true }).getAttribute("aria-pressed")) === "true",
+          (await page.getByRole("radio", { name: "Karte", exact: true }).getAttribute("aria-checked")) === "true",
           "The labelled toggle should support keyboard activation and identify map view as selected",
         );
         assert(
@@ -1127,7 +1127,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           "Mobile should show one fixed-height media preview per stop",
         );
         await page.getByRole("button", { name: "Ganze Route zeigen" }).click();
-        await page.getByRole("button", { name: "Liste", exact: true }).click();
+        await page.getByRole("radio", { name: "Liste", exact: true }).click();
         assert(
           (await page.getByRole("button", { name: "Ganze Route zeigen" }).count()) === 0,
           "Mobile list view should also hide the whole-route control",
@@ -1157,7 +1157,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           (await page.locator(`#stop-${ids.events[0].slug}`).count()) === 1,
           "Direct stop fragment should resolve to a chapter",
         );
-        await page.getByRole("button", { name: "Karte", exact: true }).click();
+        await page.getByRole("radio", { name: "Karte", exact: true }).click();
         await page.emulateMedia({ reducedMotion: "reduce" });
         assert(
           await page

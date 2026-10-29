@@ -23,6 +23,7 @@ type PageSeoOptions = {
   title?: SeoText;
   description?: SeoText;
   image?: MaybeRefOrGetter<SeoAsset>;
+  socialImagePath?: SeoText;
   type?: "website" | "article";
 };
 
@@ -62,9 +63,13 @@ export function usePageSeo(options: MaybeRefOrGetter<PageSeoOptions> = {}) {
   );
   const site = resolveSiteOrigin(config.public.siteUrl);
   const privateRoute = computed(() => isPrivateSeoRoute(route.path, route.query));
-  const image = computed(() =>
-    privateRoute.value ? null : socialAssetUrl(config.public.clientDirectusUrl, toValue(toValue(options).image), site),
-  );
+  const image = computed(() => {
+    if (privateRoute.value) return null;
+    const path = toValue(toValue(options).socialImagePath);
+    if (path && /^\/api\/public\/municipalities\/[a-z0-9-]{1,160}\/social-image(?:\?|$)/.test(path))
+      return new URL(path, site).href;
+    return socialAssetUrl(config.public.clientDirectusUrl, toValue(toValue(options).image), site);
+  });
   const imageUrl = computed(() => image.value || new URL(logo, site).href);
   const shareTitle = computed(() => (privateRoute.value ? SITE_NAME : metadataTitle(title.value)));
   const shareDescription = computed(() => (privateRoute.value ? text("seo.description") : description.value));

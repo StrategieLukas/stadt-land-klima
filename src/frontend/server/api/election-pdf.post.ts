@@ -1,6 +1,7 @@
 import { ElectionPdfRequestSchema } from "~/shared/contracts/submissions";
 import { createError, defineEventHandler, readBody, setResponseHeader } from "h3";
 import { useRuntimeConfig } from "#imports";
+import { pdfRequestBody, pdfResponseDisposition } from "~/server/utils/pdfResponse";
 import { rateLimit } from "../utils/rateLimit";
 
 /**
@@ -12,7 +13,7 @@ export default defineEventHandler(async (event) => {
   if (!(await rateLimit(event, "election-pdf"))) {
     throw createError({ statusCode: 429, statusMessage: "Too many requests" });
   }
-  const parsed = ElectionPdfRequestSchema.safeParse(await readBody<unknown>(event));
+  const parsed = ElectionPdfRequestSchema.safeParse(pdfRequestBody(await readBody<unknown>(event)));
   if (!parsed.success) throw createError({ statusCode: 400, statusMessage: "Invalid PDF request" });
   const { catalogVersion, municipalitySlug, measures } = parsed.data;
 
@@ -41,8 +42,9 @@ export default defineEventHandler(async (event) => {
   const buffer = Buffer.from(arrayBuffer);
 
   setResponseHeader(event, "Content-Type", "application/pdf");
-  setResponseHeader(event, "Content-Disposition", 'inline; filename="election.pdf"');
+  setResponseHeader(event, "Content-Disposition", pdfResponseDisposition(response.headers.get("Content-Disposition")));
   setResponseHeader(event, "Content-Length", buffer.length);
+  setResponseHeader(event, "Cache-Control", "private, no-store");
 
   return buffer;
 });

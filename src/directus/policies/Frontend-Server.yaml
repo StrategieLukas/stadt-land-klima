@@ -566,6 +566,29 @@ permissions:
       - date_created
       - image
       - image_credits
+  - collection: municipality_rating_updates
+    action: read
+    permissions:
+      score:
+        published:
+          _eq: true
+        percentage_rated:
+          _gte: 100
+        municipality:
+          status:
+            _eq: published
+        catalog_version:
+          hidden:
+            _eq: false
+    validation: null
+    presets: null
+    fields:
+      - id
+      - score
+      - occurred_at
+      - kind
+      - score_total
+      - previous_total
   - collection: municipality_scores
     action: read
     permissions: {}
@@ -703,6 +726,7 @@ permissions:
       - source
       - achievement
       - current_progress
+      - date_created
       - date_updated
       - why_not_applicable
       - status

@@ -35,22 +35,18 @@
         <path d="M1 1l12 11L1 23" />
       </svg>
     </div>
-    <button
+    <PdfExportForm
       v-else
-      type="button"
-      :disabled="isGeneratingPdf"
-      class="flex h-10 w-16 cursor-pointer items-center justify-center bg-gray text-white disabled:cursor-wait disabled:opacity-70"
-      @click="fetchPDF"
+      :action="`/api/pdf/municipality/${municipality.slug}`"
+      :request="{ slug: municipality.slug, catalogVersion: props.municipalityScore.catalog_version?.name }"
     >
-      <SlkFlowerSpinner v-if="isGeneratingPdf" :size="20" color="#fbfbfb" />
-      <span v-else>PDF</span>
-    </button>
+      <button type="submit" class="flex h-10 w-16 cursor-pointer items-center justify-center bg-gray text-white">
+        PDF
+      </button>
+    </PdfExportForm>
   </div>
 </template>
 <script setup lang="ts">
-import { openPdf } from "~/utils/openPdf";
-import { clientFailure } from "~/shared/securityLog";
-
 import type { PropType } from "vue";
 import type { MunicipalityScore } from "~/types/components/municipality";
 
@@ -89,30 +85,5 @@ const colorClass = computed(() => {
 
   return c;
 });
-
-const isGeneratingPdf = ref(false);
-
-async function fetchPDF() {
-  if (isGeneratingPdf.value) return;
-  if (!municipality.slug) return;
-
-  isGeneratingPdf.value = true;
-  try {
-    await openPdf(() =>
-      $fetch<Blob>(`/api/pdf/municipality/${municipality.slug}`, {
-        method: "POST",
-        responseType: "blob",
-        body: {
-          slug: municipality.slug,
-          catalogVersion: props.municipalityScore.catalog_version?.name,
-        },
-      }),
-    );
-  } catch (err) {
-    clientFailure("app.components.ItemRanking.fetchPDF.failed", err);
-  } finally {
-    isGeneratingPdf.value = false;
-  }
-}
 </script>
 <style lang=""></style>

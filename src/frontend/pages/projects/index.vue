@@ -27,26 +27,17 @@
 
     <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
       <h2 id="database" class="font-heading text-3xl font-bold text-stats-dark">{{ $t("tour.database") }}</h2>
-      <div class="slk-filter-theme-blue flex gap-2" role="group" :aria-label="$t('projects.map.view_label')">
-        <button
-          type="button"
-          class="slk-filter-pill"
-          :class="{ 'slk-filter-pill--active': !isMapView }"
-          :aria-pressed="!isMapView"
-          @click="router.replace({ query: { ...route.query, view: undefined } })"
-        >
-          {{ $t("generic.view.list") }}
-        </button>
-        <button
-          type="button"
-          class="slk-filter-pill"
-          :class="{ 'slk-filter-pill--active': isMapView }"
-          :aria-pressed="isMapView"
-          @click="router.replace({ query: { ...route.query, view: 'map' } })"
-        >
-          {{ $t("municipalities.view.map") }}
-        </button>
-      </div>
+      <CanonicalToggleGroup
+        :model-value="isMapView ? 'map' : 'list'"
+        :label="$t('projects.map.view_label')"
+        :options="[
+          { value: 'list', label: $t('generic.view.list'), icon: 'mdi:view-grid' },
+          { value: 'map', label: $t('municipalities.view.map'), icon: 'mdi:map' },
+        ]"
+        @update:model-value="
+          (view) => router.replace({ query: { ...route.query, view: view === 'map' ? 'map' : undefined } })
+        "
+      />
     </div>
 
     <!-- Filter + Sort bar -->

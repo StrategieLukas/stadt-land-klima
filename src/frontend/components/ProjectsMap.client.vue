@@ -26,23 +26,34 @@
         }"
         v-bind="leafletMarkerProps(leafletMarkerIcon(markerIcon(location.projects.length)))"
       >
-        <LPopup :options="{ maxHeight: 240, autoPanPadding: [20, 20] }">
-          <p class="font-bold">{{ $t("projects.map.marker_label", { ":count": location.projects.length }) }}</p>
-          <ul class="mt-2 space-y-3">
+        <LPopup
+          :options="{
+            className: 'project-map-popup',
+            minWidth: 220,
+            maxWidth: 300,
+            maxHeight: 260,
+            autoPanPadding: [20, 20],
+          }"
+        >
+          <div class="project-popup-heading">
+            {{ $t("projects.map.marker_label", { ":count": location.projects.length }) }}
+          </div>
+          <ul class="project-popup-list">
             <li v-for="project in location.projects" :key="project.id">
-              <NuxtLink :to="`/projects/${encodeURIComponent(project.slug)}`" class="font-bold">{{
-                project.title
-              }}</NuxtLink>
-              <p v-if="project.label" class="mt-1">{{ project.label }}</p>
-              <p class="text-xs">
-                {{
-                  $t(
-                    project.location.source === "project"
-                      ? "projects.map.project_location"
-                      : "projects.map.municipality_location",
-                  )
-                }}
-              </p>
+              <NuxtLink :to="`/projects/${encodeURIComponent(project.slug)}`" class="project-popup-link">
+                <span class="min-w-0">
+                  <span class="project-popup-title">{{ project.title }}</span>
+                  <span v-if="project.label" class="project-popup-label">{{ project.label }}</span>
+                  <span class="project-popup-source">{{
+                    $t(
+                      project.location.source === "project"
+                        ? "projects.map.project_location"
+                        : "projects.map.municipality_location",
+                    )
+                  }}</span>
+                </span>
+                <span class="shrink-0" aria-hidden="true">→</span>
+              </NuxtLink>
             </li>
           </ul>
         </LPopup>
@@ -139,5 +150,72 @@ watch(
   outline-style: solid;
   outline-offset: 4px;
   border-radius: 4px;
+}
+
+:deep(.project-map-popup .leaflet-popup-content-wrapper),
+:deep(.project-map-popup .leaflet-popup-tip) {
+  background: var(--slk-surface);
+  color: var(--slk-text-strong);
+}
+:deep(.project-map-popup .leaflet-popup-content-wrapper) {
+  padding: 0;
+  border: 1px solid var(--slk-border);
+  border-radius: 0.5rem;
+}
+:deep(.project-map-popup .leaflet-popup-content) {
+  margin: 0;
+  line-height: 1.4;
+  font-family: inherit;
+}
+:deep(.project-map-popup .leaflet-popup-close-button) {
+  color: var(--slk-text-muted);
+}
+.project-popup-heading {
+  padding: 0.65rem 2rem 0.65rem 0.8rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--slk-border);
+}
+.project-popup-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.project-popup-list li + li {
+  border-top: 1px solid var(--slk-border);
+}
+.project-popup-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  color: var(--slk-text-strong);
+  text-decoration: none;
+}
+.project-popup-link:hover,
+.project-popup-link:focus-visible {
+  background: var(--slk-surface-subdued);
+}
+.project-popup-link:focus-visible {
+  outline: 2px solid var(--slk-blue);
+  outline-offset: -2px;
+}
+.project-popup-title {
+  display: block;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.project-popup-label {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--slk-text-muted);
+  font-size: 0.75rem;
+}
+.project-popup-source {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--slk-text-subtle);
+  font-size: 0.7rem;
 }
 </style>

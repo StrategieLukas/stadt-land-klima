@@ -53,6 +53,7 @@ function load(path: string, dependencies: Row = {}, globals: Row = {}): Row {
     if (id.endsWith("/cmsValue")) return load("server/utils/cmsValue.ts");
     if (id.endsWith("/parseCms")) return load("server/utils/parseCms.ts");
     if (id.endsWith("/publicQuery")) return load("server/utils/publicQuery.ts");
+    if (id.endsWith("/pdfResponse")) return load("server/utils/pdfResponse.ts");
     throw new Error("Unexpected import in " + path + ": " + id);
   };
   runInNewContext(compiled.outputText, {
@@ -691,6 +692,7 @@ test("PDF proxy accepts legacy redundant slug, rejects mismatches and never refl
         return {
           ok: upstreamOk,
           status: 502,
+          headers: { get: () => null },
           text: async () => "private-upstream-body",
           arrayBuffer: async () => new TextEncoder().encode("%PDF").buffer,
         };
@@ -703,7 +705,12 @@ test("PDF proxy accepts legacy redundant slug, rejects mismatches and never refl
   await assert.rejects(handler({ params: { slug: "city" }, body: { slug: "other", catalogVersion: "v2026" } }), {
     statusCode: 400,
   });
-  assert.equal(writes, 1);
+  const formResponse = await handler({
+    params: { slug: "city" },
+    body: { request: JSON.stringify({ slug: "city", catalogVersion: "v2026" }) },
+  });
+  assert.equal(formResponse.toString(), "%PDF");
+  assert.equal(writes, 2);
   upstreamOk = false;
   await assert.rejects(
     handler({ params: { slug: "city" }, body: { catalogVersion: "v2026" } }),

@@ -664,5 +664,17 @@ const previewMuniName = computed(
 const pageTitle = directusData?.municipalityScore?.municipality?.name ?? slzArea.value?.name ?? slug;
 const title = ref(pageTitle);
 const seoText = useSeoText();
-usePageSeo({ title, description: () => seoText("seo.municipality.description", { ":name": title.value }) });
+const { $locale } = useNuxtApp();
+usePageSeo({
+  title,
+  description: () => seoText("seo.municipality.description", { ":name": title.value }),
+  socialImagePath: () => {
+    const score = directusData?.municipalityScore;
+    return score?.published === true &&
+      Number(score.percentage_rated) >= 100 &&
+      score.municipality.status === "published"
+      ? `/api/public/municipalities/${score.municipality.slug}/social-image?${new URLSearchParams({ v: score.catalog_version.name, lang: $locale })}`
+      : undefined;
+  },
+});
 </script>

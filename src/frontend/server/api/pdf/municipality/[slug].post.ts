@@ -1,6 +1,7 @@
 import { MunicipalityPdfRequestSchema } from "~/shared/contracts/submissions";
 import { createError, defineEventHandler, getRouterParam, readBody, setResponseHeader } from "h3";
 import { useRuntimeConfig } from "#imports";
+import { pdfRequestBody, pdfResponseDisposition } from "~/server/utils/pdfResponse";
 import { rateLimit } from "../../../utils/rateLimit";
 
 /**
@@ -17,7 +18,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Invalid municipality slug" });
   }
 
-  const parsed = MunicipalityPdfRequestSchema.safeParse(await readBody<unknown>(event));
+  const parsed = MunicipalityPdfRequestSchema.safeParse(pdfRequestBody(await readBody<unknown>(event)));
   if (!parsed.success || (parsed.data.slug && parsed.data.slug !== slug))
     throw createError({ statusCode: 400, statusMessage: "Invalid PDF request" });
   const { catalogVersion } = parsed.data;
@@ -47,8 +48,9 @@ export default defineEventHandler(async (event) => {
   const buffer = Buffer.from(arrayBuffer);
 
   setResponseHeader(event, "Content-Type", "application/pdf");
-  setResponseHeader(event, "Content-Disposition", 'inline; filename="municipality.pdf"');
+  setResponseHeader(event, "Content-Disposition", pdfResponseDisposition(response.headers.get("Content-Disposition")));
   setResponseHeader(event, "Content-Length", buffer.length);
+  setResponseHeader(event, "Cache-Control", "private, no-store");
 
   return buffer;
 });

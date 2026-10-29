@@ -15,7 +15,7 @@ import { createDirectusServerClient } from "../../utils/directusServerClient";
 
 export default defineEventHandler(async (event) => {
   const client = createDirectusServerClient();
-  const [news, articles, events, municipalities, catalogs, visitReports] = await Promise.all([
+  const [news, articles, events, catalogs, visitReports] = await Promise.all([
     client
       .request(
         readItems("news_items", {
@@ -65,16 +65,6 @@ export default defineEventHandler(async (event) => {
             "location",
           ],
           sort: ["-start_date"],
-          limit: 20,
-        }),
-      )
-      .then(cmsRows),
-    client
-      .request(
-        readItems("municipalities", {
-          filter: { status: { _eq: "published" } },
-          fields: ["id", "slug", "name", "description", "date_updated", { image: ["id", "type"] }, "image_credits"],
-          sort: ["-date_updated"],
           limit: 20,
         }),
       )
@@ -133,20 +123,6 @@ export default defineEventHandler(async (event) => {
       articles,
     ),
     events: parseCms(z.array(EventSchema.extend({ date_created: NullableTextSchema })), events),
-    municipalities: parseCms(
-      z.array(
-        z.object({
-          id: z.string(),
-          slug: z.string(),
-          name: z.string(),
-          description: NullableTextSchema,
-          date_updated: NullableTextSchema,
-          image: FileSchema.nullish().transform((value) => value ?? null),
-          image_credits: NullableTextSchema,
-        }),
-      ),
-      municipalities,
-    ),
     catalogs: parseCms(
       z.array(z.object({ id: z.string(), name: z.string(), date_created: NullableTextSchema })),
       catalogs,
