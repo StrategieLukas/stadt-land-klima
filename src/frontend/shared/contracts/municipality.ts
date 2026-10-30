@@ -140,6 +140,7 @@ export const ComparisonRatingSchema = z.object({
         id: true,
         name: true,
         slug: true,
+        status: true,
         state: true,
         party_mayor: true,
         population: true,

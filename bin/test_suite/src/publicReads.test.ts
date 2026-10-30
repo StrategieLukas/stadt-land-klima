@@ -201,6 +201,38 @@ test("statistics accept dotted catalog names and retain map coordinates through 
   await assert.rejects(() => route.default({ params: { catalog: "missing" } }), { statusCode: 404 });
 });
 
+test("measure comparisons retain the published status and normalize ratings for chart consumers", async () => {
+  const municipality = {
+    id: "city",
+    name: "Public city",
+    slug: "city",
+    status: "published",
+    localteam_id: "team",
+    privateNote: "secret",
+  };
+  const transport = cms(({ collection, query }) => {
+    if (collection === "measures") return [{ id: "measure", catalog_version: "current-id" }];
+    if (collection === "municipality_scores") {
+      assert.ok(query.fields.includes("municipality.status"));
+      assert.equal(query.filter.published._eq, true);
+      assert.equal(query.filter.percentage_rated._gte, 100);
+      assert.equal(query.filter.municipality.status._eq, "published");
+      assert.equal(query.filter.catalog_version._eq, "current-id");
+      return [{ municipality, catalog_version: "current-id", published: true, percentage_rated: "100" }];
+    }
+    assert.equal(collection, "ratings_measures");
+    assert.equal(query.filter.status._eq, "published");
+    assert.equal(query.filter.approved._eq, true);
+    assert.deepEqual(plain(query.filter.localteam_id._in), ["team"]);
+    return [{ localteam_id: "team", rating: "0.75", applicable: true }];
+  });
+  const route = load("server/api/public/measure-ratings.get.ts", transport.dependencies).default;
+  const result = await route({ query: { measureId: "11111111-1111-4111-8111-111111111111" } });
+  assert.equal(result.ratings[0].rating, 0.75);
+  assert.equal(result.ratings[0].localteam_id.municipality_id[0].status, "published");
+  assert.ok(!JSON.stringify(result).includes("secret"));
+});
+
 test("measure projections select real columns rather than the feasibility interface alias", () => {
   const transport = cms(() => []);
   const { publicMeasureFields } = load("server/utils/municipalityPageData.ts", {

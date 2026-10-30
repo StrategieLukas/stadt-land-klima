@@ -88,6 +88,34 @@ async function render(
   return ssr.renderToString(app);
 }
 
+test("measure rating bars count numeric and string ratings, not-applicable and unrated published municipalities", async () => {
+  for (const stringify of [false, true]) {
+    const municipality = { id: "city", name: "Public city", slug: "city", status: "published" };
+    const ratings = [1, 0.75, 0.5, 0.25, 0].map((rating) => ({
+      rating: stringify ? String(rating) : rating,
+      applicable: true,
+      localteam_id: { municipality_id: [municipality] },
+    }));
+    const html = await render("MeasureRatingChart.vue", {
+      measureIdStr: "EN-1",
+      catalogVersionName: "v1.0",
+      ratings: [
+        ...ratings,
+        { rating: null, applicable: false, localteam_id: { municipality_id: [municipality] } },
+        { rating: null, applicable: true, localteam_id: { municipality_id: [municipality] } },
+        {
+          rating: 1,
+          applicable: true,
+          localteam_id: { municipality_id: [{ ...municipality, status: "draft" }] },
+        },
+      ],
+    });
+    assert.equal((html.match(/<button\b/g) ?? []).length, 7);
+    assert.doesNotMatch(html, /<button[^>]*\bdisabled/);
+    assert.match(html, /7 Kommunen haben/);
+  }
+});
+
 test("persisted editor button outline variants keep their border and contrast after utility migration", async () => {
   for (const variant of ["outline", "filled"]) {
     const html = await render(
