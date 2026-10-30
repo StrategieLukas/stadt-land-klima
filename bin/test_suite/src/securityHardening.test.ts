@@ -1,4 +1,5 @@
 import * as pdfFilename from "../../../src/directus/extensions/endpoint-pdf-service/src/filename.ts";
+import * as municipalityClassification from "../../../src/frontend/shared/municipalityClassification.ts";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -36,7 +37,14 @@ function load(path: string, deps: Row = {}, globals: Row = {}, extra = ""): Row 
       clearTimeout,
       console,
       process: { env: {} },
-      require: (id: string) => (id in deps ? deps[id] : id === "h3" ? h3 : (loggingModule(id) ?? frontend(id))),
+      require: (id: string) =>
+        id.endsWith("/municipalityClassification.ts")
+          ? municipalityClassification
+          : id in deps
+            ? deps[id]
+            : id === "h3"
+              ? h3
+              : (loggingModule(id) ?? frontend(id)),
       ...globals,
     },
   );

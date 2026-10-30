@@ -1,0 +1,3 @@
+language: de-DE
+key: municipality.hero.contact_content
+value: "Ich möchte das Lokalteam in :municipality unterstützen.\n\nBewertung: :link\n\nMeine Nachricht:\n"

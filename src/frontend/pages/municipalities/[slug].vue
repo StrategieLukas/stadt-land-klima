@@ -141,7 +141,7 @@
       </div>
     </div>
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue"> ← {{ backLabel }} </NuxtLink>
-    <article class="mt-10 mb-8">
+    <article class="mt-5 mb-8 px-2 sm:px-4">
       <detail-municipality
         :municipality-score="directusData.municipalityScore"
         :ratings-by-sector="directusData.ratingsBySector ?? {}"
@@ -256,7 +256,7 @@
           <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black">?</div>
         </div>
         <div class="grow">
-          <h3 class="font-heading text-h2 font-bold text-black">{{ slzArea.name }}</h3>
+          <h1 class="font-heading text-4xl font-black break-words text-light-green sm:text-6xl">{{ slzArea.name }}</h1>
           <p class="text-sm text-gray-500">{{ slzArea.prefix }}</p>
           <!-- Gray placeholder bar instead of score progress -->
           <div class="slk-municipality-pending-progress mt-2 h-3 w-full rounded-sm"></div>

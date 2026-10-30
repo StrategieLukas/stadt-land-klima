@@ -1,4 +1,5 @@
 import { extensionDiagnostic } from "../../shared/securityLogger.ts";
+import { municipalityType } from "../../../../frontend/shared/municipalityClassification.ts";
 import path from "path";
 import { reportFilename, inlinePdfDisposition } from "./filename.ts";
 import { execFile } from "child_process";
@@ -44,6 +45,7 @@ interface MunicipalityScore {
     slug: string;
     localteam_id: number;
     municipality_type: string;
+    population?: number | string | null;
     state: string;
     overall_status_comment: string | null;
   };
@@ -214,6 +216,7 @@ async function fetchReportData(
         "municipality.slug",
         "municipality.localteam_id",
         "municipality.municipality_type",
+        "municipality.population",
         "municipality.state",
         "municipality.overall_status_comment",
       ],
@@ -259,6 +262,7 @@ async function fetchReportData(
   }
 
   const municipalityScore = scores[0];
+  municipalityScore.municipality.municipality_type = municipalityType(municipalityScore.municipality) ?? "";
   const { localteam_id } = municipalityScore.municipality;
 
   const ratingMeasures = (await makeService("ratings_measures").readByQuery({

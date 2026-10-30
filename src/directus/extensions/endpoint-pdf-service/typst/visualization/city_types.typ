@@ -44,5 +44,5 @@
 ]
 
 #let major_city = [
-  #city("../slk_resources/major-city-light.svg", "Großstädte", "mit mehr als 100.000 Einwohner:innen")
+  #city("../slk_resources/major-city-light.svg", "Großstädte", "ab 100.000 Einwohner:innen")
 ]

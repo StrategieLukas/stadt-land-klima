@@ -14,10 +14,12 @@
           dir: ttb,
           spacing: 1.3em,
           text("Kommunales Ranking 2026", size: 1em, weight: "bold"),
-          if(is_major_city){
+          if(is_major_city == true){
             city_types.major_city
-          }else{
+          }else if(is_major_city == false){
             city_types.minor_city
+          }else{
+            text("Städte und Gemeinden", size: 9pt)
           }
         )
 

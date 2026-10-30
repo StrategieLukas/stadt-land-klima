@@ -2,6 +2,7 @@
   <section
     :id="getBlokkliBlockId(options.anchor, uuid)"
     class="blokkli-block-container"
+    :data-padding="options.padding"
     :class="[bgClass, paddingClass, marginYClass, widthBreakout, bgNarrowClass, borderClass, roundedClass, shadowClass]"
     :style="customColumnsVar"
   >
@@ -229,11 +230,11 @@ const bgClass = computed(() => {
 const paddingClass = computed(() => {
   const map: Record<string, string> = {
     none: "",
-    small: "py-4 px-4",
-    medium: "py-8 px-6",
-    large: "py-16 px-8",
+    small: "py-3 px-3 sm:py-4 sm:px-4",
+    medium: "py-6 px-4 sm:py-8 sm:px-6",
+    large: "py-10 px-4 sm:py-16 sm:px-8",
   };
-  return map[options.value.padding] || "py-8 px-6";
+  return map[options.value.padding] ?? map.medium;
 });
 
 const marginYClass = computed(() => {

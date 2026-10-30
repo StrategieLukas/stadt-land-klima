@@ -100,6 +100,7 @@ const blockText: Partial<Record<keyof typeof BLOCK_DEFINITIONS, readonly string[
   hex_item: ["label"],
   projects_carousel: ["label", "heading", "linkText"],
   municipality_search_hero: ["title", "subtitle"],
+  landing_page: ["title", "subtitle"],
   newsletter_signup: ["title", "description"],
   form: ["title", "description", "successMessage"],
   form_label: ["text", "description"],

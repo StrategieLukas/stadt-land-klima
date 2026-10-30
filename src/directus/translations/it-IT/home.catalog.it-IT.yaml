@@ -1,0 +1,3 @@
+language: it-IT
+key: home.catalog
+value: ":count misure del catalogo attuale :catalog costituiscono la base delle nostre valutazioni."

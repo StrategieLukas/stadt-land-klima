@@ -1,13 +1,21 @@
 <template>
-  <div ref="root" class="canonical-toggle-group join" role="radiogroup" :aria-label="label">
+  <div
+    ref="root"
+    class="canonical-toggle-group"
+    :class="color === 'inherit' ? undefined : `slk-filter-theme-${color}`"
+    :data-roundedness="roundedness"
+    :data-padding="padding"
+    :data-appearance="appearance"
+    role="radiogroup"
+    :aria-label="label"
+  >
     <button
       v-for="option in options"
       :key="option.value"
       type="button"
       role="radio"
-      class="join-item"
       :aria-checked="modelValue === option.value"
-      :tabindex="modelValue === option.value ? 0 : -1"
+      :tabindex="focusValue === option.value ? 0 : -1"
       :disabled="option.disabled"
       :data-value="option.value"
       @click="select(option.value)"
@@ -20,20 +28,33 @@
 </template>
 <script setup lang="ts" generic="T extends string">
 import { Icon } from "@iconify/vue";
-import { nextTick, ref } from "vue";
-const props = defineProps<{
-  modelValue: T;
-  label: string;
-  options: readonly { value: T; label: string; icon?: string; disabled?: boolean }[];
-}>();
+import { computed, nextTick, ref } from "vue";
+const props = withDefaults(
+  defineProps<{
+    modelValue: T;
+    label: string;
+    options: readonly { value: T; label: string; icon?: string; disabled?: boolean }[];
+    roundedness?: "full" | "medium" | "none";
+    padding?: "compact" | "medium" | "large";
+    appearance?: "soft" | "retro";
+    color?: "inherit" | "lime" | "blue" | "neutral" | "stats";
+  }>(),
+  { roundedness: "full", padding: "compact", appearance: "soft", color: "inherit" },
+);
 const emit = defineEmits<{ "update:modelValue": [value: T] }>();
 const root = ref<HTMLElement | null>(null);
+const focusValue = computed(
+  () =>
+    props.options.find((option) => option.value === props.modelValue && !option.disabled)?.value ??
+    props.options.find((option) => !option.disabled)?.value,
+);
 function select(value: T) {
   if (value !== props.modelValue && props.options.some((option) => option.value === value && !option.disabled))
     emit("update:modelValue", value);
 }
 async function onKeydown(event: KeyboardEvent, current: T) {
   const enabled = props.options.filter((option) => !option.disabled);
+  if (!enabled.length) return;
   const index = enabled.findIndex((option) => option.value === current);
   const rtl = root.value && getComputedStyle(root.value).direction === "rtl";
   let target: number;
@@ -56,15 +77,41 @@ async function onKeydown(event: KeyboardEvent, current: T) {
 </script>
 <style scoped>
 .canonical-toggle-group {
+  --toggle-radius: 9999px;
+  --toggle-padding: 0.25rem 0.625rem;
   display: inline-flex;
   width: fit-content;
   max-width: 100%;
   padding: 0.2rem;
   gap: 0.2rem;
   border: 1px solid var(--slk-border);
-  border-radius: 0.5rem;
-  background: var(--slk-surface-subdued);
-  color: var(--slk-text-strong);
+  border-radius: var(--toggle-radius);
+  background: var(--slk-filter-panel-bg, var(--slk-surface-subdued));
+  color: var(--slk-filter-inactive-text, var(--slk-text-strong));
+}
+.canonical-toggle-group[data-roundedness="medium"] {
+  --toggle-radius: 0.5rem;
+}
+.canonical-toggle-group[data-roundedness="none"] {
+  --toggle-radius: 0;
+}
+.canonical-toggle-group[data-padding="medium"] {
+  --toggle-padding: 0.5rem 0.875rem;
+}
+.canonical-toggle-group[data-padding="large"] {
+  --toggle-padding: 0.75rem 1.125rem;
+}
+.canonical-toggle-group[data-appearance="retro"] {
+  padding: 0;
+  gap: 0;
+  border: 2px solid var(--slk-text-strong);
+  box-shadow: 3px 3px 0 var(--slk-text-strong);
+}
+.canonical-toggle-group[data-appearance="retro"] button + button {
+  border-inline-start: 2px solid var(--slk-text-strong);
+}
+.canonical-toggle-group[data-appearance="retro"] button:active {
+  box-shadow: inset 2px 2px 0 var(--slk-border-strong);
 }
 .canonical-toggle-group button {
   display: inline-flex;
@@ -72,19 +119,21 @@ async function onKeydown(event: KeyboardEvent, current: T) {
   justify-content: center;
   gap: 0.375rem;
   min-height: 2.5rem;
-  padding: 0.4rem 0.75rem;
+  padding: var(--toggle-padding);
   border: 0;
-  border-radius: 0.3rem;
+  border-radius: var(--toggle-radius);
+  color: inherit;
+  background: var(--slk-filter-inactive-bg, var(--slk-surface));
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
 }
 .canonical-toggle-group button:hover {
-  background: var(--slk-surface-muted);
+  background: var(--slk-filter-hover-bg, var(--slk-surface-muted));
 }
 .canonical-toggle-group button[aria-checked="true"] {
-  background: var(--slk-accent-green);
-  color: var(--slk-ranking-card-text);
+  background: var(--slk-filter-active-bg, var(--slk-accent-green));
+  color: var(--slk-filter-active-text, var(--slk-ranking-card-text));
 }
 .canonical-toggle-group button:focus-visible {
   outline: 2px solid var(--slk-text-strong);

@@ -1,5 +1,28 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { municipalityAssessmentHref } from "../../../src/frontend/shared/municipalityLinks.js";
+import { municipalityType } from "../../../src/frontend/shared/municipalityClassification.js";
+
+test("municipality links preserve catalogues and prefer measure anchors over sector anchors", () => {
+  assert.equal(
+    municipalityAssessmentHref("koeln", "v1.0", { sector: "energy" }),
+    "/municipalities/koeln?v=v1.0#sector-energy",
+  );
+  assert.equal(
+    municipalityAssessmentHref("koeln", "beta", { sector: "energy", measureCode: "EN_01" }),
+    "/municipalities/koeln?v=beta#measure-EN_01",
+  );
+  assert.equal(municipalityAssessmentHref("koeln", "v1.0"), "/municipalities/koeln?v=v1.0");
+});
+
+test("population determines PDF and website municipality categories, including Cologne and the 100000 boundary", () => {
+  assert.equal(municipalityType({ population: 1080000, municipality_type: null }), "big_city");
+  assert.equal(municipalityType({ population: 100000, municipality_type: "small_city" }), "big_city");
+  assert.equal(municipalityType({ population: "99999", municipality_type: "big_city" }), "small_city");
+  assert.equal(municipalityType({ population: null, municipality_type: "big_city" }), "big_city");
+  for (const population of [undefined, null, "", "invalid", 0, -1])
+    assert.equal(municipalityType({ population }), null);
+});
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";

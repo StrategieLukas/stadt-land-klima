@@ -23,6 +23,7 @@ export const BLOCK_DEFINITIONS = {
   hex_item: { text: ["label", "imageId"], nested: [] },
   projects_carousel: { text: ["label", "heading", "linkText"], nested: [] },
   municipality_search_hero: { text: ["title", "subtitle"], nested: [] },
+  landing_page: { text: ["title", "subtitle"], nested: [] },
   newsletter_signup: { text: ["title", "description"], nested: [] },
   donation_widget: { text: [], nested: [] },
   form: { text: ["title", "description", "successMessage"], nested: ["fields"] },

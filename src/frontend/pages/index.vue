@@ -9,7 +9,7 @@
       :entity="page"
     >
       <template #default="{ isEditing }">
-        <article class="mx-auto w-full max-w-4xl self-center px-4 pb-8">
+        <article class="cms-page-shell w-full pb-8">
           <!-- blökkli field: renders blocks when available -->
           <BlokkliField name="content" :list="pageBlocks" />
 

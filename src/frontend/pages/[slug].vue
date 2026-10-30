@@ -6,20 +6,20 @@
     :entity-uuid="page.id"
     :can-edit="canEdit"
     :entity="page"
-    class="self-center"
+    class="cms-page-shell w-full"
   >
     <template #default="{ isEditing }">
-      <article class="prose self-center pb-8">
+      <article class="min-w-0 pb-6">
         <!-- blökkli field: renders blocks when available -->
         <BlokkliField name="content" :list="pageBlocks" />
 
         <!-- Fallback: render legacy HTML content when not editing and no blocks exist -->
-        <template v-if="!isEditing && pageBlocks.length === 0 && page.contents">
+        <div v-if="!isEditing && pageBlocks.length === 0 && page.contents" class="mx-auto prose max-w-3xl">
           <template v-for="(block, index) in processedPageContent" :key="index">
             <div v-if="block.type === 'html'" v-html="sanitizeHtml(block.html)" />
             <OnboardingBox v-else-if="block.type === 'component'" name="Otto" :avatar-src="onboardingAvatarUrl" />
           </template>
-        </template>
+        </div>
       </article>
     </template>
   </BlokkliPageProvider>

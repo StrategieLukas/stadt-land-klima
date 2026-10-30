@@ -121,6 +121,7 @@
       <!-- Collapsible toggle (only shown below xs breakpoint) -->
       <button
         class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
+        :aria-expanded="filterOpen"
         @click="filterOpen = !filterOpen"
       >
         <span class="flex items-center gap-2">
@@ -241,12 +242,16 @@
               @click="selected = 'all'"
             >
               <div class="flex shrink-0 gap-0">
-                <img
-                  class="h-4 w-4"
-                  :src="selected === 'all' ? minorCitySelected : minorCityNotSelected"
-                  :alt="$t('municipalities.all')"
+                <span
+                  aria-hidden="true"
+                  class="slk-city-filter-icon"
+                  style="--city-icon: url(/icons/minor-city-dark.svg)"
                 />
-                <img class="h-4 w-4" :src="selected === 'all' ? majorCitySelected : majorCityNotSelected" />
+                <span
+                  aria-hidden="true"
+                  class="slk-city-filter-icon"
+                  style="--city-icon: url(/icons/major-city-dark.svg)"
+                />
               </div>
               <span class="font-bold whitespace-nowrap">{{ $t("municipalities.all") }}</span>
             </button>
@@ -255,10 +260,10 @@
               :class="{ 'slk-filter-pill--active': selected === 'major_city' }"
               @click="selected = 'major_city'"
             >
-              <img
-                class="h-4 w-4 shrink-0"
-                :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected"
-                :alt="$t('municipalities.major_city.plural')"
+              <span
+                aria-hidden="true"
+                class="slk-city-filter-icon"
+                style="--city-icon: url(/icons/major-city-dark.svg)"
               />
               <span class="font-bold whitespace-nowrap">{{ $t("municipalities.major_city.plural") }}</span>
             </button>
@@ -267,10 +272,10 @@
               :class="{ 'slk-filter-pill--active': selected === 'minor_city' }"
               @click="selected = 'minor_city'"
             >
-              <img
-                class="h-4 w-4 shrink-0"
-                :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected"
-                :alt="$t('municipalities.minor_city.plural')"
+              <span
+                aria-hidden="true"
+                class="slk-city-filter-icon"
+                style="--city-icon: url(/icons/minor-city-dark.svg)"
               />
               <span class="font-bold whitespace-nowrap">{{ $t("municipalities.minor_city.plural") }}</span>
             </button>
@@ -291,11 +296,7 @@
       <!-- Conditional Content -->
       <div>
         <section>
-          <TheMap
-            v-if="isMapView"
-            :municipality-scores="filteredMunicipalityScores"
-            :catalog-version="selectedCatalogVersion"
-          />
+          <TheMap v-if="isMapView" :municipality-scores="filteredMapScores" :catalog-version="selectedCatalogVersion" />
           <TheRanking
             v-else
             :municipality-scores="filteredMunicipalityScores"
@@ -311,11 +312,7 @@
       <div ref="rankingColumn" class="lg:col-span-2">
         <!-- Conditional Content -->
         <div class="w-full max-w-(--breakpoint-xl)">
-          <TheMap
-            v-if="isMapView"
-            :municipality-scores="filteredMunicipalityScores"
-            :catalog-version="selectedCatalogVersion"
-          />
+          <TheMap v-if="isMapView" :municipality-scores="filteredMapScores" :catalog-version="selectedCatalogVersion" />
           <TheRanking
             v-else
             :municipality-scores="filteredMunicipalityScores"
@@ -483,12 +480,10 @@
 import { ref, onMounted, computed, nextTick, watch } from "vue";
 import lodash from "lodash";
 import { isRaster } from "~/shared/utils";
+import { municipalityType } from "~/shared/municipalityClassification";
+import type { Statistics } from "~/shared/contracts/municipality";
+import type { MapResponse } from "~/shared/contracts/map";
 const fetchContent = useContentFetch();
-
-const majorCitySelected = "/icons/major-city-light.svg";
-const majorCityNotSelected = "/icons/major-city-dark.svg";
-const minorCitySelected = "/icons/minor-city-light.svg";
-const minorCityNotSelected = "/icons/minor-city-dark.svg";
 
 const { $t, $locale } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
@@ -541,10 +536,26 @@ onMounted(() => {
   void setCatalogVersionUrl(route, router, selectedCatalogVersion.value);
 });
 
-// Share the complete public score projection with the map and statistics pages.
-const { data: rankingData } = await useAsyncData(
+// Rankings retain the published projection; the map has a separate progress DTO.
+const { data: rankingData } = await useAsyncData<Statistics>(
   () => `municipalities_ranking_scores_${selectedCatalogVersion.value.name}`,
-  () => fetchContent(`/api/public/stats/${encodeURIComponent(selectedCatalogVersion.value.name)}`),
+  () => fetchContent<Statistics>(`/api/public/stats/${encodeURIComponent(selectedCatalogVersion.value.name)}`),
+);
+const { data: mapData } = await useAsyncData<MapResponse | null>(
+  () => `municipalities-map-${selectedCatalogVersion.value.name}`,
+  fetchMap,
+  { watch: [isMapView] },
+);
+async function fetchMap(): Promise<MapResponse | null> {
+  if (!isMapView.value) return null;
+  return fetchContent<MapResponse>("/api/public/map", { query: { v: selectedCatalogVersion.value.name } });
+}
+const filteredMapScores = computed(() =>
+  (mapData.value?.scores ?? []).filter(
+    (score) =>
+      selected.value === "all" ||
+      score.municipality.municipality_type === (selected.value === "major_city" ? "big_city" : "small_city"),
+  ),
 );
 const municipalityScores = computed(() =>
   (rankingData.value?.scores ?? [])
@@ -572,10 +583,10 @@ watch(
 );
 
 const majorCityScores = computed(() =>
-  getSublist((municipalityScore) => municipalityScore.municipality?.municipality_type === "big_city"),
+  getSublist((municipalityScore) => municipalityType(municipalityScore.municipality) === "big_city"),
 );
 const minorCitiesScores = computed(() =>
-  getSublist((municipalityScore) => municipalityScore.municipality?.municipality_type === "small_city"),
+  getSublist((municipalityScore) => municipalityType(municipalityScore.municipality) === "small_city"),
 );
 const filteredMunicipalityScores = computed(() => {
   if (selected.value === "major_city") return majorCityScores.value;

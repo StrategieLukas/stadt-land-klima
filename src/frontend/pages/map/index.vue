@@ -14,7 +14,7 @@ const route = useRoute();
 const selectedCatalogVersion = ref(await getCatalogVersion(route));
 const { data } = await useAsyncData(
   () => `map-scores-${selectedCatalogVersion.value.name}`,
-  () => fetchContent(`/api/public/stats/${encodeURIComponent(selectedCatalogVersion.value.name)}`),
+  () => fetchContent("/api/public/map", { query: { v: selectedCatalogVersion.value.name } }),
 );
 const municipality_scores = computed(() => data.value?.scores ?? []);
 watch(

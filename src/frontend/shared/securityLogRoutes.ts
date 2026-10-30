@@ -35,6 +35,7 @@ export const SECURITY_LOG_ROUTES = [
   "/api/public/jobs",
   "/api/public/legacy-tour-redirect",
   "/api/public/localteams",
+  "/api/public/map",
   "/api/public/measure-ratings",
   "/api/public/measures",
   "/api/public/municipalities",

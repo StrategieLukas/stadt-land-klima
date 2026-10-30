@@ -472,6 +472,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { label: "Hexagon", imageId: "" };
       case "municipality_search_hero":
         return { title: "Gemeinde finden", subtitle: "Suche deine Gemeinde und entdecke deren Klimaschutz-Bewertung." };
+      case "landing_page":
+        return { title: "", subtitle: "" };
       case "newsletter_signup":
         return {
           title: "Newsletter abonnieren",
@@ -841,6 +843,12 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           allowReusable: true,
         },
         {
+          id: "landing_page",
+          label: $t("blokkli.landing.label"),
+          description: $t("blokkli.landing.description"),
+          allowReusable: false,
+        },
+        {
           id: "newsletter_signup",
           label: "Newsletter-Anmeldung",
           description: "E-Mail-Anmeldeformular für Newsletter-Listen",
@@ -900,6 +908,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         "hex_grid",
         "projects_carousel",
         "municipality_search_hero",
+        "landing_page",
         "newsletter_signup",
         "form",
         "donation_widget",
@@ -1325,6 +1334,24 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
 
     getEditableFieldConfig(): Promise<EditableFieldConfig[]> {
       return Promise.resolve([
+        {
+          name: "title",
+          entityType: "block",
+          entityBundle: "landing_page",
+          label: $t("blokkli.landing.title"),
+          type: "plain",
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: "subtitle",
+          entityType: "block",
+          entityBundle: "landing_page",
+          label: $t("blokkli.landing.subtitle"),
+          type: "plain",
+          required: false,
+          maxLength: 0,
+        },
         {
           name: "content",
           entityType: "block",

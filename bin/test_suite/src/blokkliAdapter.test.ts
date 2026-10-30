@@ -229,7 +229,7 @@ test("V2 user and bundle permissions follow the authenticated Directus permissio
   assert.deepEqual(plain(await editor.adapter.getCurrentUser()), { id: "editor-id", name: "Test Editor" });
   assert.deepEqual(plain(await editor.adapter.getUserPermissions()), ["use_blokkli", "create_library_item"]);
   const bundles = await editor.adapter.getAllBundles();
-  assert.equal(bundles.length, 28);
+  assert.equal(bundles.length, 29);
   assert.ok(bundles.every((bundle: any) => bundle.permissions.join() === "add,edit,delete"));
   assert.equal(editor.requests.filter((request) => request.path === "/permissions/me").length, 1);
   const reader = createHarness({ permissions: { blocks: { read: { access: "full" } } } });

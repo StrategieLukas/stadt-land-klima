@@ -211,55 +211,18 @@
         <!-- TAB: Maßnahmenstatistik -->
         <div v-show="activeTab === 'measures'">
           <!-- Mobile sub-tabs (only shown on small screens) -->
-          <div v-if="isSmall" class="mx-0 mb-4 flex border-b border-gray-200">
-            <button
-              class="flex flex-1 flex-col items-center gap-0.5 border-b-2 px-1 py-2 text-xs font-semibold transition-colors"
-              :class="
-                mobileMeasuresTab === 'selection'
-                  ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              "
-              @click="mobileMeasuresTab = 'selection'"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2" />
-              </svg>
-              Auswahl
-            </button>
-            <button
-              class="flex flex-1 flex-col items-center gap-0.5 border-b-2 px-1 py-2 text-xs font-semibold transition-colors"
-              :class="
-                mobileMeasuresTab === 'plot'
-                  ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              "
-              @click="mobileMeasuresTab = 'plot'"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              Balkendiagramm
-            </button>
-            <button
-              class="flex flex-1 flex-col items-center gap-0.5 border-b-2 px-1 py-2 text-xs font-semibold transition-colors"
-              :class="
-                mobileMeasuresTab === 'list'
-                  ? 'border-[#1a4a6e] text-[#1a4a6e]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              "
-              @click="mobileMeasuresTab = 'list'"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-              Kommunen
-            </button>
-          </div>
+          <CanonicalToggleGroup
+            v-if="isSmall"
+            v-model="mobileMeasuresTab"
+            class="mb-4"
+            color="stats"
+            :label="$t('generic.view.label')"
+            :options="[
+              { value: 'selection', label: $t('stats.view.selection'), icon: 'mdi:cursor-default-click-outline' },
+              { value: 'plot', label: $t('stats.view.bars'), icon: 'mdi:chart-bar' },
+              { value: 'list', label: $t('stats.municipalities'), icon: 'mdi:format-list-bulleted' },
+            ]"
+          />
 
           <!-- Main interactive panel: sunburst (left) + distribution chart (right) -->
           <div class="mb-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
@@ -308,43 +271,19 @@
                   </p>
                 </div>
                 <!-- Toggle only on non-small screens -->
-                <div v-if="!isSmall" role="tablist" class="tabs tabs-box ml-3 w-fit shrink-0">
-                  <a
-                    role="tab"
-                    class="tab gap-1.5"
-                    :class="{ 'tab-active': !showListView }"
-                    @click="showListView = false"
-                  >
-                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 32 32" fill="currentColor">
-                      <path
-                        d="M16 2a1 1 0 0 0-1 1v7.09a6 6 0 0 0-2.46 1.043L7.838 6.431a1.455 1.455 0 0 0-2.087.024a14.05 14.05 0 0 0 4.054 22.142a11 11 0 0 0 1.899.768a14.1 14.1 0 0 0 13.844-3.132a1.434 1.434 0 0 0 .028-2.064l-4.699-4.699A6 6 0 0 0 21.91 17H29a1 1 0 0 0 1-1A14.016 14.016 0 0 0 16 2m0 10a4 4 0 1 1-4 4a4.005 4.005 0 0 1 4-4M6.83 8.251l4.296 4.296a5.91 5.91 0 0 0-.011 6.924l-4.277 4.277A12.02 12.02 0 0 1 6.83 8.251m1.423 16.91l4.276-4.276A5.96 5.96 0 0 0 15 21.91v6.042a11.88 11.88 0 0 1-6.747-2.79ZM17 27.956V21.91a6 6 0 0 0 2.46-1.027l4.283 4.282A11.9 11.9 0 0 1 17 27.956M21.91 15A6.01 6.01 0 0 0 17 10.09V4.041A12.02 12.02 0 0 1 27.959 15Z"
-                      />
-                    </svg>
-                    Sunburst
-                  </a>
-                  <a
-                    role="tab"
-                    class="tab gap-1.5"
-                    :class="{ 'tab-active': showListView }"
-                    @click="showListView = true"
-                  >
-                    <svg
-                      class="h-4 w-4 shrink-0"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <line x1="8" y1="6" x2="21" y2="6" />
-                      <line x1="8" y1="12" x2="21" y2="12" />
-                      <line x1="8" y1="18" x2="21" y2="18" />
-                      <circle cx="3.5" cy="6" r="1.5" fill="currentColor" stroke="none" />
-                      <circle cx="3.5" cy="12" r="1.5" fill="currentColor" stroke="none" />
-                      <circle cx="3.5" cy="18" r="1.5" fill="currentColor" stroke="none" />
-                    </svg>
-                    Liste
-                  </a>
-                </div>
+                <CanonicalToggleGroup
+                  v-if="!isSmall"
+                  :model-value="showListView ? 'list' : 'sunburst'"
+                  :label="$t('generic.view.label')"
+                  :options="[
+                    { value: 'sunburst', label: $t('stats.view.sunburst'), icon: 'mdi:chart-donut' },
+                    { value: 'list', label: $t('generic.view.list'), icon: 'mdi:format-list-bulleted' },
+                  ]"
+                  color="stats"
+                  roundedness="medium"
+                  padding="large"
+                  @update:model-value="(value) => (showListView = value === 'list')"
+                />
               </div>
 
               <!-- Sunburst (non-small + diagram mode, ref kept alive always) -->
@@ -672,7 +611,7 @@
                   i + 1
                 }}</span>
                 <NuxtLink
-                  :to="ms.slug ? `/municipalities/${ms.slug}` : '#'"
+                  :to="ms.slug ? municipalityHref(ms.slug) : '#'"
                   class="flex-1 truncate text-sm text-blue-600 hover:text-blue-800 hover:underline"
                   >{{ ms.name }}</NuxtLink
                 >
@@ -769,7 +708,7 @@
                     <NuxtLink
                       v-for="m in clusterProfile.municipalities"
                       :key="m.slug"
-                      :to="`/municipalities/${m.slug}`"
+                      :to="municipalityHref(m.slug)"
                       class="block truncate py-0.5 text-xs text-blue-600 hover:underline"
                       >{{ m.name }}</NuxtLink
                     >
@@ -846,6 +785,8 @@ import { getCatalogVersion } from "~/composables/getCatalogVersion";
 import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions";
 import sectorImages from "~/shared/sectorImages";
 import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";
+import { municipalityType } from "~/shared/municipalityClassification";
+import { municipalityAssessmentHref } from "~/shared/municipalityLinks";
 const fetchContent = useContentFetch();
 
 type Measure = Statistics["measures"][number];
@@ -1148,7 +1089,7 @@ const publishedMunicipalityScores = computed(() => {
   return statsData.value.municipalityScores.filter((ms) => {
     if (!ms.municipality || !isMunicipalityScorePublished(ms)) return false;
     if (filterState.value && ms.municipality.state !== filterState.value) return false;
-    if (filterType.value && ms.municipality.municipality_type !== filterType.value) return false;
+    if (filterType.value && municipalityType(ms.municipality) !== filterType.value) return false;
     return true;
   });
 });
@@ -1249,6 +1190,18 @@ const top10 = computed(() => {
     .sort(compareByScoreThenName)
     .slice(0, 10);
 });
+
+function municipalityHref(slug: string) {
+  const filter = panelMunFilter.value;
+  const selection = sunburstSelection.value;
+  const measureId = filter.active ? filter.measureId : selection.measureId;
+  const sector = filter.active ? filter.sectorKey : selection.sectorKey;
+  const measureCode = statsData.value?.measures.find((measure) => measure.id === measureId)?.measure_id;
+  return municipalityAssessmentHref(slug, selectedCatalogVersion.value.name, {
+    measureCode: measureCode ?? null,
+    sector,
+  });
+}
 
 // Municipality list shown in the detail panel — re-derives reactively from filteredMunScores
 const panelMunicipalities = computed(() => {

@@ -86,8 +86,9 @@ after(async () => {
 async function command(...args: string[]) {
   return runCommand(args);
 }
-async function runCommand(args: string[], input?: string) {
-  const child = spawn(process.execPath, [join(root, "index.mjs"), ...args], {
+async function runCommand(args: string[], input?: string, entry = join(root, "index.mjs")) {
+  const loader = entry.endsWith(".ts") ? ["--import", join(root, "node_modules/tsx/dist/loader.mjs")] : [];
+  const child = spawn(process.execPath, [...loader, entry, ...args], {
     cwd: directory,
     env: environment,
     stdio: ["pipe", "pipe", "pipe"],
@@ -119,6 +120,41 @@ function reset(handler: typeof handle) {
   requests = [];
   handle = handler;
 }
+
+test("homepage migration preserves legacy HTML, existing blocks and editor drafts and is idempotent", async () => {
+  let hasBlock = false;
+  let hasDraft = false;
+  let exists = true;
+  const legacy = "<h1>Existing homepage</h1>";
+  reset((call) => {
+    if (call.path === "/items/pages") return { data: exists ? [{ id: "homepage", contents: legacy }] : [] };
+    if (call.path === "/items/edit_states") return { data: hasDraft ? [{ id: 1 }] : [] };
+    if (call.path === "/items/blocks" && call.method === "GET") return { data: hasBlock ? [{ id: 1 }] : [] };
+    if (call.path === "/items/blocks" && call.method === "POST") {
+      hasBlock = true;
+      return { data: { id: 1, ...call.body } };
+    }
+    return { status: 500 };
+  });
+  const seed = async () => {
+    const result = await runCommand([], undefined, join(root, "seedHomepage.ts"));
+    assert.equal(result.code, 0, result.output);
+  };
+  hasDraft = true;
+  await seed();
+  assert.equal(requests.filter((call) => call.method === "POST").length, 0);
+  hasDraft = false;
+  await seed();
+  await seed();
+  const writes = requests.filter((call) => call.method !== "GET");
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0]?.body.bundle, "landing_page");
+  assert.equal(writes[0]?.body.entity_uuid, "homepage");
+  assert.ok(!JSON.stringify(writes).includes("contents"), "The original HTML must never be overwritten");
+  exists = false;
+  await seed();
+  assert.equal(requests.filter((call) => call.method !== "GET").length, 1);
+});
 
 test("historical executable supports help, completion, authentication and nonzero command failures", async () => {
   reset(() => ({ data: { id: "fixture-user" } }));
