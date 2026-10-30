@@ -459,8 +459,10 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       const ratings = await json(`/api/public/measure-ratings?measureId=${measure.id}`);
       assert(
         ratings.ratings.length === 1 &&
-          ratings.ratings[0].localteam_id.municipality_id[0].slug === fixture.municipality.slug,
-        "Comparison includes municipality identity",
+          ratings.ratings[0].localteam_id.municipality_id[0].slug === fixture.municipality.slug &&
+          ratings.ratings[0].localteam_id.municipality_id[0].status === "published" &&
+          ratings.ratings[0].rating === 0.75,
+        "Comparison includes published municipality identity and a numeric rating",
       );
       const chart = await json(`/api/public/chart-data/${chartUuid}`);
       assert(
@@ -753,6 +755,15 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
           "HTML criterion lists must not preserve source indentation as blank lines",
         );
         await page.getByText("Public regression measure description", { exact: false }).first().waitFor();
+        const ratingBar = page.locator("#section-ratings button:not([disabled])");
+        assert((await ratingBar.count()) === 1, "The published numeric rating must populate exactly one bar");
+        assertIncludes(await ratingBar.innerText(), "1", "The rating bar must count the published municipality");
+        await ratingBar.click();
+        await page
+          .locator(
+            `#section-ratings a[href="/municipalities/${fixture.municipality.slug}?v=${slug}#measure-EN-PUBLIC"]`,
+          )
+          .waitFor();
         await page.locator("#section-history svg rect").first().waitFor();
         await page.locator(`a[href*="v=${slug}-second"]`).first().click();
         await page.getByRole("heading", { name: `Second version ${config.runId}`, exact: true }).waitFor();

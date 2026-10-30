@@ -121,7 +121,7 @@ const ratingGroups = computed(() =>
     } else if (cfg.key === "unrated") {
       rows = props.ratings.filter((r) => r.applicable !== false && r.rating == null);
     } else {
-      rows = props.ratings.filter((r) => r.applicable !== false && r.rating === cfg.key);
+      rows = props.ratings.filter((r) => r.applicable !== false && String(r.rating) === cfg.key);
     }
 
     const municipalities = rows

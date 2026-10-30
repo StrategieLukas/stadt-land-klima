@@ -29,6 +29,7 @@ export default defineEventHandler(async (event) => {
     "id",
     "name",
     "slug",
+    "status",
     "state",
     "party_mayor",
     "population",
