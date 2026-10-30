@@ -24,7 +24,7 @@
   size: 12pt,
 )
 
-#let is_major_city = (municipalityScore.municipality.municipality_type == "big_city")
+#let is_major_city = if municipalityScore.municipality.municipality_type == "big_city" { true } else if municipalityScore.municipality.municipality_type == "small_city" { false } else { none }
 #set page(
   paper: "a4",
   header: header.header(is_major_city: is_major_city),

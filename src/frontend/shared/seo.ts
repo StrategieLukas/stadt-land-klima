@@ -52,7 +52,7 @@ export function contentDescription(contents: string | null | undefined, blocks: 
     if (depth > 32 || excerpts.join(" ").length > 600) return;
     for (const block of items) {
       if (block.bundle === "text" || block.bundle === "richtext") excerpts.push(block.props.content ?? "");
-      if (block.bundle === "hero" || block.bundle === "municipality_search_hero")
+      if (block.bundle === "hero" || block.bundle === "municipality_search_hero" || block.bundle === "landing_page")
         excerpts.push(block.props.subtitle ?? "");
       if (block.bundle === "container" || block.bundle === "hero") visit(block.props.blocks ?? [], depth + 1);
     }

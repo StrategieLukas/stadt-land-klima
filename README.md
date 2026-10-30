@@ -398,3 +398,9 @@ Set `PUBLIC_URL` to the externally reachable website origin when building the fr
 Public pages render their title, summary and image in the initial HTML. Detail pages reuse the checked public CMS excerpts; missing excerpts use localized defaults. The existing logo is the fallback image. SEO copy lives in `src/directus/translations/{de-DE,en-GB,it-IT}/seo.*.yaml`; after edits, run `npm run translations:generate` in `src/frontend` and the normal Directus YAML importer. The generated fallback keeps metadata available before import or during a translation outage. No additional public CMS permissions are needed. Candidate-token and editor-preview pages use noindex and omit canonical/social URLs.
 
 Run `npm run test:seo -- http://localhost:8080` in `bin/test_suite` for SSR metadata tests, anonymous image requests, configured robots/sitemap checks and hydrated navigation. Messenger services may retain old preview data after deployment; verify a newly shared URL and refresh the service's preview cache where supported.
+
+### Editable homepage migration
+
+The normal Directus import runs `cli/seedHomepage.ts` after schema/content setup. It adds the `landing_page` block to a published `index` page only when that page has no existing blocks or editor state. It preserves `pages.contents` for recovery, never overwrites an authored block layout, and is safe to rerun. Editors can edit the title/subtitle or compose other blocks around it; empty title/subtitle fields use the German/English/Italian interface translations. The catalogue count, projects and news use checked public APIs.
+
+To restore the legacy layout, retain a copy of the landing block and remove it through the editor; the existing legacy HTML is still stored on the page. The retained editor state prevents the importer from re-seeding an intentionally edited page.

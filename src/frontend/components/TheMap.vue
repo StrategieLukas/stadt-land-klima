@@ -78,7 +78,7 @@ import { leafletMarkerIcon, leafletMarkerProps } from "~/shared/leafletMarker";
 import type { Map as LeafletMap, Control, DivIcon as LeafletDivIcon } from "leaflet";
 import { parseGeoData } from "~/shared/contracts/geometry";
 import type { PropType } from "vue";
-import type { MunicipalityScore } from "~/types/components/municipality";
+import type { MapAssessment } from "~/shared/contracts/map";
 import type { Catalog } from "~/shared/contracts/search";
 
 import { ref, computed, watch, onMounted } from "vue";
@@ -92,7 +92,7 @@ const { $t } = useNuxtApp();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
 const props = defineProps({
-  municipalityScores: { type: Array as PropType<MunicipalityScore[] | undefined>, default: () => [] },
+  municipalityScores: { type: Array as PropType<MapAssessment[] | undefined>, default: () => [] },
   catalogVersion: { type: null as unknown as PropType<Catalog | null>, required: true },
 });
 
@@ -171,7 +171,7 @@ watch([showMunicipalitiesWithUnfinishedRating, filteredMunicipalityScores], () =
   }
 });
 
-function shouldShow(municipalityScore: MunicipalityScore) {
+function shouldShow(municipalityScore: MapAssessment) {
   return showMunicipalitiesWithUnfinishedRating.value
     ? Number(municipalityScore.percentage_rated) > 0
     : isMunicipalityScoreComplete(municipalityScore);
@@ -210,7 +210,7 @@ function addLegend(map: LeafletMap) {
   legendControl.addTo(map);
 }
 
-function getCustomIcon(municipalityScore: MunicipalityScore) {
+function getCustomIcon(municipalityScore: MapAssessment) {
   if (!DivIcon || !PinSvg.value) return undefined;
   const score_total = Number(municipalityScore.score_total);
   let cssClass = "rating-na";

@@ -1,0 +1,3 @@
+language: de-DE
+key: municipality.hero.feedback_content
+value: "Kommune: :municipality\nBewertung: :link\n\nMein Hinweis:\n"

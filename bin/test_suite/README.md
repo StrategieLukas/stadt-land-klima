@@ -231,3 +231,9 @@ referrers/logs, body limits, maintenance and independent asset/page budgets. Doc
 and OpenSSL are required. `SLK_CADDY_IMAGE` selects a prebuilt reviewed image;
 `SLK_CADDY_SECCOMP` optionally supplies the derived Podman profile. No real CMS
 data, credentials or email are used. See [Caddy migration](../../caddy/README.md).
+
+## Public UI feedback acceptance
+
+Run `npm run test:ui-feedback -- http://localhost:8080` for German/English/Italian, desktop/mobile and light/dark homepage, municipality hero, keyboard toggle and city-filter icon checks. It needs one complete published assessment and one in-progress municipality; it does not create or modify content. Screenshots are written to `/tmp/slk-home-*.png`.
+
+The default development suite covers map progress redaction and statistics-to-assessment deep links with disposable data. `npm run test:municipality-ux:live -- http://localhost:8080` additionally checks native PDF export and chart interactions.

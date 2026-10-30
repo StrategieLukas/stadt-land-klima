@@ -75,6 +75,10 @@
                 {{ $t("tour.whole_route") }}
               </button>
               <CanonicalToggleGroup
+                color="blue"
+                roundedness="none"
+                padding="medium"
+                appearance="retro"
                 :model-value="mapOpen ? 'map' : 'list'"
                 :label="$t('generic.view.label')"
                 aria-controls="tour-explorer-content"

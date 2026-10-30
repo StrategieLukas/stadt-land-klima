@@ -1,0 +1,3 @@
+language: en-GB
+key: home.catalog
+value: ":count measures in the current :catalog catalogue form the basis of our assessments."

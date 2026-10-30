@@ -21,6 +21,7 @@ npm --prefix "$SCRIPT_DIR" run typecheck
 # Directus bootstrap can run migrations before newly declared collections exist.
 # Seed content after the schema import so fresh and existing databases both work.
 "$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/seedTourOst2026.ts"
+"$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/seedHomepage.ts"
 
 
 echo "All imports completed"

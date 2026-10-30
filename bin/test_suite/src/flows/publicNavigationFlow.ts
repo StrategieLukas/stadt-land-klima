@@ -475,6 +475,14 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       assert(nestedChart.length === 1, "Nested charts must retain their published parent scope");
       await fixture.localteamAdmin.client.updateItem("municipality_scores", score.id, { published: false });
       try {
+        const map = await json(`/api/public/map?v=${slug}`);
+        const progressMarker = map.scores.find(
+          (row: { municipality: { slug: string } }) => row.municipality.slug === fixture.municipality.slug,
+        );
+        assert(
+          progressMarker && !progressMarker.published && progressMarker.score_total === null,
+          "The map must retain a progress marker without disclosing unpublished results",
+        );
         assert(
           (await json(`/api/public/measure-ratings?measureId=${measure.id}`)).ratings.length === 0,
           "Unpublished municipal assessment must not leak through comparisons",
@@ -773,6 +781,49 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         await page.getByRole("heading", { name: firstTitle, exact: true }).waitFor();
         assert(errors.length === 0, `Catalog navigation must not throw browser errors: ${errors.join("; ")}`);
         await page.close();
+      },
+    );
+
+    await runner.step(
+      "Public UI: municipality hero, secondary history, themed toggles and statistics deep links",
+      async () => {
+        const page = await context.newPage();
+        try {
+          await page.goto(`${config.frontendUrl}/municipalities/${fixture.municipality.slug}?v=${slug}#sector-energy`, {
+            waitUntil: "domcontentloaded",
+          });
+          await waitForHydration(page);
+          await page.getByRole("heading", { level: 1, name: fixture.municipalityName, exact: true }).waitFor();
+          assert(
+            (await page.locator('a.canonical-button[href*="/municipalities/updates"]').count()) === 0,
+            "History must remain a secondary utility link",
+          );
+          await page.locator('a[href="#assessment"]').waitFor();
+          const sector = page.locator('[name="sector-energy"]:visible').first();
+          assert(
+            await sector.locator('input[type="checkbox"]').first().isChecked(),
+            "Sector hashes must open the matching accordion",
+          );
+          await page.goto(`${config.frontendUrl}/stats?v=${slug}`, { waitUntil: "domcontentloaded" });
+          await waitForHydration(page);
+          const toggle = page.locator('.canonical-toggle-group[data-roundedness="medium"]').first();
+          await toggle.getByRole("radio").last().click();
+          await page
+            .locator("button:visible")
+            .filter({ has: page.locator('img[src="/icons/icon_category_energy.svg"]') })
+            .last()
+            .click();
+          await page.getByText(firstTitle, { exact: false }).filter({ visible: true }).first().click();
+          const target = page
+            .locator(`a[href="/municipalities/${fixture.municipality.slug}?v=${slug}#measure-EN-PUBLIC"]`)
+            .first();
+          await target.waitFor();
+          await target.click();
+          await page.waitForURL((url) => url.hash === "#measure-EN-PUBLIC" && url.searchParams.get("v") === slug);
+          await page.locator('[name="measure-EN-PUBLIC"]:visible').first().waitFor();
+        } finally {
+          await page.close();
+        }
       },
     );
 

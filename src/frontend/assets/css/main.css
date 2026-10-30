@@ -1626,3 +1626,25 @@ html[data-theme="staedteChallengeDark"] .shadow-list {
 .slk-area-search-result--focused {
   background-color: #e8f7fd;
 }
+
+/* External SVGs use masks so municipality type icons inherit each theme's pill text colour. */
+.slk-city-filter-icon {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  background: currentColor;
+  mask: var(--city-icon) center / contain no-repeat;
+}
+
+/* One page gutter; authored block containers retain their own spacing controls. */
+.cms-page-shell {
+  width: 100%;
+  min-width: 0;
+  padding: 1.5rem 0.75rem;
+}
+@media (min-width: 640px) {
+  .cms-page-shell {
+    padding: 2rem 1.5rem;
+  }
+}

@@ -16,7 +16,7 @@ import { treemapDatum } from "../../../src/frontend/shared/treemap.js";
 import { attachVisualizationData, cloneVisualization } from "../../../src/frontend/shared/visualization.js";
 import { DataMapSchema } from "../../../src/frontend/shared/contracts/dataMap.js";
 import { requestErrorData, requestErrorMessage, captchaEventData } from "../../../src/frontend/shared/requestError.js";
-import { resolveBlokkliInternalLink } from "../../../src/frontend/utils/blokkliLinks.js";
+import { resolveBlokkliInternalLink, getBlokkliBlockId } from "../../../src/frontend/utils/blokkliLinks.js";
 import { BETTERPLACE_PROJECT_URL, getBetterplaceWidgetUrl } from "../../../src/frontend/shared/donation.js";
 
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
@@ -114,6 +114,25 @@ test("measure rating bars count numeric and string ratings, not-applicable and u
     assert.doesNotMatch(html, /<button[^>]*\bdisabled/);
     assert.match(html, /7 Kommunen haben/);
   }
+});
+
+test("CMS containers honor explicit zero padding instead of falling back to medium gutters", async () => {
+  const html = await render(
+    "Blokkli/Container/index.vue",
+    { blocks: [] },
+    {
+      defineBlokkli: (definition: { options: Record<string, { default: unknown }> }) => ({
+        uuid: "unpadded-container",
+        options: vue.ref({
+          ...Object.fromEntries(Object.entries(definition.options).map(([key, option]) => [key, option.default])),
+          padding: "none",
+        }),
+      }),
+    },
+    { "~/utils/blokkliLinks": { getBlokkliBlockId } },
+  );
+  assert.match(html, /data-padding="none"/);
+  assert.doesNotMatch(html, /\bp[xy]-[1-9]/);
 });
 
 test("persisted editor button outline variants keep their border and contrast after utility migration", async () => {

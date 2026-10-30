@@ -8,6 +8,8 @@ import ts from "typescript";
 import * as municipalityContracts from "../../../src/frontend/shared/contracts/municipality.js";
 import * as searchContracts from "../../../src/frontend/shared/contracts/search.js";
 import { CONTENT_LOCALE_QUERY } from "../../../src/frontend/shared/contentTranslation.js";
+import { MapResponseSchema } from "../../../src/frontend/shared/contracts/map.js";
+import { municipalityType } from "../../../src/frontend/shared/municipalityClassification.js";
 
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 type Row = Record<string, any>;
@@ -231,6 +233,53 @@ test("measure comparisons retain the published status and normalize ratings for 
   assert.equal(result.ratings[0].rating, 0.75);
   assert.equal(result.ratings[0].localteam_id.municipality_id[0].status, "published");
   assert.ok(!JSON.stringify(result).includes("secret"));
+});
+
+test("public map includes progress metadata but redacts unpublished and incomplete assessment results", async () => {
+  const reads: Command[] = [];
+  const transport = cms(() => []);
+  const rows = [
+    { published: false, percentage_rated: "40", score_total: "PRIVATE-SCORE" },
+    { published: true, percentage_rated: "99", score_total: "PRIVATE-SCORE" },
+    { published: true, percentage_rated: "100", score_total: "75" },
+  ].map((score, i) => ({
+    ...score,
+    preview_token: "PRIVATE-TOKEN",
+    municipality: {
+      name: `City ${i}`,
+      slug: `city-${i}`,
+      geolocation: null,
+      population: 1080000,
+      municipality_type: null,
+      public_contact: "PRIVATE-CONTACT",
+    },
+  }));
+  const route = load("server/api/public/map.get.ts", {
+    ...transport.dependencies,
+    "~/shared/contracts/map": { MapResponseSchema },
+    "~/shared/municipalityClassification": { municipalityType },
+    "~/server/utils/directusServerClient": { createDirectusServerClient: () => transport.client },
+    "~/server/utils/municipalityPageData": {
+      readMunicipalityCatalogs: async () => catalogs,
+      catalogForRequest: () => catalogs[0],
+    },
+    "~/server/utils/publicItems": {
+      readPublicItems: async (collection: string, query: Row) => {
+        reads.push({ collection, query: plain(query) });
+        return rows;
+      },
+    },
+  }).default;
+  const result = await route({ query: { v: "v1.0" } });
+  assert.equal(result.scores.length, 3);
+  assert.deepEqual(plain(result.scores.map((score: Row) => score.score_total)), [null, null, 75]);
+  assert.equal(result.scores[0].municipality.municipality_type, "big_city");
+  assert.ok(!JSON.stringify(result).includes("PRIVATE"));
+  const filter = reads[0]!.query.filter;
+  assert.equal(filter.catalog_version._eq, "current-id");
+  assert.deepEqual(plain(filter.municipality.status._in), ["published", "draft"]);
+  assert.equal(filter.municipality.localteam_id._nnull, true);
+  assert.equal(filter.percentage_rated._gt, 0);
 });
 
 test("measure projections select real columns rather than the feasibility interface alias", () => {

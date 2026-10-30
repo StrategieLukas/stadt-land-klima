@@ -28,6 +28,7 @@
     <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
       <h2 id="database" class="font-heading text-3xl font-bold text-stats-dark">{{ $t("tour.database") }}</h2>
       <CanonicalToggleGroup
+        color="blue"
         :model-value="isMapView ? 'map' : 'list'"
         :label="$t('projects.map.view_label')"
         :options="[

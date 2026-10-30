@@ -1,21 +1,19 @@
 <template>
   <!-- Content when municipality data is available -->
   <div>
-    <CanonicalButton
-      v-if="municipalityScore.published"
-      :href="historyHref"
-      class="mb-6"
-      :label="$t('municipality.updates.title')"
-      icon-slug="mdi:history"
-      color="bright-green"
-    />
+    <MunicipalityDetailHero :score="municipalityScore" />
+    <div id="assessment" class="scroll-mt-28" />
     <!-- Mobile: Single column layout -->
     <div class="block w-full flex-col justify-center lg:hidden">
-      <div class="mb-8">
-        <ItemRanking :municipality-score="municipalityScore" />
-      </div>
       <div class="mb-4">
-        <CanonicalToggleGroup v-model="activeTab" :label="$t('generic.view.label')" :options="chartOptions" />
+        <CanonicalToggleGroup
+          v-model="activeTab"
+          :label="$t('generic.view.label')"
+          :options="chartOptions"
+          roundedness="medium"
+          padding="large"
+          color="lime"
+        />
         <div class="slk-chart-panel mt-4 rounded-box border-base-300 bg-base-100 p-6">
           <MunicipalityPolarChart
             v-if="activeTab === 'polar'"
@@ -69,49 +67,6 @@
         </div>
       </div>
 
-      <!-- Mobile: Statistics Section Link -->
-      <NuxtLink
-        :to="`/data/${municipality.ars}`"
-        class="slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
-      >
-        <img
-          src="~/assets/icons/icon_evaluation_criteria.svg"
-          alt=""
-          class="slk-municipality-cta-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18"
-        />
-        <img
-          src="~/assets/icons/icon_evaluation_criteria-dark.svg"
-          alt=""
-          class="slk-municipality-cta-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
-        />
-        <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
-      </NuxtLink>
-
-      <!-- Mobile: Kommunalwahl Question Generation Link -->
-      <NuxtLink
-        :to="`/elections/${municipality.slug}`"
-        class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
-      >
-        <img
-          src="~/assets/icons/icon_politics.svg"
-          alt=""
-          class="slk-municipality-cta-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18"
-        />
-        <img
-          src="~/assets/icons/icon_politics-dark.svg"
-          alt=""
-          class="slk-municipality-cta-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
-        />
-        <h3 class="font-heading text-h2">
-          {{
-            $t("local_elections.title", {
-              ":year": municipalElectionYear ?? "",
-            })
-          }}
-          →
-        </h3>
-      </NuxtLink>
-
       <DetailMunicipalitySectorCards :municipality-score="municipalityScore" :ratings-by-sector="ratingsBySector" />
 
       <!-- Mobile: Associated Projects Link -->
@@ -132,11 +87,15 @@
     <div class="hidden w-full lg:grid lg:grid-cols-3 lg:gap-8">
       <!-- Left Column: Main content (2/3 width) -->
       <div class="lg:col-span-2">
-        <div class="mb-8">
-          <item-ranking :municipality-score="municipalityScore" />
-        </div>
         <div class="mb-4">
-          <CanonicalToggleGroup v-model="activeTab" :label="$t('generic.view.label')" :options="chartOptions" />
+          <CanonicalToggleGroup
+            v-model="activeTab"
+            :label="$t('generic.view.label')"
+            :options="chartOptions"
+            roundedness="medium"
+            padding="large"
+            color="lime"
+          />
           <div class="slk-chart-panel mt-4 rounded-box border-base-300 bg-base-100 p-6">
             <MunicipalityPolarChart
               v-if="activeTab === 'polar'"
@@ -203,49 +162,6 @@
         <div class="sticky top-24 space-y-6">
           <!-- Municipality Quick Info -->
           <DetailMunicipalityQuickInfoDesktop :municipality-score="municipalityScore" />
-
-          <!-- Statistics Section Link -->
-          <NuxtLink
-            :to="municipality.ars ? `/data/${municipality.ars}` : '/data'"
-            class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
-          >
-            <img
-              src="~/assets/icons/icon_evaluation_criteria.svg"
-              alt=""
-              class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
-            />
-            <img
-              src="~/assets/icons/icon_evaluation_criteria-dark.svg"
-              alt=""
-              class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
-            />
-            <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
-          </NuxtLink>
-
-          <!-- Kommunalwahl Question Generation Link -->
-          <NuxtLink
-            :to="`/elections/${municipality.slug}`"
-            class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
-          >
-            <img
-              src="~/assets/icons/icon_politics.svg"
-              alt=""
-              class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
-            />
-            <img
-              src="~/assets/icons/icon_politics-dark.svg"
-              alt=""
-              class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
-            />
-            <h3 class="font-heading text-h3">
-              {{
-                $t("local_elections.title", {
-                  ":year": municipalElectionYear ?? "",
-                })
-              }}
-              →
-            </h3>
-          </NuxtLink>
 
           <!-- Participate Section -->
           <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-xs p-2 shadow-list md:px-2">
@@ -332,11 +248,10 @@ import type { MunicipalityScore, RatingsBySector } from "~/types/components/muni
 import type { PropType } from "vue";
 
 import { ref, onMounted, computed } from "vue";
-import lodash from "lodash";
 import MarkdownIt from "markdown-it";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 
-import { isRaster, formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
+import { isRaster, formatLastUpdated } from "~/shared/utils";
 const fetchContent = useContentFetch();
 
 const md = new MarkdownIt({
@@ -345,11 +260,6 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-const municipalElectionYear = computed(() => {
-  return getStateMunicipalElectionYear(municipality?.state);
-});
-
-const _range = lodash.range.bind(lodash);
 const { $t, $locale } = useNuxtApp();
 
 const props = defineProps({
@@ -373,10 +283,6 @@ const sanitizedOverallStatusComment = computed(() =>
 );
 
 // Tab state
-const historyHref = computed(
-  () =>
-    `/municipalities/updates?${new URLSearchParams({ municipality: props.municipalityScore.municipality.slug, v: props.municipalityScore.catalog_version.name })}`,
-);
 const activeTab = ref<"polar" | "treemap">("polar");
 const chartOptions = computed(() => [
   { value: "polar" as const, label: $t("municipality.chart.polar"), icon: "mdi:chart-donut" },
