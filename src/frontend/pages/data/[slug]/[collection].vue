@@ -200,37 +200,36 @@ onMounted(() => {
 });
 
 onMounted(async () => {
-  try {
-    const data = CollectionSchema.parse(
-      await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`),
-    );
-    collection.value = data;
-    if (area.value?.ars) {
-      await loadFromRender(collectionSlug.value, area.value.ars);
-    } else {
-      await load(collectionSlug.value, data);
-    }
-  } catch {
-    renderError.value = true;
-  } finally {
-    pageLoading.value = false;
-    stopDataRouteFeedback();
-  }
-
-  // Fetch summary for attribution block (best-effort)
-  if (area.value?.ars) {
+  const metadataTask = (async () => {
     try {
-      const s = SummarySchema.parse(
+      const data = CollectionSchema.parse(
+        await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`, {
+          params: area.value?.ars ? { metadata_only: "true" } : undefined,
+        }),
+      );
+      collection.value = data;
+      if (!area.value?.ars) await load(collectionSlug.value, data);
+    } catch {
+      renderError.value = true;
+    } finally {
+      pageLoading.value = false;
+      stopDataRouteFeedback();
+    }
+  })();
+  const renderTask = area.value?.ars ? loadFromRender(collectionSlug.value, area.value.ars) : Promise.resolve();
+  const summaryTask = (async () => {
+    if (!area.value?.ars) return;
+    try {
+      collectionSummary.value = SummarySchema.parse(
         await $fetch(`${baseUrl}/api/collections/${collectionSlug.value}/summary/`, {
           params: { area: area.value.ars },
         }),
       );
-      collectionSummary.value = s;
     } catch {
       /* Attribution is optional when the source is unavailable. */
     }
-  }
-
+  })();
+  await Promise.allSettled([metadataTask, renderTask, summaryTask]);
   initStepObserver();
 });
 
@@ -241,7 +240,7 @@ onBeforeUnmount(() => {
 
 // ── Area data (SSR) ────────────────────────────────────────────────────────────
 
-const { data: area } = await useAsyncData(`area-${areaSlug.value}`, () => resolveSlugToArea(areaSlug.value));
+const { data: area } = await useAsyncData(`area-${areaSlug.value}`, () => resolveSlugToArea(areaSlug.value, true));
 
 function initStepObserver() {
   if (!stepsContainer.value) return;

@@ -258,6 +258,7 @@ async function selectCollection(id: string) {
     const detail = normalizeCollection(
       CollectionSchema.parse(
         await $fetch(`${runtimeConfig.public.stadtlandzahlBaseUrl}/api/collections/${encodeURIComponent(id)}/`, {
+          params: { metadata_only: "true" },
           timeout: 8000,
         }),
       ),
