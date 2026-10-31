@@ -19,14 +19,20 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const slug = queryText(query.slug) ?? "";
   const requireGeo = queryChoice(query.requireGeo, ["true", "false"]) === "true";
-  const includeGeo = requireGeo || queryChoice(query.includeGeo, ["true", "false"]) === "true";
+  const geometryOnly = requireGeo || queryChoice(query.geometryOnly, ["true", "false"]) === "true";
+  const includeGeo = geometryOnly || queryChoice(query.includeGeo, ["true", "false"]) === "true";
   if (!slug.trim()) {
     if (requireGeo) throw createError({ statusCode: 400, statusMessage: "Area identifier is required" });
     return null;
   }
 
   try {
-    const data = parseCms(AreaSchema, await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(slug)}/`));
+    const data = parseCms(
+      AreaSchema,
+      await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(slug)}/`, {
+        params: geometryOnly ? { geometry_only: "true" } : undefined,
+      }),
+    );
     if (requireGeo && !data?.geo_area && !data?.geoArea) {
       throw createError({ statusCode: 502, statusMessage: `Geometry missing for area ${slug}` });
     }

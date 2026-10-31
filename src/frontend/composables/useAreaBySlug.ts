@@ -23,10 +23,12 @@ export function areaToSlug(prefix: string, name: string) {
  * Calls the Nuxt server route /api/area-by-slug which proxies to the REST
  * areas endpoint (works in both SSR and CSR contexts).
  */
-export async function resolveSlugToArea(slug: string) {
+export async function resolveSlugToArea(slug: string, geometryOnly = false) {
   if (!slug) return null;
   try {
-    return AreaSchema.nullable().parse(await $fetch("/api/area-by-slug", { params: { slug } }));
+    return AreaSchema.nullable().parse(
+      await $fetch("/api/area-by-slug", { params: { slug, geometryOnly: geometryOnly ? "true" : undefined } }),
+    );
   } catch {
     return null;
   }

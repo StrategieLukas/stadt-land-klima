@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import { fetchCollectionItems, isCollectionItemsUrl, type CollectionItems } from "~/utils/collectionItems";
 import { clientDiagnostic } from "~/shared/securityLog";
 
 import { checkedMapStyle, visualizationUrl } from "~/shared/visualizationSafety";
@@ -124,6 +125,8 @@ onBeforeUnmount(() => {
   destroyMap();
 });
 
+let loadedFeatureCollection: CollectionItems | null = null;
+
 async function renderMap() {
   if (!containerRef.value || !spec.value) return;
   loading.value = true;
@@ -135,10 +138,21 @@ async function renderMap() {
     maplibregl = module;
     didFitInitialBounds = false;
 
+    const mapSpec = structuredCloneSafe(spec.value);
+    const source = mapSpec.sources?.features;
+    if (source && typeof source.data === "string" && isCollectionItemsUrl(source.data)) {
+      const controller = new AbortController();
+      featureBoundsAbortController = controller;
+      const data = await fetchCollectionItems(source.data, controller.signal);
+      if (controller.signal.aborted || !containerRef.value) return;
+      loadedFeatureCollection = data;
+      source.data = data;
+    }
+
     map = new maplibregl.Map({
       container: containerRef.value,
       // MapLibre validates the complete style; component transformations retain opaque expression fields.
-      style: checkedMapStyle(buildStyle(spec.value)),
+      style: checkedMapStyle(buildStyle(mapSpec)),
       transformRequest: (url: string) => ({
         url: visualizationUrl(cartoBasemapProxyUrl(url), window.location.origin),
         credentials: "same-origin",
@@ -174,7 +188,8 @@ async function renderMap() {
     map.on("error", (_event) => {
       clientDiagnostic("app.components.MapLibreRenderElement.renderMap.degraded", "warn");
     });
-  } catch {
+  } catch (cause) {
+    if (cause instanceof Error && cause.name === "AbortError") return;
     clientDiagnostic("app.components.MapLibreRenderElement.renderMap.degraded", "warn");
     error.value = true;
     loading.value = false;
@@ -183,6 +198,7 @@ async function renderMap() {
 
 function destroyMap() {
   mapReady.value = false;
+  loadedFeatureCollection = null;
   if (densityTimer) clearTimeout(densityTimer);
   densityTimer = null;
   if (resizeTimer) clearTimeout(resizeTimer);
@@ -237,6 +253,14 @@ async function downloadData() {
   const url = resolvedFeatureApiUrl.value;
   if (!url) return;
   try {
+    if (loadedFeatureCollection) {
+      downloadBlob(
+        JSON.stringify(loadedFeatureCollection),
+        "application/geo+json;charset=utf-8",
+        `${baseFilename.value}-data.geojson`,
+      );
+      return;
+    }
     const response = await fetch(url);
     const text = await response.text();
     const contentType = response.headers.get("content-type") || "application/geo+json;charset=utf-8";
@@ -636,6 +660,7 @@ async function fitToFeatureData() {
 }
 
 async function featureDataForBounds() {
+  if (loadedFeatureCollection) return loadedFeatureCollection;
   const data = spec.value?.sources?.features?.data;
   if (typeof data !== "string") return data;
 
@@ -847,6 +872,7 @@ async function renderFeatureScatterCanvas(width: number, height: number) {
 }
 
 async function featureDataForExport() {
+  if (loadedFeatureCollection) return loadedFeatureCollection;
   const sourceData = spec.value?.sources?.features?.data;
   if (typeof sourceData !== "string") return sourceData ?? null;
 

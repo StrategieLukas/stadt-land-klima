@@ -299,6 +299,7 @@ async function loadSectionData() {
     if (!renderSteps.value.length) await load(props.collection.id, props.collection);
     try {
       collectionDetails.value = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`, {
+        params: { metadata_only: "true" },
         timeout: 8000,
       }).then((data) => normalizeCollection(data));
     } catch {

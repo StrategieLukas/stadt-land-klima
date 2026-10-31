@@ -140,6 +140,8 @@ export async function fetchStadtlandzahl(
     try {
       const data: unknown = await $fetch(url.toString(), {
         ...fetchOptions,
+        timeout: fetchOptions.timeout ?? 10000,
+        retry: 0,
         headers,
       });
       return rewriteStadtlandzahlPayload(data);
