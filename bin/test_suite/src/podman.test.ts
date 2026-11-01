@@ -572,6 +572,9 @@ case "$*" in *host.env*) echo 600:1000 ;; *) echo 700:1000 ;; esac
   assert.equal(run("stage").status, 33);
   assert.doesNotMatch(readFileSync(calls, "utf8"), /stop|up -d|import-all/);
   const state = join(directory, ".local/state/slk-releases/release-deadbeef");
+  const staged = parse(readFileSync(join(state, "stage.yaml"), "utf8"));
+  assert.deepEqual(staged.services.frontend.volumes, ["staged-output:/frontend/.output:ro,U"]);
+  assert.deepEqual(staged.services["frontend-build"].volumes, ["staged-output:/release:U"]);
   writeFileSync(join(state, "stage.ok"), "");
   assert.equal(run("activate").status, 1);
   assert.doesNotMatch(readFileSync(calls, "utf8"), /stop|up -d|import-all/);

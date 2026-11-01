@@ -37,9 +37,9 @@ saved="${project}_frontend-output_before_${next_tag#release-}"
 cat > "$state/stage.yaml" <<EOF
 services:
   frontend:
-    volumes: [staged-output:/frontend/.output:ro,U]
+    volumes: ["staged-output:/frontend/.output:ro,U"]
   frontend-build:
-    volumes: [staged-output:/release:U]
+    volumes: ["staged-output:/release:U"]
 volumes:
   staged-output:
     name: $staged
