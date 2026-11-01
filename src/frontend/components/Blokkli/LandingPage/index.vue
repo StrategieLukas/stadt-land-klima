@@ -106,9 +106,20 @@
           v-for="item in data.news"
           :key="item.id"
           :to="`/news/${item.slug}`"
-          class="border-t-2 border-light-green py-4 font-heading text-xl font-bold text-gray hover:underline"
-          >{{ item.title }}</NuxtLink
+          class="group overflow-hidden rounded-sm border border-base-300 bg-base-100 transition-colors hover:border-light-blue"
         >
+          <SmartImg
+            v-if="item.image?.id"
+            :asset-id="item.image.id"
+            :is-raster="isRaster(item.image.type)"
+            :alt="item.title"
+            :width="480"
+            :height="270"
+            fit="cover"
+            img-class="aspect-video w-full object-cover"
+          />
+          <h3 class="p-5 font-heading text-xl font-bold text-gray group-hover:underline">{{ item.title }}</h3>
+        </NuxtLink>
       </div>
     </section>
 

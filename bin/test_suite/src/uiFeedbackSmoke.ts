@@ -3,9 +3,12 @@ import { launchBrowser, newContext, waitForHydration, collectPublicPageErrors } 
 import { MapResponseSchema } from "../../../src/frontend/shared/contracts/map.js";
 import { waitFor } from "./lib/wait.js";
 import { assertMunicipalityDetailLayout } from "./lib/municipalityDetail.js";
+import { NewsListSchema } from "../../../src/frontend/shared/contracts/content.js";
 
 const base = new URL(process.argv[2] ?? "http://localhost:8080").origin;
 const map = MapResponseSchema.parse(await (await fetch(`${base}/api/public/map`)).json());
+const feed = (await (await fetch(`${base}/api/public/news`)).json()) as { news: unknown };
+const homepageNews = NewsListSchema.array().parse(feed.news).slice(0, 3);
 assert(
   map.scores.some((score) => !score.published),
   "Seed an in-progress municipality for map acceptance",
@@ -56,6 +59,22 @@ try {
           );
           assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
           await page.screenshot({ path: `/tmp/slk-home-${locale}-${width}-${theme}.png` });
+          const newsSection = page.locator('[aria-labelledby="home-news"]');
+          for (const item of homepageNews) {
+            const card = newsSection.locator(`a[href="/news/${item.slug}"]`);
+            assert.equal(await card.count(), 1);
+            if (!item.image) {
+              assert.equal(await card.locator("img").count(), 0);
+              continue;
+            }
+            const image = card.locator("img");
+            await image.scrollIntoViewIfNeeded();
+            await waitFor("homepage news teaser image loads", () =>
+              image.evaluate(
+                (element) => element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0,
+              ),
+            );
+          }
           await page.goto(`${base}/municipalities/${city.slug}?v=${encodeURIComponent(map.catalogVersion.name)}`, {
             waitUntil: "domcontentloaded",
           });

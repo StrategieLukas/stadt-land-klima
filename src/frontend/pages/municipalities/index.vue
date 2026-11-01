@@ -245,12 +245,12 @@
                 <span
                   aria-hidden="true"
                   class="slk-city-filter-icon"
-                  style="--city-icon: url(/icons/minor-city-dark.svg)"
+                  style="--city-icon: url(/icons/minor-city-mask.svg)"
                 />
                 <span
                   aria-hidden="true"
                   class="slk-city-filter-icon"
-                  style="--city-icon: url(/icons/major-city-dark.svg)"
+                  style="--city-icon: url(/icons/major-city-mask.svg)"
                 />
               </div>
               <span class="font-bold whitespace-nowrap">{{ $t("municipalities.all") }}</span>
@@ -263,7 +263,7 @@
               <span
                 aria-hidden="true"
                 class="slk-city-filter-icon"
-                style="--city-icon: url(/icons/major-city-dark.svg)"
+                style="--city-icon: url(/icons/major-city-mask.svg)"
               />
               <span class="font-bold whitespace-nowrap">{{ $t("municipalities.major_city.plural") }}</span>
             </button>
@@ -275,7 +275,7 @@
               <span
                 aria-hidden="true"
                 class="slk-city-filter-icon"
-                style="--city-icon: url(/icons/minor-city-dark.svg)"
+                style="--city-icon: url(/icons/minor-city-mask.svg)"
               />
               <span class="font-bold whitespace-nowrap">{{ $t("municipalities.minor_city.plural") }}</span>
             </button>
