@@ -25,12 +25,21 @@ mkdir -p "$state"
 exec {release_lock}>"$state/release.lock"
 flock --nonblock "$release_lock" || { echo 'This release is already running.' >&2; exit 1; }
 export SLK_PODMAN_TAG="$next_tag"
-"$SCRIPT_DIR/podman.sh" production doctor
+(exec {release_lock}>&-; "$SCRIPT_DIR/podman.sh" production doctor)
 exec {project_lock}>"$XDG_RUNTIME_DIR/slk-podman/$project.release.lock"
 flock --nonblock "$project_lock" || { echo 'Another release operation is active for this project.' >&2; exit 1; }
 export CONTAINERS_CONF_OVERRIDE="$XDG_RUNTIME_DIR/slk-podman/engine.conf"
 seccomp="$XDG_RUNTIME_DIR/slk-podman/seccomp.json"
-compose() { "$SCRIPT_DIR/podman.sh" production compose "$@"; }
+compose() (
+  trap - ERR
+  exec {release_lock}>&- {project_lock}>&-
+  "$SCRIPT_DIR/podman.sh" production compose "$@"
+)
+podman() (
+  trap - ERR
+  exec {release_lock}>&- {project_lock}>&-
+  command podman "$@"
+)
 staged="${project}_frontend-output_${next_tag#release-}"
 active="${project}_frontend-output"
 saved="${project}_frontend-output_before_${next_tag#release-}"
@@ -176,7 +185,7 @@ case "$action" in
     persist_tag "$next_tag"
     compose up -d --no-build --no-deps frontend
     wait_ready "http://127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}/"
-    "$SCRIPT_DIR/podman.sh" production audit
+    (exec {release_lock}>&- {project_lock}>&-; "$SCRIPT_DIR/podman.sh" production audit)
     compose exec -T frontend node scripts/productionOutput.mts verify
     compose --profile maintenance stop maintenance
     touch "$state/activate.ok"

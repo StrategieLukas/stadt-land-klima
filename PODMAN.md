@@ -508,3 +508,11 @@ in an owned mode-0600 file under a private release directory, mounted read-only 
 the disposable builder and never added to an image/context or printed in logs.
 Delete temporary environment copies after fingerprint verification. Import the
 staged output into the release's isolated volume before running stage-prebuilt.
+
+Deployment locks belong to the coordinating shell. Runtime launchers explicitly
+close their lock descriptors so conmon, DNS helpers and port forwarders cannot
+retain them after a job finishes. For a host upgraded from an older wrapper,
+inspect lock holders and confirm no coordinating deployment is running before
+renaming an inherited runtime lock inode. Do not kill healthy data services or
+remove an active controller's lock. The replacement wrapper uses a fresh lock
+file; legacy helper descriptors then refer only to the retired inode.

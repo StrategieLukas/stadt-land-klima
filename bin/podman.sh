@@ -62,6 +62,12 @@ fi
 compose=(podman-compose --podman-path "$(command -v podman)" --in-pod=false -p "$project" -f podman-compose.yaml -f "$overlay")
 if [[ "$action" != doctor ]]; then compose+=(-f "$secret_overlay"); fi
 
+# Only the coordinator owns the deployment lock. Container monitors outlive it.
+run_compose() (
+  if [[ -v deployment_lock ]]; then exec {deployment_lock}>&-; fi
+  "${compose[@]}" "$@"
+)
+
 wait_for_url() {
   local url="$1" deadline=$((SECONDS + 360))
   while ((SECONDS < deadline)); do
@@ -81,10 +87,10 @@ frontend_stopped() {
 prepare_frontend() {
   [[ "$environment" == production ]] || { echo 'Development installs dependencies in its isolated volumes at startup.'; return 0; }
   frontend_stopped
-  if "${compose[@]}" run --rm --no-deps -T frontend node scripts/productionOutput.mts verify; then
+  if run_compose run --rm --no-deps -T frontend node scripts/productionOutput.mts verify; then
     echo 'Production output already matches source, environment and runtime.'
   else
-    "${compose[@]}" --profile build run --rm --no-deps -T frontend-build
+    run_compose --profile build run --rm --no-deps -T frontend-build
   fi
 }
 case "$action" in
@@ -96,28 +102,28 @@ case "$action" in
     podman --remote=false build --pull=always --no-cache --memory="${SLK_CADDY_BUILD_MEMORY_LIMIT:-2G}" -t localhost/slk-caddy:2.11.7 -f caddy/Containerfile caddy
     podman --remote=false build --pull=always --no-cache --build-arg UID=1000 --build-arg GID=1000 -t localhost/slk-podman-directus-runtime:local -f docker/directus/Dockerfile docker/directus
     podman --remote=false build --pull=always --no-cache --build-arg UID=1000 --build-arg GID=1000 -t localhost/slk-podman-frontend-runtime:local -f docker/frontend/Dockerfile docker/frontend
-    "${compose[@]}" --profile maintenance build --no-cache directus frontend maintenance
+    run_compose --profile maintenance build --no-cache directus frontend maintenance
     ;;
   prepare) prepare_frontend ;;
   start)
     if [[ "$environment" == production ]]; then
-      "${compose[@]}" --profile maintenance up -d --no-build maintenance
-      "${compose[@]}" stop frontend
+      run_compose --profile maintenance up -d --no-build maintenance
+      run_compose stop frontend
     fi
-    "${compose[@]}" up -d --no-build db cache meilisearch directus
+    run_compose up -d --no-build db cache meilisearch directus
     wait_for_url "http://127.0.0.1:$cms_port/server/health"
     if [[ "${1:-}" == --import ]]; then
-      "${compose[@]}" exec -T directus /directus/cli/import-all.sh
+      run_compose exec -T directus /directus/cli/import-all.sh
     fi
     prepare_frontend
-    "${compose[@]}" up -d --no-build --no-deps --force-recreate frontend
+    run_compose up -d --no-build --no-deps --force-recreate frontend
     wait_for_url "http://127.0.0.1:$web_port/"
     if [[ "$environment" == production ]]; then
-      "$SCRIPT_DIR/podman.sh" production audit
-      "${compose[@]}" --profile maintenance stop maintenance
+      (exec {deployment_lock}>&-; "$SCRIPT_DIR/podman.sh" production audit)
+      run_compose --profile maintenance stop maintenance
     fi
     ;;
-  stop) "${compose[@]}" --profile maintenance stop ;;
+  stop) run_compose --profile maintenance stop ;;
   audit)
     [[ "$environment" == production ]] || { echo 'Runtime audit targets production; development intentionally mounts frontend source writable.' >&2; exit 2; }
     for service in db cache meilisearch directus frontend maintenance; do
@@ -143,6 +149,6 @@ case "$action" in
     ;;
   compose)
     # config/inspect can contain credentials: callers must keep their output private.
-    "${compose[@]}" "$@"
+    run_compose "$@"
     ;;
 esac

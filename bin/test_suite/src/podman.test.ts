@@ -358,6 +358,10 @@ esac
 `,
     "podman-compose": `#!/bin/sh
 case "$*" in *--version*) echo 'podman-compose version 1.6.0'; exit 0 ;; esac
+for descriptor in /proc/self/fd/*; do
+  target=$(readlink "$descriptor" || true)
+  case "$target" in *.lock) echo 'lock descriptor inherited' >&2; exit 91 ;; esac
+done
 printf '%s\n' "$*" >> "$PROBE_ROOT/calls"
 case "$*" in *import-all.sh*) exit 23 ;; esac
 `,
@@ -527,6 +531,10 @@ test("release staging failure leaves the live application untouched and activati
   writeFileSync(
     join(repo, "bin/podman.sh"),
     `#!/bin/sh
+for descriptor in /proc/self/fd/*; do
+  target=$(readlink "$descriptor" || true)
+  case "$target" in *.lock) echo 'lock descriptor inherited' >&2; exit 91 ;; esac
+done
 printf '%s:%s\n' "$SLK_PODMAN_TAG" "$*" >> "$RELEASE_PROBE_CALLS"
 case "$*" in
   *'--profile maintenance build '*) exit 33 ;;
