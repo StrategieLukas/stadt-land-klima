@@ -1,0 +1,7 @@
+FROM localhost/slk-caddy:2.11.7
+COPY podman/maintenance/Caddyfile /etc/caddy/Caddyfile
+COPY docker/maintenance/index.html docker/maintenance/maintenance-meta.js /usr/share/caddy/
+COPY src/frontend/assets/images/Stadt-Land-Klima-Logotype_bordered.svg /usr/share/caddy/logo.svg
+USER 1000:1000
+ENTRYPOINT ["/usr/bin/caddy"]
+CMD ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

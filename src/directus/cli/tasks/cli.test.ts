@@ -156,6 +156,51 @@ test("homepage migration preserves legacy HTML, existing blocks and editor draft
   assert.equal(requests.filter((call) => call.method !== "GET").length, 1);
 });
 
+test("homepage rollback removes only its untouched seed and preserves authored content and drafts", async () => {
+  let blocks: Record<string, unknown>[] = [];
+  let drafts: Record<string, unknown>[] = [];
+  reset((call) => {
+    if (call.path === "/items/blocks" && call.method === "GET") return { data: blocks };
+    if (call.path === "/items/edit_states") return { data: drafts };
+    if (call.path === "/items/blocks/12" && call.method === "DELETE") return { status: 204 };
+    return { status: 500 };
+  });
+  const run = () => runCommand([], JSON.stringify({ id: "homepage" }), join(root, "rollbackHomepage.ts"));
+  assert.equal((await run()).code, 0);
+  const seed = {
+    id: 12,
+    uuid: "32233232-4056-4b53-92e1-59e4ca3f5a01",
+    bundle: "landing_page",
+    props: { title: "", subtitle: "" },
+    options: {},
+    status: "published",
+    field_name: "content",
+    sort_order: 0,
+  };
+  for (const changed of [
+    { ...seed, props: { title: "Editorial title", subtitle: "" } },
+    { ...seed, uuid: "another-block" },
+    { ...seed, bundle: "text" },
+    { ...seed, options: { layout: "authored" } },
+    { ...seed, status: "draft" },
+    { ...seed, props: { title: "", subtitle: "", extra: true } },
+  ]) {
+    blocks = [changed];
+    assert.notEqual((await run()).code, 0);
+  }
+  blocks = [seed, { ...seed, id: 13 }];
+  assert.notEqual((await run()).code, 0);
+  blocks = [seed];
+  drafts = [{ id: 4 }];
+  assert.notEqual((await run()).code, 0);
+  assert.equal(requests.filter((call) => call.method === "DELETE").length, 0);
+  drafts = [];
+  assert.equal((await run()).code, 0);
+  assert.equal(requests.filter((call) => call.method === "DELETE").length, 1);
+  const invalid = await runCommand([], "{}", join(root, "rollbackHomepage.ts"));
+  assert.notEqual(invalid.code, 0);
+});
+
 test("historical executable supports help, completion, authentication and nonzero command failures", async () => {
   reset(() => ({ data: { id: "fixture-user" } }));
   const help = await command("--help");

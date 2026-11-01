@@ -60,7 +60,17 @@ try {
           });
           await waitForHydration(page);
           await page.getByRole("heading", { level: 1, name: city.name, exact: true }).waitFor();
-          assert.equal(await page.locator('a.canonical-button[href*="/municipalities/updates"]').count(), 0);
+          const hero = page.locator("header").filter({ has: page.locator("h1") });
+          assert.equal(await hero.locator("nav, a.canonical-button").count(), 0);
+          const actions = page.getByTestId("municipality-sidebar-actions").filter({ visible: true });
+          assert.equal(await actions.count(), 1);
+          const historyLink = actions.locator('a[href*="/municipalities/updates"]');
+          assert.equal(await historyLink.count(), 1);
+          const historyUrl = new URL((await historyLink.getAttribute("href")) ?? "", base);
+          assert.equal(historyUrl.searchParams.get("municipality"), city.slug);
+          assert.equal(historyUrl.searchParams.get("v"), map.catalogVersion.name);
+          assert.equal(await actions.locator('a[href="/data"], a[href^="/data/"]').count(), 1);
+          assert.equal(await actions.locator('a[href^="/elections/"]').count(), 1);
           const group = page.locator('.canonical-toggle-group[data-padding="large"]:visible').first();
           await group.getByRole("radio").first().focus();
           await page.keyboard.press("End");

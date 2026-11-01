@@ -785,7 +785,7 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
     );
 
     await runner.step(
-      "Public UI: municipality hero, secondary history, themed toggles and statistics deep links",
+      "Public UI: municipality hero, sidebar history, themed toggles and statistics deep links",
       async () => {
         const page = await context.newPage();
         try {
@@ -794,11 +794,21 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
           });
           await waitForHydration(page);
           await page.getByRole("heading", { level: 1, name: fixture.municipalityName, exact: true }).waitFor();
+          const hero = page.locator("header").filter({ has: page.locator("h1") });
           assert(
-            (await page.locator('a.canonical-button[href*="/municipalities/updates"]').count()) === 0,
-            "History must remain a secondary utility link",
+            (await hero.locator("nav, a.canonical-button").count()) === 0,
+            "The hero has no extra navigation buttons",
           );
-          await page.locator('a[href="#assessment"]').waitFor();
+          const actions = page.getByTestId("municipality-sidebar-actions").filter({ visible: true });
+          assert(
+            (await actions.locator('a[href*="/municipalities/updates"]').count()) === 1,
+            "History belongs with the sidebar actions",
+          );
+          assert(
+            (await actions.locator('a[href="/data"], a[href^="/data/"]').count()) === 1,
+            "Statistics remains in the sidebar",
+          );
+          assert((await actions.locator('a[href^="/elections/"]').count()) === 1, "Elections remains in the sidebar");
           const sector = page.locator('[name="sector-energy"]:visible').first();
           assert(
             await sector.locator('input[type="checkbox"]').first().isChecked(),

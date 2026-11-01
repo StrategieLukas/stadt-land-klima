@@ -5,6 +5,11 @@ umask 077
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
+# Ubuntu cannot attach per-container AppArmor profiles in rootless Podman.
+# A preloaded administrator policy can instead confine this process and every child.
+if [[ -f /etc/apparmor.d/slk-rootless && "$(cat /proc/self/attr/current)" != *slk-rootless* ]]; then
+  exec aa-exec -p slk-rootless -- "$SCRIPT_DIR/podman.sh" "$@"
+fi
 usage() {
   echo 'Usage: bin/podman.sh development|production doctor|build|prepare|start [--import]|stop|audit|compose <args...>'
 }
@@ -31,11 +36,12 @@ for tool in node podman podman-compose curl flock; do
 done
 node -e 'if(Number(process.versions.node.split(".")[0])<24)process.exit(1)' || { echo 'Node 24 or newer is required.' >&2; exit 1; }
 provider_version="$(podman-compose --version)"
-node -e 'const v=process.argv[1].match(/podman-compose version (\d+)\.(\d+)\.(\d+)/);if(!v || +v[1]<1 || (+v[1]===1 && +v[2]<5))process.exit(1)' "$provider_version" || {
-  echo 'podman-compose 1.5 or newer is required; do not silently switch providers.' >&2; exit 1;
+node -e 'const v=process.argv[1].match(/podman-compose version (\d+)\.(\d+)\.(\d+)/);if(!v || +v[1]<1 || (+v[1]===1 && +v[2]<6))process.exit(1)' "$provider_version" || {
+  echo 'podman-compose 1.6 or newer is required; do not silently switch providers.' >&2; exit 1;
 }
 SLK_PODMAN_SECCOMP="$(node bin/lib/podman-security.ts host)"
 export SLK_PODMAN_SECCOMP
+export CONTAINERS_CONF_OVERRIDE="$XDG_RUNTIME_DIR/slk-podman/engine.conf"
 node bin/lib/podman-security.ts environment
 project="${SLK_PODMAN_PROJECT:-slk-podman-$environment}"
 [[ "$project" =~ ^[a-z0-9][a-z0-9_-]+$ ]] || { echo 'Invalid SLK_PODMAN_PROJECT.' >&2; exit 2; }
@@ -53,7 +59,7 @@ if [[ "$action" != doctor ]]; then
   secret_overlay="$(node bin/lib/podman-secrets.ts "$environment" "$project" "$secret_mode")"
 fi
 # Never share a pod: db/cache/search must retain their separate network namespaces.
-compose=(podman-compose --podman-path "$(command -v podman)" --podman-args=--remote=false --in-pod=false -p "$project" -f podman-compose.yaml -f "$overlay")
+compose=(podman-compose --podman-path "$(command -v podman)" --in-pod=false -p "$project" -f podman-compose.yaml -f "$overlay")
 if [[ "$action" != doctor ]]; then compose+=(-f "$secret_overlay"); fi
 
 wait_for_url() {
@@ -75,10 +81,10 @@ frontend_stopped() {
 prepare_frontend() {
   [[ "$environment" == production ]] || { echo 'Development installs dependencies in its isolated volumes at startup.'; return 0; }
   frontend_stopped
-  if "${compose[@]}" run --rm --no-deps frontend node scripts/productionOutput.mts verify; then
+  if "${compose[@]}" run --rm --no-deps -T frontend node scripts/productionOutput.mts verify; then
     echo 'Production output already matches source, environment and runtime.'
   else
-    "${compose[@]}" --profile build run --rm --no-deps frontend-build
+    "${compose[@]}" --profile build run --rm --no-deps -T frontend-build
   fi
 }
 case "$action" in
@@ -87,6 +93,7 @@ case "$action" in
     ;;
   build)
     # Reuse the patched Docker build definitions; never upgrade pinned Directus here.
+    podman --remote=false build --pull=always --no-cache --memory="${SLK_CADDY_BUILD_MEMORY_LIMIT:-2G}" -t localhost/slk-caddy:2.11.7 -f caddy/Containerfile caddy
     podman --remote=false build --pull=always --no-cache --build-arg UID=1000 --build-arg GID=1000 -t localhost/slk-podman-directus-runtime:local -f docker/directus/Dockerfile docker/directus
     podman --remote=false build --pull=always --no-cache --build-arg UID=1000 --build-arg GID=1000 -t localhost/slk-podman-frontend-runtime:local -f docker/frontend/Dockerfile docker/frontend
     "${compose[@]}" --profile maintenance build --no-cache directus frontend maintenance
@@ -103,7 +110,7 @@ case "$action" in
       "${compose[@]}" exec -T directus /directus/cli/import-all.sh
     fi
     prepare_frontend
-    "${compose[@]}" up -d --no-build --force-recreate frontend
+    "${compose[@]}" up -d --no-build --no-deps --force-recreate frontend
     wait_for_url "http://127.0.0.1:$web_port/"
     if [[ "$environment" == production ]]; then
       "$SCRIPT_DIR/podman.sh" production audit
@@ -114,7 +121,7 @@ case "$action" in
   audit)
     [[ "$environment" == production ]] || { echo 'Runtime audit targets production; development intentionally mounts frontend source writable.' >&2; exit 2; }
     for service in db cache meilisearch directus frontend maintenance; do
-      container="$("${compose[@]}" --profile maintenance ps -q "$service")"
+      container="$(podman --remote=false ps -aq --filter "label=io.podman.compose.project=$project" --filter "label=io.podman.compose.service=$service")"
       [[ -n "$container" ]] || { echo "Missing runtime service: $service" >&2; exit 1; }
       podman --remote=false inspect "$container" | node bin/lib/podman-security.ts container "$service"
       if [[ "$service" == maintenance && "$(podman --remote=false inspect --format '{{.State.Running}}' "$container")" != true ]]; then
@@ -128,6 +135,9 @@ case "$action" in
         grep -Eq "^CapEff:[[:space:]]+0+$" /proc/1/status
         grep -Eq "^CapBnd:[[:space:]]+0+$" /proc/1/status
       '
+      if [[ "$(cat /proc/self/attr/current)" == *slk-rootless* ]]; then
+        podman --remote=false exec "$container" cat /proc/1/attr/current | node bin/lib/podman-security.ts apparmor
+      fi
       echo "Runtime confinement verified: $service"
     done
     ;;

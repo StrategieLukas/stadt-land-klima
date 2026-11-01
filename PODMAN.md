@@ -8,18 +8,47 @@ Docker core-storage overlay.
 
 ## Host preparation
 
-Supported target: local Linux x86_64, Podman **5.4+**, `podman-compose` **1.5+**,
+Supported target: local Linux x86_64, Podman **5.4+**, `podman-compose` **1.6+**,
 Node **24+** with the repository CLI dependencies installed, Netavark/Aardvark container DNS, cgroup v2 with delegated memory/pids,
 and AppArmor or SELinux confinement. The existing Typst image build is x86_64.
 Use supported distro security releases of Podman, containers-common, the OCI
-runtime and libseccomp. The version floor is a compatibility requirement, not a
+runtime and libseccomp. Compose 1.6 avoids project-wide teardown when a single service
+changes; frontend recreation explicitly leaves healthy dependencies running. The version floor is a compatibility requirement, not a
 claim that every release above it is free of vulnerabilities.
+
+### Ubuntu rootless AppArmor
+
+Ubuntu's Podman reports AppArmor unavailable for rootless containers. The maintained
+`podman/apparmor/slk-rootless` policy instead confines the engine and all inherited
+container processes. An administrator installs it as root-owned mode 0644 at
+`/etc/apparmor.d/slk-rootless`, loads it with `apparmor_parser -r`, and creates an
+empty, operator-owned mode 0600 file at
+`~/.local/state/slk-apparmor-denied` outside the profile. Keep AppArmor enabled.
+The wrapper enters the preloaded policy through `aa-exec`; no rootful engine or
+policy-loading privilege is granted to the operator.
+
+Preflight verifies the current stacked label, kernel policyfs enforce mode,
+root-owned policy bytes against the maintained file, and denial of opening the
+otherwise writable canary. Runtime audit checks PID 1's inherited label as well as
+the existing capability/seccomp controls. A `mixed` stack is accepted only when
+the named policy is independently verified in enforce mode; Ubuntu's additional
+unconfined runtime profiles do not remove this policy's restrictions. Engine
+mount/network operations remain available; application capabilities, read-only
+mounts and the separate syscall policy continue to constrain payloads.
+
+Ubuntu's packaged pasta profile may also need a narrow host override granting
+`mr` to `/usr/bin/pasta{,.avx2}` and signals between pasta and the rootless engine.
+Retain and reload its existing policy rather than disabling it. Verify a writable
+temporary `/tmp` mount permits ordinary files but rejects writing
+`/tmp/slk-apparmor-denied` under the inherited policy before deploying. Temporary private mounts use Podman's `U` option to select the service
+UID/GID; Docker-style `uid=`/`gid=` options are not accepted by `--tmpfs`.
 
 Install the host tools through your distribution, including `uidmap`
 (`newuidmap`/`newgidmap`), rootless networking (`passt`/pasta), and `podman-compose`.
-If the distro's Compose provider is older than 1.5, install a supported release
-in an isolated `pipx` environment. The wrapper explicitly selects this provider
-and disables remote Podman and pod grouping. It needs no engine socket.
+If the distro's Compose provider is older than 1.6, install a supported release
+in an isolated `pipx` environment. The wrapper explicitly selects this provider, disables pod grouping, and forces
+`engine.remote=false` through a private `CONTAINERS_CONF_OVERRIDE` file. This avoids
+the provider placing global `--remote` flags after the subcommand. It needs no engine socket.
 
 Run the stack as a dedicated deployment account with subordinate UID/GID ranges
 in `/etc/subuid` and `/etc/subgid`. An administrator must provision those ranges
@@ -60,8 +89,8 @@ The private database network joins only PostgreSQL and Directus. An internal
 services network joins Redis/search and their consumers. Only Directus/frontend
 and maintenance join the egress network. Production publishes **loopback-only**
 9000/9001/9090. No runtime exposes an engine socket, host namespaces, devices or
-added capabilities. nginx maintenance listens unprivileged on container port 8080
-and writes only to bounded `/tmp`; its access log is disabled.
+added capabilities. Caddy maintenance listens unprivileged on container port 8080, serves immutable
+image assets and disables request logging. No nginx service is used by Podman.
 
 Writable persistent storage is limited to database, Redis, search and uploads.
 Those mounts are `nosuid,nodev,noexec`. Production frontend output is a read-only
@@ -77,7 +106,9 @@ dependencies, owned by root and not writable by the runtime user.
 ### Environment secrets
 
 Private `.env` values are parsed with the existing CLI dotenv dependency and
-provisioned as native Podman `type=env` secrets over stdin. The generated Compose
+provisioned as native Podman `type=env` secrets over stdin. A fixed FIFO bridge
+converts Node child-process sockets into the pipe Podman 5.7 requires; credential
+bytes never enter arguments or temporary files. The generated Compose
 overlay contains only opaque secret references and empty optional values; it has
 no credential values or hashes. This avoids podman-compose's expansion of
 `env_file` values into process arguments and exception/debug output. Use literal,
@@ -367,3 +398,66 @@ References: [Podman runtime options](https://docs.podman.io/en/latest/markdown/p
   not executed. The local `bin/test_dev.sh` unit stages passed; its application
   integration stage could not connect to the unavailable local Directus stack.
   Keep those deployment acceptance checks pending before replacing Docker.
+
+## Verified Ubuntu deployment — 2026-10-28
+
+`future.stadt-land-klima.de` runs the merged `a77aa914` release plus the deployment
+corrections in this change, using rootless Podman 5.7, isolated podman-compose 1.6,
+Node 24.22.1, the pinned patched Directus 11.17.4 image and Caddy 2.11.7. The
+maintenance image also uses the reviewed Caddy binary. The user service uses
+`KillMode=process`: the wrapper explicitly stops containers, while systemd must
+not independently kill their monitors and rootless port forwarders.
+
+The October 22 SQL backup was restored logically from PostgreSQL 13.5 into 17.
+The plain dump's initial cleanup statements were omitted only in a separate
+working copy for the empty target. All original backup checksums were reverified
+unchanged. All 1,699 archived upload members were copied; user-file checksums and
+all 303 CMS file references passed verification. The regenerated Directus health
+marker is intentionally excluded from immutable user-file comparisons.
+
+Target acceptance passed the inherited AppArmor denial/canary checks, restricted
+database login and startup gates, runtime confinement audit, read-only roots,
+Node worker/child processes, Typst PDF generation, seven HTTP/CSP routes and the
+eight-page read-only browser smoke. A real reboot verified automatic Caddy and
+application startup and artifact reuse; the browser smoke passed again afterward.
+The legacy shared frontend identity was revoked only on the restored instance;
+candidate and municipality-preview credentials were retained.
+
+This temporary hostname keeps mail fail-closed, newsletter writes, analytics and
+paid translation generation disabled. Production DNS/cutover, real mail delivery
+and editorial write workflows remain separate acceptance work. No original backup
+was edited, moved, removed or extracted in place.
+
+## Application releases from a clean checkout
+
+Run deployment commands as the dedicated `deploy` account over SSH. Keep host
+configuration outside Git in `~/.config/slk/future.env` (owned mode 0600), and
+use `EnvironmentFile=%h/.config/slk/future.env` in the user service. The checkout,
+release records and rootless storage belong to that account. Root is only needed
+for initial host policy/tool provisioning; never patch checked-in source on a host.
+Commit and push fixes in the development checkout, then fetch that exact revision.
+
+`bin/podman-release.sh /home/deploy/.config/slk/future.env stage release-<sha> release-<previous-sha>`
+builds application images, stages output in a separate named volume, verifies its
+fingerprint and runs the pinned runtime vendor regressions while the old site runs.
+Rebuild the runtime base images with `bin/podman.sh production build` first if their
+maintained inputs changed. Both scripts resolve paths from their own location.
+
+Before activation, take a fresh logical database dump, uploads/configuration backup
+and output snapshot; verify their checksums on a separate machine. Record the
+verified backup paths in `~/.local/state/slk-releases/release-<sha>/backup.verified`.
+Then run the same release command with `activate`. It requires a clean staged
+revision and the backup marker, starts maintenance, changes only application
+containers, imports maintained Directus YAML and seeds, copies the verified output,
+persists the release tag atomically, and audits readiness/confinement. Data service
+containers remain running. Keep stdout/stderr in private release logs.
+
+Activation failures restore the previous application images and saved output; an
+explicit `rollback` action uses the same arguments. The homepage rollback removes
+only this migration's untouched seed when the saved pre-import homepage was empty;
+editor changes or drafts stop automatic rollback for operator review. Additive YAML
+and translations stay applied; destructive schema changes need their own migration
+and database rollback plan. Run read-only public browser, CSP, UI-feedback and PDF
+acceptance against the real hostname after activation. Retain the previous healthy
+images, output volume and verified backups until those checks pass. Retire obsolete
+build records and duplicate bundles explicitly; never use blanket volume pruning.

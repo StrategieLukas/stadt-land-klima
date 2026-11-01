@@ -14,6 +14,12 @@ src/directus/*
 !src/directus/extensions/**
 !src/directus/translations/
 !src/directus/translations/**
+!docker/
+docker/*
+!docker/maintenance/
+docker/maintenance/*
+!docker/maintenance/index.html
+!docker/maintenance/maintenance-meta.js
 
 # Podman builds from the repository root. Never send host secrets/data/artifacts.
 .git
