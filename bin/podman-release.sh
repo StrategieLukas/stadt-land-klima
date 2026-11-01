@@ -55,7 +55,9 @@ copy_output() {
   local source="$1" target="$2"
   [[ "$source" != "$target" ]] || return 1
   podman --remote=false volume exists "$source" || return 1
-  podman --remote=false volume create "$target" >/dev/null || return 1
+  if ! podman --remote=false volume exists "$target"; then
+    podman --remote=false volume create "$target" >/dev/null || return 1
+  fi
   podman --remote=false run --rm -i --network none --user 1000:1000 --userns keep-id:uid=1000,gid=1000 \
     --cap-drop ALL --security-opt no-new-privileges --security-opt "seccomp=$seccomp" \
     --read-only --memory 384m --pids-limit 128 --log-driver journald \
@@ -81,11 +83,13 @@ renameSync(temporary,path);
 JS
 }
 remove_app_containers() {
-  compose stop frontend directus || return 1
   for service in frontend directus; do
     local container
     container="$(podman --remote=false ps -aq --filter "label=io.podman.compose.project=$project" --filter "label=io.podman.compose.service=$service")" || return 1
-    if [[ -n "$container" ]]; then podman --remote=false rm "$container" || return 1; fi
+    if [[ -n "$container" ]]; then
+      podman --remote=false stop --time 60 "$container" || return 1
+      podman --remote=false rm "$container" || return 1
+    fi
   done
 }
 rollback() {
@@ -93,7 +97,10 @@ rollback() {
   echo 'Restoring previous application images and output; data services remain running.'
   # Only this migration's untouched seed may be removed. Authored content wins.
   if [[ -f "$state/import.started" ]]; then
+    compose up -d --no-build --no-deps directus || return 1
+    wait_ready "http://127.0.0.1:${SLK_PODMAN_CMS_PORT:-9001}/server/health" || return 1
     compose exec -T directus /directus/cli/node_modules/.bin/tsx /directus/cli/rollbackHomepage.ts < "$state/homepage.before.json" || return 1
+    rm "$state/import.started" || return 1
   fi
   remove_app_containers || return 1
   copy_output "$saved" "$active" || return 1

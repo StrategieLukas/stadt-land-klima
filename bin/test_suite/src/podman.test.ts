@@ -530,7 +530,7 @@ test("release staging failure leaves the live application untouched and activati
 printf '%s:%s\n' "$SLK_PODMAN_TAG" "$*" >> "$RELEASE_PROBE_CALLS"
 case "$*" in
   *'--profile maintenance build '*) exit 33 ;;
-  *'up -d --no-build --no-deps directus'*) exit 34 ;;
+  *'up -d --no-build --no-deps directus'*) if [ \"$RELEASE_PROBE_ALLOW_START\" != 1 ]; then exit 34; fi ;;
 esac
 `,
     { mode: 0o700 },
@@ -567,8 +567,11 @@ case "$*" in *host.env*) echo 600:1000 ;; *) echo 700:1000 ;; esac
     XDG_RUNTIME_DIR: runtime,
     RELEASE_PROBE_CALLS: calls,
   };
-  const run = (action: string) =>
-    spawnSync("bash", [script, config, action, "release-deadbeef", "release-b477ac14"], { env, encoding: "utf8" });
+  const run = (action: string, allowStart = false) =>
+    spawnSync("bash", [script, config, action, "release-deadbeef", "release-b477ac14"], {
+      env: { ...env, RELEASE_PROBE_ALLOW_START: allowStart ? "1" : "0" },
+      encoding: "utf8",
+    });
   assert.equal(run("stage").status, 33);
   assert.doesNotMatch(readFileSync(calls, "utf8"), /stop|up -d|import-all/);
   const state = join(directory, ".local/state/slk-releases/release-deadbeef");
@@ -582,7 +585,10 @@ case "$*" in *host.env*) echo 600:1000 ;; *) echo 700:1000 ;; esac
   writeFileSync(
     join(tools, "podman"),
     `#!/bin/sh
-case "$*" in *'ps -aq'*) echo probe-container ;; esac
+case "$*" in
+  *'volume create'*) echo 'volume already exists' >&2; exit 125 ;;
+  *'ps -aq'*) echo probe-container ;;
+esac
 `,
     { mode: 0o700 },
   );
@@ -602,4 +608,16 @@ esac
   assert.match(recorded, /release-b477ac14:production compose up -d --no-build --no-deps directus/);
   assert.doesNotMatch(recorded, /stop maintenance/);
   assert.match(failed.stderr, /maintenance retained/);
+  writeFileSync(join(state, "import.started"), "");
+  const restored = run("rollback", true);
+  assert.equal(restored.status, 0, restored.stderr);
+  assert.equal(readFileSync(join(state, "rollback.ok"), "utf8"), "");
+  assert.throws(() => readFileSync(join(state, "import.started")));
+  const rollbackCalls = readFileSync(calls, "utf8");
+  assert.match(rollbackCalls, /production compose exec -T directus .*rollbackHomepage.ts/);
+  assert.match(rollbackCalls, /release-b477ac14:production compose up -d --no-build --no-deps frontend/);
+  assert.match(rollbackCalls, /production compose --profile maintenance stop maintenance/);
+  const activated = run("activate", true);
+  assert.equal(activated.status, 0, activated.stderr);
+  assert.equal(readFileSync(join(state, "activate.ok"), "utf8"), "");
 });
