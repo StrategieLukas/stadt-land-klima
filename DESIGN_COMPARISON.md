@@ -42,3 +42,9 @@ These affect screenshots but should not be mistaken for CSS regressions:
 ## Verification
 
 `uiFixes.test.ts` rasterizes the actual mask assets and rejects both fully opaque squares and empty icons. `uiFeedbackSmoke.ts` checks selected/unselected icon colours and actual homepage news image loading across German, English and Italian, both screen sizes and both themes. The normal development suite, strict frontend compiler/lint gates and test-suite typecheck cover the repository change. `FEATURES.md` records the exact coverage and remaining manual-only cases.
+
+## Header follow-up
+
+The previous comparison checked header typography and spacing but did not assert the navigation stripe's transparency. The shared header still had a 16px blur, while the stripe's solid `bg-gray-50`/dark surface covered it. Earlier header transparency was removed in dark-theme commit `9bd26bc5`; the shared glass style later returned at 90% opacity in `f62a142b`. The recent municipality/news fixes did not edit those header styles.
+
+The follow-up restores the earlier 82% theme surface, makes the desktop navigation stripe transparent, and preserves its existing shadow on scroll. Dropdown panels retain their own readable surfaces. `cssMigration.ts` now checks actual alpha and blur, the transparent stripe, the desktop scroll shadow and header reveal behavior in both themes and screen sizes.

@@ -65,6 +65,43 @@ try {
           assert.ok(Math.abs(layout.width! - layout.viewport) <= 1, "Content must span the viewport");
           assert.equal(layout.overflow, false);
           assert.equal(layout.buttonRadius, "6px", "CanonicalButton corners must survive the upgrade");
+          const header = page.locator("header.slk-header-surface:visible");
+          const glass = await header.evaluate((element) => {
+            const style = getComputedStyle(element);
+            const canvas = document.createElement("canvas");
+            canvas.width = canvas.height = 1;
+            const context = canvas.getContext("2d")!;
+            context.fillStyle = style.backgroundColor;
+            context.fillRect(0, 0, 1, 1);
+            return {
+              alpha: context.getImageData(0, 0, 1, 1).data[3]! / 255,
+              blur: style.backdropFilter || style.getPropertyValue("-webkit-backdrop-filter"),
+              stripeBackground: element.querySelector(".slk-navigation-strip")
+                ? getComputedStyle(element.querySelector(".slk-navigation-strip")!).backgroundColor
+                : null,
+            };
+          });
+          assert.ok(Math.abs(glass.alpha - 0.82) < 0.01, "The header keeps its translucent theme surface");
+          assert.match(glass.blur, /blur\(16px\)/, "Page content must blur behind the header");
+          if (width >= 640)
+            assert.equal(glass.stripeBackground, "rgba(0, 0, 0, 0)", "Navigation must share the header glass");
+          await page.evaluate(() => window.scrollTo({ top: 500, behavior: "instant" }));
+          await page.waitForFunction(() => window.scrollY >= 400);
+          if (width >= 640) {
+            await page.waitForFunction(
+              () => getComputedStyle(document.querySelector("header.slk-header-surface")!).boxShadow !== "none",
+            );
+          } else {
+            await page.waitForFunction(
+              () => document.querySelector("header.slk-header-surface")!.getBoundingClientRect().bottom <= 0,
+            );
+          }
+          await page.evaluate(() => window.scrollTo({ top: 420, behavior: "instant" }));
+          await page.waitForFunction(
+            () => document.querySelector("header.slk-header-surface")!.getBoundingClientRect().top >= -1,
+          );
+          await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+          await page.waitForFunction(() => window.scrollY === 0);
           const footer = page.locator("footer");
           const footerLayout = await footer.evaluate((element) => {
             const width = element.getBoundingClientRect().width;

@@ -346,7 +346,7 @@ html[data-theme="staedteChallengeDark"] {
 }
 
 .slk-header-surface {
-  background-color: color-mix(in srgb, var(--slk-surface) 90%, transparent);
+  background-color: color-mix(in srgb, var(--slk-surface) 82%, transparent);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
