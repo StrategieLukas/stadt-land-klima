@@ -539,6 +539,7 @@ printf '%s:%s\n' "$SLK_PODMAN_TAG" "$*" >> "$RELEASE_PROBE_CALLS"
 case "$*" in
   *'--profile maintenance build '*) exit 33 ;;
   *'up -d --no-build --no-deps directus'*) if [ \"$RELEASE_PROBE_ALLOW_START\" != 1 ]; then exit 34; fi ;;
+  *'production audit'*) if [ "$RELEASE_PROBE_FAIL_AUDIT" = 1 ]; then exit 36; fi ;;
 esac
 `,
     { mode: 0o700 },
@@ -575,9 +576,13 @@ case "$*" in *host.env*) echo 600:1000 ;; *) echo 700:1000 ;; esac
     XDG_RUNTIME_DIR: runtime,
     RELEASE_PROBE_CALLS: calls,
   };
-  const run = (action: string, allowStart = false) =>
+  const run = (action: string, allowStart = false, failAudit = false) =>
     spawnSync("bash", [script, config, action, "release-deadbeef", "release-b477ac14"], {
-      env: { ...env, RELEASE_PROBE_ALLOW_START: allowStart ? "1" : "0" },
+      env: {
+        ...env,
+        RELEASE_PROBE_ALLOW_START: allowStart ? "1" : "0",
+        RELEASE_PROBE_FAIL_AUDIT: failAudit ? "1" : "0",
+      },
       encoding: "utf8",
     });
   assert.equal(run("stage").status, 33);
@@ -631,6 +636,13 @@ esac
   assert.match(rollbackCalls, /production compose run .*rollbackHomepage.ts/);
   assert.match(rollbackCalls, /release-b477ac14:production compose up -d --no-build --no-deps frontend/);
   assert.match(rollbackCalls, /production compose --profile maintenance stop maintenance/);
+  const auditFailure = run("activate", true, true);
+  assert.equal(auditFailure.status, 36, auditFailure.stderr);
+  assert.equal(
+    (auditFailure.stdout.match(/Restoring previous application images/g) ?? []).length,
+    1,
+    "Only the coordinating shell may start rollback",
+  );
   const activated = run("activate", true);
   assert.equal(activated.status, 0, activated.stderr);
   assert.equal(readFileSync(join(state, "activate.ok"), "utf8"), "");

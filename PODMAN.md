@@ -516,3 +516,7 @@ inspect lock holders and confirm no coordinating deployment is running before
 renaming an inherited runtime lock inode. Do not kill healthy data services or
 remove an active controller's lock. The replacement wrapper uses a fresh lock
 file; legacy helper descriptors then refer only to the retired inode.
+
+Child launch wrappers disable inherited ERR handlers as well as closing lock
+descriptors. Their failure returns to the coordinator, which starts recovery
+once; an audit failure must not run competing child and parent rollbacks.

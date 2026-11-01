@@ -4,6 +4,12 @@ set -Eeuo pipefail
 umask 077
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
+host_command() (
+  trap - ERR
+  if [[ -v release_lock ]]; then exec {release_lock}>&-; fi
+  if [[ -v project_lock ]]; then exec {project_lock}>&-; fi
+  "$SCRIPT_DIR/podman.sh" production "$@"
+)
 [[ $# == 4 && "$1" == /* && -f "$1" && ! -L "$1" ]] || { echo 'Usage: bin/podman-release.sh /private/host.env backup|stage|stage-prebuilt|activate|rollback release-tag previous-tag' >&2; exit 2; }
 [[ "$(id -u)" != 0 ]] || { echo 'Run as the deployment user.' >&2; exit 1; }
 config="$1"; action="$2"; next_tag="$3"; previous_tag="$4"
@@ -25,16 +31,12 @@ mkdir -p "$state"
 exec {release_lock}>"$state/release.lock"
 flock --nonblock "$release_lock" || { echo 'This release is already running.' >&2; exit 1; }
 export SLK_PODMAN_TAG="$next_tag"
-(exec {release_lock}>&-; "$SCRIPT_DIR/podman.sh" production doctor)
+host_command doctor
 exec {project_lock}>"$XDG_RUNTIME_DIR/slk-podman/$project.release.lock"
 flock --nonblock "$project_lock" || { echo 'Another release operation is active for this project.' >&2; exit 1; }
 export CONTAINERS_CONF_OVERRIDE="$XDG_RUNTIME_DIR/slk-podman/engine.conf"
 seccomp="$XDG_RUNTIME_DIR/slk-podman/seccomp.json"
-compose() (
-  trap - ERR
-  exec {release_lock}>&- {project_lock}>&-
-  "$SCRIPT_DIR/podman.sh" production compose "$@"
-)
+compose() { host_command compose "$@"; }
 podman() (
   trap - ERR
   exec {release_lock}>&- {project_lock}>&-
@@ -185,7 +187,7 @@ case "$action" in
     persist_tag "$next_tag"
     compose up -d --no-build --no-deps frontend
     wait_ready "http://127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}/"
-    (exec {release_lock}>&- {project_lock}>&-; "$SCRIPT_DIR/podman.sh" production audit)
+    host_command audit
     compose exec -T frontend node scripts/productionOutput.mts verify
     compose --profile maintenance stop maintenance
     touch "$state/activate.ok"
