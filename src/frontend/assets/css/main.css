@@ -806,7 +806,8 @@ html[data-theme="staedteChallengeDark"] .slk-municipality-cta--stats {
   color: var(--slk-blue) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .slk-municipality-cta--elections {
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta--elections,
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta--history {
   background-color: var(--slk-green-tint) !important;
   border-color: var(--slk-green);
   color: var(--slk-text-strong) !important;
@@ -816,7 +817,8 @@ html[data-theme="staedteChallengeDark"] .slk-municipality-cta--stats:hover {
   background-color: var(--slk-surface-muted);
 }
 
-html[data-theme="staedteChallengeDark"] .slk-municipality-cta--elections:hover {
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta--elections:hover,
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta--history:hover {
   background-color: var(--slk-filter-hover-bg);
 }
 
@@ -845,24 +847,24 @@ html[data-theme="staedteChallengeDark"] .slk-ranking-card {
   color: var(--slk-ranking-card-text);
 }
 
-html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-0 {
-  background-color: var(--slk-rating-0-tint);
+html[data-theme="staedteChallengeDark"] .slk-ranking-card.slk-ranking-card--rating-0 {
+  background-color: var(--slk-rating-0-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-1 {
-  background-color: var(--slk-rating-1-tint);
+html[data-theme="staedteChallengeDark"] .slk-ranking-card.slk-ranking-card--rating-1 {
+  background-color: var(--slk-rating-1-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-2 {
-  background-color: var(--slk-rating-2-tint);
+html[data-theme="staedteChallengeDark"] .slk-ranking-card.slk-ranking-card--rating-2 {
+  background-color: var(--slk-rating-2-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-3 {
-  background-color: var(--slk-rating-3-tint);
+html[data-theme="staedteChallengeDark"] .slk-ranking-card.slk-ranking-card--rating-3 {
+  background-color: var(--slk-rating-3-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-4 {
-  background-color: var(--slk-rating-4-tint);
+html[data-theme="staedteChallengeDark"] .slk-ranking-card.slk-ranking-card--rating-4 {
+  background-color: var(--slk-rating-4-tint) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-black,

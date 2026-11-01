@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { launchBrowser, newContext, waitForHydration, collectPublicPageErrors } from "./lib/browser.js";
 import { MapResponseSchema } from "../../../src/frontend/shared/contracts/map.js";
 import { waitFor } from "./lib/wait.js";
+import { assertMunicipalityDetailLayout } from "./lib/municipalityDetail.js";
 
 const base = new URL(process.argv[2] ?? "http://localhost:8080").origin;
 const map = MapResponseSchema.parse(await (await fetch(`${base}/api/public/map`)).json());
@@ -60,6 +61,7 @@ try {
           });
           await waitForHydration(page);
           await page.getByRole("heading", { level: 1, name: city.name, exact: true }).waitFor();
+          await assertMunicipalityDetailLayout(page);
           const hero = page.locator("header").filter({ has: page.locator("h1") });
           assert.equal(await hero.locator("nav, a.canonical-button").count(), 0);
           const actions = page.getByTestId("municipality-sidebar-actions").filter({ visible: true });
@@ -71,10 +73,14 @@ try {
           assert.equal(historyUrl.searchParams.get("v"), map.catalogVersion.name);
           assert.equal(await actions.locator('a[href="/data"], a[href^="/data/"]').count(), 1);
           assert.equal(await actions.locator('a[href^="/elections/"]').count(), 1);
+          await page.screenshot({ path: `/tmp/slk-municipality-${locale}-${width}-${theme}.png`, fullPage: true });
           const group = page.locator('.canonical-toggle-group[data-padding="large"]:visible').first();
           await group.getByRole("radio").first().focus();
           await page.keyboard.press("End");
-          assert.equal(await group.getByRole("radio").last().getAttribute("aria-checked"), "true");
+          await waitFor(
+            "keyboard selects the municipality chart",
+            async () => (await group.getByRole("radio").last().getAttribute("aria-checked")) === "true",
+          );
           await page.keyboard.press("Home");
           assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
           await page.goto(`${base}/municipalities?v=${encodeURIComponent(map.catalogVersion.name)}`, {

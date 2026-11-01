@@ -5,6 +5,7 @@ import { assert, assertIncludes, assertNotIncludes } from "../lib/assert.js";
 import { waitFor } from "../lib/wait.js";
 import { newContext, waitForHydration, collectPublicPageErrors } from "../lib/browser.js";
 import { assertNoCredentialFields } from "../lib/disclosure.js";
+import { assertMunicipalityDetailLayout } from "../lib/municipalityDetail.js";
 import type { TestFixture } from "../lib/fixture.js";
 import type { TestRunner } from "../lib/runner.js";
 
@@ -803,6 +804,7 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
           });
           await waitForHydration(page);
           await page.getByRole("heading", { level: 1, name: fixture.municipalityName, exact: true }).waitFor();
+          await assertMunicipalityDetailLayout(page);
           assert(
             (await page.getByTestId("municipality-population").filter({ visible: true }).innerText()) === "50.000",
             "Hydrated population must match SSR",
