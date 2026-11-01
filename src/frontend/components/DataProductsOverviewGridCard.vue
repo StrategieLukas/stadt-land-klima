@@ -208,6 +208,7 @@ async function loadCollectionDetails() {
   hasRequestedDetails.value = true;
   try {
     const data = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`, {
+      params: { metadata_only: "true" },
       timeout: 8000,
     });
     collectionDetails.value = normalizeCollection(data);

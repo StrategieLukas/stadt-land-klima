@@ -11,6 +11,8 @@ export interface ResolvedStep {
 }
 
 export function useCollectionRender(baseUrl: string) {
+  const { $locale } = useNuxtApp();
+  const language = $locale === "en-GB" ? "en-US" : $locale;
   const loading = ref(false);
   const error = ref(false);
   const steps = ref<ResolvedStep[]>([]);
@@ -77,7 +79,7 @@ export function useCollectionRender(baseUrl: string) {
     error.value = false;
     try {
       const data: unknown = await $fetch(`${baseUrl}/api/collections/${collectionSlug}/render/`, {
-        params: { area: ars },
+        params: { area: ars, lang: language },
       });
       if (current !== generation) return;
 

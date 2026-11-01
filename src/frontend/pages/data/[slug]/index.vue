@@ -419,7 +419,7 @@ const { data: pageData, pending: areaPending } = useAsyncData(
   pageDataKey,
   async () => {
     const resolvedArea = await $fetch("/api/area-by-slug", {
-      params: { slug: slug.value, includeGeo: true },
+      params: { slug: slug.value, includeGeo: true, geometryOnly: true },
     });
     if (!resolvedArea)
       return {
@@ -539,7 +539,7 @@ async function loadNearbyAreasForCurrentArea() {
           if (nearbyArea.geo_area ?? nearbyArea.geoArea) return nearbyArea;
           try {
             const withGeo = await $fetch("/api/area-by-slug", {
-              params: { slug: nearbyArea.ars, includeGeo: true, requireGeo: true },
+              params: { slug: nearbyArea.ars, includeGeo: true, geometryOnly: true },
               timeout: 8000,
             });
             return { ...nearbyArea, ...withGeo };
@@ -616,8 +616,8 @@ async function loadCollectionsForCurrentArea() {
   }
 
   try {
-    // Fall back to full area-specific API.
-    const params = area.value?.ars ? { area: area.value.ars } : {};
+    // Area-specific charts load separately; discovery does not need product data.
+    const params = { metadata_only: "true" };
     const data = CollectionsResponseSchema.parse(
       await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 }),
     );

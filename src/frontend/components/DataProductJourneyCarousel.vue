@@ -97,7 +97,7 @@
                     />
                   </ClientOnly>
                 </div>
-                <div v-else-if="item.spec" class="w-full" :class="expanded ? 'h-[568px]' : 'h-[220px]'">
+                <div v-else-if="item.spec" class="w-full overflow-auto" :class="expanded ? 'h-[568px]' : 'h-[220px]'">
                   <ClientOnly>
                     <VegaChart
                       :spec="item.spec"

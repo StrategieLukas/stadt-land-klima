@@ -24,7 +24,13 @@ export default defineEventHandler(async (event) => {
     return parseCms(
       z.object({ areas: z.array(AreaSchema) }),
       await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/nearby/`, {
-        params: { radius_km: radiusKm, levels, limit },
+        params: {
+          radius_km: radiusKm,
+          levels,
+          limit,
+          include_geometry: "true",
+          is_reasonable_for_municipal_rating: "true",
+        },
       }),
     );
   } catch {

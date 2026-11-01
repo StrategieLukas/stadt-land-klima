@@ -2,6 +2,7 @@
   <div
     ref="containerRef"
     class="slk-vega-chart group/vega-chart relative w-full bg-white dark:bg-[#17212b]"
+    :class="{ 'slk-vega-chart-bar-labels': hasAdaptiveBarLabels }"
     :style="height ? `height:${height}px` : 'height:100%'"
   >
     <div
@@ -66,6 +67,7 @@
 </template>
 
 <script setup lang="ts">
+import { embedCollectionChart } from "~/utils/collectionCharts";
 import { clientDiagnostic } from "~/shared/securityLog";
 
 import { checkedVisualizationSpec, safeVisualizationLoader } from "~/shared/visualizationSafety";
@@ -152,7 +154,13 @@ const resolvedDataApiUrl = computed(() => {
   const url = findDataUrl(props.spec);
   return url ? resolveUrl(url) : "";
 });
+const hasAdaptiveBarLabels = computed(() => {
+  const labels = asRecord(asRecord(props.spec)?.usermeta)?.barLabels;
+  return Array.isArray(labels) && labels.length > 0;
+});
+
 let vegaView: View | null = null;
+let finalizeChart: (() => void) | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 let renderedSize = { width: 0, height: 0 };
@@ -167,7 +175,8 @@ async function render() {
     const { default: vegaEmbed, vega } = await import("vega-embed");
 
     if (vegaView) {
-      vegaView.finalize();
+      finalizeChart?.();
+      finalizeChart = null;
       vegaView = null;
     }
     vegaRef.value.innerHTML = "";
@@ -177,7 +186,7 @@ async function render() {
     const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(responsiveSpec);
     nativeZoomEnabled.value = hasNativeZoom;
 
-    const result = await vegaEmbed(vegaRef.value, checkedVisualizationSpec(embeddableSpec), {
+    const result = await embedCollectionChart(vegaRef.value, checkedVisualizationSpec(embeddableSpec), vegaEmbed, {
       ast: true,
       defaultStyle: false,
       tooltip: { disableDefaultStyle: true },
@@ -190,6 +199,7 @@ async function render() {
       config: vegaConfig.value,
     });
     vegaView = result.view;
+    finalizeChart = result.finalize;
     renderedSize = measureChartSize();
     exportReady.value = true;
   } catch {
@@ -262,7 +272,8 @@ function scheduleResize() {
 }
 
 async function resizeVegaView() {
-  if (!vegaView || loading.value || renderError.value || isMultiViewSpec(props.spec)) return;
+  if (!vegaView || loading.value || renderError.value || isMultiViewSpec(props.spec) || hasAdaptiveBarLabels.value)
+    return;
 
   const nextSize = measureChartSize();
   if (Math.abs(nextSize.width - renderedSize.width) < 2 && Math.abs(nextSize.height - renderedSize.height) < 2) {
@@ -804,7 +815,8 @@ onUnmounted(() => {
   resizeTimer = null;
   exportReady.value = false;
   if (vegaView) {
-    vegaView.finalize();
+    finalizeChart?.();
+    finalizeChart = null;
     vegaView = null;
   }
 });
@@ -814,6 +826,14 @@ onUnmounted(() => {
 .slk-vega-chart :deep(.vega-embed),
 .slk-vega-chart :deep(canvas) {
   max-width: 100%;
+}
+
+.slk-vega-chart-bar-labels {
+  overflow: auto;
+}
+
+.slk-vega-chart-bar-labels :deep(canvas) {
+  max-width: none;
 }
 
 :global(html[data-theme="staedteChallengeDark"] .slk-vega-chart .vega-embed) {

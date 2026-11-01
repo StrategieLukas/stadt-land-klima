@@ -126,8 +126,8 @@
 import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from "leaflet";
 import { parseGeoData, type GeoData } from "~/shared/contracts/geometry";
 import type { PropType } from "vue";
-import { z } from "zod";
-import { GeoFeatureSchema } from "~/shared/contracts/geometry";
+import type { z } from "zod";
+import { fetchCollectionItems, type CollectionItems } from "~/utils/collectionItems";
 import { SummarySchema } from "~/shared/contracts/slz";
 import type { Area } from "~/shared/contracts/search";
 import type { Collection } from "~/types/slz-api";
@@ -266,14 +266,9 @@ function nearbyOpts(area: Area): GeoJSONOptions {
 // ── Active collection data features ───────────────────────────────────────────
 
 const loadingFeatures = ref(false);
-type DataFeature = z.infer<typeof GeoFeatureSchema>;
-const ItemPageSchema = z.object({
-  type: z.literal("FeatureCollection").default("FeatureCollection"),
-  features: z.array(GeoFeatureSchema),
-  next: z.string().nullable().optional(),
-});
+type DataFeature = CollectionItems["features"][number];
 const dataFeatures = ref<DataFeature[]>([]);
-const dataFeatureCollection = ref<z.infer<typeof ItemPageSchema> | null>(null);
+const dataFeatureCollection = ref<CollectionItems | null>(null);
 const summaryData = ref<z.infer<typeof SummarySchema> | null>(null);
 
 const layerType = computed(() => props.activeCollection?.render_config?.layer_type ?? "points");
@@ -290,29 +285,6 @@ const thresholds = computed(() => {
 
 const hasThresholds = computed(() => Object.values(thresholds.value).some((v) => v !== null));
 
-async function fetchAllItemPages(firstPageUrl: string, params: Record<string, string>) {
-  const allFeatures: DataFeature[] = [];
-  let firstPage = null;
-  let nextUrl = null;
-
-  const page = ItemPageSchema.parse(await $fetch(firstPageUrl, { params }));
-  firstPage = page;
-  if (page?.features) allFeatures.push(...page.features);
-  nextUrl = page?.next ?? null;
-
-  while (nextUrl) {
-    try {
-      const nextPage = ItemPageSchema.parse(await $fetch(nextUrl));
-      if (nextPage?.features) allFeatures.push(...nextPage.features);
-      nextUrl = nextPage?.next ?? null;
-    } catch {
-      break;
-    }
-  }
-
-  return firstPage ? { ...firstPage, features: allFeatures } : null;
-}
-
 async function fetchActiveData(id: string | undefined) {
   if (!id || !props.ars) {
     dataFeatures.value = [];
@@ -323,7 +295,7 @@ async function fetchActiveData(id: string | undefined) {
   loadingFeatures.value = true;
   try {
     const [itemsRes, summaryRes] = await Promise.allSettled([
-      fetchAllItemPages(`${props.baseUrl}/api/collections/${id}/items/`, { area: props.ars }),
+      fetchCollectionItems(`${props.baseUrl}/api/collections/${id}/items/?area=${encodeURIComponent(props.ars)}`),
       $fetch(`${props.baseUrl}/api/collections/${id}/summary/`, { params: { area: props.ars } }),
     ]);
     if (itemsRes.status === "fulfilled" && itemsRes.value?.features) {

@@ -283,6 +283,12 @@ test("the actual MapLibre component validates its constructed style before creat
       "~/shared/visualization": helpers,
       "~/shared/contracts/geometry": geometry,
       "~/composables/useCartoBasemap": { cartoBasemapProxyUrl: (url: string) => url },
+      "~/utils/collectionItems": {
+        isCollectionItemsUrl: () => false,
+        fetchCollectionItems: async () => {
+          throw new Error("The inline-style fixture must not fetch remote collections");
+        },
+      },
       "~/assets/images/Stadt-Land-Klima-Logo.svg": "logo",
       "@iconify/vue": { Icon: {} },
       "maplibre-gl": mapModule,
