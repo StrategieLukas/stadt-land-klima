@@ -602,6 +602,12 @@ esac
 `,
     { mode: 0o700 },
   );
+  assert.equal(run("stage-prebuilt").status, 1, "Unlabelled images must never become staged releases");
+  assert.throws(
+    () => readFileSync(join(state, "stage.ok")),
+    "Failed re-staging must invalidate the old approval marker",
+  );
+  writeFileSync(join(state, "stage.ok"), "");
   const failed = run("activate");
   assert.equal(failed.status, 34, failed.stderr);
   const recorded = readFileSync(calls, "utf8");

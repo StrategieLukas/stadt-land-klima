@@ -4,10 +4,10 @@ set -Eeuo pipefail
 umask 077
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
-[[ $# == 4 && "$1" == /* && -f "$1" && ! -L "$1" ]] || { echo 'Usage: bin/podman-release.sh /private/host.env backup|stage|activate|rollback release-tag previous-tag' >&2; exit 2; }
+[[ $# == 4 && "$1" == /* && -f "$1" && ! -L "$1" ]] || { echo 'Usage: bin/podman-release.sh /private/host.env backup|stage|stage-prebuilt|activate|rollback release-tag previous-tag' >&2; exit 2; }
 [[ "$(id -u)" != 0 ]] || { echo 'Run as the deployment user.' >&2; exit 1; }
 config="$1"; action="$2"; next_tag="$3"; previous_tag="$4"
-[[ "$action" =~ ^(backup|stage|activate|rollback)$ && "$next_tag" =~ ^release-[a-f0-9]{8,40}$ && "$previous_tag" =~ ^release-[a-f0-9]{8,40}$ && "$next_tag" != "$previous_tag" ]] || exit 2
+[[ "$action" =~ ^(backup|stage|stage-prebuilt|activate|rollback)$ && "$next_tag" =~ ^release-[a-f0-9]{8,40}$ && "$previous_tag" =~ ^release-[a-f0-9]{8,40}$ && "$next_tag" != "$previous_tag" ]] || exit 2
 [[ "$(stat -c '%a:%u' "$config")" == "600:$(id -u)" ]] || { echo 'Host configuration must be an owned mode-0600 regular file.' >&2; exit 1; }
 if [[ -f /etc/apparmor.d/slk-rootless && "$(cat /proc/self/attr/current)" != *slk-rootless* ]]; then
   exec aa-exec -p slk-rootless -- "$SCRIPT_DIR/podman-release.sh" "$@"
@@ -131,13 +131,22 @@ case "$action" in
     (cd "$state"; sha256sum database.before.dump uploads.before.tar frontend-output.before.tar source.before.tar.gz config.before.tar.gz > backups.sha256)
     echo 'Backups recorded. Copy off-host and verify before creating backup.verified.'
     ;;
-  stage)
+  stage|stage-prebuilt)
     [[ -z "$(git status --porcelain)" ]] || { echo 'Commit and push source changes before staging a release.' >&2; exit 1; }
     revision="$(git rev-parse HEAD)"
     [[ "$revision" == "${next_tag#release-}"* ]] || { echo 'Tag does not identify this checkout.' >&2; exit 1; }
+    rm -f "$state/stage.ok"
     printf '%s\n' "$revision" > "$state/revision"
     # Runtime base images are rebuilt separately when their maintained inputs change.
-    compose --profile maintenance build directus frontend maintenance
+    if [[ "$action" == stage-prebuilt ]]; then
+      for service in directus frontend; do
+        image_revision="$(podman --remote=false image inspect "localhost/slk-podman-$service:$next_tag" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+        [[ "$image_revision" == "$revision" ]] || { echo 'Prebuilt image does not identify the clean source revision.' >&2; exit 1; }
+      done
+      compose --profile maintenance build maintenance
+    else
+      compose --profile maintenance build directus frontend maintenance
+    fi
     if ! compose -f "$state/stage.yaml" run --rm --no-deps -T frontend node scripts/productionOutput.mts verify; then
       compose -f "$state/stage.yaml" --profile build run --rm --no-deps -T frontend-build
     fi

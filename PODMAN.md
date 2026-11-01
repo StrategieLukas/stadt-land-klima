@@ -490,3 +490,21 @@ private release record. The next normal application build packages the updated
 CLI automatically. Homepage rollback also runs the checked-in sources read-only;
 it ignores only the exact untouched legacy placeholder and preserves authored
 snapshots, empty authored snapshots, revisions and mutation histories.
+
+### Externally built application artifacts
+
+`stage-prebuilt` accepts images loaded with standard OCI/Docker archive tooling.
+Build the maintained `podman/{directus,frontend}/Containerfile` files from the
+clean Git source and label both images with
+`org.opencontainers.image.revision=<full-source-sha>`. Tag them with the release
+tag used by the target. The stage command rejects missing/mismatched revision
+labels, builds maintenance from source, verifies frontend output against the exact
+target environment and Node/platform/libc, and runs the vendor security tests.
+Activation retains the usual backup, clean-revision and runtime audit gates.
+
+Frontend builds use the maintained frontend-build command from podman-compose.yaml
+and productionOutput.mts prepare/stamp. Any transported build environment must stay
+in an owned mode-0600 file under a private release directory, mounted read-only in
+the disposable builder and never added to an image/context or printed in logs.
+Delete temporary environment copies after fingerprint verification. Import the
+staged output into the release's isolated volume before running stage-prebuilt.

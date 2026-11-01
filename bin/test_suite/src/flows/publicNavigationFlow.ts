@@ -787,13 +787,26 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
     await runner.step(
       "Public UI: municipality hero, sidebar history, themed toggles and statistics deep links",
       async () => {
+        await admin.updateItem("municipalities", fixture.municipality.id, { population: 50000 });
+        const ssr = await fetch(`${config.frontendUrl}/municipalities/${fixture.municipality.slug}?v=${slug}`, {
+          headers: { "Accept-Language": "de-DE" },
+        });
+        assert(
+          /data-testid="municipality-population"[^>]*>50\.000<\/span>/.test(await ssr.text()),
+          "SSR must format the population using the page locale",
+        );
         const page = await context.newPage();
+        const errors = collectPublicPageErrors(page);
         try {
           await page.goto(`${config.frontendUrl}/municipalities/${fixture.municipality.slug}?v=${slug}#sector-energy`, {
             waitUntil: "domcontentloaded",
           });
           await waitForHydration(page);
           await page.getByRole("heading", { level: 1, name: fixture.municipalityName, exact: true }).waitFor();
+          assert(
+            (await page.getByTestId("municipality-population").filter({ visible: true }).innerText()) === "50.000",
+            "Hydrated population must match SSR",
+          );
           const hero = page.locator("header").filter({ has: page.locator("h1") });
           assert(
             (await hero.locator("nav, a.canonical-button").count()) === 0,
@@ -831,6 +844,7 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
           await target.click();
           await page.waitForURL((url) => url.hash === "#measure-EN-PUBLIC" && url.searchParams.get("v") === slug);
           await page.locator('[name="measure-EN-PUBLIC"]:visible').first().waitFor();
+          assert(errors.length === 0, `Municipality navigation must hydrate without errors: ${errors.join("; ")}`);
         } finally {
           await page.close();
         }
