@@ -217,6 +217,7 @@ const hasLoaded = ref(false);
 const collectionDetails = ref<Collection | null>(null);
 const collectionSummary = ref<CollectionSummary | null>(null);
 const runtimeConfig = useRuntimeConfig();
+const { $translateDynamic } = useNuxtApp();
 let observer: IntersectionObserver | null = null;
 
 const {
@@ -239,7 +240,7 @@ const description = computed(() => {
   const firstStepDescription = localizedText(effectiveCollection.value.narrative_steps?.[0]?.description);
   return firstStepDescription || localizedText(effectiveCollection.value.description);
 });
-const sector = computed(() => sectorLabel(effectiveCollection.value));
+const sector = computed(() => sectorLabel(effectiveCollection.value, $translateDynamic));
 const sectorKeyValue = computed(() => sectorKey(effectiveCollection.value));
 const color = computed(() => sectorColor(effectiveCollection.value));
 const kpi = computed(() => firstKpiElement(effectiveCollection.value));

@@ -91,7 +91,6 @@ import {
   localizedText,
   normalizeCollection,
   sectorColor,
-  sectorKey,
   sectorLabel,
 } from "~/utils/dataProducts";
 
@@ -114,7 +113,10 @@ defineEmits<{
 const cardRef = ref<HTMLElement | null>(null);
 const collectionDetails = ref<Collection | null>(null);
 const aggregate = ref<Record<string, unknown> | null>(null);
-const canonicalKpi = ref<{ value: number | null; precision?: number | null | undefined } | null>(null);
+const canonicalKpi = ref<{
+  value: number | null;
+  precision?: number | null | undefined;
+} | null>(null);
 const hasRequestedSummary = ref(false);
 const hasRequestedDetails = ref(false);
 const runtimeConfig = useRuntimeConfig();
@@ -127,12 +129,7 @@ const title = computed(() => {
   const language = $locale.startsWith("de") ? "de-DE" : $locale.startsWith("it") ? "it-IT" : "de-DE";
   return titles?.[language] || titles?.["de-DE"] || localizedText(titles) || effectiveCollection.value.id;
 });
-const sector = computed(() => {
-  const key = sectorKey(effectiveCollection.value);
-  const translationKey = `measure_sectors.${key}.title`;
-  const translated = $translateDynamic(translationKey);
-  return translated && translated !== translationKey ? translated : sectorLabel(effectiveCollection.value);
-});
+const sector = computed(() => sectorLabel(effectiveCollection.value, $translateDynamic));
 const color = computed(() => sectorColor(effectiveCollection.value));
 const coverImage = computed(() =>
   collectionCoverImage(effectiveCollection.value, runtimeConfig.public.clientDirectusUrl),

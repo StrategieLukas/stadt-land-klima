@@ -405,7 +405,7 @@ html[data-theme="staedteChallengeDark"] .leaflet-control-attribution a {
 }
 
 html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
-  background: var(--slk-backdrop);
+  background: color-mix(in srgb, var(--slk-backdrop) 50%, transparent);
 }
 
 .slk-filter-theme-green {

@@ -1,6 +1,62 @@
 import type embed from "vega-embed";
 import type { EmbedOptions, Result, VisualizationSpec } from "vega-embed";
 import type { Spec as VegaSpec } from "vega";
+import { asRecord, cloneVisualization } from "../shared/visualization";
+
+/** Bind only continuous scales, and declare a layered selection on one unit. */
+export function withChartScaleZoom(input: unknown, name: string) {
+  const spec = asRecord(input);
+  if (
+    !spec ||
+    spec.hconcat ||
+    spec.vconcat ||
+    spec.concat ||
+    spec.facet ||
+    spec.repeat ||
+    !((typeof spec.$schema === "string" && spec.$schema.includes("vega-lite")) || spec.mark || spec.layer)
+  ) {
+    return { spec: input, enabled: false };
+  }
+  const cloned = cloneVisualization(spec);
+  const params: unknown[] = Array.isArray(cloned.params) ? cloned.params : [];
+  if (params.some((param) => asRecord(param)?.bind === "scales")) return { spec: cloned, enabled: true };
+  function target(value: Record<string, unknown>): { unit: Record<string, unknown>; encodings: string[] } | null {
+    const encoding = asRecord(value.encoding);
+    const encodings = ["x", "y"].filter((channel) => {
+      const definition = asRecord(encoding?.[channel]);
+      return (
+        typeof definition?.field === "string" &&
+        typeof definition.type === "string" &&
+        ["quantitative", "temporal"].includes(definition.type)
+      );
+    });
+    if (value.mark && encodings.length) return { unit: value, encodings };
+    for (const child of Array.isArray(value.layer) ? value.layer : []) {
+      const record = asRecord(child);
+      const found = record ? target(record) : null;
+      if (found) return found;
+    }
+    return null;
+  }
+  const found = target(cloned);
+  if (!found) return { spec: input, enabled: false };
+  found.unit.name = typeof found.unit.name === "string" ? found.unit.name : `${name}_view`;
+  cloned.params = [
+    ...params,
+    {
+      name,
+      select: {
+        type: "interval",
+        encodings: found.encodings,
+        translate: true,
+        zoom: true,
+      },
+      bind: "scales",
+      ...(found.unit !== cloned ? { views: [found.unit.name] } : {}),
+    },
+  ];
+  return { spec: cloned, enabled: true };
+}
 
 interface BarLabel {
   barName: string;
@@ -147,7 +203,9 @@ export function createLabelFunctions() {
   return {
     slzLabelPosition: position,
     measure,
-    clear: () => widths.clear(),
+    clear: () => {
+      widths.clear();
+    },
   };
 }
 
@@ -216,7 +274,10 @@ export async function embedCollectionChart(
   const patchFunction = typeof patch === "function" ? patch : undefined;
   const result = await vegaEmbed(target, spec, {
     ...options,
-    expressionFunctions: { ...options.expressionFunctions, slzLabelPosition: functions.slzLabelPosition },
+    expressionFunctions: {
+      ...options.expressionFunctions,
+      slzLabelPosition: functions.slzLabelPosition,
+    },
     patch: (compiled) => patchBarLabels(patchFunction ? patchFunction(compiled) : compiled, labels),
   });
   const view = result.view;
@@ -264,12 +325,12 @@ export async function embedCollectionChart(
     functions.clear();
     void layout();
   };
-  document.fonts?.addEventListener("loadingdone", fontChange);
+  document.fonts.addEventListener("loadingdone", fontChange);
   const finalize = result.finalize;
   result.finalize = () => {
     disposed = true;
     observer.disconnect();
-    document.fonts?.removeEventListener("loadingdone", fontChange);
+    document.fonts.removeEventListener("loadingdone", fontChange);
     finalize();
   };
   return result;

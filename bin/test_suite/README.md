@@ -237,3 +237,13 @@ data, credentials or email are used. See [Caddy migration](../../caddy/README.md
 Run `npm run test:ui-feedback -- http://localhost:8080` for German/English/Italian, desktop/mobile and light/dark homepage, municipality hero, keyboard toggle and city-filter icon checks. It needs one complete published assessment and one in-progress municipality; it does not create or modify content. Screenshots are written to `/tmp/slk-home-*.png`.
 
 The default development suite covers map progress redaction and statistics-to-assessment deep links with disposable data. `npm run test:municipality-ux:live -- http://localhost:8080` additionally checks native PDF export and chart interactions.
+
+### Data-product rendering
+
+`npm run test:data-page` checks pagination, cache isolation, real Vega/Vega-Lite zoom compilation and maintained sector translations. Run the read-only browser regression against a running stack with:
+
+```bash
+npm run test:data-products:live -- http://localhost:8080 stadtkreis_stuttgart
+```
+
+It verifies the cycleway worker and map, infrastructure chart zoom, geometry reuse on a theme change, and DE/EN/IT sector badges on product cover headers. It blocks write requests. The first geometry request can take about 11 seconds for the full Stuttgart network; the basemap must appear earlier. Other dataset and mobile/export combinations remain manual checks.

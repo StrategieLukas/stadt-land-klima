@@ -126,9 +126,8 @@
 import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from "leaflet";
 import { parseGeoData, type GeoData } from "~/shared/contracts/geometry";
 import type { PropType } from "vue";
-import { z } from "zod";
-import { fetchCollectionItems } from "~/utils/collectionItems";
-import { GeoFeatureSchema } from "~/shared/contracts/geometry";
+import type { z } from "zod";
+import { fetchCollectionItems, type CollectionItems } from "~/utils/collectionItems";
 import { SummarySchema } from "~/shared/contracts/slz";
 import type { Area } from "~/shared/contracts/search";
 import type { Collection } from "~/types/slz-api";
@@ -267,14 +266,9 @@ function nearbyOpts(area: Area): GeoJSONOptions {
 // ── Active collection data features ───────────────────────────────────────────
 
 const loadingFeatures = ref(false);
-type DataFeature = z.infer<typeof GeoFeatureSchema>;
-const ItemPageSchema = z.object({
-  type: z.literal("FeatureCollection").default("FeatureCollection"),
-  features: z.array(GeoFeatureSchema),
-  next: z.string().nullable().optional(),
-});
+type DataFeature = CollectionItems["features"][number];
 const dataFeatures = ref<DataFeature[]>([]);
-const dataFeatureCollection = ref<z.infer<typeof ItemPageSchema> | null>(null);
+const dataFeatureCollection = ref<CollectionItems | null>(null);
 const summaryData = ref<z.infer<typeof SummarySchema> | null>(null);
 
 const layerType = computed(() => props.activeCollection?.render_config?.layer_type ?? "points");

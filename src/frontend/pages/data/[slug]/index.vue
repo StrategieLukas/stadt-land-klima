@@ -287,7 +287,7 @@
                     v-html="sectorIconSvg(sector.key)"
                   />
                   <!-- eslint-enable vue/no-v-html -->
-                  {{ $translateDynamic(`measure_sectors.${sector.key}.title`) }}
+                  {{ sector.label }}
                 </button>
               </div>
             </div>
@@ -451,7 +451,10 @@ const { data: pageData, pending: areaPending } = useAsyncData(
 );
 
 if (import.meta.server && pageData.value?.notFound) {
-  throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
+  throw createError({
+    statusCode: 404,
+    statusMessage: "Gebiet nicht gefunden",
+  });
 }
 
 if (import.meta.server && pageData.value?.area && /^\d+$/.test(slug.value)) {
@@ -461,7 +464,10 @@ if (import.meta.server && pageData.value?.area && /^\d+$/.test(slug.value)) {
 
 watch(pageData, (value) => {
   if (value?.requestedSlug === slug.value && value?.notFound) {
-    throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Gebiet nicht gefunden",
+    });
   }
   if (value?.requestedSlug === slug.value && value?.area && /^\d+$/.test(slug.value)) {
     void navigateTo(`/data/${areaToSlug(value.area.prefix ?? "", value.area.name)}`, { replace: true });
@@ -527,7 +533,12 @@ async function loadNearbyAreasForCurrentArea() {
 
   try {
     const nearbyResult = await $fetch("/api/area-nearby", {
-      params: { ars: currentArea.ars, radius_km: 45, levels: "4,5,6", limit: 24 },
+      params: {
+        ars: currentArea.ars,
+        radius_km: 45,
+        levels: "4,5,6",
+        limit: 24,
+      },
       timeout: 8000,
     }).catch(() => ({ areas: [] }));
 
@@ -539,7 +550,11 @@ async function loadNearbyAreasForCurrentArea() {
           if (nearbyArea.geo_area ?? nearbyArea.geoArea) return nearbyArea;
           try {
             const withGeo = await $fetch("/api/area-by-slug", {
-              params: { slug: nearbyArea.ars, includeGeo: true, geometryOnly: true },
+              params: {
+                slug: nearbyArea.ars,
+                includeGeo: true,
+                geometryOnly: true,
+              },
               timeout: 8000,
             });
             return { ...nearbyArea, ...withGeo };
@@ -597,7 +612,9 @@ async function loadCollectionsForCurrentArea() {
     // Try slim manifest first: much smaller (no vegalite_specs), CDN-cached.
     // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded.
     const manifest = CollectionsResponseSchema.parse(
-      await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 }),
+      await $fetch(`${baseUrl}/api/manifests/collections-index`, {
+        timeout: 8000,
+      }),
     );
     const slim = (manifest?.collections ?? [])
       .filter((c) => isCollectionVisible(c.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG))
@@ -659,14 +676,19 @@ const sectorBarTop = computed(() => pillTop.value + 52);
 const productScrollMarginTop = computed(() => sectorBarTop.value + 58);
 
 const groupedCollections = computed(() => {
-  const groups: { key: string; label: string; color: string | undefined; collections: Collection[] }[] = [];
+  const groups: {
+    key: string;
+    label: string;
+    color: string | undefined;
+    collections: Collection[];
+  }[] = [];
   const byKey = new Map<string, (typeof groups)[number]>();
   for (const collection of collections.value) {
     const key = sectorKey(collection);
     if (!byKey.has(key)) {
       const group = {
         key,
-        label: $translateDynamic(`measure_sectors.${key}.title`) || sectorLabel(collection),
+        label: sectorLabel(collection, $translateDynamic),
         color: sectorColor(collection),
         collections: [] as Collection[],
       };
@@ -678,7 +700,13 @@ const groupedCollections = computed(() => {
   return groups;
 });
 
-const productSectors = computed(() => groupedCollections.value.map(({ key, label, color }) => ({ key, label, color })));
+const productSectors = computed(() =>
+  groupedCollections.value.map(({ key, label, color }) => ({
+    key,
+    label,
+    color,
+  })),
+);
 
 function sectorIconSvg(key: string) {
   const iconName = sectorIconNames[key];
@@ -821,8 +849,12 @@ function initProductSectionObserver() {
   if (typeof window === "undefined") return;
 
   updateActiveSectorFromScroll();
-  window.addEventListener("scroll", scheduleActiveSectorUpdate, { passive: true });
-  window.addEventListener("resize", scheduleActiveSectorUpdate, { passive: true });
+  window.addEventListener("scroll", scheduleActiveSectorUpdate, {
+    passive: true,
+  });
+  window.addEventListener("resize", scheduleActiveSectorUpdate, {
+    passive: true,
+  });
   removeProductSectionListeners = () => {
     window.removeEventListener("scroll", scheduleActiveSectorUpdate);
     window.removeEventListener("resize", scheduleActiveSectorUpdate);

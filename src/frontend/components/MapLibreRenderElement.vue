@@ -49,6 +49,7 @@
 
 <script setup lang="ts">
 import { fetchCollectionItems, isCollectionItemsUrl, type CollectionItems } from "~/utils/collectionItems";
+import mapLibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { clientDiagnostic } from "~/shared/securityLog";
 
 import { checkedMapStyle, visualizationUrl } from "~/shared/visualizationSafety";
@@ -93,6 +94,7 @@ let popup: import("maplibre-gl").Popup | null = null;
 let maplibregl: typeof import("maplibre-gl") | null = null;
 let densityAbortController: AbortController | null = null;
 let featureBoundsAbortController: AbortController | null = null;
+let renderAbortController: AbortController | null = null;
 let densityTimer: ReturnType<typeof setTimeout> | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -107,7 +109,7 @@ const spec = computed<MapLibreRenderSpec | null>(() => {
 });
 
 watch(
-  [spec, isDark],
+  spec,
   () => {
     if (import.meta.client) void renderMap();
   },
@@ -132,22 +134,22 @@ async function renderMap() {
   loading.value = true;
   error.value = false;
   destroyMap();
+  const controller = new AbortController();
+  renderAbortController = controller;
 
   try {
     const module = await import("maplibre-gl");
+    if (controller.signal.aborted || !containerRef.value) return;
     maplibregl = module;
+    module.setWorkerUrl(mapLibreWorkerUrl);
     didFitInitialBounds = false;
 
     const mapSpec = structuredCloneSafe(spec.value);
     const source = mapSpec.sources?.features;
-    if (source && typeof source.data === "string" && isCollectionItemsUrl(source.data)) {
-      const controller = new AbortController();
-      featureBoundsAbortController = controller;
-      const data = await fetchCollectionItems(source.data, controller.signal);
-      if (controller.signal.aborted || !containerRef.value) return;
-      loadedFeatureCollection = data;
-      source.data = data;
-    }
+    const featureUrl =
+      source && typeof source.data === "string" && isCollectionItemsUrl(source.data) ? source.data : null;
+    // Display the basemap while the complete, checked geometry is loading.
+    if (source && featureUrl) source.data = EMPTY_FEATURE_COLLECTION;
 
     map = new maplibregl.Map({
       container: containerRef.value,
@@ -165,31 +167,73 @@ async function renderMap() {
     });
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), "top-right");
-    popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, maxWidth: "320px" });
+    const currentMap = map;
+    popup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      maxWidth: "320px",
+    });
     observeContainerSize();
 
     requestAnimationFrame(() => {
       resizeMapAndRefreshHeatmaps();
     });
 
-    map.once("load", () => {
-      void (async () => {
-        resizeMapAndRefreshHeatmaps();
-        attachTooltipHandlers();
-        await fitToFeatureData();
-        await loadDensitySource();
-        map?.on("moveend", scheduleDensityLoad);
-        resizeMapAndRefreshHeatmaps();
-        mapReady.value = true;
-        loading.value = false;
-      })();
+    const styleLoaded = new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timer);
+        controller.signal.removeEventListener("abort", aborted);
+        currentMap.off("load", loaded);
+      };
+      const loaded = () => {
+        cleanup();
+        resolve();
+      };
+      const aborted = () => {
+        cleanup();
+        reject(new DOMException("Map removed", "AbortError"));
+      };
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error("Map style load timed out"));
+      }, 30000);
+      currentMap.once("load", loaded);
+      controller.signal.addEventListener("abort", aborted, { once: true });
     });
 
     map.on("error", (_event) => {
       clientDiagnostic("app.components.MapLibreRenderElement.renderMap.degraded", "warn");
     });
+    const [data] = await Promise.all([
+      featureUrl ? fetchCollectionItems(featureUrl, controller.signal) : Promise.resolve(null),
+      styleLoaded,
+    ]);
+    if (controller.signal.aborted || map !== currentMap) return;
+    if (data) {
+      loadedFeatureCollection = data;
+      const featureSource = currentMap.getSource("features");
+      if (featureSource instanceof module.GeoJSONSource) {
+        void featureSource.setData({
+          type: "FeatureCollection",
+          features: data.features.flatMap((feature) =>
+            feature.geometry ? [{ ...feature, geometry: feature.geometry }] : [],
+          ),
+        });
+      }
+    }
+    resizeMapAndRefreshHeatmaps();
+    attachTooltipHandlers();
+    await fitToFeatureData();
+    if (controller.signal.aborted || map !== currentMap) return;
+    await loadDensitySource();
+    if (controller.signal.aborted || map !== currentMap) return;
+    currentMap.on("moveend", scheduleDensityLoad);
+    resizeMapAndRefreshHeatmaps();
+    mapReady.value = true;
+    loading.value = false;
   } catch (cause) {
-    if (cause instanceof Error && cause.name === "AbortError") return;
+    if (controller.signal.aborted || (cause instanceof Error && cause.name === "AbortError")) return;
+    controller.abort();
     clientDiagnostic("app.components.MapLibreRenderElement.renderMap.degraded", "warn");
     error.value = true;
     loading.value = false;
@@ -197,6 +241,8 @@ async function renderMap() {
 }
 
 function destroyMap() {
+  renderAbortController?.abort();
+  renderAbortController = null;
   mapReady.value = false;
   loadedFeatureCollection = null;
   if (densityTimer) clearTimeout(densityTimer);
@@ -438,7 +484,9 @@ function ensureThemedBackgroundLayer(layers: Array<Record<string, unknown>>) {
   const fallback = {
     id: "slk-background",
     type: "background",
-    paint: { "background-color": isDarkThemeActive() ? DARK_MAP_BACKGROUND : LIGHT_MAP_BACKGROUND },
+    paint: {
+      "background-color": isDarkThemeActive() ? DARK_MAP_BACKGROUND : LIGHT_MAP_BACKGROUND,
+    },
   };
   return themeLayer(backgroundLayer ?? fallback);
 }
@@ -598,7 +646,11 @@ const tooltipFields = computed(() => {
   return rawFields
     .map((field) => {
       if (typeof field === "string") return { field, label: field };
-      if (field?.field) return { field: field.field, label: localizedLabel(field.label ?? field.title, field.field) };
+      if (field?.field)
+        return {
+          field: field.field,
+          label: localizedLabel(field.label ?? field.title, field.field),
+        };
       return null;
     })
     .filter(Boolean) as Array<{ field: string; label: string }>;
@@ -697,7 +749,9 @@ async function loadDensitySource() {
   densityAbortController = new AbortController();
 
   try {
-    const response = await fetch(resolveDensityUrl(template), { signal: densityAbortController.signal });
+    const response = await fetch(resolveDensityUrl(template), {
+      signal: densityAbortController.signal,
+    });
     const data = parseGeoData(await response.json());
     const source = map?.getSource("density");
     if (source instanceof maplibregl!.GeoJSONSource)

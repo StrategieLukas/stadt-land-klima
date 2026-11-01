@@ -29,9 +29,10 @@ export default defineEventHandler(async (event) => {
   try {
     const data = parseCms(
       AreaSchema,
-      await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(slug)}/`, {
-        params: geometryOnly ? { geometry_only: "true" } : undefined,
-      }),
+      await fetchStadtlandzahl(
+        `/api/areas/${encodeURIComponent(slug)}/`,
+        geometryOnly ? { params: { geometry_only: "true" } } : {},
+      ),
     );
     if (requireGeo && !data?.geo_area && !data?.geoArea) {
       throw createError({ statusCode: 502, statusMessage: `Geometry missing for area ${slug}` });

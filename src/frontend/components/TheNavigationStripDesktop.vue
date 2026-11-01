@@ -1,8 +1,5 @@
 <template>
-  <nav
-    ref="navRef"
-    class="border-t border-gray-200 bg-gray-50 dark:border-(--slk-border) dark:bg-(--slk-surface-subdued)"
-  >
+  <nav ref="navRef" class="border-t border-gray-200 dark:border-(--slk-border)">
     <ul class="mx-auto flex w-full max-w-(--breakpoint-xl) flex-wrap items-stretch justify-center px-2">
       <li
         v-for="item in safeItems"

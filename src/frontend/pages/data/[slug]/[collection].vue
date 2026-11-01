@@ -203,9 +203,10 @@ onMounted(async () => {
   const metadataTask = (async () => {
     try {
       const data = CollectionSchema.parse(
-        await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`, {
-          params: area.value?.ars ? { metadata_only: "true" } : undefined,
-        }),
+        await $fetch(
+          `${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`,
+          area.value?.ars ? { params: { metadata_only: "true" } } : {},
+        ),
       );
       collection.value = data;
       if (!area.value?.ars) await load(collectionSlug.value, data);

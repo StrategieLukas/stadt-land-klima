@@ -104,6 +104,7 @@ export const translationKeys = [
   "data.products.contact_title_general",
   "data.products.feedback_invite",
   "data.route_loading",
+  "data.sector.general",
   "date",
   "directus.fields.view_measure_on_frontend",
   "directus.interfaces.measure_preview.search_engine",

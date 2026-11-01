@@ -1,5 +1,6 @@
 import { RenderElementSchema } from "../shared/contracts/slz";
 import { cloneVisualization, asRecord } from "../shared/visualization";
+import type { DynamicTranslator } from "../shared/i18n";
 import type {
   Collection,
   CollectionCoverImage,
@@ -20,8 +21,16 @@ export const DATA_PRODUCT_SECTOR_COLORS: Record<string, string> = {
 
 const SECTOR_ALIASES: { key: string; pattern: RegExp; label: string }[] = [
   { key: "energy", pattern: /energy|energie/i, label: "Energy" },
-  { key: "transport", pattern: /transport|verkehr|connexion/i, label: "Transport" },
-  { key: "management", pattern: /management|climate protection/i, label: "Climate Protection Management" },
+  {
+    key: "transport",
+    pattern: /transport|verkehr|connexion/i,
+    label: "Transport",
+  },
+  {
+    key: "management",
+    pattern: /management|climate protection/i,
+    label: "Climate Protection Management",
+  },
   {
     key: "agriculture",
     pattern: /agriculture|nature|nutrition|landwirtschaft|natur/i,
@@ -51,7 +60,15 @@ export function sectorKey(collection: Pick<Collection, "sector">) {
   return (match?.key ?? fallback) || "other";
 }
 
-export function sectorLabel(collection: Pick<Collection, "sector" | "sector_label" | "sector_display">) {
+export function sectorLabel(
+  collection: Pick<Collection, "sector" | "sector_label" | "sector_display">,
+  translate?: DynamicTranslator,
+) {
+  const key = sectorKey(collection);
+  const translationKey =
+    key === "general" ? "data.sector.general" : key === "other" ? "generic.other" : `measure_sectors.${key}.title`;
+  const translated = translate?.(translationKey);
+  if (translated && translated !== translationKey) return translated;
   const camelCollection = collection as Collection & {
     sectorLabel?: Collection["sector_label"];
     sectorDisplay?: string;
@@ -111,7 +128,9 @@ export function firstKpiElement(
 }
 
 export function collectionCoverImage(collection: Collection, assetBaseUrl?: string | null) {
-  const camelCollection = collection as Collection & { coverImage?: CollectionCoverImage | null };
+  const camelCollection = collection as Collection & {
+    coverImage?: CollectionCoverImage | null;
+  };
   const cover = collection.cover_image ?? camelCollection.coverImage ?? null;
   if (!cover || typeof cover !== "object") return { url: null, attribution: null };
 
@@ -143,7 +162,9 @@ function buildBackendAssetUrl(uuid: string, assetBaseUrl?: string | null) {
 }
 
 export function collectionIconifyStr(collection: Collection) {
-  const camelCollection = collection as Collection & { iconifyStr?: string | null };
+  const camelCollection = collection as Collection & {
+    iconifyStr?: string | null;
+  };
   return collection.iconify_str ?? camelCollection.iconifyStr ?? null;
 }
 
@@ -222,9 +243,14 @@ export function formatKpiValue(kpi: RenderElement | null, value: number | null, 
   if (value >= 1_000_000) return `${(value / 1_000_000).toLocaleString("de-DE", { maximumFractionDigits: 1 })} Mio.`;
   if (value >= 10_000) return value.toLocaleString("de-DE", { maximumFractionDigits: 0 });
   if (typeof precision === "number") {
-    return value.toLocaleString("de-DE", { minimumFractionDigits: precision, maximumFractionDigits: precision });
+    return value.toLocaleString("de-DE", {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
+    });
   }
-  return value.toLocaleString("de-DE", { maximumFractionDigits: Number.isInteger(value) ? 0 : 1 });
+  return value.toLocaleString("de-DE", {
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 1,
+  });
 }
 
 export function injectAreaIntoSpec(spec: unknown, ars: string): import("../shared/visualization").EditableSpec | null {
