@@ -440,6 +440,9 @@ Commit and push fixes in the development checkout, then fetch that exact revisio
 `bin/podman-release.sh /home/deploy/.config/slk/future.env stage release-<sha> release-<previous-sha>`
 builds application images, stages output in a separate named volume, verifies its
 fingerprint and runs the pinned runtime vendor regressions while the old site runs.
+A staged artifact is reused only when its source/environment/runtime fingerprint
+passes verification. Nested activation errors invoke rollback; a failed rollback
+keeps maintenance active.
 Rebuild the runtime base images with `bin/podman.sh production build` first if their
 maintained inputs changed. Both scripts resolve paths from their own location.
 

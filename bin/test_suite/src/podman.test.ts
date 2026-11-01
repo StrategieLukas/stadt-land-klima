@@ -527,8 +527,11 @@ test("release staging failure leaves the live application untouched and activati
   writeFileSync(
     join(repo, "bin/podman.sh"),
     `#!/bin/sh
-printf '%s\n' "$*" >> "$RELEASE_PROBE_CALLS"
-case "$*" in *build*) exit 33 ;; esac
+printf '%s:%s\n' "$SLK_PODMAN_TAG" "$*" >> "$RELEASE_PROBE_CALLS"
+case "$*" in
+  *'--profile maintenance build '*) exit 33 ;;
+  *'up -d --no-build --no-deps directus'*) exit 34 ;;
+esac
 `,
     { mode: 0o700 },
   );
@@ -554,7 +557,7 @@ case "$*" in *host.env*) echo 600:1000 ;; *) echo 700:1000 ;; esac
     { mode: 0o700 },
   );
   const config = join(directory, "host.env");
-  writeFileSync(config, "SLK_PODMAN_PROJECT=slk-test\n", { mode: 0o600 });
+  writeFileSync(config, "SLK_PODMAN_PROJECT=slk-test\nSLK_PODMAN_TAG=release-b477ac14\n", { mode: 0o600 });
   const runtime = join(directory, "runtime");
   mkdirSync(join(runtime, "slk-podman"), { recursive: true });
   const env = {
@@ -572,4 +575,28 @@ case "$*" in *host.env*) echo 600:1000 ;; *) echo 700:1000 ;; esac
   writeFileSync(join(state, "stage.ok"), "");
   assert.equal(run("activate").status, 1);
   assert.doesNotMatch(readFileSync(calls, "utf8"), /stop|up -d|import-all/);
+  writeFileSync(join(state, "backup.verified"), "fixture backup");
+  writeFileSync(
+    join(tools, "podman"),
+    `#!/bin/sh
+case "$*" in *'ps -aq'*) echo probe-container ;; esac
+`,
+    { mode: 0o700 },
+  );
+  writeFileSync(
+    join(tools, "curl"),
+    `#!/bin/sh
+case "$*" in
+  *'/api/public/pages/index'*) echo '{"page":{"id":"homepage"}}' ;;
+  *'/api/public/blocks'*) echo '{"blocks":[]}' ;;
+esac
+`,
+    { mode: 0o700 },
+  );
+  const failed = run("activate");
+  assert.equal(failed.status, 34, failed.stderr);
+  const recorded = readFileSync(calls, "utf8");
+  assert.match(recorded, /release-b477ac14:production compose up -d --no-build --no-deps directus/);
+  assert.doesNotMatch(recorded, /stop maintenance/);
+  assert.match(failed.stderr, /maintenance retained/);
 });

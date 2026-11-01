@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Stage and activate application-only releases as the rootless deployment user.
-set -euo pipefail
+set -Eeuo pipefail
 umask 077
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
@@ -54,8 +54,8 @@ wait_ready() {
 copy_output() {
   local source="$1" target="$2"
   [[ "$source" != "$target" ]] || return 1
-  podman --remote=false volume exists "$source"
-  podman --remote=false volume create "$target" >/dev/null
+  podman --remote=false volume exists "$source" || return 1
+  podman --remote=false volume create "$target" >/dev/null || return 1
   podman --remote=false run --rm -i --network none --user 1000:1000 --userns keep-id:uid=1000,gid=1000 \
     --cap-drop ALL --security-opt no-new-privileges --security-opt "seccomp=$seccomp" \
     --read-only --memory 384m --pids-limit 128 --log-driver journald \
@@ -81,11 +81,11 @@ renameSync(temporary,path);
 JS
 }
 remove_app_containers() {
-  compose stop frontend directus
+  compose stop frontend directus || return 1
   for service in frontend directus; do
     local container
-    container="$(podman --remote=false ps -aq --filter "label=io.podman.compose.project=$project" --filter "label=io.podman.compose.service=$service")"
-    [[ -z "$container" ]] || podman --remote=false rm "$container"
+    container="$(podman --remote=false ps -aq --filter "label=io.podman.compose.project=$project" --filter "label=io.podman.compose.service=$service")" || return 1
+    if [[ -n "$container" ]]; then podman --remote=false rm "$container" || return 1; fi
   done
 }
 rollback() {
@@ -95,15 +95,15 @@ rollback() {
   if [[ -f "$state/import.started" ]]; then
     compose exec -T directus /directus/cli/node_modules/.bin/tsx /directus/cli/rollbackHomepage.ts < "$state/homepage.before.json" || return 1
   fi
-  remove_app_containers
-  copy_output "$saved" "$active"
+  remove_app_containers || return 1
+  copy_output "$saved" "$active" || return 1
   export SLK_PODMAN_TAG="$previous_tag"
-  persist_tag "$previous_tag"
-  compose up -d --no-build --no-deps directus
-  wait_ready "http://127.0.0.1:${SLK_PODMAN_CMS_PORT:-9001}/server/health"
-  compose up -d --no-build --no-deps frontend
-  wait_ready "http://127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}/"
-  compose --profile maintenance stop maintenance
+  persist_tag "$previous_tag" || return 1
+  compose up -d --no-build --no-deps directus || return 1
+  wait_ready "http://127.0.0.1:${SLK_PODMAN_CMS_PORT:-9001}/server/health" || return 1
+  compose up -d --no-build --no-deps frontend || return 1
+  wait_ready "http://127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}/" || return 1
+  compose --profile maintenance stop maintenance || return 1
   touch "$state/rollback.ok"
 }
 case "$action" in
@@ -127,7 +127,9 @@ case "$action" in
     printf '%s\n' "$revision" > "$state/revision"
     # Runtime base images are rebuilt separately when their maintained inputs change.
     compose --profile maintenance build directus frontend maintenance
-    compose -f "$state/stage.yaml" --profile build run --rm --no-deps -T frontend-build
+    if ! compose -f "$state/stage.yaml" run --rm --no-deps -T frontend node scripts/productionOutput.mts verify; then
+      compose -f "$state/stage.yaml" --profile build run --rm --no-deps -T frontend-build
+    fi
     compose -f "$state/stage.yaml" run --rm --no-deps -T frontend node scripts/productionOutput.mts verify
     compose run --rm --no-deps -T --entrypoint node directus --input-type=module -e 'await import("/opt/slk-directus-runtime-security/test-runtime.ts"); process.exit(0);'
     touch "$state/stage.ok"
