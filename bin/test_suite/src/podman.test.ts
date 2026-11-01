@@ -614,7 +614,7 @@ esac
   assert.equal(readFileSync(join(state, "rollback.ok"), "utf8"), "");
   assert.throws(() => readFileSync(join(state, "import.started")));
   const rollbackCalls = readFileSync(calls, "utf8");
-  assert.match(rollbackCalls, /production compose exec -T directus .*rollbackHomepage.ts/);
+  assert.match(rollbackCalls, /production compose run .*rollbackHomepage.ts/);
   assert.match(rollbackCalls, /release-b477ac14:production compose up -d --no-build --no-deps frontend/);
   assert.match(rollbackCalls, /production compose --profile maintenance stop maintenance/);
   const activated = run("activate", true);

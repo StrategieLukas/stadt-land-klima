@@ -466,3 +466,27 @@ and database rollback plan. Run read-only public browser, CSP, UI-feedback and P
 acceptance against the real hostname after activation. Retain the previous healthy
 images, output volume and verified backups until those checks pass. Retire obsolete
 build records and duplicate bundles explicitly; never use blanket volume pruning.
+
+### CLI-only content migrations
+
+For a reviewed content migration whose dependencies are unchanged, run the current
+clean checkout's TypeScript entrypoint and task sources as read-only mounts in a
+disposable CLI container. This keeps the live application running and applies the
+checked-in migration without patching the host checkout or a running container.
+For example, after fetching the pushed revision as `deploy` and loading the private
+host configuration, run from the repository root:
+
+```bash
+bin/podman.sh production compose run --rm --no-deps -T \
+  --entrypoint sh \
+  -v "$PWD/src/directus/cli/tasks:/directus/cli/tasks:ro,z" \
+  -v "$PWD/src/directus/cli/seedHomepage.ts:/directus/cli/seedHomepage.ts:ro,z" \
+  directus -ec 'export FRONTEND_DIRECTUS_URL="$1"; exec /directus/cli/node_modules/.bin/tsx /directus/cli/seedHomepage.ts' \
+  slk-cli "http://${SLK_PODMAN_PROJECT:?}_directus_1:8055"
+```
+
+Record the application image tag and migration source revision separately in the
+private release record. The next normal application build packages the updated
+CLI automatically. Homepage rollback also runs the checked-in sources read-only;
+it ignores only the exact untouched legacy placeholder and preserves authored
+snapshots, empty authored snapshots, revisions and mutation histories.

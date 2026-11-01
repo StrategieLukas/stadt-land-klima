@@ -99,7 +99,11 @@ rollback() {
   if [[ -f "$state/import.started" ]]; then
     compose up -d --no-build --no-deps directus || return 1
     wait_ready "http://127.0.0.1:${SLK_PODMAN_CMS_PORT:-9001}/server/health" || return 1
-    compose exec -T directus /directus/cli/node_modules/.bin/tsx /directus/cli/rollbackHomepage.ts < "$state/homepage.before.json" || return 1
+    compose run --rm --no-deps -T --entrypoint sh \
+      -v "$SCRIPT_DIR/../src/directus/cli/tasks:/directus/cli/tasks:ro,z" \
+      -v "$SCRIPT_DIR/../src/directus/cli/rollbackHomepage.ts:/directus/cli/rollbackHomepage.ts:ro,z" \
+      directus -ec 'export FRONTEND_DIRECTUS_URL="$1"; exec /directus/cli/node_modules/.bin/tsx /directus/cli/rollbackHomepage.ts' \
+      slk-cli "http://${project}_directus_1:8055" < "$state/homepage.before.json" || return 1
     rm "$state/import.started" || return 1
   fi
   remove_app_containers || return 1

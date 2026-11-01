@@ -1,6 +1,12 @@
 import { deleteItem, readItems } from "@directus/sdk";
 import { readFileSync } from "node:fs";
 import createDirectusClient from "./tasks/shared/createDirectusClient.ts";
+import clearDirectusCache from "./tasks/shared/clearDirectusCache.ts";
+import {
+  editorDraftStateFields,
+  isPristineEditorState,
+  type EditorDraftState,
+} from "./tasks/shared/editorDraftState.ts";
 
 // Operator-only release rollback: never remove a block that an editor changed.
 const page: unknown = JSON.parse(readFileSync(0, "utf8"));
@@ -20,7 +26,7 @@ const client = createDirectusClient<{
     field_name: string;
     sort_order: number;
   }[];
-  edit_states: { id: number; entity_type: string; entity_uuid: string }[];
+  edit_states: EditorDraftState[];
 }>();
 const filter = { entity_type: { _eq: "pages" }, entity_uuid: { _eq: page.id } };
 const blocks = await client.request(
@@ -30,11 +36,14 @@ const blocks = await client.request(
     limit: 2,
   }),
 );
-const drafts = await client.request(readItems("edit_states", { filter, fields: ["id"], limit: 1 }));
+const drafts = await client.request(
+  readItems("edit_states", { filter, fields: [...editorDraftStateFields], limit: 101 }),
+);
 const block = blocks[0];
 if (blocks.length === 0) process.exit(0);
 if (
-  drafts.length ||
+  drafts.length > 100 ||
+  drafts.some((draft) => !isPristineEditorState(draft)) ||
   blocks.length !== 1 ||
   block?.uuid !== "32233232-4056-4b53-92e1-59e4ca3f5a01" ||
   block.bundle !== "landing_page" ||
@@ -50,3 +59,4 @@ if (
   throw new Error("Homepage was edited; preserve it and review rollback manually");
 }
 await client.request(deleteItem("blocks", block.id));
+await clearDirectusCache();
