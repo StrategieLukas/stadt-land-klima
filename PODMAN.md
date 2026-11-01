@@ -509,6 +509,31 @@ the disposable builder and never added to an image/context or printed in logs.
 Delete temporary environment copies after fingerprint verification. Import the
 staged output into the release's isolated volume before running stage-prebuilt.
 
+Extract transported output as the runtime UID in the same `keep-id` namespace.
+Importing a tar archive with `podman volume import` can leave ownership unsuitable
+for the runtime namespace, even when the archive and its fingerprints are valid.
+Use the disposable build service and its release-specific `/release` mount; load
+the private host configuration and select the new image tag first, as above:
+
+```bash
+release_state="$HOME/.local/state/slk-releases/release-<sha>"
+bin/podman.sh production compose -f "$release_state/stage.yaml" --profile build \
+  run --rm --no-deps -T --entrypoint tar frontend-build \
+  --no-same-owner -xz -C /release < "$release_state/frontend-output.tar.gz"
+```
+
+Start with an empty release-specific output volume. Run the normal
+`stage-prebuilt` gate afterward; preserve the original fingerprint rather than
+rewriting it to accept an unreadable or mismatched artifact. The live output
+volume stays separate until activation.
+
+Before activation, stop and explicitly remove any temporary frontend preview
+container. A detached Compose one-off can retain its service label after it exits,
+even when started with `--rm`. Verify that the project has exactly one container
+record for each normal runtime service before switching; otherwise service
+selection can return multiple IDs and leave maintenance active. Keep the actual
+runtime containers and data volumes intact.
+
 Deployment locks belong to the coordinating shell. Runtime launchers explicitly
 close their lock descriptors so conmon, DNS helpers and port forwarders cannot
 retain them after a job finishes. For a host upgraded from an older wrapper,
