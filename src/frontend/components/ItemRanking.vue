@@ -21,7 +21,7 @@
             {{ isRanking ? municipality.name : $t("municipality.hero.score") }}
           </h3>
           <p v-if="isRanking">{{ municipality.state }}</p>
-          <p v-else class="text-sm">
+          <p v-else class="text-sm text-gray-700">
             {{ $t("municipality.hero.catalog", { ":version": municipalityScore.catalog_version.name }) }}
           </p>
         </div>

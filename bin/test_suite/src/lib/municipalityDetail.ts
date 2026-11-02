@@ -44,7 +44,10 @@ export async function assertMunicipalityDetailLayout(page: Page): Promise<void> 
       context.fillRect(0, 0, 1, 1);
     }
     const luminances: number[] = [];
-    for (const color of ["transparent", getComputedStyle(heading).color]) {
+    for (const color of [
+      "transparent",
+      ...[heading, ...card.querySelectorAll("p")].map((label) => getComputedStyle(label).color),
+    ]) {
       context.fillStyle = color;
       context.fillRect(0, 0, 1, 1);
       const linear = Array.from(context.getImageData(0, 0, 1, 1).data.slice(0, 3)).map((channel) => {
@@ -53,10 +56,14 @@ export async function assertMunicipalityDetailLayout(page: Page): Promise<void> 
       });
       luminances.push(linear[0]! * 0.2126 + linear[1]! * 0.7152 + linear[2]! * 0.0722);
     }
-    const [background, foreground] = luminances as [number, number];
-    return (Math.max(background, foreground) + 0.05) / (Math.min(background, foreground) + 0.05);
+    const background = luminances.shift()!;
+    return Math.min(
+      ...luminances.map(
+        (foreground) => (Math.max(background, foreground) + 0.05) / (Math.min(background, foreground) + 0.05),
+      ),
+    );
   });
-  assert(contrast >= 4.5, "Rating card headings must remain readable in both themes");
+  assert(contrast >= 4.5, "Rating card headings and catalogue labels must remain readable in both themes");
   const form = summary.locator('form[action^="/api/pdf/municipality/"]');
   assert.equal(await form.count(), 1, "PDF belongs inside the restored rating card");
   assert.equal(await form.getAttribute("method"), "post");
