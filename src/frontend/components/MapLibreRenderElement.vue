@@ -49,6 +49,7 @@
 
 <script setup lang="ts">
 import { fetchCollectionItems, isCollectionItemsUrl, type CollectionItems } from "~/utils/collectionItems";
+import mapLibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { clientDiagnostic } from "~/shared/securityLog";
 
 import { checkedMapStyle, visualizationUrl } from "~/shared/visualizationSafety";
@@ -135,6 +136,8 @@ async function renderMap() {
 
   try {
     const module = await import("maplibre-gl");
+    // Register the emitted asset; the library's relative URL is lost when bundled.
+    module.setWorkerUrl(mapLibreWorkerUrl);
     maplibregl = module;
     didFitInitialBounds = false;
 
