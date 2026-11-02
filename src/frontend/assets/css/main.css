@@ -331,15 +331,15 @@ html[data-theme="staedteChallengeDark"] {
   --slk-ranking-card-text: #101820;
   --slk-ranking-card-muted: #344054;
   --slk-municipalities-panel-bg: #203821;
-  --slk-filter-panel-bg: #344419;
-  --slk-filter-panel-border: #71862d;
+  --slk-filter-panel-bg: var(--slk-surface-subdued);
+  --slk-filter-panel-border: var(--slk-border-strong);
   --slk-filter-accent: #dfea9d;
   --slk-filter-active-bg: var(--color-primary);
   --slk-filter-active-text: #101820;
-  --slk-filter-inactive-bg: #1b2814;
+  --slk-filter-inactive-bg: var(--slk-surface);
   --slk-filter-inactive-text: #dfea9d;
   --slk-filter-inactive-border: #afca0b;
-  --slk-filter-hover-bg: #455b20;
+  --slk-filter-hover-bg: var(--slk-surface-muted);
   --slk-warning-text: #ffd199;
   --slk-success-text: #bfe9a4;
   --slk-on-dark-muted: #dce5ea;
@@ -532,15 +532,15 @@ html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
 }
 
 html[data-theme="staedteChallengeDark"] :is(.slk-filter-theme-green, .slk-filter-theme-lime) {
-  --slk-filter-panel-bg: #344419;
-  --slk-filter-panel-border: #71862d;
+  --slk-filter-panel-bg: var(--slk-surface-subdued);
+  --slk-filter-panel-border: var(--slk-border-strong);
   --slk-filter-accent: #dfea9d;
   --slk-filter-active-bg: var(--color-primary);
   --slk-filter-active-text: #101820;
-  --slk-filter-inactive-bg: #1b2814;
+  --slk-filter-inactive-bg: var(--slk-surface);
   --slk-filter-inactive-text: #dfea9d;
   --slk-filter-inactive-border: #afca0b;
-  --slk-filter-hover-bg: #455b20;
+  --slk-filter-hover-bg: var(--slk-surface-muted);
 }
 
 html[data-theme="staedteChallengeDark"] .slk-filter-theme-blue {
@@ -580,6 +580,45 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
 
 .municipalities-cta {
   background-color: var(--slk-municipalities-panel-bg);
+}
+
+.slk-filter-panel {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: none;
+}
+
+.slk-filter-row {
+  display: grid;
+  min-width: 0;
+  max-width: 100%;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  column-gap: 0.75rem;
+}
+
+.slk-municipality-filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.slk-municipality-filter-controls > .slk-filter-rule,
+.slk-filter-row--full {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.slk-filter-panel svg.slk-filter-panel-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.5rem;
+  align-self: start;
+}
+
+.slk-filter-pill > :is(svg, img):not(.slk-filter-chevron) {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
 }
 
 .slk-filter-panel-icon {
@@ -1698,8 +1737,8 @@ html[data-theme="staedteChallengeDark"] .shadow-list {
 /* External SVGs use masks so municipality type icons inherit each theme's pill text colour. */
 .slk-city-filter-icon {
   display: inline-block;
-  width: 1rem;
-  height: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
   flex-shrink: 0;
   background: currentColor;
   mask: var(--city-icon) center / contain no-repeat;

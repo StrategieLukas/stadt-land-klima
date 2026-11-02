@@ -41,6 +41,34 @@ async function assertFilterControls(page: Page) {
   assert(geometry[0]!.height >= 40, "Compact filter controls retain a usable touch target");
   for (const control of geometry)
     assert.deepEqual(control, geometry[0], "Pills, links and view toggles share geometry");
+  if (new URL(page.url()).pathname === "/municipalities") {
+    const rows = await panel.locator(".slk-filter-row").evaluateAll((elements) =>
+      elements.map((element) => {
+        const icon = element.querySelector(":scope > svg")!.getBoundingClientRect();
+        const control = element.querySelector("button,a")!.getBoundingClientRect();
+        return {
+          iconX: icon.x,
+          iconWidth: icon.width,
+          iconHeight: icon.height,
+          controlX: control.x,
+          centreOffset: Math.abs(icon.y + icon.height / 2 - control.y - control.height / 2),
+        };
+      }),
+    );
+    assert.equal(rows.length, 3);
+    assert.equal(rows[0]!.controlX, rows[2]!.controlX, "View and type filters start in the same control column");
+    if (page.viewportSize()!.width < 640)
+      assert.equal(rows[0]!.controlX, rows[1]!.controlX, "Wrapped catalogue controls retain the same phone column");
+    for (const row of rows) {
+      assert.equal(row.iconWidth, 24);
+      assert.equal(row.iconHeight, 24);
+      assert(row.centreOffset <= 1, "Leading icons align with the first control, including wrapped phone rows");
+    }
+    const icons = panel.locator(".slk-city-filter-icon");
+    assert.equal(await icons.count(), 3, "Each type choice has one icon from the same family");
+    for (const size of await icons.evaluateAll((elements) => elements.map((el) => [el.clientWidth, el.clientHeight])))
+      assert.deepEqual(size, [24, 24]);
+  }
   const contrasts = await controls.evaluateAll((elements) =>
     elements.map((element) => {
       const canvas = document.createElement("canvas");

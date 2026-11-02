@@ -117,7 +117,7 @@
     </div>
 
     <!-- Filter panel -->
-    <div class="slk-filter-panel slk-filter-theme-lime mb-6 flex flex-col gap-0 p-3 shadow-md">
+    <div class="slk-filter-panel slk-filter-theme-lime mb-6 flex flex-col gap-0">
       <!-- Collapsible toggle (only shown below xs breakpoint) -->
       <button
         class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
@@ -153,12 +153,11 @@
 
       <!-- Filter rows (always visible at xs+, collapsible below xs) -->
       <div v-show="filterOpen" class="xs:block!">
-        <!-- Row 1: View toggle + vertical divider + Catalog version -->
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-1.5">
-          <!-- View toggle group: icon + buttons stay together -->
-          <div class="flex items-center gap-2">
+        <div class="slk-municipality-filter-controls">
+          <!-- View and catalogue controls share the same leading column as the type filters. -->
+          <div class="slk-filter-row">
             <svg
-              class="slk-filter-panel-icon h-4 w-4 shrink-0"
+              class="slk-filter-panel-icon shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -170,6 +169,7 @@
                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
               />
             </svg>
+
             <CanonicalToggleGroup
               :model-value="isMapView ? 'map' : 'ranking'"
               :label="$t('generic.view.label')"
@@ -182,14 +182,11 @@
               "
             />
           </div>
+          <div class="slk-filter-divider hidden h-6 w-px self-center sm:block" />
 
-          <!-- Vertical divider (hidden when row wraps) -->
-          <div class="slk-filter-divider w-px self-stretch" />
-
-          <!-- Catalog version group: icon + buttons stay together -->
-          <div class="flex items-center gap-2">
+          <div class="slk-filter-row">
             <svg
-              class="slk-filter-panel-icon h-4 w-4 shrink-0"
+              class="slk-filter-panel-icon shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -216,75 +213,68 @@
               >
             </div>
           </div>
-        </div>
 
-        <div class="slk-filter-rule my-0.5 border-t" />
+          <div class="slk-filter-rule border-t" />
 
-        <!-- Row 2: Municipality type filter -->
-        <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-2 py-1.5">
-          <svg
-            class="slk-filter-panel-icon mt-1 h-4 w-4 shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
-            />
-          </svg>
-          <div class="flex flex-wrap items-center gap-2">
-            <button
-              class="slk-filter-pill"
-              :class="{ 'slk-filter-pill--active': selected === 'all' }"
-              @click="selected = 'all'"
+          <!-- Municipality type filter -->
+          <div class="slk-filter-row slk-filter-row--full">
+            <svg
+              class="slk-filter-panel-icon shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
             >
-              <div class="flex shrink-0 gap-0">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
+              />
+            </svg>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                class="slk-filter-pill"
+                :class="{ 'slk-filter-pill--active': selected === 'all' }"
+                @click="selected = 'all'"
+              >
                 <span
                   aria-hidden="true"
                   class="slk-city-filter-icon"
-                  style="--city-icon: url(/icons/minor-city-mask.svg)"
+                  style="--city-icon: url(/icons/municipalities-mask.svg)"
                 />
+                <span>{{ $t("municipalities.all") }}</span>
+              </button>
+              <button
+                class="slk-filter-pill"
+                :class="{ 'slk-filter-pill--active': selected === 'major_city' }"
+                @click="selected = 'major_city'"
+              >
                 <span
                   aria-hidden="true"
                   class="slk-city-filter-icon"
                   style="--city-icon: url(/icons/major-city-mask.svg)"
                 />
-              </div>
-              <span>{{ $t("municipalities.all") }}</span>
-            </button>
-            <button
-              class="slk-filter-pill"
-              :class="{ 'slk-filter-pill--active': selected === 'major_city' }"
-              @click="selected = 'major_city'"
-            >
-              <span
-                aria-hidden="true"
-                class="slk-city-filter-icon"
-                style="--city-icon: url(/icons/major-city-mask.svg)"
-              />
-              <span>{{ $t("municipalities.major_city.plural") }}</span>
-            </button>
-            <button
-              class="slk-filter-pill"
-              :class="{ 'slk-filter-pill--active': selected === 'minor_city' }"
-              @click="selected = 'minor_city'"
-            >
-              <span
-                aria-hidden="true"
-                class="slk-city-filter-icon"
-                style="--city-icon: url(/icons/minor-city-mask.svg)"
-              />
-              <span>{{ $t("municipalities.minor_city.plural") }}</span>
-            </button>
-            <span v-if="selected === 'major_city'" class="text-xs text-gray-500 italic">{{
-              $t("municipalities.major_city.threshold")
-            }}</span>
-            <span v-else-if="selected === 'minor_city'" class="text-xs text-gray-500 italic">{{
-              $t("municipalities.minor_city.threshold")
-            }}</span>
+                <span>{{ $t("municipalities.major_city.plural") }}</span>
+              </button>
+              <button
+                class="slk-filter-pill"
+                :class="{ 'slk-filter-pill--active': selected === 'minor_city' }"
+                @click="selected = 'minor_city'"
+              >
+                <span
+                  aria-hidden="true"
+                  class="slk-city-filter-icon"
+                  style="--city-icon: url(/icons/minor-city-mask.svg)"
+                />
+                <span>{{ $t("municipalities.minor_city.plural") }}</span>
+              </button>
+              <span v-if="selected === 'major_city'" class="text-xs text-gray-500 italic">{{
+                $t("municipalities.major_city.threshold")
+              }}</span>
+              <span v-else-if="selected === 'minor_city'" class="text-xs text-gray-500 italic">{{
+                $t("municipalities.minor_city.threshold")
+              }}</span>
+            </div>
           </div>
         </div>
       </div>
