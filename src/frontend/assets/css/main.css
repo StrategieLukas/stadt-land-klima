@@ -351,6 +351,41 @@ html[data-theme="staedteChallengeDark"] {
   backdrop-filter: blur(16px);
 }
 
+/* News filters and timeline links share readable, theme-aware interaction states. */
+.slk-timeline-navigation {
+  width: calc(100% + 2rem);
+  margin-inline: -1rem;
+  padding-inline: 1rem;
+}
+.slk-timeline-pill,
+.slk-news-filter {
+  flex: 1 0 auto;
+  border: 1px solid var(--slk-border);
+  border-radius: 9999px;
+  padding: 0.5rem 0.875rem;
+  background: var(--slk-surface-subdued);
+  color: var(--slk-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+.slk-timeline-pill:hover,
+.slk-news-filter:hover {
+  background: var(--slk-surface-muted);
+}
+.slk-timeline-pill[aria-current="location"],
+.slk-news-filter[aria-pressed="true"] {
+  border-color: var(--slk-blue);
+  background: var(--slk-blue-tint);
+  color: var(--slk-blue);
+}
+.slk-timeline-pill:focus-visible,
+.slk-news-filter:focus-visible {
+  outline: 2px solid var(--slk-blue);
+  outline-offset: 2px;
+}
+
 html,
 body,
 #nuxt-root,

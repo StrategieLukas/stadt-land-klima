@@ -132,6 +132,7 @@
 			zone slk_api_burst {
 				match {
 					path /backend/* /ai/*
+					not path /backend/admin/assets/*
 				}
 				key {remote_host}
 				events 21
@@ -140,6 +141,7 @@
 			zone slk_api_sustained {
 				match {
 					path /backend/* /ai/*
+					not path /backend/admin/assets/*
 				}
 				key {remote_host}
 				events 620
@@ -171,7 +173,7 @@
 			}
 			zone slk_assets_burst {
 				match {
-					path /_nuxt/*
+					path /_nuxt/* /backend/admin/assets/*
 				}
 				key {remote_host}
 				events 501
@@ -179,7 +181,7 @@
 			}
 			zone slk_assets_sustained {
 				match {
-					path /_nuxt/*
+					path /_nuxt/* /backend/admin/assets/*
 				}
 				key {remote_host}
 				events 6500

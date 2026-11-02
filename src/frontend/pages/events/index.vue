@@ -5,99 +5,44 @@
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("events.hero.description") }}</p>
     </header>
 
-    <!-- Mobile sticky scroll nav -->
+    <!-- Full-width timeline navigation -->
     <nav
-      class="sticky z-10 -mx-4 mb-6 border-b border-gray-100 bg-base-100 px-4 xl:hidden"
+      class="slk-timeline-navigation sticky z-10 mb-6 w-full border-b border-(--slk-border) bg-base-100"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
       <div
         ref="mobilePillStrip"
-        class="flex gap-2 overflow-x-auto py-2"
+        class="flex w-full gap-2 overflow-x-auto py-2"
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
         <a
           v-if="currentEvents.length"
           href="#section-momentan"
-          :class="[
-            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
-            activeSection === 'section-momentan'
-              ? 'bg-orange-100 text-orange-700'
-              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
-          ]"
+          class="slk-timeline-pill"
+          :aria-current="activeSection === 'section-momentan' ? 'location' : undefined"
           >{{ $t("events.section.current") }}</a
         >
         <a
           v-for="group in futureGroups"
           :key="group.monthKey"
           :href="`#section-${group.monthKey}`"
-          :class="[
-            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
-            activeSection === `section-${group.monthKey}`
-              ? 'bg-solid-stats-dark-10 font-semibold text-[#006e94]'
-              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
-          ]"
+          class="slk-timeline-pill"
+          :aria-current="activeSection === `section-${group.monthKey}` ? 'location' : undefined"
           >{{ group.label }}</a
         >
         <a
           v-for="group in pastGroups"
           :key="group.monthKey"
           :href="`#section-${group.monthKey}`"
-          :class="[
-            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
-            activeSection === `section-${group.monthKey}`
-              ? 'bg-gray-200 font-semibold text-gray-700'
-              : 'bg-gray-100 text-gray-400 hover:bg-gray-200',
-          ]"
+          class="slk-timeline-pill"
+          :aria-current="activeSection === `section-${group.monthKey}` ? 'location' : undefined"
           >{{ group.label }}</a
         >
       </div>
     </nav>
 
     <div class="flex items-start gap-8">
-      <!-- Left sticky sidebar (desktop only) -->
-      <nav class="sticky hidden w-44 shrink-0 self-start text-sm xl:block" :style="`top: ${headerHeight + 12}px`">
-        <p class="mb-3 text-xs font-bold tracking-widest text-gray-400 uppercase">{{ $t("news.sections") }}</p>
-        <ul class="space-y-1">
-          <li v-if="currentEvents.length">
-            <a
-              href="#section-momentan"
-              :class="[
-                'block truncate rounded-sm px-2 py-1 transition-colors',
-                activeSection === 'section-momentan'
-                  ? 'bg-orange-50 font-semibold text-orange-600'
-                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
-              ]"
-              >{{ $t("events.section.current") }}</a
-            >
-          </li>
-          <li v-for="group in futureGroups" :key="group.monthKey">
-            <a
-              :href="`#section-${group.monthKey}`"
-              :class="[
-                'block truncate rounded-sm px-2 py-1 transition-colors',
-                activeSection === `section-${group.monthKey}`
-                  ? 'bg-solid-stats-dark-05 font-semibold text-[#006e94]'
-                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
-              ]"
-              >{{ group.label }}</a
-            >
-          </li>
-          <li v-for="group in pastGroups" :key="group.monthKey">
-            <a
-              :href="`#section-${group.monthKey}`"
-              :class="[
-                'block truncate rounded-sm px-2 py-1 transition-colors',
-                activeSection === `section-${group.monthKey}`
-                  ? 'bg-gray-100 font-semibold text-gray-600'
-                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
-              ]"
-              >{{ group.label }}</a
-            >
-          </li>
-        </ul>
-      </nav>
-
       <!-- Main content -->
       <div class="min-w-0 flex-1">
         <!-- Currently happening -->
@@ -107,9 +52,7 @@
           class="mb-10"
           :style="`scroll-margin-top: ${sectionOffset}px`"
         >
-          <h2
-            class="mb-4 flex items-center border-b border-orange-200 pb-2 text-base font-semibold tracking-wide text-orange-600 uppercase"
-          >
+          <h2 class="mb-4 flex items-center border-b border-orange-200 pb-2 text-base font-semibold text-orange-600">
             <span class="inline-block h-2 w-2 animate-pulse rounded-full bg-orange-500"></span>
             {{ $t("events.section.current") }}
           </h2>
@@ -127,9 +70,7 @@
             class="mb-10"
             :style="`scroll-margin-top: ${sectionOffset}px`"
           >
-            <h2
-              class="mb-4 border-b border-gray-200 pb-2 text-base font-semibold tracking-wide text-gray-500 uppercase"
-            >
+            <h2 class="mb-4 border-b border-gray-200 pb-2 text-base font-semibold text-gray-500">
               {{ group.label }}
             </h2>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -148,7 +89,7 @@
           class="mt-10"
           :style="`scroll-margin-top: ${sectionOffset}px`"
         >
-          <h2 class="mb-6 border-b border-gray-100 pb-2 text-base font-semibold tracking-wide text-gray-400 uppercase">
+          <h2 class="mb-6 border-b border-gray-100 pb-2 text-base font-semibold text-gray-400">
             {{ $t("events.past") }}
           </h2>
           <div
@@ -158,7 +99,7 @@
             class="mb-10"
             :style="`scroll-margin-top: ${sectionOffset}px`"
           >
-            <h2 class="mb-4 border-b border-gray-100 pb-2 text-sm font-semibold tracking-wide text-gray-400 uppercase">
+            <h2 class="mb-4 border-b border-gray-100 pb-2 text-sm font-semibold text-gray-400">
               {{ group.label }}
             </h2>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -182,7 +123,7 @@ import { formatEventMonth, getEventMonthKey, getEventPhase } from "~/shared/even
 const fetchContent = useContentFetch();
 
 const { $t, $locale } = useNuxtApp();
-const { headerHeight, isDesktop, pillTop, sectionOffset, activeSection, mobilePillStrip } = useTimelineNavigation();
+const { isDesktop, pillTop, sectionOffset, activeSection, mobilePillStrip } = useTimelineNavigation();
 
 usePageSeo({ title: computed(() => $t("events.title")) });
 

@@ -48,3 +48,30 @@ These affect screenshots but should not be mistaken for CSS regressions:
 The previous comparison checked header typography and spacing but did not assert the navigation stripe's transparency. The shared header still had a 16px blur, while the stripe's solid `bg-gray-50`/dark surface covered it. Earlier header transparency was removed in dark-theme commit `9bd26bc5`; the shared glass style later returned at 90% opacity in `f62a142b`. The recent municipality/news fixes did not edit those header styles.
 
 The follow-up restores the earlier 82% theme surface, makes the desktop navigation stripe transparent, and preserves its existing shadow on scroll. Dropdown panels retain their own readable surfaces. `cssMigration.ts` now checks actual alpha and blur, the transparent stripe, the desktop scroll shadow and header reveal behavior in both themes and screen sizes.
+
+
+## November 2 feedback follow-up
+
+Compared the current public homepage content with the branch landing block. The
+branch omitted the workshop, assessment entry, personal onboarding, initiative,
+network and donation information. These entry points are restored without copying
+outdated workshop dates. Newsletter signup remains in the shared footer.
+
+Removed the uppercase landing eyebrow and heavy search box; simplified search
+copy and added the attributed Berlin/Friedensplatz project photograph. The news
+assessment-history action is removed. Municipality hero/summary avoid repeating
+the place name; the summary identifies the measure catalogue explicitly. Sidebar
+history uses the same circular light/dark icon treatment as the adjacent actions.
+News/events use full-width horizontal timeline navigation, shared semantic colors
+and stretched news filters. The translucent shared header remains preserved.
+
+Directus was reachable via HTTP but the browser failed to load Admin chunks
+because the CMS API burst limit returned 429. Admin assets now have an independent
+static budget; `/backend` redirects to the configured Admin entrypoint. No CMS
+origin migration is needed; proposed dedicated CMS subdomains currently do not
+resolve. No production infrastructure or DNS was modified.
+
+Targeted acceptance: `bin/test_suite/src/feedbackFollowupSmoke.ts` and the real
+Caddy proxy integration in `caddySecurity.ts`, alongside the existing locale,
+municipality, style and editor regression flows. The referenced “Bild 2” was not
+attached; the confirmed sidebar icon mismatch was corrected.

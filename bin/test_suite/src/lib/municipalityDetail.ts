@@ -31,7 +31,7 @@ export async function assertMunicipalityDetailLayout(page: Page): Promise<void> 
   assert.equal(await summary.count(), 1, "Only the current responsive assessment summary is visible");
   const contrast = await summary.evaluate((card) => {
     const heading = card.querySelector("h3");
-    if (!heading) throw new Error("The restored rating card must identify the municipality");
+    if (!heading) throw new Error("The rating card must identify the assessment");
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = 1;
     const context = canvas.getContext("2d");

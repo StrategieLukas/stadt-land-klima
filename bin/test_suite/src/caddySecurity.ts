@@ -354,6 +354,14 @@ try {
   assert.equal((await fetch("/elections/thesen/unavailable")).status, 503);
   const tooLarge = await fetch("/ai/chat", { "Content-Length": String(10485761) }, Buffer.alloc(10485761));
   assert.equal(tooLarge.status, 413, "AI retains nginx's 10 MiB body limit");
+  const adminAssets = await Promise.all(
+    Array.from({ length: 180 }, (_, index) => fetch(`/backend/admin/assets/chunk-${index}.js`)),
+  );
+  assert.ok(
+    adminAssets.every((response) => response.status === 200 && response.body.includes('"path":"/admin/assets/')),
+    "Directus must load its initial admin bundle without exhausting the CMS API budget",
+  );
+  assert.equal((await fetch("/backend/server/ping")).status, 200, "Admin chunks leave API capacity available");
   await fetch("/_test/cms-down");
   assert.match(
     (await fetch("/backend/server/health")).body,

@@ -45,7 +45,8 @@
     "sample:content-translation": "tsx src/contentTranslationSample.ts",
     "test:content-translation:reader": "SLK_TRANSLATION_READER_TEST=1 tsx --test src/contentTranslationReader.test.ts",
     "test:ui-feedback": "tsx src/uiFeedbackSmoke.ts",
-    "test:data-page": "tsx --test src/dataPageDelivery.test.ts"
+    "test:data-page": "tsx --test src/dataPageDelivery.test.ts",
+    "test:feedback-followup": "tsx src/feedbackFollowupSmoke.ts"
   },
   "dependencies": {
     "@playwright/test": "^1.64.1",

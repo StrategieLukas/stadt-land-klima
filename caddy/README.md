@@ -170,7 +170,7 @@ avoids that extra container networking layer.
 isolated Node upstreams. It verifies canonical redirects, decoded-path/deep/upgrade
 guards, spoofed forwarding headers, CSP nonce preservation, normal/encoded private
 referrers, body limits, status/connection maintenance fallback, credential-free
-fallback requests, private log canaries, a 180-chunk burst and independent page
+fallback requests, private log canaries, a 180-chunk frontend and CMS-admin bursts and independent page
 rate limits. Fixtures are capless, non-root, read-only and loopback-published;
 they never contact the application database or send mail. `SLK_CADDY_SECCOMP` can
 apply the derived Podman profile to the fixture. The quality workflow runs this
@@ -186,3 +186,5 @@ References: [Caddy proxy/error handling](https://caddyserver.com/docs/caddyfile/
 [request matching](https://caddyserver.com/docs/caddyfile/matchers),
 [log filters](https://caddyserver.com/docs/caddyfile/directives/log),
 [module algorithm and memory model](https://github.com/mholt/caddy-ratelimit).
+
+Directus admin files under `/backend/admin/assets/*` use the same independent static-asset budgets as `/_nuxt/*`. They do not consume the low-burst CMS API budget; all CMS guards and API limits still apply to other paths. This prevents the initial Admin bundle from failing with HTTP 429. The Nuxt `/backend` compatibility page redirects to the configured CMS `/admin/` entrypoint.

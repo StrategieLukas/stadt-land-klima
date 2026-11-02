@@ -17,8 +17,13 @@
     <div class="min-w-0 grow">
       <div class="flex flex-row items-start">
         <div class="mb-2">
-          <h3 class="font-heading text-h2 font-bold break-words text-black">{{ municipality.name }}</h3>
-          <p>{{ municipality.state }}</p>
+          <h3 class="font-heading text-h2 font-bold break-words text-black">
+            {{ isRanking ? municipality.name : $t("municipality.hero.score") }}
+          </h3>
+          <p v-if="isRanking">{{ municipality.state }}</p>
+          <p v-else class="text-sm">
+            {{ $t("municipality.hero.catalog", { ":version": municipalityScore.catalog_version.name }) }}
+          </p>
         </div>
       </div>
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>

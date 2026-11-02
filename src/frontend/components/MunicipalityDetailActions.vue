@@ -48,12 +48,16 @@
       :to="historyHref"
       class="slk-municipality-cta slk-municipality-cta--history flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
     >
-      <svg viewBox="0 0 24 24" aria-hidden="true" class="slk-municipality-cta-icon h-6 w-6 shrink-0 opacity-60">
-        <path
-          fill="currentColor"
-          d="M13.5 8H12v5l4.28 2.54l.72-1.21l-3.5-2.08zM13 3a9 9 0 0 0-9 9H1l3.96 4.03L9 12H6a7 7 0 0 1 7-7a7 7 0 0 1 7 7a7 7 0 0 1-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.9 8.9 0 0 0 13 21a9 9 0 0 0 9-9a9 9 0 0 0-9-9"
-        />
-      </svg>
+      <img
+        src="~/assets/icons/icon_history.svg"
+        alt=""
+        class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
+      />
+      <img
+        src="~/assets/icons/icon_history-dark.svg"
+        alt=""
+        class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
+      />
       <h3 class="font-heading text-h3">{{ $t("municipality.updates.title") }} →</h3>
     </NuxtLink>
   </nav>

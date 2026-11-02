@@ -1,15 +1,14 @@
 <template>
   <header class="mb-8 pt-2 sm:pt-4">
     <p class="mb-3 text-sm font-semibold text-gray">
-      <template v-if="municipality.state">{{ municipality.state }} <span aria-hidden="true">·</span> </template
-      >{{ score.catalog_version.name }}
+      <span v-if="municipality.state">{{ municipality.state }}</span>
       <span v-if="!complete" class="ml-2 badge badge-outline">{{ $t("municipality.hero.preview") }}</span>
     </p>
     <h1 class="mb-4 font-heading text-4xl leading-tight font-black break-words text-light-green sm:text-6xl">
       {{ municipality.name }}
     </h1>
     <p class="max-w-3xl text-lg leading-relaxed text-gray">
-      {{ $t("municipality.hero.description", { ":municipality": municipality.name }) }}
+      {{ $t("municipality.hero.introduction") }}
     </p>
   </header>
 </template>
