@@ -336,14 +336,14 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         for (const theme of ["staedteChallemgeTheme", "staedteChallengeDark"]) {
           const colors = await link.evaluate((button, selectedTheme) => {
             document.documentElement.dataset.theme = selectedTheme;
-            const accentProbe = document.createElement("span");
-            accentProbe.style.color = "var(--slk-accent-green)";
+            const surfaceProbe = document.createElement("span");
+            surfaceProbe.style.backgroundColor = "var(--slk-surface-muted)";
             const foregroundProbe = document.createElement("span");
             foregroundProbe.style.color = "var(--slk-text-strong)";
-            document.body.append(accentProbe, foregroundProbe);
-            const accent = getComputedStyle(accentProbe).color;
+            document.body.append(surfaceProbe, foregroundProbe);
+            const activeBackground = getComputedStyle(surfaceProbe).backgroundColor;
             const foreground = getComputedStyle(foregroundProbe).color;
-            accentProbe.remove();
+            surfaceProbe.remove();
             foregroundProbe.remove();
             const label = button.querySelector(".slk-dock-label")!;
             const painted = button.querySelector("svg [fill]:not([fill='none'])") ?? button.querySelector("svg")!;
@@ -352,15 +352,19 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
               button: getComputedStyle(button).color,
               label: getComputedStyle(label).color,
               icon: getComputedStyle(painted).fill,
-              accent,
+              activeBackground,
+              background: getComputedStyle(button).backgroundColor,
               inactive: getComputedStyle(document.querySelector("#page-drawer-toggle")!).color,
               foreground,
             };
           }, theme);
           assert(colors.current === "page", `${theme}: current dock page is exposed to assistive technology`);
           assert(
-            colors.button === colors.accent && colors.label === colors.accent && colors.icon === colors.accent,
-            `${theme}: active button, CMS SVG and label use the theme accent`,
+            colors.button === colors.foreground &&
+              colors.label === colors.foreground &&
+              colors.icon === colors.foreground &&
+              colors.background === colors.activeBackground,
+            `${theme}: active button, CMS SVG and label use the neutral foreground on the selected surface`,
           );
           assert(colors.inactive === colors.foreground, `${theme}: inactive menu uses the theme foreground`);
         }

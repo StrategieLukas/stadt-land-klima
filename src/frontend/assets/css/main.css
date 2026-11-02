@@ -351,6 +351,30 @@ html[data-theme="staedteChallengeDark"] {
   backdrop-filter: blur(16px);
 }
 
+.slk-cms-step-row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+  margin-block: 1rem 2rem;
+}
+.slk-cms-step-marker :is(img, h2) {
+  width: 2.5rem;
+  margin: 0;
+}
+.slk-cms-step-body > :first-child {
+  margin-top: 0;
+}
+.slk-cms-illustration {
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  background: #ffffff;
+  filter: none !important;
+}
+html[data-theme="staedteChallengeDark"] :is(.slk-cms-step-marker img, .slk-home-step-icon) {
+  filter: grayscale(1) invert(1);
+}
+
 /* News filters and timeline links share readable, theme-aware interaction states. */
 .slk-timeline-navigation {
   width: calc(100% + 2rem);

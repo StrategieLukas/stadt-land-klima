@@ -34,12 +34,13 @@
             compact
             :placeholder="$t('home.search.placeholder')"
           />
-          <NuxtLink
-            to="/map"
-            class="mt-3 inline-block text-sm font-semibold text-stats-dark underline underline-offset-4"
-          >
-            {{ $t("home.search.map") }}
-          </NuxtLink>
+          <CanonicalButton
+            href="/map"
+            :label="$t('home.search.map')"
+            icon-slug="icon_map_view"
+            color="bright-green"
+            class="mt-3"
+          />
         </div>
       </div>
       <figure class="min-w-0">
@@ -62,18 +63,24 @@
 
     <section aria-labelledby="home-how">
       <h2 id="home-how" class="mb-6 font-heading text-3xl font-bold text-gray">{{ $t("home.how.title") }}</h2>
-      <ol class="grid gap-4 md:grid-cols-3">
-        <li v-for="step in steps" :key="step.number" class="border-t-2 border-light-green py-5 sm:pr-6">
-          <span class="mb-3 inline-block font-heading text-2xl font-bold text-(--slk-olive-green)">{{
-            step.number
-          }}</span>
+      <div class="grid gap-6 md:grid-cols-3">
+        <div
+          v-for="step in steps"
+          :key="step.href"
+          class="flex flex-col items-start border-t border-(--slk-border) py-5 sm:pr-6"
+        >
+          <img :src="step.icon" alt="" class="slk-home-step-icon mb-4 size-12" />
           <h3 class="mb-2 font-heading text-xl font-bold text-gray">{{ step.title }}</h3>
           <p class="mb-4 leading-relaxed text-gray">{{ step.description }}</p>
-          <NuxtLink :to="step.href" class="font-semibold text-stats-dark underline underline-offset-4">{{
-            step.link
-          }}</NuxtLink>
-        </li>
-      </ol>
+          <CanonicalButton
+            :href="step.href"
+            :label="step.link"
+            :icon-slug="step.iconSlug"
+            color="bright-green"
+            class="mt-auto"
+          />
+        </div>
+      </div>
       <p v-if="data?.measureCount" class="mt-4 text-sm text-gray">
         {{ $t("home.catalog", { ":count": data.measureCount, ":catalog": data.catalog }) }}
       </p>
@@ -100,9 +107,12 @@
     <section aria-labelledby="home-projects">
       <div class="mb-5 flex flex-wrap items-baseline justify-between gap-3">
         <h2 id="home-projects" class="font-heading text-3xl font-bold text-gray">{{ $t("home.projects.title") }}</h2>
-        <NuxtLink to="/projects" class="font-semibold text-stats-dark underline underline-offset-4">{{
-          $t("home.projects.all")
-        }}</NuxtLink>
+        <CanonicalButton
+          href="/projects"
+          :label="$t('home.projects.all')"
+          color="bright-green"
+          icon-slug="icon_approved"
+        />
       </div>
       <p class="mb-5 max-w-3xl leading-relaxed text-gray">{{ $t("home.projects.description") }}</p>
       <div v-if="data?.projects.length" class="grid gap-5 md:grid-cols-3">
@@ -132,9 +142,12 @@
     <section v-if="data?.news.length" aria-labelledby="home-news">
       <div class="mb-5 flex flex-wrap items-baseline justify-between gap-3">
         <h2 id="home-news" class="font-heading text-3xl font-bold text-gray">{{ $t("home.news.title") }}</h2>
-        <NuxtLink to="/news" class="font-semibold text-stats-dark underline underline-offset-4">{{
-          $t("home.news.all")
-        }}</NuxtLink>
+        <CanonicalButton
+          href="/news"
+          :label="$t('home.news.all')"
+          color="bright-green"
+          icon-slug="icon_newsletter_click"
+        />
       </div>
       <div class="grid gap-5 md:grid-cols-3">
         <NuxtLink
@@ -163,14 +176,18 @@
         <h2 id="home-about" class="mb-3 font-heading text-3xl font-bold text-gray">{{ $t("home.about.title") }}</h2>
         <p class="mb-5 leading-relaxed text-gray">{{ $t("home.about.description") }}</p>
         <div class="flex flex-wrap gap-x-6 gap-y-3">
-          <NuxtLink to="/ueber-uns" class="font-semibold text-stats-dark underline underline-offset-4">{{
-            $t("home.about.more")
-          }}</NuxtLink>
-          <NuxtLink
-            to="/kooperationen-oder-partner-oder-netzwerk"
-            class="font-semibold text-stats-dark underline underline-offset-4"
-            >{{ $t("home.about.network") }}</NuxtLink
-          >
+          <CanonicalButton
+            href="/ueber-uns"
+            :label="$t('home.about.more')"
+            icon-slug="icon_info"
+            color="bright-green"
+          />
+          <CanonicalButton
+            href="/kooperationen-oder-partner-oder-netzwerk"
+            :label="$t('home.about.network')"
+            icon-slug="icon_team"
+            color="bright-green"
+          />
         </div>
       </div>
       <div class="border-l-4 border-light-green pl-6">
@@ -202,6 +219,9 @@
 </template>
 <script setup lang="ts">
 import { isRaster } from "~/shared/utils";
+import assessmentIcon from "~/assets/icons/icon_evaluation_criteria.svg?url&no-inline";
+import comparisonIcon from "~/assets/icons/icon_impact.svg?url&no-inline";
+import actionIcon from "~/assets/icons/icon_team.svg?url&no-inline";
 const { uuid } = defineBlokkli({
   bundle: "landing_page",
   propsFieldMapping: { title: { name: "title", type: "editable" }, subtitle: { name: "subtitle", type: "editable" } },
@@ -252,21 +272,24 @@ const gettingStarted = computed(() => [
 ]);
 const steps = computed(() => [
   {
-    number: 1,
+    icon: assessmentIcon,
+    iconSlug: "icon_evaluation_criteria",
     title: $t("home.how.assess.title"),
     description: $t("home.how.assess.description"),
     href: "/measures",
     link: $t("home.how.assess.link"),
   },
   {
-    number: 2,
+    icon: comparisonIcon,
+    iconSlug: "icon_impact",
     title: $t("home.how.compare.title"),
     description: $t("home.how.compare.description"),
     href: "/stats",
     link: $t("home.how.compare.link"),
   },
   {
-    number: 3,
+    icon: actionIcon,
+    iconSlug: "icon_team",
     title: $t("home.how.act.title"),
     description: $t("home.how.act.description"),
     href: "/projects",

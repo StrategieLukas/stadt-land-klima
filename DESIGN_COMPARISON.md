@@ -75,3 +75,23 @@ Targeted acceptance: `bin/test_suite/src/feedbackFollowupSmoke.ts` and the real
 Caddy proxy integration in `caddySecurity.ts`, alongside the existing locale,
 municipality, style and editor regression flows. The referenced “Bild 2” was not
 attached; the confirmed sidebar icon mismatch was corrected.
+
+
+## Navigation, participation and CMS-origin follow-up
+
+The current site preserves legacy float widths on `/mitmachen`; the maintained
+HTML sanitizer intentionally removes arbitrary layout CSS. A checked renderer now
+recognizes the six legacy participation steps and generates responsive icon/text
+rows without weakening the sanitizer. Both the registration illustration and the
+workflow diagram receive an explicit light artboard. Stored text is preserved.
+
+Navigation hover/current styles now use neutral semantic surfaces/text, including
+the desktop strip, dropdowns, connected menu, mobile sheet/drawer and dock. Header
+blur/translucency is preserved. Homepage action links, including the three
+how-it-works actions, use CanonicalButton and existing SLK symbols.
+
+The isolated Future CMS entrypoint, private environment migration/rollback,
+host-only cookies, exact CORS, anonymous public-media route and scoped old-origin
+session retirement are implemented in source. DNS/ACME and actual cutover status
+must be checked in the deployment record; source implementation alone does not
+mean the separate public hostname has been activated.

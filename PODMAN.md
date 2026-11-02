@@ -545,3 +545,44 @@ file; legacy helper descriptors then refer only to the retired inode.
 Child launch wrappers disable inherited ERR handlers as well as closing lock
 descriptors. Their failure returns to the coordinator, which starts recovery
 once; an audit failure must not run competing child and parent rollbacks.
+
+
+## Reproducible CMS-origin migration
+
+The application release remains rootless under `deploy`. For the Future migration,
+first verify DNS/TLS for `directus.stadt-land-klima.de` on the **Future** address and
+provision the bootstrap gateway described in `caddy/README.md`. Take the normal
+fresh release backups before changing private environment files, copy them off-host
+and verify them. Also retain the private environment migration checkpoint off-host;
+it contains secrets and must remain in a mode-0700 directory with mode-0600 files.
+
+From the clean deployment checkout, prepare the new environment with:
+
+```sh
+node bin/lib/cms-origin.ts prepare /home/deploy/.config/slk/future.env /home/deploy/.local/state/slk-releases/release-<sha> https://directus.stadt-land-klima.de
+```
+
+This updates only the explicitly configured private frontend/CMS/host env files;
+no checked-in host source is patched. It changes the public CMS URL, secure
+host-only cookie names, strict SameSite and exact CMS CORS origin. Build and stage
+the new frontend using this environment; its fingerprint must match. The website
+editor remains behind its opaque Nuxt HttpOnly session/BFF and internal CMS URL.
+
+`cms-origin.before.json` lets the normal release rollback restore the old private
+configuration before reusing old application artifacts. Concurrent operator edits
+stop restoration rather than being overwritten. Coordinate gateway rollback with
+the root-owned Caddy configuration backup; the deploy user does not control Caddy.
+After successful application acceptance, install the final gateway entrypoint,
+then retire the former browser-origin sessions inside Directus:
+
+```sh
+bin/podman.sh production compose exec -T directus /directus/cli/node_modules/.bin/tsx /directus/cli/retireCmsOriginSessions.ts https://future.stadt-land-klima.de https://directus.stadt-land-klima.de --apply
+```
+
+Without `--apply`, this command only counts matching sessions. It removes only
+interactive user sessions with that exact recorded origin; server/BFF sessions,
+shares, static identities, candidate access links and preview links are retained.
+Already issued stateless access JWTs expire under their existing short TTL; a
+subdomain change is not a signing-key rotation. Keep the old-origin Admin/API
+unavailable and verify actual login, public media/SVG loading, invitations/reset
+links and editor login/preview/publish before marking the cutover complete.

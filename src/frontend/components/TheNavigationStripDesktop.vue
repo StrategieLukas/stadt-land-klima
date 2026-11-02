@@ -51,7 +51,7 @@
           <!-- Chevron button: toggles dropdown on click/touch -->
           <button
             type="button"
-            class="nav-pr flex cursor-pointer items-center pl-1 text-gray-600 group-hover/trigger:text-olive-green dark:text-(--slk-text) dark:group-hover/trigger:text-(--slk-olive-green)"
+            class="nav-pr flex cursor-pointer items-center pl-1 text-gray-600 group-hover/trigger:text-(--slk-text-strong) dark:text-(--slk-text) dark:group-hover/trigger:text-(--slk-text-strong)"
             :aria-expanded="openMenuId === item.id"
             :aria-label="$t('navigation.submenu_for', { ':label': navLabel(item) })"
             @click.stop="toggleMenu(item.id)"
@@ -72,7 +72,7 @@
         <div
           v-if="hasChildren(item)"
           v-show="openMenuId === item.id"
-          class="absolute top-full left-0 z-10001 overflow-hidden rounded-b-xl border border-t-2 border-gray-200 border-t-light-green bg-white shadow-lg dark:border-(--slk-border) dark:bg-(--slk-surface) dark:shadow-[0_8px_24px_var(--slk-shadow-color)]"
+          class="absolute top-full left-0 z-10001 overflow-hidden rounded-b-xl border border-t-2 border-gray-200 border-t-(--slk-text-strong) bg-white shadow-lg dark:border-(--slk-border) dark:bg-(--slk-surface) dark:shadow-[0_8px_24px_var(--slk-shadow-color)]"
           @mouseenter="handleMenuEnter(item.id)"
           @mouseleave="handleMenuLeave()"
         >
@@ -131,9 +131,8 @@
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                 class="flex items-start border-b border-gray-50 px-4 py-3 text-sm font-semibold transition-colors last:border-b-0 dark:border-(--slk-border)"
                 :class="{
-                  'bg-solid-light-green-20 text-olive-green dark:bg-(--slk-green-tint) dark:text-(--slk-olive-green)':
-                    child.link_type === 'page' && isActive(child),
-                  'text-gray-700 hover:bg-solid-light-green-10 hover:text-gray-900 dark:text-(--slk-text-muted) dark:hover:bg-(--slk-surface-muted) dark:hover:text-(--slk-text-strong)':
+                  'bg-(--slk-surface-muted) text-(--slk-text-strong)': child.link_type === 'page' && isActive(child),
+                  'text-gray-700 hover:bg-(--slk-surface-muted) hover:text-gray-900 dark:text-(--slk-text-muted) dark:hover:bg-(--slk-surface-muted) dark:hover:text-(--slk-text-strong)':
                     !(child.link_type === 'page' && isActive(child)),
                 }"
                 @click="closeMenu"
@@ -333,14 +332,17 @@ onUnmounted(() => {
   border-bottom: 2px solid var(--slk-surface-subdued);
 }
 .nav-item:hover {
-  background: var(--slk-green-tint);
-  color: var(--slk-olive-green);
-  border-bottom-color: var(--slk-accent-green);
+  background: var(--slk-surface-muted);
+  color: var(--slk-text-strong);
+  border-bottom-color: var(--slk-text-strong);
 }
 .nav-item--active {
-  background: var(--slk-green-tint);
-  color: var(--slk-olive-green);
-  border-bottom-color: var(--slk-accent-green);
+  background: var(--slk-surface-muted);
+  color: var(--slk-text-strong);
+  border-bottom-color: var(--slk-text-strong);
+}
+.nav-item:is(:hover, .nav-item--active) :is(a, button, span) {
+  color: inherit;
 }
 .nav-item--active:hover {
   background: var(--slk-surface-muted);

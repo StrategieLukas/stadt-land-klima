@@ -106,6 +106,12 @@ remove_app_containers() {
 rollback() {
   trap - ERR
   echo 'Restoring previous application images and output; data services remain running.'
+  if [[ -f "$state/cms-origin.before.json" ]]; then
+    node "$SCRIPT_DIR/lib/cms-origin.ts" restore "$config" "$state" || return 1
+    set -a
+    source "$config"
+    set +a
+  fi
   # Only this migration's untouched seed may be removed. Authored content wins.
   if [[ -f "$state/import.started" ]]; then
     compose up -d --no-build --no-deps directus || return 1

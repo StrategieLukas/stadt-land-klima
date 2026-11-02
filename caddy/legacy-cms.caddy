@@ -1,0 +1,27 @@
+# The website origin never serves the old Admin application or authenticated CMS API.
+@slk_legacy_cms path /backend /backend/* /ai/*
+route @slk_legacy_cms {
+	header {
+		Referrer-Policy no-referrer
+		Cache-Control no-store
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+		+Set-Cookie "directus_session_token=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Strict"
+		+Set-Cookie "directus_refresh_token=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Strict"
+	}
+	@slk_legacy_entry path /backend /backend/
+	redir @slk_legacy_entry https://directus.stadt-land-klima.de/admin/ 308
+	@slk_legacy_read {
+		method GET HEAD
+		path /backend/admin /backend/admin/* /backend/assets/*
+	}
+	handle @slk_legacy_read {
+		route {
+			uri strip_prefix /backend
+			redir https://directus.stadt-land-klima.de{uri} 308
+		}
+	}
+	respond 410
+}

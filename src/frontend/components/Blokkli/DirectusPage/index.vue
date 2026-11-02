@@ -8,6 +8,7 @@
 <script setup lang="ts">
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 const fetchContent = useContentFetch();
+const renderCmsHtml = useCmsHtml();
 
 const { uuid } = defineBlokkli({
   bundle: "directus_page",
@@ -34,7 +35,7 @@ const { data: pageHtml } = await useAsyncData<string>(
     if (!props.pageSlug) return "";
     try {
       const result = await fetchContent(`/api/public/pages/${encodeURIComponent(props.pageSlug)}`);
-      return sanitizeHtml(result.page.contents || "");
+      return renderCmsHtml(result.page.contents);
     } catch {
       return "";
     }

@@ -72,13 +72,14 @@ const { options, uuid } = defineBlokkli({
   },
 });
 
+const renderCmsHtml = useCmsHtml();
 const props = defineProps<{
   content?: string | undefined;
 }>();
 
 const renderedContent = computed(() => {
   if (!props.content) return "";
-  return sanitizeHtml(md.render(props.content));
+  return renderCmsHtml(md.render(props.content));
 });
 
 const sizeClass = computed(() => {

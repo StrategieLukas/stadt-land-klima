@@ -47,6 +47,12 @@ try {
           await page.goto(base, { waitUntil: "domcontentloaded" });
           await waitForHydration(page);
           assert.equal(await page.locator("h1").count(), 1);
+          const steps = page.locator('[aria-labelledby="home-how"]');
+          assert.equal(await steps.locator("a.canonical-button").count(), 3);
+          assert.equal(await steps.locator("img.slk-home-step-icon").count(), 3);
+          for (const icon of await steps.locator("img.slk-home-step-icon").all()) {
+            await icon.evaluate((image) => (image as HTMLImageElement).decode());
+          }
           assert.equal(await page.locator("html").getAttribute("lang"), locale);
           assert.equal(await page.locator('input[name="q"]').count(), 1);
           assert.equal(await page.locator('a.canonical-button[href="/municipalities"]').count(), 1);
