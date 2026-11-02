@@ -253,7 +253,7 @@
                   style="--city-icon: url(/icons/major-city-mask.svg)"
                 />
               </div>
-              <span class="font-bold whitespace-nowrap">{{ $t("municipalities.all") }}</span>
+              <span>{{ $t("municipalities.all") }}</span>
             </button>
             <button
               class="slk-filter-pill"
@@ -265,7 +265,7 @@
                 class="slk-city-filter-icon"
                 style="--city-icon: url(/icons/major-city-mask.svg)"
               />
-              <span class="font-bold whitespace-nowrap">{{ $t("municipalities.major_city.plural") }}</span>
+              <span>{{ $t("municipalities.major_city.plural") }}</span>
             </button>
             <button
               class="slk-filter-pill"
@@ -277,7 +277,7 @@
                 class="slk-city-filter-icon"
                 style="--city-icon: url(/icons/minor-city-mask.svg)"
               />
-              <span class="font-bold whitespace-nowrap">{{ $t("municipalities.minor_city.plural") }}</span>
+              <span>{{ $t("municipalities.minor_city.plural") }}</span>
             </button>
             <span v-if="selected === 'major_city'" class="text-xs text-gray-500 italic">{{
               $t("municipalities.major_city.threshold")

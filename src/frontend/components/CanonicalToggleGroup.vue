@@ -101,6 +101,25 @@ async function onKeydown(event: KeyboardEvent, current: T) {
 .canonical-toggle-group[data-padding="large"] {
   --toggle-padding: 0.75rem 1.125rem;
 }
+.canonical-toggle-group[data-padding="compact"][data-appearance="soft"] {
+  flex-wrap: wrap;
+  padding: 0;
+  gap: 0.5rem;
+  border: 0;
+  background: transparent;
+}
+.canonical-toggle-group[data-padding="compact"][data-appearance="soft"] button {
+  min-height: var(--slk-filter-control-height);
+  padding: var(--slk-filter-control-padding);
+  border: 1px solid var(--slk-filter-inactive-border);
+  font-size: var(--slk-filter-control-font-size);
+  line-height: var(--slk-filter-control-line-height);
+  font-weight: var(--slk-filter-control-font-weight);
+  white-space: nowrap;
+}
+.canonical-toggle-group[data-padding="compact"][data-appearance="soft"] button[aria-checked="true"] {
+  border-color: var(--slk-filter-active-bg);
+}
 .canonical-toggle-group[data-appearance="retro"] {
   padding: 0;
   gap: 0;

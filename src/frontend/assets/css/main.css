@@ -284,6 +284,11 @@ html[data-theme="staedteChallemgeTheme"] {
   --slk-filter-inactive-text: #3f8342;
   --slk-filter-inactive-border: #afca0b;
   --slk-filter-hover-bg: #f6f9e3;
+  --slk-filter-control-height: 2.5rem;
+  --slk-filter-control-padding: 0.375rem 0.75rem;
+  --slk-filter-control-font-size: 0.875rem;
+  --slk-filter-control-line-height: 1.25rem;
+  --slk-filter-control-font-weight: 600;
   --slk-warning-text: #9a4d00;
   --slk-success-text: #1f6f31;
   --slk-on-dark-muted: #e7edf1;
@@ -317,23 +322,24 @@ html[data-theme="staedteChallengeDark"] {
   --slk-blue-tint: #173444;
   --slk-orange-tint: #402b16;
   --slk-red-tint: #3d1f24;
-  --slk-rating-0-tint: #c8a0a0;
-  --slk-rating-1-tint: #c8a870;
-  --slk-rating-2-tint: #c8b850;
-  --slk-rating-3-tint: #aac040;
-  --slk-rating-4-tint: #80b890;
+  --slk-rating-0-tint: #ffb3ba;
+  --slk-rating-1-tint: #ffcc85;
+  --slk-rating-2-tint: #ffe878;
+  --slk-rating-3-tint: #dfea76;
+  --slk-rating-4-tint: #88dda7;
   --slk-rating-na-tint: #8896a4;
   --slk-ranking-card-text: #101820;
   --slk-ranking-card-muted: #344054;
   --slk-municipalities-panel-bg: #203821;
-  --slk-filter-panel-bg: #203821;
-  --slk-filter-accent: #8faa10;
-  --slk-filter-active-bg: #8faa10;
-  --slk-filter-active-text: #ffffff;
-  --slk-filter-inactive-bg: #17212b;
-  --slk-filter-inactive-text: #b0c520;
-  --slk-filter-inactive-border: #b0c520;
-  --slk-filter-hover-bg: #263f28;
+  --slk-filter-panel-bg: #344419;
+  --slk-filter-panel-border: #71862d;
+  --slk-filter-accent: #dfea9d;
+  --slk-filter-active-bg: var(--color-primary);
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #1b2814;
+  --slk-filter-inactive-text: #dfea9d;
+  --slk-filter-inactive-border: #afca0b;
+  --slk-filter-hover-bg: #455b20;
   --slk-warning-text: #ffd199;
   --slk-success-text: #bfe9a4;
   --slk-on-dark-muted: #dce5ea;
@@ -479,17 +485,19 @@ html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
 }
 
 .slk-filter-theme-blue {
+  --slk-filter-panel-border: var(--slk-border);
   --slk-filter-panel-bg: #e8f7fd;
   --slk-filter-accent: #16bae7;
   --slk-filter-active-bg: #16bae7;
-  --slk-filter-active-text: #ffffff;
+  --slk-filter-active-text: #101820;
   --slk-filter-inactive-bg: #ffffff;
-  --slk-filter-inactive-text: #16bae7;
+  --slk-filter-inactive-text: #006e94;
   --slk-filter-inactive-border: #16bae7;
   --slk-filter-hover-bg: #e8f7fd;
 }
 
 .slk-filter-theme-neutral {
+  --slk-filter-panel-border: var(--slk-border);
   --slk-filter-panel-bg: #f2f2f2;
   --slk-filter-accent: #505050;
   --slk-filter-active-bg: #505050;
@@ -505,41 +513,43 @@ html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
   --slk-filter-panel-bg: #f5f9e6;
   --slk-filter-accent: #afca0b;
   --slk-filter-active-bg: #afca0b;
-  --slk-filter-active-text: #ffffff;
+  --slk-filter-active-text: #101820;
   --slk-filter-inactive-bg: #ffffff;
-  --slk-filter-inactive-text: #6b8000;
+  --slk-filter-inactive-text: #5b6f00;
   --slk-filter-inactive-border: #afca0b;
   --slk-filter-hover-bg: #f5f9e6;
 }
 .slk-filter-theme-stats {
+  --slk-filter-panel-border: var(--slk-border);
   --slk-filter-panel-bg: var(--slk-orange-tint);
   --slk-filter-accent: var(--slk-orange);
   --slk-filter-active-bg: var(--slk-orange);
-  --slk-filter-active-text: var(--color-gray);
+  --slk-filter-active-text: #101820;
   --slk-filter-inactive-bg: var(--slk-surface);
   --slk-filter-inactive-text: var(--slk-text);
   --slk-filter-inactive-border: var(--slk-orange);
   --slk-filter-hover-bg: var(--slk-orange-tint);
 }
 
-html[data-theme="staedteChallengeDark"] .slk-filter-theme-green {
-  --slk-filter-panel-bg: #203821;
-  --slk-filter-accent: #b0c520;
-  --slk-filter-active-bg: #3d9a58;
-  --slk-filter-active-text: #ffffff;
-  --slk-filter-inactive-bg: #17212b;
-  --slk-filter-inactive-text: #b0c520;
-  --slk-filter-inactive-border: #b0c520;
-  --slk-filter-hover-bg: #263f28;
+html[data-theme="staedteChallengeDark"] :is(.slk-filter-theme-green, .slk-filter-theme-lime) {
+  --slk-filter-panel-bg: #344419;
+  --slk-filter-panel-border: #71862d;
+  --slk-filter-accent: #dfea9d;
+  --slk-filter-active-bg: var(--color-primary);
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #1b2814;
+  --slk-filter-inactive-text: #dfea9d;
+  --slk-filter-inactive-border: #afca0b;
+  --slk-filter-hover-bg: #455b20;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-filter-theme-blue {
   --slk-filter-panel-bg: #173444;
   --slk-filter-accent: #4ab8d4;
-  --slk-filter-active-bg: #2898b0;
-  --slk-filter-active-text: #ffffff;
+  --slk-filter-active-bg: #16bae7;
+  --slk-filter-active-text: #101820;
   --slk-filter-inactive-bg: #17212b;
-  --slk-filter-inactive-text: #4ab8d4;
+  --slk-filter-inactive-text: #8adff4;
   --slk-filter-inactive-border: #4ab8d4;
   --slk-filter-hover-bg: #1f4153;
 }
@@ -555,16 +565,6 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-neutral {
   --slk-filter-hover-bg: #2a3947;
 }
 
-html[data-theme="staedteChallengeDark"] .slk-filter-theme-lime {
-  --slk-filter-panel-bg: #1a2e1b;
-  --slk-filter-accent: #8faa10;
-  --slk-filter-active-bg: #8faa10;
-  --slk-filter-active-text: #ffffff;
-  --slk-filter-inactive-bg: #17212b;
-  --slk-filter-inactive-text: #b0c520;
-  --slk-filter-inactive-border: #b0c520;
-  --slk-filter-hover-bg: #263f28;
-}
 html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
   --slk-filter-accent: var(--color-rating-1-light);
   --slk-filter-active-text: #101820;
@@ -574,7 +574,7 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
 .slk-filter-panel,
 .municipalities-cta {
   background-color: var(--slk-filter-panel-bg);
-  border: 1px solid var(--slk-border);
+  border: 1px solid var(--slk-filter-panel-border, var(--slk-border));
   color: var(--slk-text);
 }
 
@@ -587,11 +587,11 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
 }
 
 .slk-filter-divider {
-  background-color: var(--slk-border-strong);
+  background-color: var(--slk-filter-panel-border, var(--slk-border-strong));
 }
 
 .slk-filter-rule {
-  border-color: var(--slk-border);
+  border-color: var(--slk-filter-panel-border, var(--slk-border));
 }
 
 .slk-filter-pill {
@@ -601,11 +601,13 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
   border-radius: 9999px;
   color: var(--slk-filter-inactive-text);
   display: inline-flex;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: var(--slk-filter-control-font-size);
+  font-weight: var(--slk-filter-control-font-weight);
   gap: 0.375rem;
-  line-height: 1rem;
-  padding: 0.25rem 0.625rem;
+  line-height: var(--slk-filter-control-line-height);
+  min-height: var(--slk-filter-control-height);
+  padding: var(--slk-filter-control-padding);
+  cursor: pointer;
   transition:
     background-color 160ms ease,
     border-color 160ms ease,
@@ -615,6 +617,11 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
 
 .slk-filter-pill:hover {
   background-color: var(--slk-filter-hover-bg);
+}
+
+.slk-filter-pill:focus-visible {
+  outline: 2px solid var(--slk-filter-accent);
+  outline-offset: 2px;
 }
 
 .slk-filter-pill--active {
