@@ -359,14 +359,31 @@ html[data-theme="staedteChallengeDark"] {
 
 .slk-cms-step-row {
   display: grid;
+  max-width: 48rem;
   grid-template-columns: 2.5rem minmax(0, 1fr);
   align-items: start;
-  gap: 1rem;
-  margin-block: 1rem 2rem;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  margin-block: 1.5rem 2rem;
 }
-.slk-cms-step-marker :is(img, h2) {
+.slk-cms-step-marker {
+  @apply bg-light-green font-heading text-black;
+  display: grid;
   width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
   margin: 0;
+  border: 2px solid var(--slk-text-strong);
+  border-radius: 0.5rem;
+  box-shadow: 3px 3px 0 var(--slk-text-strong);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.slk-cms-step-body {
+  min-width: 0;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 .slk-cms-step-body > :first-child {
   margin-top: 0;
@@ -377,7 +394,7 @@ html[data-theme="staedteChallengeDark"] {
   background: #ffffff;
   filter: none !important;
 }
-html[data-theme="staedteChallengeDark"] :is(.slk-cms-step-marker img, .slk-home-step-icon) {
+html[data-theme="staedteChallengeDark"] .slk-home-step-icon {
   filter: grayscale(1) invert(1);
 }
 

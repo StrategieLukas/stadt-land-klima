@@ -1,5 +1,7 @@
 # Future compared with the current frontend
 
+For the newer comparison of the deployed production and Future websites, see [the 4 November 2026 audit](LIVE_FUTURE_COMPARISON.md). This file retains the earlier Future-versus-local comparison and its historical follow-ups.
+
 Comparison date: 1 November 2026. Baseline: https://future.stadt-land-klima.de, application release `3bf7b200`, deployment checkout `881e3f1b`. Comparison implementation: `641e0744` plus the filter-mask and homepage-news fixes in this change.
 
 ## Scope and evidence

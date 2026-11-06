@@ -3,11 +3,7 @@ import render from "dom-serializer";
 import { sanitizeHtml } from "./sanitizeHtml";
 
 /** Preserve authored legacy content without restoring arbitrary inline layout CSS. */
-export function legacyCmsHtml(
-  raw: string | null | undefined,
-  cmsBase: string,
-  stepIcons: readonly string[] = [],
-): string {
+export function legacyCmsHtml(raw: string | null | undefined, cmsBase: string): string {
   if (!raw) return "";
   const document = parseDocument(raw);
   const base = cmsBase.replace(/\/+$/, "");
@@ -47,13 +43,17 @@ export function legacyCmsHtml(
     DomUtils.appendChild(row, body);
     marker.attribs.class = "slk-cms-step-marker";
     body.attribs.class = "slk-cms-step-body";
-    const icon = stepIcons[Number(step[1]) - 1];
-    if (icon) {
-      const image = DomUtils.getElementsByTagName("img", parseDocument("<img>").children)[0]!;
-      image.attribs = { src: icon, alt: "", width: "40", height: "40" };
-      for (const child of [...marker.children]) DomUtils.removeElement(child);
-      DomUtils.appendChild(marker, image);
-      marker.attribs["aria-hidden"] = "true";
+    for (const child of [...marker.children]) DomUtils.removeElement(child);
+    DomUtils.appendChild(marker, parseDocument(step[1]!).children[0]!);
+
+    const heading = DomUtils.prevElementSibling(row);
+    if (heading?.name === "h3") {
+      DomUtils.removeElement(heading);
+      DomUtils.prependChild(body, heading);
+    }
+    // Let the text column determine wrapping instead of legacy manual breaks.
+    for (const lineBreak of DomUtils.getElementsByTagName("br", body.children, true)) {
+      DomUtils.replaceElement(lineBreak, parseDocument(" ").children[0]!);
     }
   }
   return sanitizeHtml(render(document));

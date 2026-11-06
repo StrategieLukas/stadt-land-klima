@@ -7,18 +7,19 @@ import { legacyCmsHtml } from "../../../src/frontend/utils/legacyCmsHtml.js";
 import { prepareCmsOrigin, restoreCmsOrigin, replaceEnvironment } from "../../lib/cms-origin.js";
 import { retireCmsOriginSessions } from "../../../src/directus/cli/retireCmsOriginSessions.js";
 
-test("legacy participation steps keep adjacent icons/text, nested authored sections and safe media", () => {
+test("legacy participation steps keep numbered heading/text rows and nested authored sections without forced breaks", () => {
   const result = legacyCmsHtml(
-    `<div id="mitmachen_1"><h3>Start</h3><div style="float:left;width:20%"><h2>1.</h2></div><div style="float:left;width:60%"><p>Authored text <a href="/register_localteam">Register</a></p></div></div>
+    `<div id="mitmachen_1"><h3>Start</h3><div style="float:left;width:20%"><h2>1.</h2></div><div style="float:left;width:60%"><p>Authored text<br><a href="/register_localteam">Register</a></p></div></div>
     <div id="mitmachen_2"><h3>Research</h3><div><h2>2.</h2></div><div><p>Sources</p></div>
     <div id="mitmachen_3"><h3>Assess</h3><div><h2>3.</h2></div><div><p>Evidence</p></div></div>`,
     "https://cms.example",
-    ["/start.svg", "/research.svg", "/assess.svg"],
   );
   assert.equal((result.match(/slk-cms-step-row/g) || []).length, 3);
   for (const text of ["Authored text", "Register", "Sources", "Evidence", "Research"]) assert(result.includes(text));
   assert(!result.includes("float:") && !result.includes("width:20%"));
-  for (const name of ["start", "research", "assess"]) assert(result.includes(`src="/${name}.svg"`));
+  for (const number of [1, 2, 3]) assert(result.includes(`class="slk-cms-step-marker">${number}</div>`));
+  assert(result.includes('class="slk-cms-step-body"><h3>Start</h3><p>Authored text <a'));
+  assert(!/<img|<br|aria-hidden/.test(result));
 });
 
 test("legacy CMS URLs move to the configured origin without accepting executable HTML or rewriting foreign sites", () => {
