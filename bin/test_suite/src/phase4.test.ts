@@ -476,10 +476,17 @@ test("municipality manifest cache coalesces requests, separates origins and retr
 
 test("collection rendering validates both paths, resolves narrative plot IDs and clears stale diagrams on failure", async () => {
   const replies: unknown[] = [];
+  const requests: { url: string; params?: Record<string, unknown> }[] = [];
   const { useCollectionRender } = load(
     "composables/useCollectionRender.ts",
     { vue, "~/shared/contracts/slz": slzContracts },
-    { $fetch: async () => replies.shift() },
+    {
+      useNuxtApp: () => ({ $locale: "en-GB" }),
+      $fetch: async (url: string, options?: { params?: Record<string, unknown> }) => {
+        requests.push({ url, ...options });
+        return replies.shift();
+      },
+    },
   );
   const render = useCollectionRender("https://data.test");
   const element = { plot_id: "plot", type: "kpi", vegalite_spec: null };
@@ -495,6 +502,10 @@ test("collection rendering validates both paths, resolves narrative plot IDs and
   assert.equal(render.steps.value[0].elements[0].plot_id, "plot");
   replies.push({ render_elements: [element], narrative_steps: [narrative] });
   await render.loadFromRender("collection", "11");
+  assert.deepEqual(plain(requests.at(-1)), {
+    url: "https://data.test/api/collections/collection/render/",
+    params: { area: "11", lang: "en-US" },
+  });
   assert.equal(render.steps.value[0].elements.length, 1);
   assert.equal(render.elementByPlotId.value.size, 1);
   replies.push({ render_elements: [{ type: "invalid" }] });

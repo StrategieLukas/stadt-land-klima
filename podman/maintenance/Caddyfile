@@ -1,0 +1,25 @@
+{
+	admin off
+	auto_https off
+	persist_config off
+	log {
+		level WARN
+		output stderr
+		format filter {
+			wrap json
+			fields {
+				request delete
+				error delete
+				uri delete
+				msg replace maintenance.runtime_event
+			}
+		}
+	}
+}
+
+:8080 {
+	root * /usr/share/caddy
+	header Cache-Control "no-store"
+	try_files {path} /index.html
+	file_server
+}

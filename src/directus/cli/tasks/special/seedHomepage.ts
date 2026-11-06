@@ -1,5 +1,6 @@
 import { createItem, readItems } from "@directus/sdk";
 import createDirectusClient from "../shared/createDirectusClient.ts";
+import { editorDraftStateFields, isPristineEditorState, type EditorDraftState } from "../shared/editorDraftState.ts";
 
 /** Add an editable landing block only to an unmigrated homepage. Legacy HTML stays recoverable. */
 export async function seedHomepage() {
@@ -17,7 +18,7 @@ export async function seedHomepage() {
       status: string;
       sort_order: number;
     }[];
-    edit_states: { id: number; entity_type: string; entity_uuid: string }[];
+    edit_states: EditorDraftState[];
   }>();
   const [page] = await client.request(
     readItems("pages", { filter: { slug: { _eq: "index" }, status: { _eq: "published" } }, fields: ["id"], limit: 1 }),
@@ -26,10 +27,11 @@ export async function seedHomepage() {
   const filter = { entity_type: { _eq: "pages" }, entity_uuid: { _eq: page.id } };
   const [blocks, drafts] = await Promise.all([
     client.request(readItems("blocks", { filter, fields: ["id"], limit: 1 })),
-    client.request(readItems("edit_states", { filter, fields: ["id"], limit: 1 })),
+    client.request(readItems("edit_states", { filter, fields: [...editorDraftStateFields], limit: 101 })),
   ]);
   // Existing authored content and in-flight drafts always win, including after a rollback.
-  if (blocks.length || drafts.length) return;
+  // Keep empty legacy placeholders intact; they are not authored drafts.
+  if (blocks.length || drafts.length > 100 || drafts.some((draft) => !isPristineEditorState(draft))) return;
   await client.request(
     createItem("blocks", {
       uuid: "32233232-4056-4b53-92e1-59e4ca3f5a01",
@@ -43,4 +45,5 @@ export async function seedHomepage() {
       sort_order: 0,
     }),
   );
+  return true;
 }

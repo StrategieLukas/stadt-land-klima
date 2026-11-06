@@ -1,10 +1,11 @@
 <template>
   <div
-    class="relative mb-3 flex items-stretch gap-4 py-5 pr-4 pl-10"
-    :class="[isRanking ? 'shadow-list' : '', colorClass.bg]"
+    class="slk-ranking-card relative mb-3 flex items-stretch gap-4 px-4 py-5 sm:pl-10"
+    :class="[isRanking ? 'shadow-list' : '', colorClass.bg, colorClass.theme]"
+    :data-testid="isRanking ? undefined : 'municipality-assessment-summary'"
   >
-    <div class="relative h-full pt-6">
-      <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
+    <div class="relative h-full shrink-0 pt-6">
+      <img src="~/assets/icons/icon_location_green_marker.svg" alt="" class="my-auto h-auto w-8" />
 
       <div
         class="absolute top-0 w-full text-center font-heading text-3xl font-bold break-keep whitespace-nowrap text-black"
@@ -13,11 +14,16 @@
       </div>
     </div>
 
-    <div class="grow">
+    <div class="min-w-0 grow">
       <div class="flex flex-row items-start">
         <div class="mb-2">
-          <h3 class="font-heading text-h2 font-bold text-black">{{ municipality.name }}</h3>
-          <p>{{ municipality.state }}</p>
+          <h3 class="font-heading text-h2 font-bold break-words text-black">
+            {{ isRanking ? municipality.name : $t("municipality.hero.score") }}
+          </h3>
+          <p v-if="isRanking">{{ municipality.state }}</p>
+          <p v-else class="text-sm text-gray-700">
+            {{ $t("municipality.hero.catalog", { ":version": municipalityScore.catalog_version.name }) }}
+          </p>
         </div>
       </div>
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
@@ -36,12 +42,16 @@
       </svg>
     </div>
     <PdfExportForm
-      v-else
+      v-else-if="complete"
+      class="shrink-0"
       :action="`/api/pdf/municipality/${municipality.slug}`"
       :request="{ slug: municipality.slug, catalogVersion: props.municipalityScore.catalog_version?.name }"
     >
-      <button type="submit" class="flex h-10 w-16 cursor-pointer items-center justify-center bg-gray text-white">
-        PDF
+      <button
+        type="submit"
+        class="flex h-10 w-16 cursor-pointer items-center justify-center bg-gray text-white focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        {{ $t("municipality.hero.pdf") }}
       </button>
     </PdfExportForm>
   </div>
@@ -49,6 +59,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { MunicipalityScore } from "~/types/components/municipality";
+import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 
 const props = defineProps({
   municipalityScore: {
@@ -61,15 +72,16 @@ const props = defineProps({
     default: false,
   },
 });
-const municipality = props.municipalityScore.municipality;
-const scoreTotalRounded = Math.round(Number(props.municipalityScore.score_total) * 10) / 10;
+const municipality = computed(() => props.municipalityScore.municipality);
+const scoreTotalRounded = computed(() => Math.round(Number(props.municipalityScore.score_total) * 10) / 10);
+const complete = computed(() => isMunicipalityScoreComplete(props.municipalityScore));
 
 const colors = {
-  0: { bg: "bg-rating-0/10" },
-  20: { bg: "bg-rating-1/10" },
-  40: { bg: "bg-rating-2/10" },
-  60: { bg: "bg-rating-3/10" },
-  80: { bg: "bg-rating-4/10" },
+  0: { bg: "bg-rating-0/10", theme: "slk-ranking-card--rating-0" },
+  20: { bg: "bg-rating-1/10", theme: "slk-ranking-card--rating-1" },
+  40: { bg: "bg-rating-2/10", theme: "slk-ranking-card--rating-2" },
+  60: { bg: "bg-rating-3/10", theme: "slk-ranking-card--rating-3" },
+  80: { bg: "bg-rating-4/10", theme: "slk-ranking-card--rating-4" },
 };
 
 const colorClass = computed(() => {

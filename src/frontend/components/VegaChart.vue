@@ -68,6 +68,7 @@
 
 <script setup lang="ts">
 import { embedCollectionChart } from "~/utils/collectionCharts";
+import { withNativeScaleZoom } from "~/utils/chartZoom";
 import { clientDiagnostic } from "~/shared/securityLog";
 
 import { checkedVisualizationSpec, safeVisualizationLoader } from "~/shared/visualizationSafety";
@@ -183,7 +184,7 @@ async function render() {
     nativeZoomEnabled.value = false;
     await nextTick();
     const responsiveSpec = withTheme(withResponsiveSize(props.spec));
-    const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(responsiveSpec);
+    const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(responsiveSpec, nativeZoomParamName);
     nativeZoomEnabled.value = hasNativeZoom;
 
     const result = await embedCollectionChart(vegaRef.value, checkedVisualizationSpec(embeddableSpec), vegaEmbed, {
@@ -357,83 +358,10 @@ function resetNativeZoom() {
   void render();
 }
 
-function withNativeScaleZoom(spec: unknown) {
-  if (!supportsNativeScaleZoom(spec)) return { spec, enabled: false };
-
-  const cloned = cloneVisualization(spec);
-  const params: unknown[] = Array.isArray(cloned.params) ? cloned.params : [];
-  const hasScaleBoundParam = params.some((param) => asRecord(asRecord(param)?.select)?.bind === "scales");
-
-  if (!hasScaleBoundParam) {
-    cloned.params = [
-      ...params,
-      {
-        name: nativeZoomParamName,
-        select: {
-          type: "interval",
-          bind: "scales",
-          translate: true,
-          zoom: true,
-        },
-      },
-    ];
-  }
-
-  return { spec: cloned, enabled: true };
-}
-
-function supportsNativeScaleZoom(spec: unknown) {
-  if (!spec || typeof spec !== "object") return false;
-  if (!isVegaLiteSpec(spec)) return false;
-  if (isMultiViewSpec(spec)) return false;
-  if (hasNonFieldCartesianEncoding(spec)) return false;
-  return hasFieldBackedCartesianEncoding(spec);
-}
-
-function isVegaLiteSpec(input: unknown) {
-  const spec = asRecord(input);
-  if (!spec) return false;
-  const schema = displayScalar(spec.$schema);
-  return schema.includes("vega-lite") || "mark" in spec || "encoding" in spec || "layer" in spec;
-}
-
 function isMultiViewSpec(input: unknown) {
   const spec = asRecord(input);
   if (!spec) return false;
   return !!(spec.hconcat || spec.vconcat || spec.concat || spec.facet || spec.repeat);
-}
-
-function hasFieldBackedCartesianEncoding(input: unknown): boolean {
-  const value = asRecord(input);
-  if (!value) return false;
-  const encoding = asRecord(value.encoding);
-  if (isFieldDef(encoding?.x) || isFieldDef(encoding?.y)) return true;
-  for (const key of ["layer"]) {
-    if (Array.isArray(value[key]) && value[key].some(hasFieldBackedCartesianEncoding)) return true;
-  }
-  if (value.spec && hasFieldBackedCartesianEncoding(value.spec)) return true;
-  return false;
-}
-
-function hasNonFieldCartesianEncoding(input: unknown): boolean {
-  const value = asRecord(input);
-  if (!value) return false;
-  const encoding = asRecord(value.encoding);
-  if (isNonFieldPositionDef(encoding?.x) || isNonFieldPositionDef(encoding?.y)) return true;
-  if (Array.isArray(value.layer) && value.layer.some(hasNonFieldCartesianEncoding)) return true;
-  if (value.spec && hasNonFieldCartesianEncoding(value.spec)) return true;
-  return false;
-}
-
-function isFieldDef(input: unknown) {
-  const channel = asRecord(input);
-  if (!channel) return false;
-  return typeof channel.field === "string";
-}
-
-function isNonFieldPositionDef(channel: unknown) {
-  if (!channel || typeof channel !== "object" || Array.isArray(channel)) return false;
-  return !isFieldDef(channel);
 }
 
 const baseFilename = computed(() => {

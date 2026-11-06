@@ -4,7 +4,7 @@
     <!-- Input + label -->
     <form class="relative min-w-0 flex-1 overflow-visible" @submit.prevent>
       <div class="flex w-full flex-col">
-        <label for="admin-search-input" class="flex items-center justify-between px-1 py-2">{{
+        <label for="admin-search-input" :class="compact ? 'sr-only' : 'flex items-center justify-between px-1 py-2'">{{
           translatedLabel
         }}</label>
         <input
@@ -172,6 +172,8 @@ try {
 }
 
 const props = defineProps({
+  compact: { type: Boolean, default: false },
+  placeholder: { type: String, default: undefined },
   basePath: {
     type: String as PropType<string | undefined>,
     default: "",
@@ -250,10 +252,12 @@ const translatedLabel = computed(() =>
     : $t("administrative_areas.search.all_administrative_areas.label"),
 );
 
-const translatedPlaceholder = computed(() =>
-  filterType.value === "reasonable"
-    ? $t("administrative_areas.search.reasonable_municipality.placeholder")
-    : $t("administrative_areas.search.all_administrative_areas.placeholder"),
+const translatedPlaceholder = computed(
+  () =>
+    props.placeholder ||
+    (filterType.value === "reasonable"
+      ? $t("administrative_areas.search.reasonable_municipality.placeholder")
+      : $t("administrative_areas.search.all_administrative_areas.placeholder")),
 );
 
 function onInput() {

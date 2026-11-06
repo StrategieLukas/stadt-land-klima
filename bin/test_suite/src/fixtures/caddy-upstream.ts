@@ -1,9 +1,13 @@
 /** Disposable Caddy integration upstream. Never included in application images. */
 import { createServer } from "node:http";
 const frontend = createServer((request, response) => {
+  if (request.url === "/_test/cms-up") {
+    cms.listen(9001, "0.0.0.0", () => response.end("started"));
+    return;
+  }
   if (request.url === "/_test/cms-down") {
-    cms.close();
-    response.end("stopped");
+    cms.close(() => response.end("stopped"));
+    cms.closeAllConnections();
     return;
   }
   response.setHeader("X-Powered-By", "synthetic-upstream");
@@ -19,6 +23,8 @@ const cms = createServer((request, response) => {
     response.end(
       JSON.stringify({
         path: request.url,
+        authorization: request.headers.authorization,
+        cookie: request.headers.cookie,
         method: request.method,
         realIp: request.headers["x-real-ip"],
         forwardedFor: request.headers["x-forwarded-for"],

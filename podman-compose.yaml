@@ -32,7 +32,7 @@ services:
       - /tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777
       - /run:rw,nosuid,nodev,noexec,size=16m,mode=755
       - /var/tmp:rw,nosuid,nodev,noexec,size=16m,mode=1777
-      - /var/run/postgresql:rw,nosuid,nodev,noexec,size=16m,uid=999,gid=999,mode=700
+      - /var/run/postgresql:rw,nosuid,nodev,noexec,size=16m,U,mode=700
     networks: [database]
     shm_size: 256m
     mem_limit: "${SLK_DB_MEMORY_LIMIT:-2G}"
@@ -120,7 +120,7 @@ services:
       - ./src/directus/contents:/directus/contents:ro,z
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,size=256m,mode=1777
-      - /directus/.tmp:rw,nosuid,nodev,noexec,size=512m,uid=1000,gid=1000,mode=700
+      - /directus/.tmp:rw,nosuid,nodev,noexec,size=512m,U,mode=700
       - /run:rw,nosuid,nodev,noexec,size=16m,mode=755
       - /var/tmp:rw,nosuid,nodev,noexec,size=16m,mode=1777
     networks: [database, services, edge]
@@ -204,16 +204,9 @@ services:
     <<: *security
     profiles: [maintenance]
     build:
-      context: ./docker/maintenance
+      context: .
+      dockerfile: podman/maintenance/Containerfile
     image: localhost/slk-podman-maintenance:${SLK_PODMAN_TAG:-local}
-    # Skip root-only nginx entrypoint edits; pid and temporary files stay in /tmp.
-    entrypoint: [nginx]
-    command: [-g, "daemon off;"]
-    volumes:
-      - ./podman/maintenance/nginx.conf:/etc/nginx/nginx.conf:ro,z
-      - ./docker/maintenance/index.html:/usr/share/nginx/html/index.html:ro,z
-      - ./src/frontend/assets/images/Stadt-Land-Klima-Logotype_bordered.svg:/usr/share/nginx/html/logo.svg:ro,z
-      - ./docker/maintenance/maintenance-meta.js:/usr/share/nginx/html/maintenance-meta.js:ro,z
     networks: [edge]
     mem_limit: 64m
     pids_limit: 32

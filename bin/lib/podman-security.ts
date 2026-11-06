@@ -1,9 +1,19 @@
 /** Fail-closed host/runtime checks. Never print inspect/config JSON: it contains secrets. */
 import { execFileSync } from "node:child_process";
-import { lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  closeSync,
+  lstatSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import { randomUUID } from "node:crypto";
 import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { homedir } from "node:os";
 
 class PodmanSecurityError extends Error {}
 
@@ -17,7 +27,69 @@ function strings(value: unknown): string[] {
     throw new PodmanSecurityError("Invalid Podman security list");
   return value;
 }
-export function assertPodmanHost(value: unknown): string {
+export const inheritedAppArmorProfile = "slk-rootless";
+export function assertAppArmorLabel(label: string): void {
+  const match = /^(.+) \((enforce|mixed)\)$/.exec(label.trim());
+  if (!match || !match[1]!.split("//&").includes(inheritedAppArmorProfile))
+    throw new PodmanSecurityError("The inherited slk-rootless AppArmor profile is missing");
+}
+export function assertInheritedAppArmor(value: {
+  label: string;
+  profiles: string;
+  source: string;
+  expectedSource: string;
+  stat: { isFile: () => boolean; uid: number; mode: number };
+}): void {
+  assertAppArmorLabel(value.label);
+  if (!value.profiles.split("\n").includes(`${inheritedAppArmorProfile} (enforce)`))
+    throw new PodmanSecurityError("The slk-rootless AppArmor profile must be loaded in enforce mode");
+  if (!value.stat.isFile() || value.stat.uid !== 0 || (value.stat.mode & 0o022) !== 0)
+    throw new PodmanSecurityError("The inherited AppArmor policy must be a root-owned, protected regular file");
+  if (value.source !== value.expectedSource)
+    throw new PodmanSecurityError("The installed AppArmor profile differs from the maintained policy");
+}
+function verifyInheritedAppArmor(): boolean {
+  let label: string;
+  try {
+    label = readFileSync("/proc/self/attr/current", "utf8");
+  } catch {
+    return false;
+  }
+  if (!label.includes(inheritedAppArmorProfile)) return false;
+  const path = `/etc/apparmor.d/${inheritedAppArmorProfile}`;
+  // The legacy profiles listing requires MAC_ADMIN. Policyfs exposes read-only
+  // profile names/modes to the operator without granting policy administration.
+  const policyRoot = "/sys/kernel/security/apparmor/policy/profiles";
+  const profiles = readdirSync(policyRoot)
+    .filter((entry) => entry.startsWith(`${inheritedAppArmorProfile}.`))
+    .map((entry) => {
+      const directory = resolve(policyRoot, entry);
+      return `${readFileSync(resolve(directory, "name"), "utf8").trim()} (${readFileSync(resolve(directory, "mode"), "utf8").trim()})`;
+    })
+    .join("\n");
+  assertInheritedAppArmor({
+    label,
+    profiles,
+    source: readFileSync(path, "utf8"),
+    expectedSource: readFileSync(new URL("../../podman/apparmor/slk-rootless", import.meta.url), "utf8"),
+    stat: lstatSync(path),
+  });
+  // The administrator creates this writable canary outside the confined process.
+  // Opening without writing proves enforcement without altering its contents.
+  const canary = resolve(homedir(), ".local/state/slk-apparmor-denied");
+  const stat = lstatSync(canary);
+  if (!stat.isFile() || stat.uid !== process.getuid?.() || (stat.mode & 0o777) !== 0o600)
+    throw new PodmanSecurityError("The inherited AppArmor enforcement canary is not prepared");
+  try {
+    const descriptor = openSync(canary, "a");
+    closeSync(descriptor);
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "EACCES") return true;
+    throw error;
+  }
+  throw new PodmanSecurityError("The inherited AppArmor policy did not deny its writable canary");
+}
+export function assertPodmanHost(value: unknown, inheritedAppArmor = false): string {
   const info = record(value);
   const host = record(info.host);
   const security = record(host.security);
@@ -32,7 +104,7 @@ export function assertPodmanHost(value: unknown): string {
   if (host.arch !== "amd64") throw new PodmanSecurityError("The existing Typst image build supports Linux x86_64 only");
   if (security.rootless !== true) throw new PodmanSecurityError("Rootless Podman is required; do not use sudo");
   if (security.seccompEnabled !== true) throw new PodmanSecurityError("Podman must have seccomp enabled");
-  if (security.apparmorEnabled !== true && security.selinuxEnabled !== true)
+  if (security.apparmorEnabled !== true && security.selinuxEnabled !== true && !inheritedAppArmor)
     throw new PodmanSecurityError("Enable the host AppArmor or SELinux container confinement");
   if (host.cgroupVersion !== "v2" || !["memory", "pids"].every((key) => strings(host.cgroupControllers).includes(key)))
     throw new PodmanSecurityError("Rootless cgroup v2 memory and pids delegation is required");
@@ -178,7 +250,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
           maxBuffer: 4 * 1024 * 1024,
         }),
       );
-      const profile = assertPodmanHost(info);
+      const profile = assertPodmanHost(info, verifyInheritedAppArmor());
       const stat = lstatSync(profile);
       if (!stat.isFile() || (stat.mode & 0o022) !== 0 || ![0, process.getuid?.()].includes(stat.uid))
         throw new PodmanSecurityError(
@@ -201,7 +273,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       const temporary = output + "." + randomUUID();
       writeFileSync(temporary, JSON.stringify(hardened) + "\n", { mode: 0o600, flag: "wx" });
       renameSync(temporary, output);
+      const engineConfig = resolve(directory, "engine.conf");
+      const engineTemporary = engineConfig + "." + randomUUID();
+      writeFileSync(engineTemporary, "[engine]\nremote=false\n", { mode: 0o600, flag: "wx" });
+      renameSync(engineTemporary, engineConfig);
       process.stdout.write(output + "\n");
+    } else if (process.argv[2] === "apparmor") {
+      if (!verifyInheritedAppArmor()) throw new PodmanSecurityError("Inherited AppArmor confinement is required");
+      assertAppArmorLabel(readFileSync(0, "utf8"));
     } else if (process.argv[2] === "environment") {
       const uid = process.getuid?.();
       if (uid === undefined) throw new PodmanSecurityError("Linux filesystem ownership is required");

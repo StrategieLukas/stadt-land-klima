@@ -5,11 +5,13 @@ import { decodeHTML } from "entities";
 export function sanitizeHtml(dirty: string | null | undefined): string {
   if (!dirty) return "";
   return sanitize(dirty, {
-    allowedTags: [...sanitize.defaults.allowedTags, "img", "figure", "figcaption"],
+    allowedTags: [...sanitize.defaults.allowedTags, "img", "figure", "figcaption", "video", "source"],
     allowedAttributes: {
       "*": ["class", "id", "role", "aria-*", "data-*", "style"],
       a: ["href", "name", "target", "rel", "download", "title"],
       img: ["src", "alt", "title", "width", "height", "loading"],
+      video: ["src", "poster", "controls", "preload", "width", "height", "playsinline"],
+      source: ["src", "type"],
       th: ["colspan", "rowspan", "scope"],
       td: ["colspan", "rowspan"],
     },
@@ -24,6 +26,7 @@ export function sanitizeHtml(dirty: string | null | undefined): string {
       },
     },
     allowedSchemes: ["https", "http", "mailto", "tel"],
+    allowedSchemesAppliedToAttributes: ["href", "src", "cite", "action", "longdesc", "poster"],
     allowProtocolRelative: false,
     nonTextTags: ["script", "style", "textarea", "option", "xmp", "iframe", "object", "embed"],
     transformTags: {

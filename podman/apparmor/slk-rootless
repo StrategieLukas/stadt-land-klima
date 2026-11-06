@@ -1,0 +1,31 @@
+# Root-owned host policy for the rootless engine and all inherited container processes.
+# Engine mount/network/IPC operations remain available; container capabilities and
+# the separate hardened seccomp policy constrain the application payloads.
+#include <tunables/global>
+profile slk-rootless flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+  file,
+  network,
+  capability,
+  userns,
+  mount,
+  umount,
+  pivot_root,
+  ptrace,
+  dbus,
+  unix,
+  signal,
+  deny /boot/** wklx,
+  deny /proc/sys/{kernel,vm,fs,dev,debug,user}/** wklx,
+  deny /proc/sysrq-trigger rwklx,
+  deny /proc/kcore rwklx,
+  deny /sys/kernel/security/** wklx,
+  deny /sys/kernel/debug/** rwklx,
+  deny /sys/kernel/tracing/** rwklx,
+  deny /sys/firmware/** rwklx,
+  deny /dev/mem rwklx,
+  deny /dev/kmem rwklx,
+  deny /dev/port rwklx,
+  deny /home/*/.local/state/slk-apparmor-denied wklx,
+  deny /tmp/slk-apparmor-denied wklx,
+}

@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import { launchBrowser, newContext, waitForHydration, collectPublicPageErrors } from "./lib/browser.js";
 import { MapResponseSchema } from "../../../src/frontend/shared/contracts/map.js";
 import { waitFor } from "./lib/wait.js";
+import { assertMunicipalityDetailLayout } from "./lib/municipalityDetail.js";
+import { NewsListSchema } from "../../../src/frontend/shared/contracts/content.js";
 
 const base = new URL(process.argv[2] ?? "http://localhost:8080").origin;
 const map = MapResponseSchema.parse(await (await fetch(`${base}/api/public/map`)).json());
+const feed = (await (await fetch(`${base}/api/public/news`)).json()) as { news: unknown };
+const homepageNews = NewsListSchema.array().parse(feed.news).slice(0, 3);
 assert(
   map.scores.some((score) => !score.published),
   "Seed an in-progress municipality for map acceptance",
@@ -43,6 +47,12 @@ try {
           await page.goto(base, { waitUntil: "domcontentloaded" });
           await waitForHydration(page);
           assert.equal(await page.locator("h1").count(), 1);
+          const steps = page.locator('[aria-labelledby="home-how"]');
+          assert.equal(await steps.locator("a.canonical-button").count(), 3);
+          assert.equal(await steps.locator("img.slk-home-step-icon").count(), 3);
+          for (const icon of await steps.locator("img.slk-home-step-icon").all()) {
+            await icon.evaluate((image) => (image as HTMLImageElement).decode());
+          }
           assert.equal(await page.locator("html").getAttribute("lang"), locale);
           assert.equal(await page.locator('input[name="q"]').count(), 1);
           assert.equal(await page.locator('a.canonical-button[href="/municipalities"]').count(), 1);
@@ -55,16 +65,47 @@ try {
           );
           assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
           await page.screenshot({ path: `/tmp/slk-home-${locale}-${width}-${theme}.png` });
+          const newsSection = page.locator('[aria-labelledby="home-news"]');
+          for (const item of homepageNews) {
+            const card = newsSection.locator(`a[href="/news/${item.slug}"]`);
+            assert.equal(await card.count(), 1);
+            if (!item.image) {
+              assert.equal(await card.locator("img").count(), 0);
+              continue;
+            }
+            const image = card.locator("img");
+            await image.scrollIntoViewIfNeeded();
+            await waitFor("homepage news teaser image loads", () =>
+              image.evaluate(
+                (element) => element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0,
+              ),
+            );
+          }
           await page.goto(`${base}/municipalities/${city.slug}?v=${encodeURIComponent(map.catalogVersion.name)}`, {
             waitUntil: "domcontentloaded",
           });
           await waitForHydration(page);
           await page.getByRole("heading", { level: 1, name: city.name, exact: true }).waitFor();
-          assert.equal(await page.locator('a.canonical-button[href*="/municipalities/updates"]').count(), 0);
+          await assertMunicipalityDetailLayout(page);
+          const hero = page.locator("header").filter({ has: page.locator("h1") });
+          assert.equal(await hero.locator("nav, a.canonical-button").count(), 0);
+          const actions = page.getByTestId("municipality-sidebar-actions").filter({ visible: true });
+          assert.equal(await actions.count(), 1);
+          const historyLink = actions.locator('a[href*="/municipalities/updates"]');
+          assert.equal(await historyLink.count(), 1);
+          const historyUrl = new URL((await historyLink.getAttribute("href")) ?? "", base);
+          assert.equal(historyUrl.searchParams.get("municipality"), city.slug);
+          assert.equal(historyUrl.searchParams.get("v"), map.catalogVersion.name);
+          assert.equal(await actions.locator('a[href="/data"], a[href^="/data/"]').count(), 1);
+          assert.equal(await actions.locator('a[href^="/elections/"]').count(), 1);
+          await page.screenshot({ path: `/tmp/slk-municipality-${locale}-${width}-${theme}.png`, fullPage: true });
           const group = page.locator('.canonical-toggle-group[data-padding="large"]:visible').first();
           await group.getByRole("radio").first().focus();
           await page.keyboard.press("End");
-          assert.equal(await group.getByRole("radio").last().getAttribute("aria-checked"), "true");
+          await waitFor(
+            "keyboard selects the municipality chart",
+            async () => (await group.getByRole("radio").last().getAttribute("aria-checked")) === "true",
+          );
           await page.keyboard.press("Home");
           assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
           await page.goto(`${base}/municipalities?v=${encodeURIComponent(map.catalogVersion.name)}`, {

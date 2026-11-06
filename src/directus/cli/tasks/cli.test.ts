@@ -123,12 +123,13 @@ function reset(handler: typeof handle) {
 
 test("homepage migration preserves legacy HTML, existing blocks and editor drafts and is idempotent", async () => {
   let hasBlock = false;
-  let hasDraft = false;
+  let drafts: Record<string, unknown>[] = [];
   let exists = true;
   const legacy = "<h1>Existing homepage</h1>";
+  const pristine = { id: 1, draft_blocks: null, mutations: [], current_index: -1, base_revision: null };
   reset((call) => {
     if (call.path === "/items/pages") return { data: exists ? [{ id: "homepage", contents: legacy }] : [] };
-    if (call.path === "/items/edit_states") return { data: hasDraft ? [{ id: 1 }] : [] };
+    if (call.path === "/items/edit_states") return { data: drafts };
     if (call.path === "/items/blocks" && call.method === "GET") return { data: hasBlock ? [{ id: 1 }] : [] };
     if (call.path === "/items/blocks" && call.method === "POST") {
       hasBlock = true;
@@ -140,20 +141,84 @@ test("homepage migration preserves legacy HTML, existing blocks and editor draft
     const result = await runCommand([], undefined, join(root, "seedHomepage.ts"));
     assert.equal(result.code, 0, result.output);
   };
-  hasDraft = true;
+  for (const state of [
+    { id: 1 },
+    { ...pristine, draft_blocks: [] },
+    { ...pristine, mutations: [{}] },
+    { ...pristine, current_index: 0 },
+    { ...pristine, base_revision: "authored" },
+    { ...pristine, mutations: null },
+  ]) {
+    drafts = [state];
+    await seed();
+  }
+  drafts = [pristine, { ...pristine, mutations: [{}] }];
   await seed();
-  assert.equal(requests.filter((call) => call.method === "POST").length, 0);
-  hasDraft = false;
+  drafts = Array.from({ length: 101 }, () => pristine);
+  await seed();
+  assert.equal(requests.filter((call) => call.method !== "GET").length, 0);
+  drafts = [pristine];
   await seed();
   await seed();
   const writes = requests.filter((call) => call.method !== "GET");
-  assert.equal(writes.length, 1);
+  assert.equal(writes.length, 2);
   assert.equal(writes[0]?.body.bundle, "landing_page");
   assert.equal(writes[0]?.body.entity_uuid, "homepage");
+  assert.equal(writes[1]?.path, "/utils/cache/clear");
   assert.ok(!JSON.stringify(writes).includes("contents"), "The original HTML must never be overwritten");
+  assert.ok(
+    writes.every((call) => call.path !== "/items/edit_states"),
+    "Pristine editor placeholders must remain untouched",
+  );
   exists = false;
   await seed();
-  assert.equal(requests.filter((call) => call.method !== "GET").length, 1);
+  assert.equal(requests.filter((call) => call.method !== "GET").length, 2);
+});
+
+test("homepage rollback removes only its untouched seed and preserves authored content and drafts", async () => {
+  let blocks: Record<string, unknown>[] = [];
+  let drafts: Record<string, unknown>[] = [];
+  reset((call) => {
+    if (call.path === "/items/blocks" && call.method === "GET") return { data: blocks };
+    if (call.path === "/items/edit_states") return { data: drafts };
+    if (call.path === "/items/blocks/12" && call.method === "DELETE") return { status: 204 };
+    return { status: 500 };
+  });
+  const run = () => runCommand([], JSON.stringify({ id: "homepage" }), join(root, "rollbackHomepage.ts"));
+  assert.equal((await run()).code, 0);
+  const seed = {
+    id: 12,
+    uuid: "32233232-4056-4b53-92e1-59e4ca3f5a01",
+    bundle: "landing_page",
+    props: { title: "", subtitle: "" },
+    options: {},
+    status: "published",
+    field_name: "content",
+    sort_order: 0,
+  };
+  for (const changed of [
+    { ...seed, props: { title: "Editorial title", subtitle: "" } },
+    { ...seed, uuid: "another-block" },
+    { ...seed, bundle: "text" },
+    { ...seed, options: { layout: "authored" } },
+    { ...seed, status: "draft" },
+    { ...seed, props: { title: "", subtitle: "", extra: true } },
+  ]) {
+    blocks = [changed];
+    assert.notEqual((await run()).code, 0);
+  }
+  blocks = [seed, { ...seed, id: 13 }];
+  assert.notEqual((await run()).code, 0);
+  blocks = [seed];
+  drafts = [{ id: 4 }];
+  assert.notEqual((await run()).code, 0);
+  assert.equal(requests.filter((call) => call.method === "DELETE").length, 0);
+  drafts = [{ id: 4, draft_blocks: null, mutations: [], current_index: -1, base_revision: null }];
+  assert.equal((await run()).code, 0);
+  assert.equal(requests.filter((call) => call.method === "DELETE").length, 1);
+  assert.equal(requests.filter((call) => call.path === "/utils/cache/clear").length, 1);
+  const invalid = await runCommand([], "{}", join(root, "rollbackHomepage.ts"));
+  assert.notEqual(invalid.code, 0);
 });
 
 test("historical executable supports help, completion, authentication and nonzero command failures", async () => {

@@ -44,6 +44,19 @@ type Service = keyof typeof managedPodmanEnvironment;
 type SecretVersion = { digest: string; name: string };
 export type SecretManifest = Record<string, SecretVersion>;
 type SecretReference = { source: string; type: "env"; target: string };
+export function createPodmanSecret(name: string, value: string): void {
+  if (!/^slk_[a-z0-9_-]+$/.test(name)) throw new Error("Invalid native secret name");
+  // Node uses a Unix socket for child stdin; Podman 5.7 accepts '-' only for a
+  // FIFO. A fixed shell bridge preserves stdin-only transport without disk files.
+  execFileSync(
+    "bash",
+    ["-o", "pipefail", "-c", 'cat | podman --remote=false secret create "$1" -', "slk-secret", name],
+    {
+      input: value,
+      stdio: ["pipe", "ignore", "pipe"],
+    },
+  );
+}
 export function podmanSecretPlan(
   inputs: Record<Service, Record<string, string>>,
   production: boolean,
@@ -154,11 +167,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (synchronize === "sync") {
       for (const [name, value] of plan.values) {
         const exists = spawnSync("podman", ["--remote=false", "secret", "inspect", name], { stdio: "ignore" });
-        if (exists.status !== 0)
-          execFileSync("podman", ["--remote=false", "secret", "create", name, "-"], {
-            input: value,
-            stdio: ["pipe", "ignore", "pipe"],
-          });
+        if (exists.status !== 0) createPodmanSecret(name, value);
       }
     }
     writePrivate(manifestPath, plan.manifest);

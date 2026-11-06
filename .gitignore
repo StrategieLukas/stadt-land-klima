@@ -33,6 +33,9 @@ lerna-debug.log*
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
+# Native crash dumps include process memory and must stay out of source control.
+core.[0-9]*
+
 # Runtime data
 pids
 *.pid
