@@ -208,6 +208,8 @@ that also verifies registration delivery and activation-link content.
   Directus container. Use `development` instead of `production` for the local
   development stack.
 - For Docker/PDF permission errors, check the container UID/GID and grant access only to required upload/temp/output directories. Do not use recursive or world-writable `chmod 777`; review host ownership before changing permissions. See [host hardening follow-up](REMAINING_TODOS.md#required-deployment-acceptance).
+- For the original production Docker workflow as a reusable shell script, run `./bin/full-export.sh --writers-stopped` after enabling maintenance and pausing external writers. See [full export and recovery](bin/FULL_EXPORT.md); it leaves application/data services stopped.
+- For a full portable application backup (all databases/roles, uploads, Redis/search, runtime images, source and private configuration), use [`bin/lib/portable-backup.ts`](bin/lib/portable-backup.ts). See [capture, verification and cross-host recovery instructions](bin/PORTABLE_BACKUP.md). The release backup and database-only exporters do not replace this bundle.
 - `./bin/update_production.sh` backs up the database by default. Use `--no-backup` when the database is unavailable and the update must proceed without that export.
 - Migrate ratings from one version to another using ./directus-cli migrate <old> <new>. Avoid using this when the "new" version is already in use, as it overwrites all ratings that do not need re-evaluation.
 

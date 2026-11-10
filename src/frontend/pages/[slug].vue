@@ -39,6 +39,7 @@ import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence
 import { routeSlug } from "~/shared/routeValues";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 const fetchContent = useContentFetch();
+const renderCmsHtml = useCmsHtml();
 
 const { $t } = useNuxtApp();
 const config = useRuntimeConfig();
@@ -100,7 +101,7 @@ const processedPageContent = computed(() => {
   const blocks: ({ type: "html"; html: string } | { type: "component" })[] = [];
 
   parts.forEach((html, idx) => {
-    if (html) blocks.push({ type: "html", html: sanitizeHtml(html) });
+    if (html) blocks.push({ type: "html", html: renderCmsHtml(html) });
     if (idx < parts.length - 1) {
       blocks.push({
         type: "component",

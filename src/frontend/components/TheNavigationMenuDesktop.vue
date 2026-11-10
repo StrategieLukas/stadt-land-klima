@@ -22,8 +22,8 @@
           class="flex items-center gap-1.5 px-3 text-sm font-semibold whitespace-nowrap transition-colors"
           :title="item.label ?? undefined"
           :class="{
-            'bg-olive-green text-white': item.link_type === 'page' && isActive(item),
-            'text-gray-600 hover:bg-solid-light-green-10 hover:text-gray-900': !(
+            'bg-(--slk-surface-muted) text-(--slk-text-strong)': item.link_type === 'page' && isActive(item),
+            'text-gray-600 hover:bg-(--slk-surface-muted) hover:text-gray-900': !(
               item.link_type === 'page' && isActive(item)
             ),
           }"
@@ -78,8 +78,8 @@
           v-if="hasChildren(item)"
           class="group/trigger flex items-stretch transition-colors"
           :class="{
-            'bg-olive-green': anyChildActive(item),
-            'hover:bg-solid-light-green-10': !anyChildActive(item),
+            'bg-(--slk-surface-muted)': anyChildActive(item),
+            'hover:bg-(--slk-surface-muted)': !anyChildActive(item),
           }"
         >
           <!-- Label part: navigates (NuxtLink) or toggles dropdown (button) -->
@@ -90,7 +90,7 @@
             class="flex cursor-pointer items-center gap-1.5 pr-1 pl-3 text-sm font-semibold whitespace-nowrap transition-colors"
             :title="item.label ?? undefined"
             :class="{
-              'text-white': anyChildActive(item),
+              'text-(--slk-text-strong)': anyChildActive(item),
               'text-gray-600 group-hover/trigger:text-gray-900': !anyChildActive(item),
             }"
             @click="item.link_type === 'page' && item.page_slug ? closeMenu() : toggleMenu(item.id)"
@@ -109,7 +109,7 @@
             type="button"
             class="flex cursor-pointer items-center pr-3 pl-0.5 transition-colors"
             :class="{
-              'text-white hover:text-white': anyChildActive(item),
+              'text-(--slk-text-strong) hover:text-(--slk-text-strong)': anyChildActive(item),
               'text-gray-600 group-hover/trigger:text-gray-900': !anyChildActive(item),
             }"
             :aria-expanded="openMenuId === item.id"
@@ -126,7 +126,7 @@
         <div
           v-if="hasChildren(item)"
           v-show="openMenuId === item.id"
-          class="absolute top-full left-0 z-50 rounded-b-xl border-t-2 border-t-light-green bg-white shadow-xl"
+          class="absolute top-full left-0 z-50 rounded-b-xl border-t-2 border-t-(--slk-text-strong) bg-white shadow-xl"
           @mouseenter="handleMenuEnter(item.id)"
           @mouseleave="handleMenuLeave()"
         >
@@ -143,7 +143,7 @@
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                 class="group/card relative block h-32 overflow-hidden rounded-lg"
                 :class="{
-                  'ring-2 ring-olive-green': child.link_type === 'page' && isActive(child),
+                  'ring-2 ring-(--slk-text-strong)': child.link_type === 'page' && isActive(child),
                 }"
                 @click="closeMenu"
               >
@@ -189,8 +189,8 @@
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                 class="flex items-start border-b border-gray-50 px-4 py-3 text-sm font-semibold transition-colors last:border-b-0"
                 :class="{
-                  'bg-solid-light-green-20 text-olive-green': child.link_type === 'page' && isActive(child),
-                  'text-gray-600 hover:bg-solid-light-green-10 hover:text-gray-900': !(
+                  'bg-(--slk-surface-muted) text-(--slk-text-strong)': child.link_type === 'page' && isActive(child),
+                  'text-gray-600 hover:bg-(--slk-surface-muted) hover:text-gray-900': !(
                     child.link_type === 'page' && isActive(child)
                   ),
                 }"

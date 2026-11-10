@@ -26,8 +26,9 @@ npm --prefix bin/test_suite run test:security:caddy
 The image contains the custom binary, with no application config, certificate or
 private environment file copied in. It runs as 1000:1000. File capabilities are
 removed, so it can run capless on high container ports. For a host installation,
-copy the reviewed binary to `/usr/local/bin/caddy` and the three config files
-(`Caddyfile` or staging entrypoint, `global.caddy`, `application.caddy`) into
+copy the reviewed binary to `/usr/local/bin/caddy` and the shared config files
+(`global.caddy`, `global-options.caddy`, `application.caddy`) and the selected
+entrypoint (`Caddyfile` or `Caddyfile.staging`) into
 `/etc/caddy`. Use `caddy.service.example` as the reviewed host service template.
 The dedicated `caddy` user receives only `CAP_NET_BIND_SERVICE` to listen on 80/443;
 it does not need Docker/Podman group membership, a container socket, application
@@ -170,7 +171,7 @@ avoids that extra container networking layer.
 isolated Node upstreams. It verifies canonical redirects, decoded-path/deep/upgrade
 guards, spoofed forwarding headers, CSP nonce preservation, normal/encoded private
 referrers, body limits, status/connection maintenance fallback, credential-free
-fallback requests, private log canaries, a 180-chunk burst and independent page
+fallback requests, private log canaries, a 180-chunk frontend and CMS-admin bursts and independent page
 rate limits. Fixtures are capless, non-root, read-only and loopback-published;
 they never contact the application database or send mail. `SLK_CADDY_SECCOMP` can
 apply the derived Podman profile to the fixture. The quality workflow runs this
@@ -186,3 +187,40 @@ References: [Caddy proxy/error handling](https://caddyserver.com/docs/caddyfile/
 [request matching](https://caddyserver.com/docs/caddyfile/matchers),
 [log filters](https://caddyserver.com/docs/caddyfile/directives/log),
 [module algorithm and memory model](https://github.com/mholt/caddy-ratelimit).
+
+Directus admin files under `/backend/admin/assets/*` use the same independent static-asset budgets as `/_nuxt/*`. They do not consume the low-burst CMS API budget; all CMS guards and API limits still apply to other paths. This prevents the initial Admin bundle from failing with HTTP 429. The Nuxt `/backend` compatibility page redirects to the configured CMS `/admin/` entrypoint.
+
+
+## Future: isolated Directus origin
+
+`Caddyfile.future` serves the website on `future.stadt-land-klima.de` and the CMS
+on `directus.stadt-land-klima.de`, with automatic ACME certificates configured by
+`global.future.caddy` and shared `global-options.caddy`. Both hostnames must resolve
+to Future before switching the application's public CMS URL. Do not point a Future
+CMS hostname at the production server.
+
+Install the maintained files unchanged. `Caddyfile.future-bootstrap` provisions the
+second TLS/proxy hostname while the existing website prefix still works; it is an
+explicit temporary phase, not a completed security cutover. After activating and
+checking the application with its new public CMS origin, select `Caddyfile.future`.
+Its `legacy-cms.caddy` redirects GET/HEAD Admin and asset bookmarks, expires the old
+host cookies and returns 410 for the former authenticated API and AI aliases.
+`/backend` also retains a Nuxt compatibility redirect for other gateway setups.
+
+`directus.caddy` retains denied GraphQL/hash/deep/upgrade routes and separate API
+and static budgets. Browser writes from sibling/cross-site origins are denied.
+Only the configured CMS origin is allowed by Directus CORS. Website image/SVG
+requests have Cookie, Authorization and query access tokens removed, and receive
+credential-free CORS for the exact Future website origin. CMS-origin asset requests
+retain their personal authorization, so private Admin previews still work.
+
+The deployment environment migration sets secure host-only `__Host-` session and
+refresh cookies with SameSite Strict. SameSite alone does not isolate sibling
+subdomains. Retire old-origin interactive sessions after cutover; service/static
+credentials and candidate/municipality-preview tokens remain untouched.
+
+The real TLS fixture in `bin/test_suite/src/caddySecurity.ts` validates all four
+entrypoints, redirects, closed legacy APIs, cross-origin write denial, credential
+stripping on public assets, retained private asset authorization, 180 admin chunks,
+continued API rate limiting and filtered logs. DNS/ACME and authenticated editorial
+flows remain live deployment acceptance checks.

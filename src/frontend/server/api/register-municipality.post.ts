@@ -492,7 +492,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const appPublicUrl = config.appPublicUrl || "https://stadt-land-klima.de";
-  const directusPublicUrl = config.directusPublicUrl || "https://stadt-land-klima.de/backend";
+  const directusPublicUrl = config.directusPublicUrl || "https://directus.stadt-land-klima.de";
   const previewUrl = municipalitySlug
     ? `${appPublicUrl}/municipalities/${municipalitySlug}?preview=${previewToken}`
     : null;

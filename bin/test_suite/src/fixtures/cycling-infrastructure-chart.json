@@ -1,0 +1,178 @@
+{
+  "layer": [
+    {
+      "mark": {
+        "type": "bar",
+        "tooltip": true
+      },
+      "encoding": {
+        "color": {
+          "field": "metric",
+          "legend": null,
+          "scale": {
+            "domain": [
+              "properties.bicycle_lanes_km",
+              "properties.bicycle_tracks_km",
+              "properties.bicycle_paths_km",
+              "properties.bicycle_streets_km"
+            ],
+            "range": ["#ff6b35", "#ffd166", "#90e0a0", "#2d9e5a"]
+          },
+          "type": "nominal"
+        },
+        "tooltip": [
+          {
+            "field": "metric_label",
+            "title": "Infrastrukturtyp",
+            "type": "nominal"
+          },
+          {
+            "field": "value",
+            "format": ".1f",
+            "title": "Länge (km)",
+            "type": "quantitative"
+          }
+        ],
+        "x": {
+          "axis": {
+            "format": ".1f"
+          },
+          "field": "value",
+          "stack": null,
+          "title": "Länge (km)",
+          "type": "quantitative"
+        },
+        "y": {
+          "axis": {
+            "labelExpr": "({\"properties.bicycle_lanes_km\": \"Radfahrstreifen\", \"properties.bicycle_tracks_km\": \"Radwege\", \"properties.bicycle_paths_km\": \"Gemeinsame Wege\", \"properties.bicycle_streets_km\": \"Fahrradstraßen\"})[datum.label] || datum.label"
+          },
+          "field": "metric",
+          "sort": [
+            "properties.bicycle_lanes_km",
+            "properties.bicycle_tracks_km",
+            "properties.bicycle_paths_km",
+            "properties.bicycle_streets_km"
+          ],
+          "title": "Infrastrukturtyp",
+          "type": "nominal"
+        }
+      },
+      "name": "slz_3260df515cb2_bars",
+      "transform": [
+        {
+          "fold": [
+            "properties.bicycle_lanes_km",
+            "properties.bicycle_tracks_km",
+            "properties.bicycle_paths_km",
+            "properties.bicycle_streets_km"
+          ],
+          "as": ["metric", "value"]
+        },
+        {
+          "filter": "isValid(datum.value) && isFinite(datum.value)"
+        },
+        {
+          "calculate": "({\"properties.bicycle_lanes_km\": \"Radfahrstreifen\", \"properties.bicycle_tracks_km\": \"Radwege\", \"properties.bicycle_paths_km\": \"Gemeinsame Wege\", \"properties.bicycle_streets_km\": \"Fahrradstraßen\"})[datum.metric] || datum.metric",
+          "as": "metric_label"
+        },
+        {
+          "calculate": "datum.metric_label + ': ' + format(datum.value, \".1f\") + \" km\"",
+          "as": "label_text"
+        }
+      ]
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "baseline": "middle",
+        "color": "#222222",
+        "dx": 6,
+        "dy": 0,
+        "font": "sans-serif",
+        "fontSize": 12
+      },
+      "encoding": {
+        "text": {
+          "field": "label_text",
+          "type": "nominal"
+        },
+        "x": {
+          "axis": {
+            "format": ".1f"
+          },
+          "field": "value",
+          "stack": null,
+          "title": "Länge (km)",
+          "type": "quantitative"
+        },
+        "y": {
+          "axis": {
+            "labelExpr": "({\"properties.bicycle_lanes_km\": \"Radfahrstreifen\", \"properties.bicycle_tracks_km\": \"Radwege\", \"properties.bicycle_paths_km\": \"Gemeinsame Wege\", \"properties.bicycle_streets_km\": \"Fahrradstraßen\"})[datum.label] || datum.label"
+          },
+          "field": "metric",
+          "sort": [
+            "properties.bicycle_lanes_km",
+            "properties.bicycle_tracks_km",
+            "properties.bicycle_paths_km",
+            "properties.bicycle_streets_km"
+          ],
+          "title": "Infrastrukturtyp",
+          "type": "nominal"
+        }
+      },
+      "name": "slz_3260df515cb2_labels",
+      "transform": [
+        {
+          "fold": [
+            "properties.bicycle_lanes_km",
+            "properties.bicycle_tracks_km",
+            "properties.bicycle_paths_km",
+            "properties.bicycle_streets_km"
+          ],
+          "as": ["metric", "value"]
+        },
+        {
+          "filter": "isValid(datum.value) && isFinite(datum.value)"
+        },
+        {
+          "calculate": "({\"properties.bicycle_lanes_km\": \"Radfahrstreifen\", \"properties.bicycle_tracks_km\": \"Radwege\", \"properties.bicycle_paths_km\": \"Gemeinsame Wege\", \"properties.bicycle_streets_km\": \"Fahrradstraßen\"})[datum.metric] || datum.metric",
+          "as": "metric_label"
+        },
+        {
+          "calculate": "datum.metric_label + ': ' + format(datum.value, \".1f\") + \" km\"",
+          "as": "label_text"
+        }
+      ]
+    }
+  ],
+  "data": {
+    "values": [
+      {
+        "properties": {
+          "bicycle_lanes_km": 12.5,
+          "bicycle_tracks_km": 90,
+          "bicycle_paths_km": 0,
+          "bicycle_streets_km": null
+        }
+      }
+    ]
+  },
+  "height": 200,
+  "width": 420,
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.4.3.json",
+  "usermeta": {
+    "barLabels": [
+      {
+        "barName": "slz_3260df515cb2_bars_marks",
+        "textName": "slz_3260df515cb2_labels_marks",
+        "orientation": "horizontal",
+        "labelField": "label_text",
+        "valueField": "value",
+        "font": "sans-serif",
+        "fontSize": 12,
+        "padding": 6
+      }
+    ]
+  }
+}

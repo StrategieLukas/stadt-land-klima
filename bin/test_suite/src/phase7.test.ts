@@ -261,10 +261,15 @@ test("the actual MapLibre component validates its constructed style before creat
   const safety = await import("../../../src/frontend/shared/visualizationSafety.js");
   for (const invalid of [false, true]) {
     const created: State[] = [];
+    let workerUrl = "";
     const module = { exports: {} as State };
     const mapModule = {
+      setWorkerUrl(url: string) {
+        workerUrl = url;
+      },
       Map: class {
         constructor(options: State) {
+          assert.equal(workerUrl, "/_nuxt/maplibre-worker-test.mjs");
           created.push(options);
         }
         addControl() {}
@@ -283,9 +288,16 @@ test("the actual MapLibre component validates its constructed style before creat
       "~/shared/visualization": helpers,
       "~/shared/contracts/geometry": geometry,
       "~/composables/useCartoBasemap": { cartoBasemapProxyUrl: (url: string) => url },
+      "~/utils/collectionItems": {
+        isCollectionItemsUrl: () => false,
+        fetchCollectionItems: async () => {
+          throw new Error("The inline-style fixture must not fetch remote collections");
+        },
+      },
       "~/assets/images/Stadt-Land-Klima-Logo.svg": "logo",
       "@iconify/vue": { Icon: {} },
       "maplibre-gl": mapModule,
+      "maplibre-gl/dist/maplibre-gl-worker.mjs?url": "/_nuxt/maplibre-worker-test.mjs",
     };
     runInNewContext(compiled, {
       module,

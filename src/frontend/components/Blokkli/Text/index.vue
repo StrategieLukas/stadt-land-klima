@@ -76,6 +76,7 @@ const { options, uuid } = defineBlokkli({
   },
 });
 
+const renderCmsHtml = useCmsHtml();
 const props = defineProps<{
   content?: string | undefined;
 }>();
@@ -103,7 +104,7 @@ const alignClass = computed(() => {
   return map[options.value.align] || "text-left";
 });
 
-const sanitizedContent = computed(() => sanitizeHtml(props.content));
+const sanitizedContent = computed(() => renderCmsHtml(props.content));
 </script>
 
 <style scoped>

@@ -34,6 +34,7 @@ import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 const fetchContent = useContentFetch();
+const renderCmsHtml = useCmsHtml();
 
 const { $t } = useNuxtApp();
 const { isAuthenticated, initialize } = useAuth();
@@ -71,7 +72,7 @@ const { data: blocksData } = await useAsyncData(
   { watch: [page] },
 );
 const pageBlocks = computed(() => blocksData.value || []);
-const sanitizedContents = computed(() => sanitizeHtml(page.value?.contents));
+const sanitizedContents = computed(() => renderCmsHtml(page.value?.contents));
 
 //MetaTags
 const seoText = useSeoText();

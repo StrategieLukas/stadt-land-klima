@@ -1,2 +1,3 @@
 import { seedHomepage } from "./tasks/special/seedHomepage.ts";
-await seedHomepage();
+import clearDirectusCache from "./tasks/shared/clearDirectusCache.ts";
+if (await seedHomepage()) await clearDirectusCache();

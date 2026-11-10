@@ -1,6 +1,6 @@
 /** Explicit, read-only layout/interaction regression gate for dev or production. */
 import assert from "node:assert/strict";
-import { firefox, webkit } from "playwright";
+import { firefox, webkit, type Page } from "playwright";
 import { launchBrowser, newContext, waitForHydration, collectPublicPageErrors } from "./lib/browser.js";
 
 const target = new URL(process.argv[2] || "http://localhost:8080");
@@ -14,6 +14,93 @@ if (selected !== "chromium" && selected !== "firefox" && selected !== "webkit")
   throw new Error("Unknown style-test browser");
 const browser =
   selected === "chromium" ? await launchBrowser(true) : await { firefox, webkit }[selected].launch({ headless: true });
+
+async function assertFilterControls(page: Page) {
+  const panel = page.locator(".slk-filter-panel");
+  const disclosure = panel.locator(":scope > button");
+  if (await disclosure.isVisible()) await disclosure.click();
+  const controls = panel.locator(
+    '.slk-filter-pill:visible, .canonical-toggle-group[data-padding="compact"] button:visible',
+  );
+  await controls.first().waitFor();
+  const geometry = await controls.evaluateAll((elements) =>
+    elements.map((element) => {
+      const style = getComputedStyle(element);
+      return {
+        height: element.getBoundingClientRect().height,
+        fontSize: style.fontSize,
+        lineHeight: style.lineHeight,
+        weight: style.fontWeight,
+        padding: style.padding,
+        radius: style.borderRadius,
+        border: style.borderWidth,
+      };
+    }),
+  );
+  assert(geometry.length > 1, "Exercise real filter controls");
+  assert(geometry[0]!.height >= 40, "Compact filter controls retain a usable touch target");
+  for (const control of geometry)
+    assert.deepEqual(control, geometry[0], "Pills, links and view toggles share geometry");
+  if (new URL(page.url()).pathname === "/municipalities") {
+    const rows = await panel.locator(".slk-filter-row").evaluateAll((elements) =>
+      elements.map((element) => {
+        const icon = element.querySelector(":scope > svg")!.getBoundingClientRect();
+        const control = element.querySelector("button,a")!.getBoundingClientRect();
+        return {
+          iconX: icon.x,
+          iconWidth: icon.width,
+          iconHeight: icon.height,
+          controlX: control.x,
+          centreOffset: Math.abs(icon.y + icon.height / 2 - control.y - control.height / 2),
+        };
+      }),
+    );
+    assert.equal(rows.length, 3);
+    assert.equal(rows[0]!.controlX, rows[2]!.controlX, "View and type filters start in the same control column");
+    if (page.viewportSize()!.width < 640)
+      assert.equal(rows[0]!.controlX, rows[1]!.controlX, "Wrapped catalogue controls retain the same phone column");
+    for (const row of rows) {
+      assert.equal(row.iconWidth, 24);
+      assert.equal(row.iconHeight, 24);
+      assert(row.centreOffset <= 1, "Leading icons align with the first control, including wrapped phone rows");
+    }
+    const icons = panel.locator(".slk-city-filter-icon");
+    assert.equal(await icons.count(), 3, "Each type choice has one icon from the same family");
+    for (const size of await icons.evaluateAll((elements) => elements.map((el) => [el.clientWidth, el.clientHeight])))
+      assert.deepEqual(size, [24, 24]);
+  }
+  const contrasts = await controls.evaluateAll((elements) =>
+    elements.map((element) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 1;
+      const context = canvas.getContext("2d")!;
+      const ancestors: Element[] = [];
+      for (let current: Element | null = element; current; current = current.parentElement) ancestors.unshift(current);
+      context.fillStyle = "white";
+      context.fillRect(0, 0, 1, 1);
+      for (const ancestor of ancestors) {
+        context.fillStyle = getComputedStyle(ancestor).backgroundColor;
+        context.fillRect(0, 0, 1, 1);
+      }
+      const luminances: number[] = [];
+      for (const color of ["transparent", getComputedStyle(element).color]) {
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        const channels = Array.from(context.getImageData(0, 0, 1, 1).data.slice(0, 3)).map((channel) => {
+          const value = channel / 255;
+          return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        luminances.push(channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722);
+      }
+      return (Math.max(...luminances) + 0.05) / (Math.min(...luminances) + 0.05);
+    }),
+  );
+  assert(
+    contrasts.every((ratio) => ratio >= 4.5),
+    `Filter labels need 4.5:1 contrast: ${contrasts.join(", ")}`,
+  );
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+}
 const started = performance.now();
 try {
   for (const width of [1440, 390])
@@ -65,6 +152,43 @@ try {
           assert.ok(Math.abs(layout.width! - layout.viewport) <= 1, "Content must span the viewport");
           assert.equal(layout.overflow, false);
           assert.equal(layout.buttonRadius, "6px", "CanonicalButton corners must survive the upgrade");
+          const header = page.locator("header.slk-header-surface:visible");
+          const glass = await header.evaluate((element) => {
+            const style = getComputedStyle(element);
+            const canvas = document.createElement("canvas");
+            canvas.width = canvas.height = 1;
+            const context = canvas.getContext("2d")!;
+            context.fillStyle = style.backgroundColor;
+            context.fillRect(0, 0, 1, 1);
+            return {
+              alpha: context.getImageData(0, 0, 1, 1).data[3]! / 255,
+              blur: style.backdropFilter || style.getPropertyValue("-webkit-backdrop-filter"),
+              stripeBackground: element.querySelector(".slk-navigation-strip")
+                ? getComputedStyle(element.querySelector(".slk-navigation-strip")!).backgroundColor
+                : null,
+            };
+          });
+          assert.ok(Math.abs(glass.alpha - 0.82) < 0.01, "The header keeps its translucent theme surface");
+          assert.match(glass.blur, /blur\(16px\)/, "Page content must blur behind the header");
+          if (width >= 640)
+            assert.equal(glass.stripeBackground, "rgba(0, 0, 0, 0)", "Navigation must share the header glass");
+          await page.evaluate(() => window.scrollTo({ top: 500, behavior: "instant" }));
+          await page.waitForFunction(() => window.scrollY >= 400);
+          if (width >= 640) {
+            await page.waitForFunction(
+              () => getComputedStyle(document.querySelector("header.slk-header-surface")!).boxShadow !== "none",
+            );
+          } else {
+            await page.waitForFunction(
+              () => document.querySelector("header.slk-header-surface")!.getBoundingClientRect().bottom <= 0,
+            );
+          }
+          await page.evaluate(() => window.scrollTo({ top: 420, behavior: "instant" }));
+          await page.waitForFunction(
+            () => document.querySelector("header.slk-header-surface")!.getBoundingClientRect().top >= -1,
+          );
+          await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+          await page.waitForFunction(() => window.scrollY === 0);
           const footer = page.locator("footer");
           const footerLayout = await footer.evaluate((element) => {
             const width = element.getBoundingClientRect().width;
@@ -124,6 +248,11 @@ try {
           await page.locator(".drawer-side").waitFor({ state: "visible" });
           await page.keyboard.press("Escape");
           await page.locator(".drawer-side").waitFor({ state: "hidden" });
+        }
+        for (const path of ["/municipalities", "/measures", "/projects", "/stats"]) {
+          await page.goto(origin + path, { waitUntil: "domcontentloaded" });
+          await waitForHydration(page);
+          await assertFilterControls(page);
         }
         assert.deepEqual(errors, [], "No hydration/public-request/runtime failures");
         console.info(`[PASS] Styles: ${width}px ${preference}, centered layout, theme, cards, button and menu`);

@@ -37,7 +37,10 @@ export async function fetchCollectionItems(input: string, signal?: AbortSignal):
       throw new Error("Invalid collection pagination link");
     }
     visited.add(url.href);
-    const deadline = AbortSignal.timeout(10000);
+    // Classified road networks currently return the whole geometry even with
+    // limit=1000 (Karlsruhe is ~13 MB). Keep cancellation and a finite deadline
+    // while allowing the upstream computation and body download to finish.
+    const deadline = AbortSignal.timeout(60000);
     const response = await fetch(url, {
       signal: signal ? AbortSignal.any([signal, deadline]) : deadline,
       credentials: "omit",

@@ -8,18 +8,47 @@ Docker core-storage overlay.
 
 ## Host preparation
 
-Supported target: local Linux x86_64, Podman **5.4+**, `podman-compose` **1.5+**,
+Supported target: local Linux x86_64, Podman **5.4+**, `podman-compose` **1.6+**,
 Node **24+** with the repository CLI dependencies installed, Netavark/Aardvark container DNS, cgroup v2 with delegated memory/pids,
 and AppArmor or SELinux confinement. The existing Typst image build is x86_64.
 Use supported distro security releases of Podman, containers-common, the OCI
-runtime and libseccomp. The version floor is a compatibility requirement, not a
+runtime and libseccomp. Compose 1.6 avoids project-wide teardown when a single service
+changes; frontend recreation explicitly leaves healthy dependencies running. The version floor is a compatibility requirement, not a
 claim that every release above it is free of vulnerabilities.
+
+### Ubuntu rootless AppArmor
+
+Ubuntu's Podman reports AppArmor unavailable for rootless containers. The maintained
+`podman/apparmor/slk-rootless` policy instead confines the engine and all inherited
+container processes. An administrator installs it as root-owned mode 0644 at
+`/etc/apparmor.d/slk-rootless`, loads it with `apparmor_parser -r`, and creates an
+empty, operator-owned mode 0600 file at
+`~/.local/state/slk-apparmor-denied` outside the profile. Keep AppArmor enabled.
+The wrapper enters the preloaded policy through `aa-exec`; no rootful engine or
+policy-loading privilege is granted to the operator.
+
+Preflight verifies the current stacked label, kernel policyfs enforce mode,
+root-owned policy bytes against the maintained file, and denial of opening the
+otherwise writable canary. Runtime audit checks PID 1's inherited label as well as
+the existing capability/seccomp controls. A `mixed` stack is accepted only when
+the named policy is independently verified in enforce mode; Ubuntu's additional
+unconfined runtime profiles do not remove this policy's restrictions. Engine
+mount/network operations remain available; application capabilities, read-only
+mounts and the separate syscall policy continue to constrain payloads.
+
+Ubuntu's packaged pasta profile may also need a narrow host override granting
+`mr` to `/usr/bin/pasta{,.avx2}` and signals between pasta and the rootless engine.
+Retain and reload its existing policy rather than disabling it. Verify a writable
+temporary `/tmp` mount permits ordinary files but rejects writing
+`/tmp/slk-apparmor-denied` under the inherited policy before deploying. Temporary private mounts use Podman's `U` option to select the service
+UID/GID; Docker-style `uid=`/`gid=` options are not accepted by `--tmpfs`.
 
 Install the host tools through your distribution, including `uidmap`
 (`newuidmap`/`newgidmap`), rootless networking (`passt`/pasta), and `podman-compose`.
-If the distro's Compose provider is older than 1.5, install a supported release
-in an isolated `pipx` environment. The wrapper explicitly selects this provider
-and disables remote Podman and pod grouping. It needs no engine socket.
+If the distro's Compose provider is older than 1.6, install a supported release
+in an isolated `pipx` environment. The wrapper explicitly selects this provider, disables pod grouping, and forces
+`engine.remote=false` through a private `CONTAINERS_CONF_OVERRIDE` file. This avoids
+the provider placing global `--remote` flags after the subcommand. It needs no engine socket.
 
 Run the stack as a dedicated deployment account with subordinate UID/GID ranges
 in `/etc/subuid` and `/etc/subgid`. An administrator must provision those ranges
@@ -60,8 +89,8 @@ The private database network joins only PostgreSQL and Directus. An internal
 services network joins Redis/search and their consumers. Only Directus/frontend
 and maintenance join the egress network. Production publishes **loopback-only**
 9000/9001/9090. No runtime exposes an engine socket, host namespaces, devices or
-added capabilities. nginx maintenance listens unprivileged on container port 8080
-and writes only to bounded `/tmp`; its access log is disabled.
+added capabilities. Caddy maintenance listens unprivileged on container port 8080, serves immutable
+image assets and disables request logging. No nginx service is used by Podman.
 
 Writable persistent storage is limited to database, Redis, search and uploads.
 Those mounts are `nosuid,nodev,noexec`. Production frontend output is a read-only
@@ -77,7 +106,9 @@ dependencies, owned by root and not writable by the runtime user.
 ### Environment secrets
 
 Private `.env` values are parsed with the existing CLI dotenv dependency and
-provisioned as native Podman `type=env` secrets over stdin. The generated Compose
+provisioned as native Podman `type=env` secrets over stdin. A fixed FIFO bridge
+converts Node child-process sockets into the pipe Podman 5.7 requires; credential
+bytes never enter arguments or temporary files. The generated Compose
 overlay contains only opaque secret references and empty optional values; it has
 no credential values or hashes. This avoids podman-compose's expansion of
 `env_file` values into process arguments and exception/debug output. Use literal,
@@ -367,3 +398,193 @@ References: [Podman runtime options](https://docs.podman.io/en/latest/markdown/p
   not executed. The local `bin/test_dev.sh` unit stages passed; its application
   integration stage could not connect to the unavailable local Directus stack.
   Keep those deployment acceptance checks pending before replacing Docker.
+
+## Verified Ubuntu deployment — 2026-10-28
+
+`future.stadt-land-klima.de` runs the merged `a77aa914` release plus the deployment
+corrections in this change, using rootless Podman 5.7, isolated podman-compose 1.6,
+Node 24.22.1, the pinned patched Directus 11.17.4 image and Caddy 2.11.7. The
+maintenance image also uses the reviewed Caddy binary. The user service uses
+`KillMode=process`: the wrapper explicitly stops containers, while systemd must
+not independently kill their monitors and rootless port forwarders.
+
+The October 22 SQL backup was restored logically from PostgreSQL 13.5 into 17.
+The plain dump's initial cleanup statements were omitted only in a separate
+working copy for the empty target. All original backup checksums were reverified
+unchanged. All 1,699 archived upload members were copied; user-file checksums and
+all 303 CMS file references passed verification. The regenerated Directus health
+marker is intentionally excluded from immutable user-file comparisons.
+
+Target acceptance passed the inherited AppArmor denial/canary checks, restricted
+database login and startup gates, runtime confinement audit, read-only roots,
+Node worker/child processes, Typst PDF generation, seven HTTP/CSP routes and the
+eight-page read-only browser smoke. A real reboot verified automatic Caddy and
+application startup and artifact reuse; the browser smoke passed again afterward.
+The legacy shared frontend identity was revoked only on the restored instance;
+candidate and municipality-preview credentials were retained.
+
+This temporary hostname keeps mail fail-closed, newsletter writes, analytics and
+paid translation generation disabled. Production DNS/cutover, real mail delivery
+and editorial write workflows remain separate acceptance work. No original backup
+was edited, moved, removed or extracted in place.
+
+## Application releases from a clean checkout
+
+Run deployment commands as the dedicated `deploy` account over SSH. Keep host
+configuration outside Git in `~/.config/slk/future.env` (owned mode 0600), and
+use `EnvironmentFile=%h/.config/slk/future.env` in the user service. The checkout,
+release records and rootless storage belong to that account. Root is only needed
+for initial host policy/tool provisioning; never patch checked-in source on a host.
+Commit and push fixes in the development checkout, then fetch that exact revision.
+
+`bin/podman-release.sh /home/deploy/.config/slk/future.env stage release-<sha> release-<previous-sha>`
+builds application images, stages output in a separate named volume, verifies its
+fingerprint and runs the pinned runtime vendor regressions while the old site runs.
+A staged artifact is reused only when its source/environment/runtime fingerprint
+passes verification. Nested activation errors invoke rollback; a failed rollback
+keeps maintenance active. Existing output volumes are reused without attempting
+to recreate them, and rollback can restart a removed backend to safely undo
+its untouched homepage seed.
+Rebuild the runtime base images with `bin/podman.sh production build` first if their
+maintained inputs changed. Both scripts resolve paths from their own location.
+
+For a complete portable application recovery bundle, use [`bin/lib/portable-backup.ts`](bin/lib/portable-backup.ts) and the [backup and restore guide](bin/PORTABLE_BACKUP.md). It captures all databases/roles, uploads, Redis/search, frontend output, source/config and the five runtime images from the actual containers. Capture requires stopped writers and cleanly stopped app/cache/search containers; it performs no shutdown or deployment. The release `backup` action below is a narrower release snapshot.
+
+Before activation, take a fresh logical database dump, uploads/configuration backup
+and output snapshot; verify their checksums on a separate machine. Record the
+verified backup paths in `~/.local/state/slk-releases/release-<sha>/backup.verified`.
+Then run the same release command with `activate`. It requires a clean staged
+revision and the backup marker, starts maintenance, changes only application
+containers, imports maintained Directus YAML and seeds, copies the verified output,
+persists the release tag atomically, and audits readiness/confinement. Data service
+containers remain running. Keep stdout/stderr in private release logs.
+
+Activation failures restore the previous application images and saved output; an
+explicit `rollback` action uses the same arguments. The homepage rollback removes
+only this migration's untouched seed when the saved pre-import homepage was empty;
+editor changes or drafts stop automatic rollback for operator review. Additive YAML
+and translations stay applied; destructive schema changes need their own migration
+and database rollback plan. Run read-only public browser, CSP, UI-feedback and PDF
+acceptance against the real hostname after activation. Retain the previous healthy
+images, output volume and verified backups until those checks pass. Retire obsolete
+build records and duplicate bundles explicitly; never use blanket volume pruning.
+
+### CLI-only content migrations
+
+For a reviewed content migration whose dependencies are unchanged, run the current
+clean checkout's TypeScript entrypoint and task sources as read-only mounts in a
+disposable CLI container. This keeps the live application running and applies the
+checked-in migration without patching the host checkout or a running container.
+For example, after fetching the pushed revision as `deploy` and loading the private
+host configuration, run from the repository root:
+
+```bash
+bin/podman.sh production compose run --rm --no-deps -T \
+  --entrypoint sh \
+  -v "$PWD/src/directus/cli/tasks:/directus/cli/tasks:ro,z" \
+  -v "$PWD/src/directus/cli/seedHomepage.ts:/directus/cli/seedHomepage.ts:ro,z" \
+  directus -ec 'export FRONTEND_DIRECTUS_URL="$1"; exec /directus/cli/node_modules/.bin/tsx /directus/cli/seedHomepage.ts' \
+  slk-cli "http://${SLK_PODMAN_PROJECT:?}_directus_1:8055"
+```
+
+Record the application image tag and migration source revision separately in the
+private release record. The next normal application build packages the updated
+CLI automatically. Homepage rollback also runs the checked-in sources read-only;
+it ignores only the exact untouched legacy placeholder and preserves authored
+snapshots, empty authored snapshots, revisions and mutation histories.
+
+### Externally built application artifacts
+
+`stage-prebuilt` accepts images loaded with standard OCI/Docker archive tooling.
+Build the maintained `podman/{directus,frontend}/Containerfile` files from the
+clean Git source and label both images with
+`org.opencontainers.image.revision=<full-source-sha>`. Tag them with the release
+tag used by the target. The stage command rejects missing/mismatched revision
+labels, builds maintenance from source, verifies frontend output against the exact
+target environment and Node/platform/libc, and runs the vendor security tests.
+Activation retains the usual backup, clean-revision and runtime audit gates.
+
+Frontend builds use the maintained frontend-build command from podman-compose.yaml
+and productionOutput.mts prepare/stamp. Any transported build environment must stay
+in an owned mode-0600 file under a private release directory, mounted read-only in
+the disposable builder and never added to an image/context or printed in logs.
+Delete temporary environment copies after fingerprint verification. Import the
+staged output into the release's isolated volume before running stage-prebuilt.
+
+Extract transported output as the runtime UID in the same `keep-id` namespace.
+Importing a tar archive with `podman volume import` can leave ownership unsuitable
+for the runtime namespace, even when the archive and its fingerprints are valid.
+Use the disposable build service and its release-specific `/release` mount; load
+the private host configuration and select the new image tag first, as above:
+
+```bash
+release_state="$HOME/.local/state/slk-releases/release-<sha>"
+bin/podman.sh production compose -f "$release_state/stage.yaml" --profile build \
+  run --rm --no-deps -T --entrypoint tar frontend-build \
+  --no-same-owner -xz -C /release < "$release_state/frontend-output.tar.gz"
+```
+
+Start with an empty release-specific output volume. Run the normal
+`stage-prebuilt` gate afterward; preserve the original fingerprint rather than
+rewriting it to accept an unreadable or mismatched artifact. The live output
+volume stays separate until activation.
+
+Before activation, stop and explicitly remove any temporary frontend preview
+container. A detached Compose one-off can retain its service label after it exits,
+even when started with `--rm`. Verify that the project has exactly one container
+record for each normal runtime service before switching; otherwise service
+selection can return multiple IDs and leave maintenance active. Keep the actual
+runtime containers and data volumes intact.
+
+Deployment locks belong to the coordinating shell. Runtime launchers explicitly
+close their lock descriptors so conmon, DNS helpers and port forwarders cannot
+retain them after a job finishes. For a host upgraded from an older wrapper,
+inspect lock holders and confirm no coordinating deployment is running before
+renaming an inherited runtime lock inode. Do not kill healthy data services or
+remove an active controller's lock. The replacement wrapper uses a fresh lock
+file; legacy helper descriptors then refer only to the retired inode.
+
+Child launch wrappers disable inherited ERR handlers as well as closing lock
+descriptors. Their failure returns to the coordinator, which starts recovery
+once; an audit failure must not run competing child and parent rollbacks.
+
+
+## Reproducible CMS-origin migration
+
+The application release remains rootless under `deploy`. For the Future migration,
+first verify DNS/TLS for `directus.stadt-land-klima.de` on the **Future** address and
+provision the bootstrap gateway described in `caddy/README.md`. Take the normal
+fresh release backups before changing private environment files, copy them off-host
+and verify them. Also retain the private environment migration checkpoint off-host;
+it contains secrets and must remain in a mode-0700 directory with mode-0600 files.
+
+From the clean deployment checkout, prepare the new environment with:
+
+```sh
+node bin/lib/cms-origin.ts prepare /home/deploy/.config/slk/future.env /home/deploy/.local/state/slk-releases/release-<sha> https://directus.stadt-land-klima.de
+```
+
+This updates only the explicitly configured private frontend/CMS/host env files;
+no checked-in host source is patched. It changes the public CMS URL, secure
+host-only cookie names, strict SameSite and exact CMS CORS origin. Build and stage
+the new frontend using this environment; its fingerprint must match. The website
+editor remains behind its opaque Nuxt HttpOnly session/BFF and internal CMS URL.
+
+`cms-origin.before.json` lets the normal release rollback restore the old private
+configuration before reusing old application artifacts. Concurrent operator edits
+stop restoration rather than being overwritten. Coordinate gateway rollback with
+the root-owned Caddy configuration backup; the deploy user does not control Caddy.
+After successful application acceptance, install the final gateway entrypoint,
+then retire the former browser-origin sessions inside Directus:
+
+```sh
+bin/podman.sh production compose exec -T directus /directus/cli/node_modules/.bin/tsx /directus/cli/retireCmsOriginSessions.ts https://future.stadt-land-klima.de https://directus.stadt-land-klima.de --apply
+```
+
+Without `--apply`, this command only counts matching sessions. It removes only
+interactive user sessions with that exact recorded origin; server/BFF sessions,
+shares, static identities, candidate access links and preview links are retained.
+Already issued stateless access JWTs expire under their existing short TTL; a
+subdomain change is not a signing-key rotation. Keep the old-origin Admin/API
+unavailable and verify actual login, public media/SVG loading, invitations/reset
+links and editor login/preview/publish before marking the cutover complete.
