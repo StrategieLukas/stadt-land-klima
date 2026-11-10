@@ -448,6 +448,8 @@ its untouched homepage seed.
 Rebuild the runtime base images with `bin/podman.sh production build` first if their
 maintained inputs changed. Both scripts resolve paths from their own location.
 
+For a complete portable application recovery bundle, use [`bin/lib/portable-backup.ts`](bin/lib/portable-backup.ts) and the [backup and restore guide](bin/PORTABLE_BACKUP.md). It captures all databases/roles, uploads, Redis/search, frontend output, source/config and the five runtime images from the actual containers. Capture requires stopped writers and cleanly stopped app/cache/search containers; it performs no shutdown or deployment. The release `backup` action below is a narrower release snapshot.
+
 Before activation, take a fresh logical database dump, uploads/configuration backup
 and output snapshot; verify their checksums on a separate machine. Record the
 verified backup paths in `~/.local/state/slk-releases/release-<sha>/backup.verified`.
