@@ -1,0 +1,14 @@
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+:8080 {
+	root * /srv
+	@fresh path /index.html /maintenance-meta.js
+	route {
+		try_files {path} /index.html
+		header @fresh Cache-Control no-store
+		file_server
+	}
+}

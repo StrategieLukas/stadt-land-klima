@@ -16,8 +16,8 @@ const directory = mkdtempSync(join(tmpdir(), "slk-caddy-"));
 const name = "slk-caddy-" + randomUUID();
 const upstream = name + "-upstream";
 const image = process.env.SLK_CADDY_IMAGE || "slk-caddy-security:local";
-const docker = (...args: string[]) =>
-  execFileSync("docker", args, {
+const podman = (...args: string[]) =>
+  execFileSync("podman", args, {
     cwd: root,
     encoding: "utf8",
     timeout: 600_000,
@@ -26,7 +26,7 @@ const docker = (...args: string[]) =>
 let created = false;
 let upstreamCreated = false;
 try {
-  if (!process.env.SLK_CADDY_IMAGE) docker("build", "-t", image, "-f", "caddy/Containerfile", "caddy");
+  if (!process.env.SLK_CADDY_IMAGE) podman("build", "-t", image, "-f", "caddy/Containerfile", "caddy");
   execFileSync(
     "openssl",
     [
@@ -74,6 +74,8 @@ try {
     "ALL",
     "--security-opt",
     "no-new-privileges",
+    "--userns",
+    "keep-id:uid=1000,gid=1000",
     "--user",
     "1000:1000",
     "--memory",
@@ -89,7 +91,7 @@ try {
   ];
   if (process.env.SLK_CADDY_SECCOMP) confined.push("--security-opt", "seccomp=" + process.env.SLK_CADDY_SECCOMP);
   for (const file of ["Caddyfile", "Caddyfile.staging"])
-    docker(
+    podman(
       "run",
       "--rm",
       "--network",
@@ -104,7 +106,7 @@ try {
       "--adapter",
       "caddyfile",
     );
-  docker(
+  podman(
     "run",
     "-d",
     "--name",
@@ -119,12 +121,14 @@ try {
     image,
   );
   created = true;
-  docker(
+  podman(
     "run",
     "-d",
     "--name",
     upstream,
     "--network",
+    "container:" + name,
+    "--userns",
     "container:" + name,
     "--read-only",
     "--cap-drop",
@@ -144,8 +148,8 @@ try {
     "/upstream.ts",
   );
   upstreamCreated = true;
-  const port = Number(docker("port", name, "8443/tcp").split(":").at(-1));
-  const httpPort = Number(docker("port", name, "8080/tcp").split(":").at(-1));
+  const port = Number(podman("port", name, "8443/tcp").split(":").at(-1));
+  const httpPort = Number(podman("port", name, "8080/tcp").split(":").at(-1));
   const ca = readFileSync(join(directory, "cert.pem"));
   type Result = { status: number; headers: import("node:http").IncomingHttpHeaders; body: string };
   const fetch = (
@@ -353,7 +357,7 @@ try {
   assert.equal((await fetch("/_nuxt/unavailable.js")).status, 503, "Static errors do not trigger maintenance");
   assert.equal((await fetch("/elections/thesen/unavailable")).status, 503);
   const tooLarge = await fetch("/ai/chat", { "Content-Length": String(10485761) }, Buffer.alloc(10485761));
-  assert.equal(tooLarge.status, 413, "AI retains nginx's 10 MiB body limit");
+  assert.equal(tooLarge.status, 413, "AI retains Caddy's 10 MiB body limit");
   await fetch("/_test/cms-down");
   assert.match(
     (await fetch("/backend/server/health")).body,
@@ -371,7 +375,7 @@ try {
     pages.some((response) => response.status === 429),
     "Dynamic pages remain rate limited",
   );
-  const logs = docker("logs", name);
+  const logs = podman("logs", name);
   assert.doesNotMatch(
     logs,
     /private-(?:path|query|referrer|auth|cookie|body)-canary|forged-json-canary|203\.0\.113\.55/,
@@ -396,8 +400,8 @@ try {
   if (process.env.TEST_KEEP_CADDY_FIXTURE === "1")
     process.stdout.write(`Retained Caddy fixture ${name} ${directory}\n`);
   else {
-    if (upstreamCreated) docker("rm", "-f", upstream);
-    if (created) docker("rm", "-f", name);
+    if (upstreamCreated) podman("rm", "-f", upstream);
+    if (created) podman("rm", "-f", name);
     rmSync(directory, { recursive: true, force: true });
   }
 }

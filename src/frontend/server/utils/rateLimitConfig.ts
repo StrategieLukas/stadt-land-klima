@@ -99,7 +99,7 @@ export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
  * - Expensive reads (DB queries, external APIs, token validation): max: 10, windowSeconds: 60
  *
  * Cheap cached reads (Directus queries with response caching) do not need
- * application-level rate limiting — they're protected by nginx rate limits.
+ * application-level rate limiting — they're protected by Caddy rate limits.
  */
 
 /**

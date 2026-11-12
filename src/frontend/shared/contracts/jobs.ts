@@ -23,13 +23,6 @@ export const PublicOrganisationSchema = z.object({
 });
 export type PublicOrganisation = z.infer<typeof PublicOrganisationSchema>;
 
-/** Minimal organisation for list items */
-export const PublicOrganisationMinimalSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-});
-export type PublicOrganisationMinimal = z.infer<typeof PublicOrganisationMinimalSchema>;
-
 /** Public job offer for list view */
 export const PublicJobListSchema = z.object({
   id: z.string(),

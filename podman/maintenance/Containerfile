@@ -1,0 +1,6 @@
+FROM localhost/slk-caddy:2.11.7
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY index.html /srv/
+ENV XDG_DATA_HOME=/tmp/caddy/data XDG_CONFIG_HOME=/tmp/caddy/config
+USER 1000:1000
+EXPOSE 8080

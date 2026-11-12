@@ -43,9 +43,8 @@ For a running local frontend, enter
 `http://localhost:8080/elections/wahlcheck/YOUR-SLUG`. A different localhost port
 tests cross-origin behavior, but not all cross-site cookie restrictions. Loading
 the public HTTPS site from this local page also exercises cross-site embedding.
-The production domain will support the embed URL only after this change is
-deployed there; the previously deployed full-page URL includes the site's header
-and footer. For the final partner-domain check, serve these static files on the partner's
+Verify the target deployment exposes the embed route; full-page URLs retain the
+site header and footer. For the final partner-domain check, serve these static files on the partner's
 actual HTTPS origin; its own CSP, permissions policy and browser environment also
 affect the result. Do not expose the repository root through the static server.
 
@@ -88,7 +87,7 @@ so the page intentionally does not display an automatic success indicator.
 A connection error at localhost:8080 means the frontend is stopped. A Wahlcheck
 data 404 means the slug is not published in that server's database. An HTML 500
 is a server-rendering error: inspect the document response and frontend logs
-(`docker logs --tail 50 stadt-land-klima-frontend-1`). It is not fixed by adding
+(`podman logs --tail 50 stadt-land-klima-frontend-1`). It is not fixed by adding
 CORS permissions or hiding the error page.
 
 The checked-in production Nuxt and Nginx/Caddy policies allow these exact origins

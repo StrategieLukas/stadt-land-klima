@@ -87,7 +87,7 @@ test("release commands enforce the whole gate and expose translation sources rea
   assert.match(pkg.scripts["lint:types"], /\*\*\/\*\.vue/);
   assert.equal(pkg.scripts["typecheck:baseline"], undefined);
   assert.match(
-    readFileSync(new URL("docker-compose.yaml", root), "utf8"),
+    readFileSync(new URL("podman-compose.yaml", root), "utf8"),
     /src\/directus\/translations:\/directus\/translations:ro/,
   );
   assert.match(readFileSync(new URL("src/frontend/nuxt.config.ts", root), "utf8"), /typeCheck: "build"/);

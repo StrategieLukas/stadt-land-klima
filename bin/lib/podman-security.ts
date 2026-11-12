@@ -153,7 +153,7 @@ export function assertPodmanContainer(value: unknown, service: PodmanService, ex
     const mount = record(entry);
     if (mount.Type === "bind" && mount.RW !== false)
       throw new PodmanSecurityError("Production host binds must be read-only");
-    if (typeof mount.Destination !== "string" || /(?:docker|podman)\.sock$/.test(mount.Destination))
+    if (typeof mount.Destination !== "string" || /\.sock$/.test(mount.Destination))
       throw new PodmanSecurityError("Invalid mount or container engine socket");
     if (mount.Type === "volume" && mount.RW === true) {
       const allowed = {
@@ -206,8 +206,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       const uid = process.getuid?.();
       if (uid === undefined) throw new PodmanSecurityError("Linux filesystem ownership is required");
       for (const path of [
-        process.env.SLK_PODMAN_DB_ENV_FILE || "docker/db/.env",
-        process.env.SLK_PODMAN_MEILI_ENV_FILE || "docker/meilisearch/.env",
+        process.env.SLK_PODMAN_DB_ENV_FILE || "podman/database/.env",
+        process.env.SLK_PODMAN_MEILI_ENV_FILE || "podman/meilisearch/.env",
         process.env.SLK_PODMAN_DIRECTUS_ENV_FILE || "src/directus/.env",
         process.env.SLK_PODMAN_FRONTEND_ENV_FILE || "src/frontend/.env",
       ])

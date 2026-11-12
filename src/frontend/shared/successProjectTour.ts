@@ -86,5 +86,3 @@ export const STOP_FIELDS = [
 export const tourHref = (tour: Pick<SuccessProjectTour, "slug">) => `/projects/tours/${tour.slug}`;
 export const tourStopHref = (stop: Pick<SuccessProjectTourStop, "tour" | "slug">) =>
   `${tourHref(stop.tour)}/${stop.slug}`;
-export const publicStopFilter = { status: { _eq: "published" }, tour: { status: { _eq: "published" } } };
-export const publicReportFilter = { ...publicStopFilter, report_status: { _eq: "published" } };

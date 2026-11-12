@@ -147,7 +147,9 @@ export function createLabelFunctions() {
   return {
     slzLabelPosition: position,
     measure,
-    clear: () => widths.clear(),
+    clear: () => {
+      widths.clear();
+    },
   };
 }
 
@@ -264,12 +266,14 @@ export async function embedCollectionChart(
     functions.clear();
     void layout();
   };
-  document.fonts?.addEventListener("loadingdone", fontChange);
+  // Preserve the fallback for DOM implementations without CSS Font Loading.
+  const fontDocument: Partial<Document> = document;
+  fontDocument.fonts?.addEventListener("loadingdone", fontChange);
   const finalize = result.finalize;
   result.finalize = () => {
     disposed = true;
     observer.disconnect();
-    document.fonts?.removeEventListener("loadingdone", fontChange);
+    fontDocument.fonts?.removeEventListener("loadingdone", fontChange);
     finalize();
   };
   return result;

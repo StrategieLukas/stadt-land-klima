@@ -20,7 +20,7 @@ let nextCleanup = 0;
 
 export function requestPeer(event: H3Event): string {
   const remote = event.node.req.socket.remoteAddress ?? "unknown";
-  // Production publishes this listener only on loopback; nginx overwrites X-Real-IP.
+  // Production publishes this listener only on loopback; Caddy overwrites X-Real-IP.
   const forwarded =
     process.env.TRUST_PROXY === "true" && process.env.SLK_ENV === "production"
       ? event.node.req.headers["x-real-ip"]

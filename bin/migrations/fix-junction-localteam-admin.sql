@@ -7,7 +7,7 @@
 -- to their localteam, municipality, or ratings.
 --
 -- This is idempotent: it only inserts rows that do not already exist.
--- Run once via: docker compose exec db psql -U directus -d directus -f /path/to/this.sql
+-- Run once via: ./bin/podman.sh production compose exec db psql -U directus -d directus -f /path/to/this.sql
 -- Or via:       bash bin/run_sql.sh < bin/migrations/fix-junction-localteam-admin.sql
 
 INSERT INTO junction_directus_users_localteams (directus_users_id, localteam_id)

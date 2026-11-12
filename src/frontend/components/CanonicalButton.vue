@@ -48,6 +48,7 @@
 
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+import { prepareButtonIcons } from "~/utils/buttonIcons";
 import { computed, useAttrs } from "vue";
 
 defineOptions({ inheritAttrs: false });
@@ -68,38 +69,8 @@ const props = defineProps<{
 
 const attrs = useAttrs();
 
-const svgFiles = import.meta.glob("@/assets/icons/*.svg", { query: "?raw", import: "default", eager: true });
-
-/**
- * Like Blokkli Button's prepareIcon, but also strips <circle class="cls-1">
- * background shapes so icons like icon_newsletter_click render correctly on a
- * coloured button (the white envelope shows on the button background, not its own circle).
- */
-function prepareIconForButton(raw: string): string {
-  let svg = raw;
-  svg = svg.replace(/<\?xml[^?]*\?>/g, "");
-  svg = svg.replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1");
-  svg = svg.replace(/(<svg[^>]*?)\s+height="[^"]*"/g, "$1");
-  svg = svg.replace(/<rect[^>]*class="cls-[123]"[^/>]*\/>/g, "");
-  svg = svg.replace(/<rect[^>]*class="cls-[123]"[^>]*>[^<]*<\/rect>/g, "");
-  svg = svg.replace(/<circle[^>]*class="cls-1"[^/>]*\/>/g, "");
-  svg = svg.replace(/<circle[^>]*class="cls-1"[^>]*>[^<]*<\/circle>/g, "");
-  // Remove st0 background circles (impact, invest, evaluation_criteria, politics icons)
-  svg = svg.replace(/<circle[^>]*class="st0"[^/>]*\/>/g, "");
-  svg = svg.replace(/<circle[^>]*class="st0"[^>]*>[^<]*<\/circle>/g, "");
-  svg = svg.replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, "fill: currentColor");
-  svg = svg.replace(/stroke:\s*#[0-9a-fA-F]{3,6}/g, "stroke: currentColor");
-  svg = svg.replace(/fill="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'fill="currentColor"');
-  svg = svg.replace(/stroke="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'stroke="currentColor"');
-  return svg;
-}
-
-const iconMap: Record<string, string> = Object.fromEntries(
-  Object.entries(svgFiles).map(([path, svg]) => {
-    const name = path.split("/").pop()?.replace(".svg", "") ?? "";
-    return [name, prepareIconForButton(svg as string)];
-  }),
-);
+const svgFiles = import.meta.glob<string>("@/assets/icons/*.svg", { query: "?raw", import: "default", eager: true });
+const iconMap = prepareButtonIcons(svgFiles, "canonical");
 
 const currentIconSvg = computed(() => {
   if (!props.iconSlug) return "";

@@ -7,7 +7,7 @@ services:
       SLK_ENV: development
   frontend:
     ports: ["127.0.0.1:${SLK_PODMAN_WEB_PORT:-8080}:3000", "127.0.0.1:24678:24678"]
-    command: [sh, /start_dev.sh]
+    command: [/bin/sh, /start_dev.sh]
     environment:
       SLK_ENV: development
     volumes:

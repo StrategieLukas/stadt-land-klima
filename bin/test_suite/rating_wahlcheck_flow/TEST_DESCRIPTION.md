@@ -11,10 +11,10 @@
 2. Fill all current catalog `ratings_measures` entries:
    - set most measures to applicable, green rating, published status, a progress text, and a source URL
    - set 2-3 measures to not applicable with a required explanation
-3. Wait until the municipality score has at least 95% completion and a full score.
+3. Wait until the municipality score has 100% completion and a full score.
 4. Verify the team is still not shown on the public ranking.
 5. Open the municipality detail page without a preview token and verify it is locked.
-6. Open the municipality detail page with the preview token and verify it shows the municipality and score while remaining absent from the public ranking.
+6. Open the municipality detail page after enabling `preview_enabled`, with the preview token, and verify it shows the municipality and score while remaining absent from the public ranking.
 7. Log in to Directus as the unverified LokalteamMitglied, open the municipality item, and click the custom score publisher checkbox.
 8. Verify the rendered Directus app shows the unverified-account dialog and the score remains unpublished.
 9. Verify the account with an admin user.

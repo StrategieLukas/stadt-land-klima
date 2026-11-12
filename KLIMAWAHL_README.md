@@ -1,93 +1,66 @@
-# Klimawahl (Thesen-Check) — Dokumentation & User Guide
+# Klimawahlcheck — Anleitung
 
-Dieses Dokument beschreibt den Prozess des "Klimawahl-Checks" (auch bekannt als Thesen-Check), mit dem Lokalteams Thesen für Kandidierende zur Kommunalwahl generieren und deren Antworten einholen können.
+Der Klimawahlcheck verbindet die kommunale Maßnahmenbewertung mit Thesen für
+Kandidierende oder Parteien. Die konkrete Wahl wird in Directus unter `elections`
+verwaltet; Thesen und Kandidierende gehören zu dieser Wahl.
 
----
+## Wahl vorbereiten
 
-## 1. Prozess-Übersicht
+1. Öffne die Wahl deines Lokalteams in Directus und prüfe die zugrunde liegende
+   Maßnahmenbewertung und Katalogversion.
+2. Nutze **Thesen generieren** in den Wahlaktionen. Die Generierung wählt bis zu
+   zehn priorisierte Maßnahmen und verwendet `measure_questions_template` für die
+   Thesentexte. Prüfe die Thesen redaktionell und veröffentliche die vorgesehenen
+   Fragen.
+3. Erfasse Kandidierende beziehungsweise Parteien mit gültiger E-Mail-Adresse und
+   der passenden Wahlzuordnung. Bei Personen ist die Anrede erforderlich.
+4. Setze das Antwortdatum `response_cutoff_date`. Die Frist endet um 23:59 Uhr des
+   gewählten Kalendertages in Europe/Berlin.
+5. Nutze **Review der Thesen anfragen**. Ein:e WahlcheckAdmin muss die Wahl
+   freigeben, bevor die Versandaktionen in der Oberfläche angeboten werden.
 
-Der Klimawahl-Check basiert auf der wissenschaftlichen Bewertung der Kommunen im Projekt _Stadt.Land.Klima_. Ziel ist es, die 10 Maßnahmen mit dem größten Verbesserungspotenzial in einer spezifischen Kommune als Thesen zu formulieren und diese den lokalen Kandidierenden zur Stellungnahme vorzulegen.
+Die Priorisierung berücksichtigt Verbesserungspotenzial, Umsetzbarkeit und die
+stabile Maßnahmenkennung. Die Implementierung liegt in
+`src/directus/extensions/election-check/src/generate-questions/api.ts`; die
+Website nutzt die gepflegten Bewertungs-/Sortierhilfen. Änderungen an beiden
+Darstellungen müssen die bestehenden fachlichen Unterschiede berücksichtigen.
 
-### Der Ablauf in 5 Schritten:
+## E-Mails versenden
 
-1.  **Bewertung prüfen:** Die Thesengeneration funktioniert nur wenn die Bewertung abgeschlossen ist.
-2.  **Thesen generieren:** Das System ermittelt automatisch die Top 10 Maßnahmen.
-3.  **Kandidierende anlegen:** Die Namen und E-Mail-Adressen der Kandidierenden werden hinterlegt.
-4.  **Stichtag setzen:** Eine Frist für die Antworten wird festgelegt.
-5.  **Einladungen versenden:** Kandidierende erhalten einen persönlichen Link per E-Mail.
+Prüfe die HTML-Vorlage, den Betreff, Platzhalter, Antworten-Frist und Empfänger in
+der Wahl. Kandidierende und Parteien werden in diesen Nachrichten mit **Sie**
+angesprochen. Ein normaler Versand benötigt mindestens sieben veröffentlichte
+Fragen und zwei Kandidierende sowie die konfigurierte Frist. Die Versandübersicht
+unterscheidet gesendete, fehlgeschlagene und übersprungene Empfänger.
 
----
+**Test-E-Mail senden** verwendet den festgelegten Testempfänger; prüfe diese
+Konfiguration vor dem Versand. Erinnerungen richten sich an noch nicht
+antwortende Personen/Parteien, Dankesnachrichten an diejenigen mit Antworten.
+Bereits abgeschlossene Versandarten werden durch die bestehenden Wahlflags
+begrenzt. Reale Zustellung und Darstellung in Mailprogrammen bleiben manuell zu
+prüfen.
 
-## 2. Technische Details & Logik
+## Antworten und Veröffentlichung
 
-### Priorisierung der Thesen
+Neue persönliche Links verwenden `/elections/thesen#token=<UUID>`. Der Browser
+tauscht den Link gegen eine geschützte Sitzung und entfernt das Fragment.
+Bestehende persönliche Links bleiben unterstützt. Kandidierende können ihre
+Antworten bis zum Stichtag über denselben Zugang ändern. Die fünfstufige Antwort
+wird als 0–4 gespeichert; eine Begründung darf höchstens 500 Zeichen enthalten.
+Serverseitige Prüfungen binden Antworten an die Person, Wahl und veröffentlichten
+Fragen. Persönliche Links gehören nicht in öffentliche Inhalte oder Protokolle.
 
-Um die 10 wichtigsten Thesen für eine Kommune zu finden, verwendet das System folgende Logik (identisch mit der Logik auf der Webseite):
+Veröffentlichte Wahlen erscheinen unter `/elections/wahlcheck`; der öffentliche
+Fragebogen liegt unter `/elections/wahlcheck/<municipalitySlug>`. Wähler:innen
+beantworten die Thesen, können Fragen höher gewichten und vergleichen anschließend
+die Ergebnisse. Der einbettbare Fragebogen nutzt
+`/embed/wahlcheck/<municipalitySlug>` und die ausdrücklich zugelassenen Partner.
 
-1.  **Potential (Primär):** `Potential = (1 - Rating) * Gewichtung`
-    - Maßnahmen mit niedriger Bewertung und hoher Relevanz landen oben.
-2.  **Schwierigkeit (Tie-breaker 1):** Bei gleichem Potential wird die Maßnahme mit der geringeren Schwierigkeit bevorzugt.
-    - `Schwierigkeit = (Politische Umsetzbarkeit + Ökonomische Umsetzbarkeit) / 2`
-3.  **Maßnahmen-ID (Tie-breaker 2):** Bei absolutem Gleichstand wird alphabetisch nach der ID sortiert.
+## Prüfung
 
-### Datenquellen
-
-Die Texte für die Thesen stammen aus der Vorlage `measure_questions_template`. Jede Maßnahme hat dort einen spezifischen Titel und eine prägnante These.
-
----
-
-## 3. User Guide (für Lokalteam-Admins im Directus)
-
-### Schritt 1: Thesen generieren
-
-1.  Navigiere in Directus zum Modul **Lokalteams**.
-2.  Wähle dein Lokalteam aus (oder klicke in der Listenansicht auf das Lokalteam).
-3.  Klicke oben rechts auf das "Flow"-Icon (Blitz) und wähle **generateQuestions**.
-    - _Ergebnis:_ Es werden 10 Einträge in der Kollektion `questions` für dein Team erstellt. Du kannst diese unter "Thesen" einsehen und ggf. statusmäßig anpassen.
-
-### Schritt 2: Kandidierende erfassen
-
-1.  Gehe zur Kollektion **Kandidierende** (`candidate`).
-2.  Erstelle für jeden Kandidaten einen neuen Eintrag.
-3.  **Wichtig:** Weise den Kandidaten deinem **Lokalteam** zu und hinterlege eine gültige **E-Mail-Adresse**.
-
-### Schritt 3: Stichtag festlegen
-
-1.  Wähle dein Lokalteam aus.
-2.  Starte den Flow **setCutoffDate**.
-3.  Gib im Pop-up das Datum und die Uhrzeit an, bis zu der die Kandidierenden antworten dürfen.
-    - _Hinweis:_ Nach diesem Datum ist der Link für Kandidierende nur noch im Lesemodus verfügbar.
-
-### Schritt 4: E-Mails versenden
-
-1.  Wähle dein Lokalteam aus.
-2.  Starte den Flow **sendCandidateEmails**.
-    - _Sicherheitscheck:_ Der Flow prüft automatisch, ob ein Stichtag gesetzt wurde, mindestens 10 Thesen generiert wurden und mindestens 3 Kandidaten existieren.
-    - _Ergebnis:_ Jeder Kandidat erhält eine personalisierte E-Mail mit einem sicheren Link zum Fragebogen.
-
----
-
-## 4. Die Perspektive der Kandidierenden
-
-Kandidierende erhalten einen Link im Format:
-`https://stadt-land-klima.de/thesen/[Token]`
-
-Auf dieser Seite können sie:
-
-- Jede der 10 Thesen auf einer 5-stufigen Skala bewerten (_Stark dagegen_ bis _Stark dafür_).
-- Optional eine kurze Begründung (max. 500 Zeichen) pro These abgeben.
-- Ihre Antworten bis zum Stichtag jederzeit über denselben Link korrigieren.
-
-Sobald ein Kandidat "Bestätigen" klickt, werden die Zeitstempel `time_first_submitted` und `time_last_edited` gesetzt.
-
----
-
-## 5. Anzeige auf der Webseite
-
-Die Ergebnisse werden auf der öffentlichen Seite der jeweiligen Kommune unter dem Pfad `/elections/[slug]` (bzw. `/kommunalwahl/[slug]`) angezeigt.
-
-Dort können Wähler:innen:
-
-- Die 10 Thesen der Kommune einsehen.
-- Die Positionen der verschiedenen Kandidierenden vergleichen.
-- Die Begründungen der Kandidierenden lesen.
+Die gepflegte Ablaufbeschreibung ist
+[Rating/Wahlcheck-Test](bin/test_suite/rating_wahlcheck_flow/TEST_DESCRIPTION.md),
+ausgeführt durch `bin/test_suite/src/flows/ratingWahlcheckFlow.ts` im vollständigen
+Testprofil. [FEATURES.md](FEATURES.md) nennt ergänzende Kandidaten-, Versand- und
+Berechtigungstests samt manuellen Grenzen. Sicherheits- und Rollenentscheidungen
+stehen in [PROJECT_DECISIONS.md](PROJECT_DECISIONS.md).

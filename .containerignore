@@ -29,8 +29,8 @@ src/directus/*
 **/*.tsbuildinfo
 **/*.log
 **/report.*.json
-docker/data
-docker/core-storage
+podman/data
+podman/core-storage
 src/directus/uploads
 src/directus/schema/snapshot.yaml
 backups

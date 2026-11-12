@@ -10,12 +10,10 @@ SANITIZE_SQL="$SCRIPT_DIR/strip_personal_data.sql"
 
 cd "$REPO_ROOT"
 
-if [ -f src/directus/.env ]; then
-  set -a
-  # shellcheck disable=SC1091
-  source src/directus/.env
-  set +a
-fi
+DB_DATABASE="$(node bin/lib/environment-value.ts DB_DATABASE)"
+DB_PORT="$(node bin/lib/environment-value.ts DB_PORT)"
+DB_USER="$(node bin/lib/environment-value.ts DB_USER)"
+
 
 : "${DB_USER:?DB_USER is required}"
 : "${DB_DATABASE:?DB_DATABASE is required}"

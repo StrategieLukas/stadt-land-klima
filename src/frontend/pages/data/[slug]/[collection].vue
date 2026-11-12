@@ -204,7 +204,7 @@ onMounted(async () => {
     try {
       const data = CollectionSchema.parse(
         await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`, {
-          params: area.value?.ars ? { metadata_only: "true" } : undefined,
+          ...(area.value?.ars ? { params: { metadata_only: "true" } } : {}),
         }),
       );
       collection.value = data;

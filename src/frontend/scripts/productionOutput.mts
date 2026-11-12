@@ -25,7 +25,6 @@ const generated = new Set([
   ".data",
   "logs",
 ]);
-const volatileEnvironment = new Set(["HOSTNAME", "PWD", "OLDPWD", "SHLVL", "_", "TERM"]);
 
 function treeHash(root: string, source: boolean): string {
   const hash = createHash("sha256");
@@ -34,6 +33,8 @@ function treeHash(root: string, source: boolean): string {
       if (
         source &&
         (name === "node_modules" ||
+          name === ".env" ||
+          name.startsWith(".env.") ||
           (directory === root &&
             (generated.has(name) || name === ".eslintcache" || /^report\.\d.*\.json$/.test(name))) ||
           name.endsWith(".tsbuildinfo"))
@@ -63,13 +64,8 @@ function treeHash(root: string, source: boolean): string {
 export function productionInputHash(
   frontend: string,
   translations: string,
-  environment: NodeJS.ProcessEnv = process.env,
+  _environment: NodeJS.ProcessEnv = process.env,
 ): string {
-  const stable = Object.fromEntries(
-    Object.entries(environment)
-      .filter(([key, value]) => value !== undefined && !volatileEnvironment.has(key))
-      .sort(([a], [b]) => a.localeCompare(b)),
-  );
   const report = process.report.getReport();
   const header = typeof report === "object" && "header" in report ? report.header : undefined;
   const libc =
@@ -81,7 +77,6 @@ export function productionInputHash(
         platform: process.platform,
         arch: process.arch,
         libc,
-        environment: stable,
       }),
     )
     .update(treeHash(frontend, true))
@@ -104,7 +99,7 @@ export function stampProductionOutput(
   if (input !== expected) throw new Error("Production inputs changed during the build; rebuild before starting");
   const output = join(frontend, ".output");
   if (!lstatSync(join(output, "server/index.mjs")).isFile()) throw new Error("Production server output is missing");
-  const value = { version: 1, input, output: treeHash(output, false) };
+  const value = { version: 2, input, output: treeHash(output, false) };
   const temporary = join(output, marker + ".tmp");
   writeFileSync(temporary, JSON.stringify(value) + "\n", { mode: 0o600 });
   renameSync(temporary, join(output, marker));
@@ -122,7 +117,7 @@ export function verifyProductionOutput(
       !!value &&
       typeof value === "object" &&
       "version" in value &&
-      value.version === 1 &&
+      value.version === 2 &&
       "input" in value &&
       value.input === productionInputHash(frontend, translations, environment) &&
       "output" in value &&

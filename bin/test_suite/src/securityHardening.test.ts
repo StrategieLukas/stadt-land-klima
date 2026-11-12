@@ -614,9 +614,23 @@ test("core startup guard refuses old data and migration rejects unsupported moun
   const { spawnSync } = await import("node:child_process");
   const dir = mkdtempSync(join(tmpdir(), "slk-core-guard-"));
   const log = join(dir, "calls");
+  const tools = join(dir, "tools");
   try {
+    const { copyFileSync, mkdirSync } = await import("node:fs");
+    for (const name of ["bin/lib", "podman/database", "podman/meilisearch"])
+      mkdirSync(join(dir, name), { recursive: true });
+    for (const name of [
+      "bin/check_core_service_data.sh",
+      "bin/upgrade_core_services.sh",
+      "bin/lib/core-service-data.sh",
+      "podman/database/Containerfile",
+      "podman/meilisearch/Containerfile",
+    ])
+      copyFileSync(new URL(name, root), join(dir, name));
+    writeFileSync(join(dir, "bin/podman.sh"), '#!/bin/bash\nshift 2\nexec podman compose "$@"\n', { mode: 0o755 });
+    mkdirSync(tools);
     writeFileSync(
-      join(dir, "docker"),
+      join(tools, "podman"),
       `#!/usr/bin/env python3
 import os,sys,json
 args=sys.argv[1:]
@@ -633,12 +647,12 @@ else: sys.exit('Unexpected Docker operation')
 `,
       { mode: 0o755 },
     );
-    const env = { ...process.env, PATH: dir + ":" + process.env.PATH, SLK_TEST_CALLS: log };
-    const guard = new URL("bin/check_core_service_data.sh", root).pathname;
+    const env = { ...process.env, PATH: tools + ":" + process.env.PATH, SLK_TEST_CALLS: log };
+    const guard = join(dir, "bin/check_core_service_data.sh");
     assert.equal(spawnSync("bash", [guard, "production"], { env }).status, 0);
     assert.equal(spawnSync("bash", [guard, "production"], { env: { ...env, SLK_TEST_PG: "13" } }).status, 1);
     assert.equal(spawnSync("bash", [guard, "unknown"], { env }).status, 2);
-    const migration = new URL("bin/upgrade_core_services.sh", root).pathname;
+    const migration = join(dir, "bin/upgrade_core_services.sh");
     const rejected = spawnSync("bash", [migration, "production", "--apply"], {
       env: { ...env, SLK_TEST_MOUNT: "volume" },
       encoding: "utf8",
@@ -1052,7 +1066,7 @@ test("pinned analytics retains normal delivery and drops candidate/preview event
 });
 
 test("pinned Directus runtime guards reject inherited deep paths, SQL geometry and oversized transforms without running a CMS", async () => {
-  const guards = await import("../../../docker/directus/security-patches/patch-api.js");
+  const guards = await import("../../../podman/directus/security-patches/patch-api.js");
   const validateDeep = new Function("deep", "InvalidQueryError", guards.deepGuard);
   validateDeep({ translations: { _filter: { language: { _eq: "de" } } } }, Error);
   validateDeep({ name: { _limit: 1 }, translations: { _filter: { name: { _eq: "de" }, length: { _gt: 1 } } } }, Error);

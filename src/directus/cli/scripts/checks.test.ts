@@ -63,7 +63,7 @@ test("CLI build rejects compiler errors, omitted sources and weakened checking",
   }
 });
 
-test("container and administrative shell entry points stop before startup or writes when checking fails", async () => {
+test("administrative import/export entry points stop before writes when checking fails", async () => {
   const directory = mkdtempSync(join(tmpdir(), "slk-cli-startup-gate-"));
   try {
     const tools = join(directory, "tools");
@@ -84,15 +84,6 @@ test("container and administrative shell entry points stop before startup or wri
       PATH: `${tools}:${process.env.PATH}`,
       SLK_GATE_LOG: log,
     };
-    for (const name of ["build.sh", "start_dev.sh", "start_prod.sh"]) {
-      const source = readFileSync(join(repository, "docker/directus", name), "utf8").replaceAll("/directus", directus);
-      const file = join(directory, name);
-      writeFileSync(file, source);
-      writeFileSync(log, "");
-      const result = await run("bash", [file], directory, env);
-      assert.equal(result.code, 42, `${name}: ${result.output}`);
-      assert.doesNotMatch(readFileSync(log, "utf8"), /unexpected node/);
-    }
     for (const name of ["import-all.sh", "export-all.sh"]) {
       const file = join(directus, "cli", name);
       copyFileSync(join(root, name), file);

@@ -23,8 +23,8 @@ if [[ "$action" == apply ]]; then
   fi
 fi
 # Use the existing Directus DB_USER as the bootstrap operator. This intentionally
-# does not read/alter docker/db/.env or replace a persisted PostgreSQL password.
-"${CORE_COMPOSE[@]}" run --rm --no-deps --entrypoint node \
-  --user "$(id -u):$(id -g)" \
+# does not read/alter podman/database/.env or replace a persisted PostgreSQL password.
+"${CORE_COMPOSE[@]}" run --rm --no-deps --entrypoint /usr/local/bin/slk-env \
+  --user 1000:1000 \
   -v "$plan_dir:/security-plan" directus \
-  /directus/cli/tasks/hardenDatabaseRole.ts "$action" "/security-plan/$(basename "$plan_file")" "${@:4}"
+  node /directus/cli/tasks/hardenDatabaseRole.ts "$action" "/security-plan/$(basename "$plan_file")" "${@:4}"

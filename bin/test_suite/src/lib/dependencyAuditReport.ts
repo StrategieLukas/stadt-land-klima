@@ -125,7 +125,7 @@ export function auditSummary(reports: AuditReport[]): string {
   lines.push(
     "Raw JSON reports and this summary are in the `dependency-audit` artifact (14-day retention in CI).",
     "",
-    "This lockfile audit cannot recognize source backports. See SECURITY_HARDENING.md for the separately verified node-forge mitigation. Findings remain failing; no advisory is suppressed.",
+    "This lockfile audit cannot recognize source backports. See PROJECT_DECISIONS.md for the separately verified node-forge mitigation. Findings remain failing; no advisory is suppressed.",
     "",
   );
   return lines.join("\n");

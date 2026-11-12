@@ -174,12 +174,6 @@ export function normalizeCollection(collection: Collection) {
   } as Collection;
 }
 
-export function firstMapElement(
-  collection: Pick<Collection, "render_elements" | "renderElements" | "render_config" | "renderConfig">,
-) {
-  return collection.render_elements?.find((element) => element.type === "map" && hasMapVisual(element)) ?? null;
-}
-
 export function bestVisualElement(elements: RenderElement[]) {
   return (
     elements.find((element) => element.type === "map" && hasMapVisual(element)) ??

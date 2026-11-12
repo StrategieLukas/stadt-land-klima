@@ -16,7 +16,7 @@ actor, municipality, catalogue, completion percentage and both states. Logging
 never includes tokens or research, and enrichment failures do not block status
 and rank synchronization. Native Directus activity remains enabled.
 
-See `PUBLISHING_PREVIEW_PLAN.md` and `FEATURES.md` for rollout and exact regression
-coverage. Unit checks run in `bin/test_suite/src/municipalityPublishing.test.ts`;
+See [project decisions](../../../../PROJECT_DECISIONS.md#editorial-and-publication-invariants)
+and [the feature inventory](../../../../FEATURES.md) for invariants and exact regression coverage. Unit checks run in `bin/test_suite/src/municipalityPublishing.test.ts`;
 real CMS/API/browser coverage is in `flows/municipalityPublishingFlow.ts` and
 `flows/municipalityDisclosureFlow.ts`.

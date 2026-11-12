@@ -45,8 +45,8 @@
 2. Verify an unpublished current-backend rating above 0% shows `Lokalteam aktiv - Bewertung läuft`.
 3. Verify a published current-backend rating shows `Bewertung abgeschlossen` even when its percentage is 0%.
 4. Verify a stale `slug` URL parameter cannot create an existing-team state for an ARS without a team.
-5. Verify a localteam admin's `verified` state propagates to `municipalities.creator_verified` in both directions.
-6. Verify a separately verified localteam member can publish while the localteam admin preview flag remains false, and an unverified member cannot publish.
+5. Preview/publication authorization uses the acting user’s current verification; the legacy `creator_verified` mirror does not grant access. Dedicated assertions are in `municipalityPublishingFlow.ts`.
+6. Verify a separately verified localteam member can publish while the designated localteam admin remains unverified, and an unverified member cannot publish.
 
 # Ask User To Verify
 

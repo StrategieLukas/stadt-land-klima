@@ -1,3 +1,4 @@
-#!/bin/bash
-cd ..
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml exec directus /directus/cli/export-all.sh
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$SCRIPT_DIR/podman.sh" "${SLK_ENVIRONMENT:-production}" compose exec directus /directus/cli/export-all.sh "$@"

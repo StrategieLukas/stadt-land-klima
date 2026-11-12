@@ -8,6 +8,7 @@ const envFile = ".env";
 
 export async function setStaticToken() {
   try {
+    fs.accessSync(envFile, fs.constants.R_OK | fs.constants.W_OK);
     dotenv.config({ path: envFile });
     const directus = createDirectus(directusUrl).with(authentication()).with(rest());
 

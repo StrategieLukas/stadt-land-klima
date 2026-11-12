@@ -1,0 +1,7 @@
+FROM caddy:2.11.7-builder@sha256:c2fc374fd352439d76e1777b28d97d9f6d9c1dd86116db9227460374d46097d5 AS builder
+WORKDIR /src
+COPY go.mod main.go main_test.go ./
+RUN go test ./... && CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /slk-env .
+FROM scratch
+COPY --from=builder /slk-env /slk-env
+COPY DOTENV_LICENSE /usr/share/slk-env/DOTENV_LICENSE

@@ -6,8 +6,8 @@ import { assertReleasePolicy } from "./lib/releasePolicy.js";
 const require = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 const { parse } = require("yaml") as { parse: (value: string) => Record<string, any> };
 const root = new URL("../../../", import.meta.url);
-const base = parse(readFileSync(new URL("docker-compose.yaml", root), "utf8"));
-const prod = parse(readFileSync(new URL("docker-compose.prod.yaml", root), "utf8"));
+const base = parse(readFileSync(new URL("podman-compose.yaml", root), "utf8"));
+const prod = parse(readFileSync(new URL("podman-compose.prod.yaml", root), "utf8"));
 test("production configuration retains the controls required by pinned-runtime security dispositions", () =>
   assertReleasePolicy(base, prod));
 test("release review rejects accidentally enabled vulnerable surfaces or public service listeners", () => {

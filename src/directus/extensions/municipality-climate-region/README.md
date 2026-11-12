@@ -11,7 +11,7 @@ not require upgrading Directus.
 
 ## Configuration
 
-Set the server-only variables documented in `src/directus/.env.example`:
+The resolver accepts these optional server-only variables in the Directus environment:
 
 - `SLZ_API_BASE_URL`: Stadt-Land-Zahl origin for area search and the OGC Collections API.
 - `SLZ_NOMINATIM_URL`: optional self-hosted Nominatim base URL.
@@ -45,7 +45,7 @@ checked field, private read policies, translations and manual flow from the
 repository root:
 
 ```bash
-docker compose -f docker-compose.yaml exec directus /directus/cli/import-all.sh
+./bin/podman.sh development compose exec directus /directus/cli/import-all.sh
 ```
 
 The frontend displays the checked climate-region field in the municipality

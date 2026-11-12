@@ -5,8 +5,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-NO_DIRECTUS_BUILD=false
-NO_FRONTEND_BUILD=false
 NO_RESTART=false
 NO_BACKUP=false
 BUILD_OPTIONS=()
@@ -14,11 +12,9 @@ BUILD_OPTIONS=()
 for arg in "$@"; do
   case $arg in
     --no-directus-build)
-      NO_DIRECTUS_BUILD=true
       BUILD_OPTIONS+=(--no-directus-build)
       ;;
     --no-frontend-build)
-      NO_FRONTEND_BUILD=true
       BUILD_OPTIONS+=(--no-frontend-build)
       ;;
     --no-restart)
@@ -64,18 +60,6 @@ git pull
 git submodule init
 git submodule sync --recursive
 git submodule update --recursive
-#docker compose build && \
-#docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d && \
-#if [[ $NO_DIRECTUS_BUILD != true ]]; then
-#  echo "building directus ..."
-#  docker compose exec -T directus sh /build.sh
-#fi
-#if [[ $NO_FRONTEND_BUILD != true ]]; then
-#echo "building frontend ..."
-#  docker compose exec -T frontend sh /build.sh
-#fi
-#cd "$SCRIPT_DIR"
-
 if [[ $NO_RESTART != true ]]; then
   "$SCRIPT_DIR/stop.sh"
   "$SCRIPT_DIR/build_production.sh" "${BUILD_OPTIONS[@]}"

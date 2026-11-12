@@ -9,12 +9,9 @@ cd "$REPO_ROOT"
 source "$SCRIPT_DIR/lib/core-service-data.sh"
 core_compose "$ENVIRONMENT"
 
-if [ -f src/directus/.env ]; then
-  set -a
-  # shellcheck disable=SC1091
-  source src/directus/.env
-  set +a
-fi
+DB_DATABASE="$(node bin/lib/environment-value.ts DB_DATABASE)"
+DB_PORT="$(node bin/lib/environment-value.ts DB_PORT)"
+
 
 : "${DB_DATABASE:?DB_DATABASE is required in src/directus/.env}"
 DB_PORT="${DB_PORT:-5432}"

@@ -83,7 +83,7 @@ Vue hydration mismatches. It works with the earlier staging deployment as well
 as the branch's same-origin public APIs; passing pages do not prove API parity
 between versions. It never runs the writable CMS fixture suite on staging.
 
-`./bin/test_staging.sh` preserves the previous **full, writable** staging workflow;
+`./bin/test_staging.sh` runs the **full, writable** staging workflow;
 it creates and removes CMS fixtures and must not be used as a read-only smoke test.
 
 Mail webhook authorization is part of the full suite. It checks anonymous,
@@ -189,13 +189,11 @@ npm run test:tours -- http://localhost:8081 http://localhost:8080 ../../src/dire
 
 This runs the existing Tour Series assertions with disposable fixture setup/cleanup. Keep it serial with all other fixture suites. The shared Blökkli pointer helper pans the transformed artboard using real wheel events, keeps field clicks clear of fixed toolbars and waits for canvas hit testing; it does not use synthetic DOM editing events.
 
-Directus extension regressions run with `npm run test:extensions` (`src/directusExtensions.test.ts`) and are included in `test:unit`. They check all 14 compiler/prebuild configurations and source inclusion, consent endpoint authentication/schema resolution, service-role exemptions and required legal agreements, report database wiring, Unsplash authentication and actual radio-selector rendering. They add about a second when run alone and need no services. From the repository root, `./bin/check_extensions.sh` checks extension sources; `./bin/check_extensions.sh --build` also builds the bundles, with each package’s `prebuild` enforcing its compiler. Install each extension’s locked dependencies first with `npm ci` in its directory. See `DIRECTUS_EXTENSION_TYPES_REVIEW.md` for the negative build proofs and runtime verification.
+Directus extension regressions run with `npm run test:extensions` (`src/directusExtensions.test.ts`) and are included in `test:unit`. They check all maintained compiler/prebuild configurations and source inclusion, consent endpoint authentication/schema resolution, service-role exemptions and required legal agreements, report database wiring, Unsplash authentication and actual radio-selector rendering. These isolated cases need no services. From the repository root, `./bin/check_extensions.sh` checks extension sources; `./bin/check_extensions.sh --build` also builds the bundles, with each package’s `prebuild` enforcing its compiler. Install each extension’s locked dependencies first with `npm ci` in its directory. See [project decisions](../../PROJECT_DECISIONS.md#quality-gates-and-remaining-work) for compiler gates and acceptance boundaries.
 
-CLI regressions run through `npm run test:cli` and are included in `test:unit`. Install the CLI lockfile first (`npm --prefix ../../src/directus/cli ci --include=dev`). These cases use isolated HTTP/filesystem fixtures and add roughly 10 seconds. Compiler-negative/startup probes remain in `npm --prefix ../../src/directus/cli run test:gates`; live flow/dashboard and tour migration tests are separate serialized commands.
+CLI regressions run through `npm run test:cli` and are included in `test:unit`. Install the CLI lockfile first (`npm --prefix ../../src/directus/cli ci --include=dev`). These cases use isolated HTTP/filesystem fixtures with no live CMS requirement. Compiler-negative/startup probes remain in `npm --prefix ../../src/directus/cli run test:gates`; live flow/dashboard and tour migration tests are separate serialized commands.
 
 Security follow-up: `securityHardening.test.ts` is part of the fast unit gate and covers actual sanitizer, quota, math, form, session, search, PDF, mail-escape and core guard/cutover implementations. `TEST_REDIS_URL=redis://<local-redis>:6379 npm run test:security:redis` separately checks the real Lua window with 100 parallel requests across two clients and removes only its unique test key. Do not point it at production. `npm run audit:dependencies -- /private/report/directory` audits all maintained npm lockfiles, writes JSON reports and exits 1 for high/critical findings or 2 for registry/tool failures. The weekly GitHub workflow deliberately fails on known findings and requires no deployment secrets.
-
-`npm run test:security:nginx` starts a disposable loopback-only nginx with stub upstreams and a temporary self-signed certificate, exercises the real checked-in host config, and removes the container/certificate afterward. Docker plus OpenSSL are required. It tests opaque query rejection, normal bracket queries, WebSocket disabling, trusted peer headers and security/private-referrer headers; it sends no exploit to Directus. This integration test stays outside the default browser suite.
 
 ### Styles and browser engines
 
@@ -215,8 +213,8 @@ The style gate waits for Nuxt's build metadata response before forcing another f
 ## Podman deployment checks
 
 The isolated unit suite includes `src/podman.test.ts` for the rootless deployment
-policy, denied host/runtime drift, private environment-file modes, native secret
-transport/rotation and derived
+policy, denied host/runtime drift, private environment-file modes, runtime environment
+mounts/reloads and derived
 seccomp syscall rules. After preparing a rootless production acceptance stack,
 run `npm run test:podman`: it audits actual runtime/kernel controls, checks
 read-only roots, Node worker/child support, Typst and seven HTTP/CSP routes. It
@@ -227,7 +225,7 @@ remaining full workflow/reboot/mail acceptance.
 `npm run test:security:caddy` builds the pinned optional Caddy gateway and validates
 production/staging configs with disposable trusted TLS and Node upstreams. It
 checks encoded query/path guards, forwarding headers, nonce CSP, private
-referrers/logs, body limits, maintenance and independent asset/page budgets. Docker
+referrers/logs, body limits, maintenance and independent asset/page budgets. Podman
 and OpenSSL are required. `SLK_CADDY_IMAGE` selects a prebuilt reviewed image;
 `SLK_CADDY_SECCOMP` optionally supplies the derived Podman profile. No real CMS
 data, credentials or email are used. See [Caddy migration](../../caddy/README.md).

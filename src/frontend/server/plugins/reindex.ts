@@ -20,7 +20,7 @@ export default defineNitroPlugin(async () => {
   const g = globalThis as ReindexGlobals;
   searchReadiness.ready = false;
   let nextRun = 0;
-  const healthyInterval = process.env.APP_ENV === "production" ? 60 * 60 * 1000 : 15 * 60 * 1000;
+  const healthyInterval = config.public.appEnv === "production" ? 60 * 60 * 1000 : 15 * 60 * 1000;
   const runReindex = async () => {
     if (g.__slkReindexRunning || Date.now() < nextRun) return;
     g.__slkReindexRunning = true;

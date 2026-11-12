@@ -5,7 +5,7 @@
 -- EditorLocalteam -> LokalteamMitglied
 --
 -- This is idempotent: it only updates rows that match the old names.
--- Run once via: docker compose exec db psql -U directus -d directus -f /path/to/this.sql
+-- Run once via: ./bin/podman.sh production compose exec db psql -U directus -d directus -f /path/to/this.sql
 -- Or via:       bash bin/run_sql.sh < bin/migrations/rename-localteam-roles.sql
 
 -- Rename AdminLokalteam to LokalteamAdmin

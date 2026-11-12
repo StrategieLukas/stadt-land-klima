@@ -1,7 +1,7 @@
-/** Explicit, disposable Docker integration test. Never mounts this checkout's data. */
+/** Explicit, disposable Podman integration test. Never mounts this checkout's data. */
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, cpSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { symlinkSync, mkdtempSync, mkdirSync, cpSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,9 +11,14 @@ const directory = mkdtempSync(join(tmpdir(), "slk-logical-"));
 const checkout = join(directory, "checkout");
 mkdirSync(checkout);
 const project = "slk-logical-" + randomBytes(6).toString("hex");
-const environment = { ...process.env, COMPOSE_PROJECT_NAME: project, CORE_UPGRADE_TIMEOUT_SECONDS: "120" };
-const docker = (...args: string[]) =>
-  execFileSync("docker", args, {
+const environment = {
+  ...process.env,
+  COMPOSE_PROJECT_NAME: project,
+  SLK_PODMAN_PROJECT: project,
+  CORE_UPGRADE_TIMEOUT_SECONDS: "120",
+};
+const podman = (...args: string[]) =>
+  execFileSync("podman", args, {
     cwd: checkout,
     env: environment,
     encoding: "utf8",
@@ -21,23 +26,44 @@ const docker = (...args: string[]) =>
     timeout: 240000,
   }).trim();
 const compose = (...args: string[]) =>
-  docker("compose", "-f", "docker-compose.yaml", "-f", "docker-compose.dev.yaml", ...args);
-const images = docker("compose", "-f", join(root, "docker-compose.yaml"), "config", "--images").split("\n");
-const dbImage = images.find((image) => image.startsWith("postgis/postgis:"))!;
-const meiliImage = images.find((image) => image.startsWith("getmeili/meilisearch:"))!;
-const nodeImage = /^FROM (node:\S+)/m.exec(readFileSync(join(root, "docker/frontend/Dockerfile"), "utf8"))![1]!;
+  execFileSync(
+    "podman-compose",
+    ["--in-pod=false", "-p", project, "-f", "podman-compose.yaml", "-f", "podman-compose.dev.yaml", ...args],
+    { cwd: checkout, env: environment, encoding: "utf8", timeout: 240000 },
+  ).trim();
+const dbImage = /^FROM (docker\.io\/postgis\/postgis:\S+)/m.exec(
+  readFileSync(join(root, "podman/database/Containerfile"), "utf8"),
+)![1]!;
+const meiliImage = /^FROM (docker\.io\/getmeili\/meilisearch:\S+)/m.exec(
+  readFileSync(join(root, "podman/meilisearch/Containerfile"), "utf8"),
+)![1]!;
+const nodeImage = /^FROM (node:\S+)/m.exec(
+  readFileSync(join(root, "podman/frontend/RuntimeContainerfile"), "utf8"),
+)![1]!;
 let targetVolumes: string[] = [];
 try {
   cpSync(join(root, "bin"), join(checkout, "bin"), {
     recursive: true,
     filter: (path) => !/\/(node_modules|test_suite)(\/|$)/.test(path),
   });
-  mkdirSync(join(checkout, "docker/frontend"), { recursive: true });
-  cpSync(join(root, "docker/frontend/Dockerfile"), join(checkout, "docker/frontend/Dockerfile"));
+  mkdirSync(join(checkout, "podman/frontend"), { recursive: true });
+  cpSync(join(root, "podman/frontend/RuntimeContainerfile"), join(checkout, "podman/frontend/RuntimeContainerfile"));
+  for (const name of ["database", "meilisearch"]) {
+    mkdirSync(join(checkout, "podman", name), { recursive: true });
+    cpSync(join(root, "podman", name, "Containerfile"), join(checkout, "podman", name, "Containerfile"));
+  }
+  mkdirSync(join(checkout, "src/directus/cli"), { recursive: true });
+  symlinkSync(join(root, "src/directus/cli/node_modules"), join(checkout, "src/directus/cli/node_modules"), "dir");
+  // This disposable data fixture has its own Compose file, separate from application confinement/mounts.
+  writeFileSync(
+    join(checkout, "bin/podman.sh"),
+    '#!/bin/bash\nshift 2\nfiles=(-f podman-compose.yaml -f podman-compose.dev.yaml)\nif [[ -f podman/core-storage/development.compose.json ]]; then files+=(-f podman/core-storage/development.compose.json); fi\nexec podman-compose --in-pod=false -p "$SLK_PODMAN_PROJECT" "${files[@]}" "$@"\n',
+    { mode: 0o755 },
+  );
   const customSearch = join(checkout, "custom search");
   mkdirSync(customSearch);
   writeFileSync(
-    join(checkout, "docker-compose.yaml"),
+    join(checkout, "podman-compose.yaml"),
     JSON.stringify({
       services: {
         db: {
@@ -62,13 +88,13 @@ try {
     }),
     { mode: 0o600 },
   );
-  writeFileSync(join(checkout, "docker-compose.dev.yaml"), "services: {}\n");
+  writeFileSync(join(checkout, "podman-compose.dev.yaml"), "services: {}\n");
   compose("up", "-d", "db", "meilisearch");
   const db = compose("ps", "-q", "db"),
     meili = compose("ps", "-q", "meilisearch");
   for (let attempt = 0; ; attempt++) {
     try {
-      docker("exec", db, "pg_isready", "-q", "-h", "127.0.0.1", "-U", "slk_fixture");
+      podman("exec", db, "pg_isready", "-q", "-h", "127.0.0.1", "-U", "slk_fixture");
       break;
     } catch {
       if (attempt === 100) throw Error("Fixture DB did not start");
@@ -76,7 +102,7 @@ try {
     }
   }
   const sql = (database: string, statement: string) =>
-    docker("exec", db, "psql", "-XqAt", "-v", "ON_ERROR_STOP=1", "-U", "slk_fixture", "-d", database, "-c", statement);
+    podman("exec", db, "psql", "-XqAt", "-v", "ON_ERROR_STOP=1", "-U", "slk_fixture", "-d", database, "-c", statement);
   sql(
     "directus",
     "CREATE TABLE fixture (id int PRIMARY KEY, name text, shape geometry(Point,4326)); INSERT INTO fixture VALUES (1,'Grüße',ST_GeomFromText('POINT(1 2)',4326)); CREATE ROLE fixture_readonly; GRANT SELECT ON fixture TO fixture_readonly;",
@@ -103,8 +129,8 @@ try {
           "Fixture search did not start on port " +
             port +
             ": " +
-            docker("inspect", meili, "--format", "{{json .State}}") +
-            docker("logs", meili),
+            podman("inspect", meili, "--format", "{{json .State}}") +
+            podman("logs", meili),
         );
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -118,13 +144,13 @@ try {
     { cwd: checkout, env: environment, encoding: "utf8", timeout: 240000, maxBuffer: 4 * 1024 * 1024 },
   );
   process.stdout.write(output);
-  const overlay = JSON.parse(readFileSync(join(checkout, "docker/core-storage/development.compose.json"), "utf8"));
+  const overlay = JSON.parse(readFileSync(join(checkout, "podman/core-storage/development.compose.json"), "utf8"));
   targetVolumes = Object.values(overlay.volumes as Record<string, { name: string }>).map((volume) => volume.name);
-  const migrated = (...args: string[]) => compose("-f", "docker/core-storage/development.compose.json", ...args);
+  const migrated = (...args: string[]) => compose("-f", "podman/core-storage/development.compose.json", ...args);
   const newDb = migrated("ps", "-q", "db");
   assert.notEqual(newDb, db);
   assert.equal(
-    docker(
+    podman(
       "exec",
       newDb,
       "psql",
@@ -139,12 +165,12 @@ try {
     "42",
   );
   assert.equal(
-    docker("exec", newDb, "psql", "-XqAt", "-U", "slk_fixture", "-d", "directus", "-c", "SELECT name FROM fixture"),
+    podman("exec", newDb, "psql", "-XqAt", "-U", "slk_fixture", "-d", "directus", "-c", "SELECT name FROM fixture"),
     "Grüße",
   );
   // Source storage was never mounted into the target versions during validation.
-  assert.ok(docker("volume", "inspect", `${project}_original-db`));
-  const searchFiles = docker(
+  assert.ok(podman("volume", "inspect", `${project}_original-db`));
+  const searchFiles = podman(
     "run",
     "--rm",
     "--network",
@@ -176,7 +202,7 @@ try {
     process.exitCode = 1;
   } else
     try {
-      const overlayFile = join(checkout, "docker/core-storage/development.compose.json");
+      const overlayFile = join(checkout, "podman/core-storage/development.compose.json");
       try {
         const overlay = JSON.parse(readFileSync(overlayFile, "utf8"));
         targetVolumes = Object.values(overlay.volumes as Record<string, { name: string }>).map((volume) => volume.name);
@@ -185,13 +211,14 @@ try {
         /* Pre-cutover failure. */
       }
       compose("down", "--volumes", "--remove-orphans");
-      for (const volume of targetVolumes) docker("volume", "rm", volume);
+      for (const volume of targetVolumes) podman("volume", "rm", volume);
     } finally {
-      docker(
+      podman(
         "run",
         "--rm",
         "--network",
         "none",
+        "--userns=keep-id",
         "--user",
         "0",
         "--entrypoint",
