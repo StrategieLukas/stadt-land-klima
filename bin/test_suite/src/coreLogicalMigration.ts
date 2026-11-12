@@ -25,19 +25,31 @@ const podman = (...args: string[]) =>
     stdio: ["ignore", "pipe", "pipe"],
     timeout: 240000,
   }).trim();
-const compose = (...args: string[]) =>
-  execFileSync(
+const compose = (...args: string[]) => {
+  if (args.includes("ps") && ["db", "meilisearch"].includes(args.at(-1)!))
+    return podman(
+      "ps",
+      "--all",
+      "--filter",
+      `label=io.podman.compose.project=${project}`,
+      "--filter",
+      `label=io.podman.compose.service=${args.at(-1)}`,
+      "--format",
+      "{{.ID}}",
+    );
+  return execFileSync(
     "podman-compose",
     ["--in-pod=false", "-p", project, "-f", "podman-compose.yaml", "-f", "podman-compose.dev.yaml", ...args],
     { cwd: checkout, env: environment, encoding: "utf8", timeout: 240000 },
   ).trim();
+};
 const dbImage = /^FROM (docker\.io\/postgis\/postgis:\S+)/m.exec(
   readFileSync(join(root, "podman/database/Containerfile"), "utf8"),
 )![1]!;
 const meiliImage = /^FROM (docker\.io\/getmeili\/meilisearch:\S+)/m.exec(
   readFileSync(join(root, "podman/meilisearch/Containerfile"), "utf8"),
 )![1]!;
-const nodeImage = /^FROM (node:\S+)/m.exec(
+const nodeImage = /^FROM ((?:docker\.io\/library\/)?node:\S+)/m.exec(
   readFileSync(join(root, "podman/frontend/RuntimeContainerfile"), "utf8"),
 )![1]!;
 let targetVolumes: string[] = [];
@@ -54,12 +66,7 @@ try {
   }
   mkdirSync(join(checkout, "src/directus/cli"), { recursive: true });
   symlinkSync(join(root, "src/directus/cli/node_modules"), join(checkout, "src/directus/cli/node_modules"), "dir");
-  // This disposable data fixture has its own Compose file, separate from application confinement/mounts.
-  writeFileSync(
-    join(checkout, "bin/podman.sh"),
-    '#!/bin/bash\nshift 2\nfiles=(-f podman-compose.yaml -f podman-compose.dev.yaml)\nif [[ -f podman/core-storage/development.compose.json ]]; then files+=(-f podman/core-storage/development.compose.json); fi\nexec podman-compose --in-pod=false -p "$SLK_PODMAN_PROJECT" "${files[@]}" "$@"\n',
-    { mode: 0o755 },
-  );
+  symlinkSync(join(root, "bin/node_modules"), join(checkout, "bin/node_modules"), "dir");
   const customSearch = join(checkout, "custom search");
   mkdirSync(customSearch);
   writeFileSync(
@@ -139,8 +146,12 @@ try {
   await request("/indexes/fixture/documents", "POST", [{ id: "one", title: "search fixture" }]);
   console.log("Running the real logical migration against disposable named/custom mounts…");
   const output = execFileSync(
-    "bash",
-    [join(checkout, "bin/upgrade_core_services.sh"), "development", "--logical", "--apply"],
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      `import { Runtime } from './bin/cli/stack.ts'; import { upgradeCore } from './bin/cli/core.ts'; await upgradeCore(new Runtime('development', process.env.SLK_PODMAN_PROJECT, ['--in-pod=false','-p',process.env.SLK_PODMAN_PROJECT,'-f','podman-compose.yaml','-f','podman-compose.dev.yaml'],process.env,8080,8081),true,true);`,
+    ],
     { cwd: checkout, env: environment, encoding: "utf8", timeout: 240000, maxBuffer: 4 * 1024 * 1024 },
   );
   process.stdout.write(output);
@@ -184,12 +195,20 @@ try {
     "test -f /source/data.ms/VERSION; cat /source/data.ms/VERSION",
   );
   assert.ok(searchFiles);
-  migrated("rm", "-sf", "db", "meilisearch"); // Prove the guard reads persisted volume metadata without containers.
-  execFileSync("bash", [join(checkout, "bin/check_core_service_data.sh"), "development"], {
-    cwd: checkout,
-    env: environment,
-    stdio: "pipe",
-  });
+  podman("rm", "-f", newDb, migrated("ps", "-q", "meilisearch")); // Prove the guard reads persisted volume metadata without containers.
+  execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      `import { Runtime } from './bin/cli/stack.ts'; import { checkCoreData } from './bin/cli/core.ts'; await checkCoreData(new Runtime('development',process.env.SLK_PODMAN_PROJECT,['--in-pod=false','-p',process.env.SLK_PODMAN_PROJECT,'-f',process.env.XDG_RUNTIME_DIR+'/slk-podman/'+process.env.SLK_PODMAN_PROJECT+'.storage.compose.json'],process.env,8080,8081));`,
+    ],
+    {
+      cwd: checkout,
+      env: environment,
+      stdio: "pipe",
+    },
+  );
   console.log(
     "Logical migration: multiple databases, spatial rows, roles, named/custom mounts, search restore and container-free startup guard passed.",
   );

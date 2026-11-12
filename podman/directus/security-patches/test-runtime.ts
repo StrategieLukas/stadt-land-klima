@@ -462,6 +462,23 @@ await check("streamed JSON preserves hostile property names as data and bounds n
   );
 });
 
+await check("deepmerge preserves hostile property names as own data without prototype poisoning", () => {
+  const module = createRequire("/directus/node_modules/.pnpm/deepmerge@4.3.1/node_modules/deepmerge/package.json");
+  const merge = module("./dist/cjs.js");
+  const hostile = JSON.parse('{"__proto__":{"isAdmin":true},"ok":1}');
+  for (const result of [merge(hostile, { extra: 2 }), merge(Object.create(null), hostile)]) {
+    assert.equal(Object.getPrototypeOf(result), Object.prototype);
+    assert.equal(result.isAdmin, undefined);
+    assert.equal(Object.hasOwn(result, "__proto__"), true);
+    assert.deepEqual(result.__proto__, { isAdmin: true });
+    assert.equal(result.ok, 1);
+  }
+  assert.deepEqual(merge({ items: [1], nested: { a: 1 } }, { items: [2], nested: { b: 2 } }), {
+    items: [1, 2],
+    nested: { a: 1, b: 2 },
+  });
+});
+
 await check("every bundled vulnerable-library location resolves to the reviewed replacement", async () => {
   const { readdirSync } = await import("node:fs");
   for (const { name, original, version } of dependencyReplacements) {

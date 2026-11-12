@@ -1,9 +1,7 @@
+import dotenv from "dotenv";
 /** Private migration transport: emit selected keys only into the caller's backup. */
-import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 try {
-  const require = createRequire(new URL("../../src/directus/cli/package.json", import.meta.url));
-  const dotenv = require("dotenv") as { parse: (value: string) => Record<string, string> };
   const [container] = JSON.parse(readFileSync(0, "utf8")) as Array<{
     Config: { Env: string[] };
     Mounts: Array<{ Source: string; Destination: string }>;

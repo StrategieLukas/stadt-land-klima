@@ -11,19 +11,27 @@ Deployment uses **rootless Podman and Caddy**. Directus stays **11.17.4**.
 
 Designs: https://www.figma.com/design/xOUA8jmhBBreYvmZRdlFSn/Stadt.Land.Klima!
 
+## Operations CLI
+
+Install the locked operator tools with `npm ci --prefix bin`, then use
+`./bin/slk --help` or `./bin/slk <group> --help`. All former bin shell scripts are
+replaced by this TypeScript CLI. Commands default to development; select
+`--env production` explicitly for production. Put tool/provider arguments after
+`--`, for example `./bin/slk database sql --env production -- -c 'SELECT 1'`.
+
 ## Development
 
 Prepare the host and four private dotenv files as described in [PODMAN.md](PODMAN.md#private-runtime-configuration), then:
 
 ```bash
-./bin/start_development.sh
+./bin/slk stack build --env development && ./bin/slk stack start --env development --import
 ```
 
 Frontend: http://localhost:8080; CMS: http://localhost:8081. Frontend source
 hot-reloads. Import the code-first configuration using:
 
 ```bash
-./bin/podman.sh development compose exec -T directus /directus/cli/import-all.sh
+./bin/slk stack compose --env development -- exec -T directus /directus/cli/import-all.sh
 ```
 
 Configure the private CLI administrator token in the host Directus dotenv file.
@@ -35,8 +43,8 @@ CMS service token into public runtime configuration.
 ## Production and runtime configuration
 
 ```bash
-./bin/build_production.sh
-./bin/start_production.sh --import
+./bin/slk stack build --env production
+./bin/slk stack start --env production --import
 ```
 
 Use the ordered [deployment checklist](DEPLOYMENT_CHECKLIST.md) on staging first.
@@ -49,8 +57,8 @@ loaded on every container start, including legacy frontend-to-Nuxt runtime alias
 After changing settings, restart the affected service:
 
 ```bash
-./bin/podman.sh production restart frontend
-./bin/podman.sh production restart directus
+./bin/slk stack restart --env production frontend
+./bin/slk stack restart --env production directus
 ```
 
 No rebuild is required for runtime keys. Image/source changes still require a
@@ -66,11 +74,11 @@ and idempotent seeds needed by restored/fresh databases.
 
 After an extension change install/build its locked dependencies, then rebuild the
 Podman Directus image and restart/recreate the CMS to load its compiled bundle.
-`./bin/check_extensions.sh --build` checks all maintained packages. Deployment
+`./bin/slk extensions build` checks all maintained packages. Deployment
 must use matching source, locks, bundles and YAML.
 
 ```bash
-./bin/run_directus_migrations.sh production
+./bin/slk cms migrate --env production
 ```
 
 The migration launcher backs up, imports YAML and applies pending registered
@@ -87,15 +95,15 @@ Keep the separate bootstrap operator and a private directory for the plan:
 ```bash
 slk_private="$(mktemp -d /tmp/slk-role.XXXXXX)"
 chmod 700 "$slk_private"
-./bin/harden_database_role.sh production plan "$slk_private/database-role.json" slk_app
+./bin/slk database role --env production -- plan "$slk_private/database-role.json" slk_app
 ```
 
 Review the private plan (it contains the generated password), stop frontend and
 CMS, and keep PostgreSQL running. Then:
 
 ```bash
-./bin/podman.sh production compose stop frontend directus
-./bin/harden_database_role.sh production apply "$slk_private/database-role.json"
+./bin/slk stack compose --env production -- stop frontend directus
+./bin/slk database role --env production -- apply "$slk_private/database-role.json"
 ```
 
 Copy the resulting application-role values into `src/directus/.env`. Keep
@@ -109,11 +117,11 @@ future work. Do not rerun apply after success or restore SUPERUSER as a shortcut
 
 ```bash
 cd bin
-./test_dev.sh
+./slk test dev
 ```
 
 Wait for completion. The default suite runs unit/CLI and fast live CMS/browser
-flows; `--full` is writable and requires disposable data. Additional root checks:
+flows; `./slk test full` is writable and requires disposable data. Additional root checks:
 
 ```bash
 npm --prefix src/frontend run typecheck
@@ -126,7 +134,7 @@ npm --prefix bin/test_suite run test:runtime-environment
 curl --fail http://localhost:8080/
 ```
 
-The env launcher uses Go 1.24.4+ for native tests; container builds supply the
+The env launcher uses Go 1.27.4+ for native tests; container builds supply the
 reviewed Go builder. See [test instructions](bin/test_suite/README.md) for image,
 proxy, storage, disclosure and read-only deployment profiles. Dependency audits
 retain raw advisories and expiring reviewed dispositions.

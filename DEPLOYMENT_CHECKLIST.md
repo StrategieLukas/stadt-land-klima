@@ -15,9 +15,9 @@ Use restored staging data before production. Current constraints are in
    the restored target. Production startup checks reject an unprepared target.
 
 ```bash
-./bin/podman.sh production doctor
-./bin/build_production.sh
-./bin/start_production.sh --import --prepare-only
+./bin/slk stack doctor --env production
+./bin/slk stack build --env production
+./bin/slk stack start --env production --import --prepare-only
 ```
 
 Preparation leaves frontend stopped. Maintenance is a fallback, not a CMS write
@@ -31,7 +31,7 @@ Use the mounted private CLI administrator credential:
 ```bash
 slk_private="$(mktemp -d /tmp/slk-release.XXXXXX)"
 chmod 700 "$slk_private"
-./bin/podman.sh production compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 directus \
+./bin/slk stack compose --env production -- exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 directus \
   node /directus/cli/tasks/provisionServiceUsers.ts > "$slk_private/service-users.env"
 chmod 600 "$slk_private/service-users.env"
 ```
@@ -50,8 +50,8 @@ budgets. Verify loopback application listeners, private data services, CSP/CORS/
 referrers, resource limits and required disabled CMS surfaces.
 
 ```bash
-./bin/start_production.sh
-./bin/podman.sh production audit
+./bin/slk stack start --env production
+./bin/slk stack audit --env production
 npm --prefix bin/test_suite run test:public -- https://www.stadt-land-klima.de
 ```
 
@@ -60,7 +60,7 @@ candidate/editor operations, nonce CSP and real configured integrations. Test a
 real `/contact` search hit; HTTP 200 with empty fallback is insufficient. Writable
 full workflows run only on isolated fixtures.
 
-After an ordinary dotenv edit use `podman.sh production restart <service>`.
+After an ordinary dotenv edit use `slk stack restart <service> --env production`.
 Validate the new effective setting with a safe functional check; do not print
 credentials or rely on inspect metadata (which intentionally has no mounted
 secret values). No image rebuild is needed. Explicit `NUXT_*` keys override their
@@ -74,19 +74,19 @@ invitation tokens and municipality preview links remain **retained**. The tool
 only revokes legacy Frontend-role accounts, not arbitrary exposed administrators.
 
 ```bash
-./bin/podman.sh production compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
+./bin/slk stack compose --env production -- exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
   -e PUBLIC_URL=https://www.stadt-land-klima.de directus \
   node /directus/cli/tasks/retireCredentials.ts plan /directus/.tmp/credential-retirement.json \
   --policy /directus/cli/credential-rotation.yaml
-./bin/podman.sh production compose cp directus:/directus/.tmp/credential-retirement.json "$slk_private/"
-./bin/podman.sh production compose cp directus:/directus/.tmp/credential-retirement.json.links.json "$slk_private/"
+./bin/slk stack compose --env production -- cp directus:/directus/.tmp/credential-retirement.json "$slk_private/"
+./bin/slk stack compose --env production -- cp directus:/directus/.tmp/credential-retirement.json.links.json "$slk_private/"
 ```
 
 Review/back up both private files off-container, pause credential-issuing writers,
 then apply the same reviewed plan with unchanged policy selection:
 
 ```bash
-./bin/podman.sh production compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
+./bin/slk stack compose --env production -- exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
   -e PUBLIC_URL=https://www.stadt-land-klima.de directus \
   node /directus/cli/tasks/retireCredentials.ts apply /directus/.tmp/credential-retirement.json \
   --policy /directus/cli/credential-rotation.yaml

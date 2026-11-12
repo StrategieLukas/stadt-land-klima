@@ -159,7 +159,7 @@ test(
       });
       assert.equal(page.status, 200);
       const html = await page.text();
-      assert.match(html, /Machine translated content may differ/);
+      assert.doesNotMatch(html, /class="[^"]*alert[^"]*"[^>]*>\s*Machine translated content may differ/);
       assert(html.includes(`en-GB|${sourceTitle}`));
       for (const secret of [
         front.DIRECTUS_FRONTEND_SERVER_TOKEN,

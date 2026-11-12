@@ -1,5 +1,5 @@
 FROM localhost/slk-runtime-env:local AS environment
-FROM docker.io/postgis/postgis:17-3.6@sha256:d7053f57b0d62c427ffbf412208b6625317124d62eebf40672e990fea81e9d53
+FROM docker.io/postgis/postgis:17-3.6@sha256:1ac10b2551ba84ae05db8e7da477afcd0a3fede99bcb7705da2ee157390cb095
 COPY --from=environment /slk-env /usr/local/bin/slk-env
 COPY --from=environment /usr/share/slk-env /usr/share/slk-env
 ENTRYPOINT ["/usr/local/bin/slk-env", "/usr/local/bin/docker-entrypoint.sh"]

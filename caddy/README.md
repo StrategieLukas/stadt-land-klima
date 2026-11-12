@@ -9,11 +9,11 @@ in [PROJECT_DECISIONS.md](../PROJECT_DECISIONS.md#deployment-and-recovery).
 ## Build and verification
 
 ```bash
-podman build -t localhost/slk-caddy:2.11.7 -f caddy/Containerfile caddy
+podman build -t localhost/slk-caddy:2.11.9 -f caddy/Containerfile caddy
 npm --prefix bin/test_suite run test:security:caddy
 ```
 
-The image pins Caddy 2.11.7, the rate-limit module commit and reviewed Go dependency
+The image pins Caddy 2.11.9, the rate-limit module commit and reviewed Go dependency
 replacement. Stock Caddy lacks this module and must fail validation. The package
 absence gate and retained module/import inventories remain in the build. The
 image runs as 1000:1000, capless on high container ports; no certificates or

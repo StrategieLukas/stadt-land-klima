@@ -9,8 +9,8 @@ ConditionPathExists=%h/stadt-land-klima/podman-compose.yaml
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=%h/stadt-land-klima
-ExecStart=%h/stadt-land-klima/bin/podman.sh production start
-ExecStop=%h/stadt-land-klima/bin/podman.sh production stop
+ExecStart=%h/stadt-land-klima/bin/slk stack start --env production
+ExecStop=%h/stadt-land-klima/bin/slk stack stop --env production
 Environment=SLK_PODMAN_PROJECT=slk-podman-production
 TimeoutStartSec=30min
 TimeoutStopSec=180

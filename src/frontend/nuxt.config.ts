@@ -9,6 +9,7 @@ import { staticIconStyleHashes } from "./scripts/securityStyles.mts";
 if (process.env.NODE_ENV !== "production") Object.assign(process.env, frontendRuntimeEnvironment(process.env));
 
 export default defineNuxtConfig({
+  telemetry: false,
   typescript: {
     strict: true,
     typeCheck: "build",
@@ -272,7 +273,11 @@ export default defineNuxtConfig({
         "@apollo/client/core",
         "@directus/sdk",
         "@iconify/vue",
-        "altcha",
+        "altcha/external",
+        "entities",
+        "zod/v4",
+        "@vue-leaflet/vue-leaflet",
+        "@maplibre/maplibre-gl-style-spec",
         "graphql-tag",
         "html-to-image",
         "leaflet",
@@ -319,7 +324,7 @@ export default defineNuxtConfig({
       },
     ],
     server: {
-      // Directus reaches the development proxy over the Docker service hostname.
+      // Directus reaches the development proxy over the Podman service hostname.
       allowedHosts: ["frontend"],
     },
     define: {

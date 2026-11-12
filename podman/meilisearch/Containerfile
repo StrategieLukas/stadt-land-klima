@@ -1,5 +1,6 @@
 FROM localhost/slk-runtime-env:local AS environment
-FROM docker.io/getmeili/meilisearch:v1.55.0
+FROM docker.io/getmeili/meilisearch:v1.56.2
+RUN chown -R 1000:1000 /meili_data
 COPY --from=environment /slk-env /usr/local/bin/slk-env
 COPY --from=environment /usr/share/slk-env /usr/share/slk-env
 ENV MEILI_SERVER_PROVIDER=podman

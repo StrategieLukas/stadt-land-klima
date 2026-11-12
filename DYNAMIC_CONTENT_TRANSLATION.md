@@ -6,7 +6,7 @@ and explicitly enable generation to activate it.** German (`de-DE`) remains the 
 contact DeepL, create jobs, reserve credits or write translation data.
 
 The existing typed DE/EN/IT interface dictionaries remain separate. Machine translated
-content has a maintained three-language notice; previews and candidate access pages are
+content has a small translated legal note in non-German public footers; previews and candidate access pages are
 excluded. Missing translations fall back to the current German field. Incomplete or failed
 lookups are `no-store`, so completed preparation becomes visible on the next request.
 
@@ -51,7 +51,7 @@ The local schema, endpoint extension and private worker identity have been prepa
 new deployment, use the following sequence from the repository root. Directus stays on
 **11.17.4**.
 
-1. Install/build the new extension, or use `./bin/check_extensions.sh --build` for all:
+1. Install/build the new extension, or use `./bin/slk extensions check --build` for all:
 
    ```bash
    npm --prefix src/directus/extensions/content-translations ci
@@ -61,13 +61,13 @@ new deployment, use the following sequence from the repository root. Directus st
 2. Import the maintained YAML and outbox definition:
 
    ```bash
-   ./bin/podman.sh development compose exec directus /directus/cli/import-all.sh
+   ./bin/slk stack compose --env development -- exec directus /directus/cli/import-all.sh
    ```
 
 3. Restart Directus to load the compiled endpoint:
 
    ```bash
-   ./bin/podman.sh development restart directus
+   ./bin/slk stack restart --env development directus
    ```
 
 4. Provision the isolated identity using the existing private CLI administrator credential.
@@ -76,7 +76,7 @@ new deployment, use the following sequence from the repository root. Directus st
 
    ```bash
    umask 077
-   ./bin/podman.sh development compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 directus \
+   ./bin/slk stack compose --env development -- exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 directus \
      /directus/cli/node_modules/.bin/tsx /directus/cli/provisionTranslationWorker.ts \
      > /private/path/translation-worker.env
    ```
@@ -112,7 +112,7 @@ Use the same Podman deployment/project as the target. For local
 development:
 
 ```bash
-./bin/podman.sh development restart directus
+./bin/slk stack restart --env development directus
 ```
 
 Wait for Directus health, then use the operator `status` command below to verify the
@@ -123,11 +123,11 @@ Compose files when doing the equivalent deployment recreation.
 
 Both switches default to false. Automatic preparation runs only when explicitly enabled:
 
-| Enabled | Generation enabled | Behaviour                                                                                                                                 |
-| ------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| false   | either             | No stored CMS translation overlay, notice, background worker or DeepL requests. Existing UI dictionaries and private memory are retained. |
-| true    | false              | Serve stored translations and German fallback. No automatic source sweep or provider calls, even with a valid key.                        |
-| true    | true               | Serve stored translations and run automatic background preparation when private credentials are configured.                               |
+| Enabled | Generation enabled | Behaviour                                                                                                                                                                                |
+| ------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| false   | either             | No stored CMS translation overlay, background worker or DeepL requests. Non-German public footers retain the small legal note. Existing UI dictionaries and private memory are retained. |
+| true    | false              | Serve stored translations and German fallback. No automatic source sweep or provider calls, even with a valid key.                                                                       |
+| true    | true               | Serve stored translations and run automatic background preparation when private credentials are configured.                                                                              |
 
 On the **staging host**, install the schema/extension/private identity from
 Installation above. In staging's private frontend environment use runtime overrides:
@@ -145,7 +145,7 @@ Restart the staging frontend with the same Compose configuration used to deploy 
 mounted environment is reloaded. With the repository's production profile:
 
 ```bash
-./bin/podman.sh production restart frontend
+./bin/slk stack restart --env production frontend
 ```
 
 Confirm the frontend startup log reports `content.translation.generation_paused` before
@@ -381,7 +381,7 @@ the full site; broader prose and terminology review remains separate from the bo
 | HTTP locale / read-only overlay                        | `composables/useContentFetch.ts`; `shared/contentTranslation.ts`; `server/utils/contentTranslation.ts`; `server/plugins/content-translation.ts`                                                               | Targeted automated: `contentTranslation.test.ts`, including actual H3 serialization, locale isolation, immutable fallback and no generation from page requests.                                                                                                                                                                     |
 | Format protection, provider and economical preparation | `server/utils/{contentTranslationFormat,deepLTranslation,contentTranslationWorker}.ts`                                                                                                                        | Targeted automated: `deepLTranslation.test.ts` — markup/Markdown/GFM/code/link/placeholder preservation, escaped output, quota/batch bounds, no paid retries, cross-field reuse, one-sentence edits, reverts, markup-only changes and disabled/missing-key startup. Real EN/IT prose quality and terminology require manual review. |
 | Persistence and durable outbox                         | `server/utils/contentTranslationPersistence.ts`; `server/plugins/content-translation-worker.ts`; private YAML; `src/directus/cli/installTranslationOutbox.ts`; `src/directus/extensions/content-translations` | Targeted automated: `contentTranslationDatabase.test.ts` in the database profile — atomic source rollback, concurrent leases/reservations, idempotent commit, budgets, safe refunds, ambiguous/crashed requests, stale source, control rate limits, real role denials and full source enumeration.                                  |
-| UI locale / notice                                     | `plugins/directus.server.ts`; `layouts/default.vue`; `components/LanguageSelector.vue`; DE/EN/IT `translation.machine_notice` keys                                                                            | Targeted automated locale flow: `sharedStateFlow.ts` (SSR, hydration, saved preference, reload preserving route/query/fragment); notice and stored overlay also checked in the keyless-reader acceptance profile.                                                                                                                   |
+| UI locale / notice                                     | `plugins/directus.server.ts`; `components/TranslationLegalNote.vue`; `components/TheFooter{Desktop,Mobile}.vue`; `components/LanguageSelector.vue`; DE/EN/IT `translation.machine_notice` keys                | Targeted automated locale flow: `sharedStateFlow.ts` (SSR, hydration, saved preference, reload preserving route/query/fragment); notice and stored overlay also checked in the keyless-reader acceptance profile.                                                                                                                   |
 
 Run from the repository root:
 
@@ -390,7 +390,7 @@ npm --prefix src/frontend run typecheck
 npm --prefix bin/test_suite run typecheck
 npm --prefix bin/test_suite run test:content-translation
 npm --prefix bin/test_suite run test:content-translation:database
-cd bin && ./test_dev.sh
+cd bin && ./slk test dev
 ```
 
 For the keyless frontend restart/SSR acceptance check, stop other Nuxt dev processes first

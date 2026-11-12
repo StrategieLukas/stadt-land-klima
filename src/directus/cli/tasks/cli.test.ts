@@ -555,6 +555,33 @@ test("role attachment synchronization persists exact policies and never updates 
   assert.equal(requests.filter((call) => call.path.startsWith("/users")).length, 0);
 });
 
+test("role imports resolve parents after creating every role, regardless of file order", async () => {
+  const source = folder("parent-roles");
+  writeFileSync(join(source, "a-child.yaml"), stringify({ name: "Child", parent: "Parent" }));
+  writeFileSync(join(source, "z-parent.yaml"), stringify({ name: "Parent" }));
+  const roles: Record<string, unknown>[] = [];
+  reset((call) => {
+    if (call.path === "/roles" && call.method === "GET") return { data: roles };
+    if (call.path === "/roles" && call.method === "POST") {
+      for (const row of call.rows) {
+        assert.equal(row.parent, undefined);
+        roles.push({ ...row, id: `role-${row.name}` });
+      }
+      return { data: roles };
+    }
+    if (call.path === "/roles/role-Child" && call.method === "PATCH") {
+      assert.equal(roles.length, 2);
+      assert.deepEqual(call.body, { parent: "role-Parent" });
+      return { data: { ...roles[0], parent: "role-Parent" } };
+    }
+    return { data: [] };
+  });
+  const result = await command("import:roles", source, "--force");
+  assert.equal(result.code, 0, result.output);
+  assert.equal(requests.filter((call) => call.method === "PATCH").length, 1);
+  assert.equal(requests.filter((call) => call.path.startsWith("/users")).length, 0);
+});
+
 test("service-user provisioning uses valid owned-domain emails and reuses raw or concealed tokens without writes", async () => {
   const users: Record<string, unknown>[] = [];
   let concealed = false;

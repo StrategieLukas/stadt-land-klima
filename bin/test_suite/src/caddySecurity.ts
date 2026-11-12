@@ -15,7 +15,7 @@ const root = fileURLToPath(new URL("../../../", import.meta.url));
 const directory = mkdtempSync(join(tmpdir(), "slk-caddy-"));
 const name = "slk-caddy-" + randomUUID();
 const upstream = name + "-upstream";
-const image = process.env.SLK_CADDY_IMAGE || "slk-caddy-security:local";
+const image = process.env.SLK_CADDY_IMAGE || "localhost/slk-caddy-security:local";
 const podman = (...args: string[]) =>
   execFileSync("podman", args, {
     cwd: root,
@@ -83,11 +83,11 @@ try {
     "--pids-limit",
     "128",
     "--tmpfs",
-    "/run/caddy:rw,nosuid,nodev,noexec,size=16m,uid=1000,gid=1000,mode=700",
+    "/run/caddy:rw,nosuid,nodev,noexec,size=16m,U,mode=700",
     "--tmpfs",
-    "/data:rw,nosuid,nodev,noexec,size=16m,uid=1000,gid=1000,mode=700",
+    "/data:rw,nosuid,nodev,noexec,size=16m,U,mode=700",
     "--tmpfs",
-    "/config:rw,nosuid,nodev,noexec,size=16m,uid=1000,gid=1000,mode=700",
+    "/config:rw,nosuid,nodev,noexec,size=16m,U,mode=700",
   ];
   if (process.env.SLK_CADDY_SECCOMP) confined.push("--security-opt", "seccomp=" + process.env.SLK_CADDY_SECCOMP);
   for (const file of ["Caddyfile", "Caddyfile.staging"])
@@ -143,7 +143,7 @@ try {
     "64",
     "--mount",
     `type=bind,source=${join(root, "bin/test_suite/src/fixtures/caddy-upstream.ts")},target=/upstream.ts,readonly`,
-    "node:24.22.1-trixie-slim",
+    "docker.io/library/node:24.22.3-trixie-slim",
     "node",
     "/upstream.ts",
   );
@@ -185,8 +185,19 @@ try {
         },
       );
       req.setTimeout(5000, () => req.destroy(new Error("Fixture proxy timeout")));
-      req.on("error", reject);
-      req.end(body);
+      req.on("error", (error) =>
+        reject(
+          new Error(`Caddy fixture request failed: ${new URL(path, "https://fixture.invalid").pathname}`, {
+            cause: error,
+          }),
+        ),
+      );
+      if (body && body.length > 64 * 1024) {
+        // Let the proxy reject Content-Length before flooding a closed socket.
+        req.setHeader("Expect", "100-continue");
+        req.on("continue", () => req.end(body));
+        req.flushHeaders();
+      } else req.end(body);
     });
   let ready = false;
   for (let attempt = 0; attempt < 50 && !ready; attempt++) {

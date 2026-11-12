@@ -26,8 +26,8 @@ Architecture/security policy is in [PROJECT_DECISIONS.md](../PROJECT_DECISIONS.m
   development pgAdmin configuration, a tracked Finder metadata file and an obsolete
   example task that recommended public-role access.
 - Removed unused direct `@iconify/json` and `vega-geo` dependencies; Vega retains
-  its own transitive geo dependency. Locked versions of retained packages stay
-  unchanged. `linkifyjs` remains the required peer of `linkify-string`; the explicit
+  its own transitive geo dependency. The initial cleanup retained locked versions; the subsequent dependency refresh
+  updates compatible packages and keeps Directus capped at 11.17.4. `linkifyjs` remains the required peer of `linkify-string`; the explicit
   patched PostCSS dependency remains.
 - Consolidated seventeen historical decision/review documents into the current
   project record, repaired references and trimmed stale setup/migration narratives.
@@ -113,14 +113,63 @@ Native acceptance on 2026-11-12 also built production output with dotenv disable
 confirmed an injected build credential was absent, and served two successive
 mounted `PUBLIC_URL` values from the same artifact after process restarts. An
 HTTP CMS asset origin updated the production CSP while retaining its nonce.
-The maintenance Caddyfile passed validation with Caddy 2.11.7.
+The maintenance Caddyfile passed validation with Caddy 2.11.9.
 
-The required `cd bin && ./test_dev.sh` passed 294 repository tests, 40 CLI tests,
-Go tests and all 26 live regression steps. Frontend and extension lint, CLI/test
-harness strict checking and shell syntax checks passed. Fresh dependency audits
-still report high findings in retained dependencies; see PROJECT_DECISIONS.md.
+The initial cleanup passed 294 repository tests, 40 CLI tests, Go tests and all
+26 live regression steps before the dependency refresh. Current dependency,
+CLI, environment and container validation is recorded separately below.
 
-A real Podman image/build/restart acceptance remains required on a host with the
-rootless runtime and UID-mapping helpers installed. This workstation currently
-has no Podman executable; existing containers and native process checks do not
-establish the new deployment's confinement, remount or restore behavior.
+## Dependency and Podman validation (2026-11-12)
+
+- All maintained bin shell scripts are replaced by the checked TypeScript
+  `bin/slk` CLI; `slk --help` lists stack, CMS, database, frontend, extension,
+  deployment and test commands. Remote deployment commands were not executed.
+- Updated compatible package graphs, application runtimes, Caddy and data-service
+  images. All 22 lockfile groups report zero high/critical findings. Directus
+  remains 11.17.4; compatibility exceptions and vendor dispositions are in
+  PROJECT_DECISIONS.md.
+- Built all 16 extensions and the actual Podman application/runtime images.
+  The rebuilt Directus image passes 12 vendor regressions and the expiring
+  advisory review; eight raw vendor findings retain explicit dispositions.
+- Real Caddy container acceptance covers TLS, forwarded peer/header handling,
+  CSP, body/query limits, budgets and maintenance fallback.
+- Real logical migration restores three PostgreSQL databases, spatial data,
+  roles and search documents/settings/keys into fresh private volumes. Counts
+  and row hashes match; original storage remains available for recovery.
+- Isolated fresh Podman data services and code-first CMS import were exercised.
+  The private bootstrap helper imports tables/policies before application hooks
+  load; parent-role resolution is now independent of YAML file order.
+- The host's rootless Podman does not report effective AppArmor/SELinux support.
+  Development verifies the AppArmor-enabled kernel; production preflight still
+  refuses the host. Production confinement and real-provider delivery require
+  target acceptance. Existing legacy private data is untouched.
+
+The updated required development suite passes **298 repository tests, 40 CLI
+tests, Go tests and all 26 live steps** against the isolated Podman stack on
+localhost:8080. The Vite 8 development optimizer needs explicit CAPTCHA,
+schema/sanitizer and map prebundling to avoid stalled late-discovered modules.
+Desktop/mobile DE/EN/IT browser checks verify the small footer-only legal note.
+Actual Podman restart acceptance changes mounted PUBLIC_URL twice on the same
+production artifact/image, retains CSP nonces, and finds no private canary in
+container Config.Env or HTTP responses. Neither built application image contains
+a canonical private dotenv file.
+
+The complete production builder also passes inside Podman, using the locked
+build toolchain with telemetry disabled and no private runtime mounts. Its
+stamped output starts under the normal source/output verifier in a read-only,
+capless frontend fixture. Eight HTTP/CSP routes, worker/child processes and
+unchanged-image runtime-setting restarts pass without re-stamping the output.
+The Caddy maintenance fixture serves HTTP 200 and reloads private generated
+public metadata after restart. Real Redis concurrency checks retain exactly
+three accepted requests and five delivery copies under their respective quotas.
+GitHub action updates pass local actionlint; hosted/macOS/Windows runs are not
+claimed by these Linux checks.
+
+The final full profile passes **all 104 live steps**, including native editorial
+editing, registration, verified publication, PDF generation, election/candidate
+workflows, local SMTP capture, disclosure and public navigation. The CMS and
+frontend fixtures use disposable data; original database/upload storage was not
+migrated. The original development endpoint is retained separately with a
+compatible frontend Node runtime. The Podman development review instance uses
+loopback frontend 18082/CMS 18081, and the verified production-output fixture
+uses loopback 18086. Their private operator files stay outside version control.

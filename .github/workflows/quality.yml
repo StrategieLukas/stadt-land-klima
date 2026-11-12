@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
       - name: Install rootless container tools
@@ -28,6 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          npm ci --prefix bin
           npm ci --prefix src/frontend
           npm ci --prefix src/directus/cli
           npm ci --prefix bin/test_suite
@@ -37,6 +38,7 @@ jobs:
           done
       - name: Strict checking, lint and formatting
         run: |
+          npm --prefix bin run typecheck
           npm --prefix src/frontend run typecheck
           npm --prefix src/frontend run lint
           npm --prefix src/frontend run lintExtensions
@@ -59,7 +61,7 @@ jobs:
           SLK_SECURITY_IMAGE=slk-directus-security:ci npm --prefix bin/test_suite run audit:directus-image:reviewed -- "$RUNNER_TEMP/directus-image-audit"
       - name: Verify Caddy gateway security and privacy
         run: npm --prefix bin/test_suite run test:security:caddy
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: directus-image-audit

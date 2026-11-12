@@ -470,3 +470,23 @@ test("CanonicalButton forwards a typed native click exactly once with disabled a
   (vnode.props.onClick as (event: MouseEvent) => void)(event);
   assert.equal(clicks, 1);
 });
+
+test("translation legal note is a small non-German footer component with no content alert", async () => {
+  for (const locale of ["de-DE", "en-GB", "it-IT"]) {
+    const html = await render("TranslationLegalNote.vue", {}, { useNuxtApp: () => ({ $locale: locale }) });
+    if (locale === "de-DE") assert.doesNotMatch(html, /data-translation-legal-note/);
+    else {
+      assert.match(html, /data-translation-legal-note/);
+      assert.match(html, /text-xs/);
+      assert.doesNotMatch(html, /alert|role="alert"/);
+    }
+  }
+  for (const name of ["TheFooterDesktop.vue", "TheFooterMobile.vue"]) {
+    const source = readFileSync(new URL(name, componentRoot), "utf8");
+    assert.match(source, /<TranslationLegalNote\s*\/>[\s\S]*?<\/footer>/);
+  }
+  assert.doesNotMatch(
+    readFileSync(new URL("../../../src/frontend/layouts/default.vue", import.meta.url), "utf8"),
+    /translation.machine_notice|showMachineTranslationNotice/,
+  );
+});

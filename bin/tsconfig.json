@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": ["cli/**/*.ts", "lib/*.ts", "cli/**/*.mjs"]
+}

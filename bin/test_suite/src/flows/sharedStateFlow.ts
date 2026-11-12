@@ -47,6 +47,20 @@ export async function runSharedStateFlow(runner: TestRunner, frontendUrl: string
               `${locale}: translations are hydrated`,
             );
             assert(!injected.sdk, `${locale}: public SDK is absent`);
+            assert(
+              (await page.locator("[data-translation-legal-note]").count()) === (locale === "de-DE" ? 0 : 1),
+              `${locale}: only non-German footers contain the legal note`,
+            );
+            assert(
+              (await page.locator("main [data-translation-legal-note]").count()) === 0,
+              `${locale}: no prominent content disclaimer`,
+            );
+            if (locale !== "de-DE")
+              assert(
+                (await page.locator("footer [data-translation-legal-note]").count()) === 1,
+                `${locale}: legal note stays in footer`,
+              );
+
             await page.locator(".settings-trigger:visible").first().click();
             const toggle = page.locator(".theme-toggle:visible").first();
             await toggle.click();

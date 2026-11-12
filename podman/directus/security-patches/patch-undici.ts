@@ -7,7 +7,7 @@ import { createRequire } from "node:module";
 // Existing driver links continue to resolve through the same store location.
 const replacement = await realpath(new URL("./node_modules/undici", import.meta.url));
 const patched = JSON.parse(await readFile(join(replacement, "package.json"), "utf8")) as { version: string };
-if (patched.version !== "7.30.1") throw new Error("Unexpected Undici security patch version");
+if (patched.version !== "7.30.2") throw new Error("Unexpected Undici security patch version");
 
 const store = "/directus/node_modules/.pnpm";
 let count = 0;
@@ -25,7 +25,7 @@ for (const entry of await readdir(store, { withFileTypes: true })) {
   if (!version) throw new Error("Unexpected Undici version format");
   const minor = Number(version[1]);
   const patch = Number(version[2]);
-  if (minor > 30 || (minor === 30 && patch > 1)) {
+  if (minor > 30 || (minor === 30 && patch > 2)) {
     throw new Error("Remove or update the Undici patch instead of downgrading a newer upstream package");
   }
   await rm(installed, { recursive: true });

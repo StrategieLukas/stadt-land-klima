@@ -10,16 +10,16 @@ Historical migration plans and superseded validation counts have been retired.
 
 ## Version policy
 
-| Area              | Repository selection                                        | Constraint                                                                                                                 |
-| ----------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| CMS               | Directus **11.17.4**                                        | Do not upgrade beyond this version. Maintain reviewed source/dependency backports.                                         |
-| Frontend          | Nuxt 4.6.2, Vite 8.3.5, Vue 3.5.44                          | Keep framework/builder peers compatible and the Blökkli virtual-file integration intact.                                   |
-| Editor            | Blökkli 2.0.0-alpha.73                                      | Exact pin; test adapter, persisted content and browser editing before changing it.                                         |
-| Frontend compiler | TypeScript 6.0.3, vue-tsc 3.3.13                            | TS 7 is deferred until Vue, typescript-eslint and Blökkli peer/API compatibility is verified. Do not force peer overrides. |
-| Styling           | Tailwind 4.3.3, DaisyUI 5.7.50                              | One Vite pipeline; CSS owns scanning/themes, explicitly loaded `tailwind.config.js` owns shared tokens.                    |
-| Runtime           | Frontend Node 24.22.1; Directus Node 22.23.4                | Use the pinned supported runtime and locked installations; verify actual running binaries after rebuilding.                |
-| Stateful services | PostgreSQL 17/PostGIS 3.6, Meilisearch 1.55.0, Redis 8.10.2 | Exact image/digest selection is in Compose. Never attach an incompatible major image to existing data.                     |
-| Other tooling     | Typst 0.15.1; Caddy 2.11.7 for gateway and maintenance      | Keep download checksums, image pins and gateway-module review.                                                             |
+| Area              | Repository selection                                        | Constraint                                                                                                                                                                                     |
+| ----------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CMS               | Directus **11.17.4**                                        | Do not upgrade beyond this version. Maintain reviewed source/dependency backports.                                                                                                             |
+| Frontend          | Nuxt 4.6.4, Vite 8.3.8, Vue 3.5.45                          | Keep framework/builder peers compatible, the Blökkli virtual-file integration intact and all runtime-discovered CAPTCHA/schema/sanitizer/map packages explicitly prebundled for dev hydration. |
+| Editor            | Blökkli 2.0.0-alpha.74                                      | Exact pin; test adapter, persisted content and browser editing before changing it.                                                                                                             |
+| Frontend compiler | TypeScript 6.0.3, vue-tsc 3.3.14                            | TS 7 is deferred until Vue, typescript-eslint and Blökkli peer/API compatibility is verified. Do not force peer overrides.                                                                     |
+| Styling           | Tailwind 4.3.5, DaisyUI 5.7.50                              | One Vite pipeline; CSS owns scanning/themes, explicitly loaded `tailwind.config.js` owns shared tokens.                                                                                        |
+| Runtime           | Frontend Node 24.22.3; Directus Node 22.23.5                | Use the pinned supported runtime and locked installations; verify actual running binaries after rebuilding.                                                                                    |
+| Stateful services | PostgreSQL 17/PostGIS 3.6, Meilisearch 1.56.2, Redis 8.10.3 | Exact image/digest selection is in Compose. Never attach an incompatible major image to existing data.                                                                                         |
+| Other tooling     | Typst 0.15.1; Caddy 2.11.9 for gateway and maintenance      | Keep download checksums, image pins and gateway-module review.                                                                                                                                 |
 
 Native platform bindings remain optional. Install independently on each OS/CPU;
 do not copy `node_modules` across platforms or use `--omit=optional`. Linux
@@ -177,13 +177,11 @@ Redis is still required for sessions, quotas and synchronization. Retain locked
 deployed-library replacements and tested stream-json 1.x own-property/depth
 backports; toolchain audits alone do not inspect the bundled vendor image.
 
-The frontend's `scripts/patch-node-forge.mts` verifies the original source hash and
-applies the RSA PKCS#1 nested DigestAlgorithm and nonempty-NULL backport to 1.4.0.
-`postinstall` applies it; `security:check` rejects absent/modified patches. An
-installation with lifecycle scripts disabled must apply it before building.
-This patch does not cover every future node-forge advisory. Replace it only with
-an independently reviewed fixed compatible release and rerun RSA/local TLS tests;
-do not spoof versions, suppress the raw audit or downgrade Nuxt to satisfy it.
+The frontend resolves Nitro's actual listener to upstream node-forge 1.4.3.
+`scripts/check-node-forge.mts` verifies its version and RSA source hash without
+modifying installed dependencies. Signature-forgery regressions and local HTTPS
+certificate generation remain automated gates. The former 1.4.0 source backport
+is retired; reassess the integrity guard when upgrading the fixed upstream release.
 
 `audit:directus-image` retains raw findings. The reviewed gate additionally checks
 production controls, vendor regressions and the exact package/version/advisory
@@ -191,16 +189,27 @@ list in `bin/test_suite/src/lib/imageAdvisoryReview.ts`. **The review expires
 2026-11-24.** Unknown findings/versions and expired reviews fail; renew with
 evidence. Current dispositions cover disabled Directus response caching,
 validated unspecified-IP fetching, bounded own-property stream-json handling,
+source-verified deepmerge own-property writes,
 absent JSONC code and narrowly reviewed Linux/CLI esbuild/PM2 reachability.
 
-Fresh 2026-11-12 lockfile audits report high findings in the frontend, vendor
-replacement package and extension toolchains, including node-forge,
-decode-uri-component, follow-redirects and joi. Earlier claims that extension
-audits are clean are superseded. These reports need a separate reachability/fix
-review; the older backport dispositions must not be assumed to cover them.
-No dependency security upgrade or new advisory exception is part of repository
-cleanup. Run `npm --prefix bin/test_suite run audit:dependencies -- <private-output>`
-for current machine-readable findings; graph counts are not independent exploits.
+The 2026-11-12 dependency refresh upgrades compatible direct/transitive packages,
+including upstream node-forge and the SDK's decode-uri-component override. Raw
+audits remain mandatory and reports are never suppressed. TypeScript stays 6.0.3
+because typescript-eslint requires <6.1 and Blökkli accepts 5/6; Nuxt 4 requires
+DevTools 3.4.4. Directus SDK 18.1.1/types 18.1.0 require Vue 3.5.43 and Knex 3.1.0
+in extension tooling, while the frontend uses Vue 3.5.45. Express 4 type definitions
+match the pinned CMS host; Node type definitions match each supported runtime.
+Vendor replacements retain the pinned host APIs; Hono node-server 2.1.7,
+minimatch 11 and glob 14 replacements also pass the actual vendor regressions.
+Deepmerge 4.3.1 has no fixed upstream release: exact-hash CJS/UMD backports use
+own data properties, preventing destination setters/prototype mutation while
+preserving nested and array merges. Raw advisory output is retained. Undici remains on the latest compatible 7.x API family used by
+the pinned storage drivers; a separate major-family replacement requires vendor
+integration validation, beyond satisfying Node engine ranges.
+The rebuilt Directus runtime passed all 12 vendor regressions and the expiring
+review gate on 2026-11-12; eight raw findings retain individually verified
+dispositions. Stateful PostgreSQL remains on major 17 for storage compatibility;
+major-format changes require the logical migration workflow.
 
 ## Logging
 
@@ -288,7 +297,7 @@ configuration has secret-free build defaults. Only explicit public fields enter
 browser payloads. The configured public CMS asset origin also updates CSP image/media
 allowlists at process start; credentials and malformed URLs are rejected. Source/runtime/output fingerprints still reject altered or stale
 artifacts, but changing dotenv values does not invalidate output. `compose exec`
-through `bin/podman.sh` reloads the same files and preserves explicit command env
+through `bin/slk stack` reloads the same files and preserves explicit command env
 overrides. Do not bypass it when a CLI operation needs application credentials.
 
 Bootstrap database credentials do not rotate persisted database accounts. Changes
@@ -298,11 +307,18 @@ recreation; those are infrastructure changes, not runtime dotenv changes.
 ## Deployment and recovery
 
 **Owner decision, 2026-11-12: Podman only, Caddy only.** Docker deployment files and
-gateway configurations/tests are retired. All maintained shell launchers delegate
-to the checked Podman provider or use Podman directly for disposable migration
-helpers. Maintenance uses the same reviewed Caddy image family on an unprivileged
+gateway configurations/tests are retired. `bin/slk` is the single checked
+TypeScript operations CLI; no maintained shell scripts remain under `bin`.
+Its stack, CMS, database, extension, deployment and test groups share the provider. Maintenance uses the same reviewed Caddy image family on an unprivileged
 port. Do not reintroduce another engine/proxy path. Existing private data/backups
 from the old deployment are preserved; source cleanup never deletes them.
+
+Development acceptance on the installed Podman 5.4.2/podman-compose 1.6.0 host
+allows a verified AppArmor-enabled kernel where rootless Podman reports no
+effective LSM support. Production preflight still requires effective AppArmor or
+SELinux and rejects this host. Never present development acceptance as production
+confinement certification. Selected dotenv files mask canonical library paths
+read-only; maintenance metadata lives in the private XDG runtime directory.
 
 Keep capless non-root services, read-only production roots, private networks,
 rootless mappings, seccomp and runtime confinement audits. Keep JIT/thread/PDF
@@ -319,7 +335,7 @@ Coordinate DNS/TLS, public/private URLs, cookies/CORS and retirement of old-orig
 UI/sessions. The retained Caddy host-cutover instructions describe apex/www
 automatic HTTPS and an isolated CMS; verify actual host configuration separately.
 
-The Caddy build pins its rate-limit module and x/net 0.60.0. Its import graph
+The Caddy build pins its rate-limit module and x/net 0.62.0. Its import graph
 excludes deprecated x/crypto/openpgp (GO-2026-5932), and fails if it appears. This
 is a reachability disposition, not a clean raw audit. Preserve the graph and
 module manifests in the image and reassess new binaries/findings. Bound peer-state
@@ -355,7 +371,7 @@ than frontend unsafe-type enforcement. CLI implementation is TypeScript with a
 minimal executable bootstrap and fail-fast imports; multi-request imports are
 not universally transactional. ESLint rejects warnings; formatting is separate.
 
-Run `cd bin && ./test_dev.sh` and wait for completion. Also run the relevant strict,
+Run `cd bin && ./slk test dev` and wait for completion. Also run the relevant strict,
 lint/format and targeted checks, and curl localhost:8080 after frontend changes.
 Explicit full HTTPS/editor/image/proxy/storage tests use disposable environments;
 do not run writable fixture suites against production. The quality workflow and
@@ -384,3 +400,9 @@ Remaining acceptance/maintenance tasks:
 
 Documentation records repository intent and explicitly dated evidence; it is not
 proof of a current production deployment, credential rotation or security sign-off.
+
+Builds disable Nuxt telemetry and install the full locked build toolchain even
+when NODE_ENV=production. Noninteractive builder runs use `-T`. GitHub workflows
+pin checkout 7.0.1, setup-node 7.1.0 and upload-artifact 7.0.2 by full commit IDs;
+release compatibility was checked against the official action release notes.
+Local workflow validation does not establish an actual hosted-runner execution.

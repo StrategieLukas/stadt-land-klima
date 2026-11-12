@@ -7,7 +7,7 @@ Run the explicit seed command inside the development Directus container with a
 working local admin token supplied as `CLI_DIRECTUS_STATIC_TOKEN`:
 
 ```bash
-./bin/podman.sh development compose exec -e CLI_DIRECTUS_STATIC_TOKEN directus \
+./bin/slk stack compose --env development -- exec -e CLI_DIRECTUS_STATIC_TOKEN directus \
   /directus/cli/node_modules/.bin/tsx /directus/cli/seedTourDemoContent.ts
 ```
 

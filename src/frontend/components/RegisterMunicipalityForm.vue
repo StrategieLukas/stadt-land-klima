@@ -348,8 +348,7 @@
 
       <p class="pt-1 text-xs text-gray-400">
         {{ $t("localteam.register.privacy_notice") }}
-        <NuxtLink to="/datenschutz" class="underline hover:text-gray-600">{{ $t("privacy_policy.title") }}</NuxtLink
-        >.
+        <NuxtLink to="/datenschutz" class="underline hover:text-gray-600">{{ $t("privacy_policy.title") }}</NuxtLink>.
       </p>
     </form>
   </div>

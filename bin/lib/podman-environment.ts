@@ -1,5 +1,5 @@
 /** Read-only runtime mounts: provider arguments contain paths, never dotenv values. */
-import { lstatSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,6 +18,7 @@ export const managedPodmanEnvironment = {
     "TUS_ENABLED",
     "NPM_CONFIG_CACHE",
     "TEMP_PATH",
+    "PM2_HOME",
     "XDG_CACHE_HOME",
   ],
   frontend: ["NPM_CONFIG_CACHE"],
@@ -46,7 +47,14 @@ export function podmanEnvironmentPlan(
           : []),
     ];
     services[service] = {
-      volumes: inputs.map((input, index) => `${paths[input as keyof typeof paths]}:${files[index]}:ro,z`),
+      volumes: [
+        ...inputs.map((input, index) => `${paths[input as keyof typeof paths]}:${files[index]}:ro,z`),
+        ...(service === "frontend"
+          ? [`${paths.frontend}:/frontend/.env:ro,z`]
+          : service === "directus"
+            ? [`${paths.directus}:/directus/.env:ro,z`]
+            : []),
+      ],
       environment: { SLK_ENV_FILES: files.join(":"), SLK_ENV_LOCKED_KEYS: locked.join(",") },
     };
   }
@@ -82,10 +90,15 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       throw new Error("Private runtime directory required");
     const output = resolve(directory, project + ".environment.compose.json");
     const temporary = output + "." + randomUUID();
-    writeFileSync(temporary, JSON.stringify(podmanEnvironmentPlan(paths, environment === "production")) + "\n", {
-      mode: 0o600,
-      flag: "wx",
-    });
+    const metadata = resolve(directory, project + ".maintenance-meta.js");
+    if (!existsSync(metadata))
+      writeFileSync(metadata, "// Public runtime metadata is generated at service start.\n", {
+        mode: 0o600,
+        flag: "wx",
+      });
+    const plan = podmanEnvironmentPlan(paths, environment === "production");
+    plan.services.maintenance = { volumes: [`${metadata}:/srv/maintenance-meta.js:ro,z`], environment: {} };
+    writeFileSync(temporary, JSON.stringify(plan) + "\n", { mode: 0o600, flag: "wx" });
     renameSync(temporary, output);
     process.stdout.write(output + "\n");
   } catch {

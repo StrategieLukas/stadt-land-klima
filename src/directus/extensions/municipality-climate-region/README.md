@@ -45,7 +45,7 @@ checked field, private read policies, translations and manual flow from the
 repository root:
 
 ```bash
-./bin/podman.sh development compose exec directus /directus/cli/import-all.sh
+./bin/slk stack compose --env development -- exec directus /directus/cli/import-all.sh
 ```
 
 The frontend displays the checked climate-region field in the municipality

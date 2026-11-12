@@ -5,12 +5,16 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const run = (...args: string[]) =>
-  execFileSync("./bin/podman.sh", ["production", ...args], {
-    cwd: root,
-    encoding: "utf8",
-    timeout: 120_000,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  execFileSync(
+    "./bin/slk",
+    ["stack", args[0]!, "--env", "production", ...(args[0] === "compose" ? ["--"] : []), ...args.slice(1)],
+    {
+      cwd: root,
+      encoding: "utf8",
+      timeout: 120_000,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
 run("doctor");
 process.stdout.write(run("audit"));
 for (const service of ["db", "cache", "meilisearch", "directus", "frontend"]) {

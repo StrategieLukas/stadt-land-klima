@@ -701,15 +701,45 @@ export async function runRegisterLocalteamFlow(
         async () => readCurrentBackendScore(fixture.admin, municipality.id) ?? false,
         { timeoutMs: 30_000 },
       );
-      await fixture.admin.updateItem<MunicipalityScore>("municipality_scores", score.id, {
-        percentage_rated: 25,
-      });
       await fixture.admin.createItem("junction_directus_users_localteams", {
         directus_users_id: fixture.localteamMember.id,
         localteam_id: localteam.id,
       });
-      await fixture.localteamMember.client.updateItem<MunicipalityScore>("municipality_scores", score.id, {
-        published: true,
+      const ratings = await waitFor(
+        "ratings initialized for the incomplete published fixture",
+        async () => {
+          const rows = await fixture.admin.readItems<{ id: string }>("ratings_measures", {
+            filter: {
+              localteam_id: { _eq: localteam.id },
+              measure_id: { catalog_version: { _eq: relationId(score.catalog_version) } },
+            },
+            fields: ["id"],
+            limit: -1,
+          });
+          return rows.length > 1 ? rows : false;
+        },
+        { timeoutMs: 45_000 },
+      );
+      const actor = await fixture.admin.request<{ verified: boolean }>("GET", `/users/${fixture.localteamMember.id}`, {
+        query: { fields: "verified" },
+      });
+      await fixture.admin.updateUser(fixture.localteamMember.id, { verified: true });
+      try {
+        await fixture.admin.request("PATCH", "/items/ratings_measures", {
+          body: { keys: ratings.map((row) => row.id), data: { applicable: true, rating: "1", status: "published" } },
+        });
+        // Publish through the real verified-actor/full-assessment gate, then
+        // model subsequent assessment loss without bypassing that boundary.
+        await fixture.localteamMember.client.updateItem<MunicipalityScore>("municipality_scores", score.id, {
+          published: true,
+        });
+        await fixture.admin.updateItem("ratings_measures", ratings[0]!.id, { rating: null });
+      } finally {
+        await fixture.admin.updateUser(fixture.localteamMember.id, { verified: actor.verified });
+      }
+      await waitFor("published score retains partial progress after an assessment is cleared", async () => {
+        const row = await fixture.admin.readItem<MunicipalityScore>("municipality_scores", score.id);
+        return row.published === true && Number(row.percentage_rated) > 0 && Number(row.percentage_rated) < 100;
       });
 
       const context = await newContext(browser);

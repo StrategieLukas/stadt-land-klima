@@ -1,4 +1,4 @@
-# Rootless deployment; invoke through bin/podman.sh for runtime mounts and confinement.
+# Rootless deployment; invoke through bin/slk stack for runtime mounts and confinement.
 x-podman:
   in_pod: false
 
@@ -6,7 +6,7 @@ x-security: &security
   cap_drop: [ALL]
   security_opt:
     - no-new-privileges
-    - seccomp=${SLK_PODMAN_SECCOMP:?Run bin/podman.sh to select the host seccomp profile}
+    - seccomp=${SLK_PODMAN_SECCOMP:?Run bin/slk stack to select the host seccomp profile}
   read_only: true
   user: "1000:1000"
   userns_mode: "keep-id:uid=1000,gid=1000"
@@ -29,13 +29,13 @@ services:
     user: "999:999"
     userns_mode: "keep-id:uid=999,gid=999"
     volumes:
-      # :U is restricted to new Podman-owned named volumes, never host bind mounts.
+      # :U initializes ownership only on Podman-owned named volumes and private tmpfs, never host binds.
       - database:/var/lib/postgresql/data:U,nosuid,nodev,noexec
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777
       - /run:rw,nosuid,nodev,noexec,size=16m,mode=755
       - /var/tmp:rw,nosuid,nodev,noexec,size=16m,mode=1777
-      - /var/run/postgresql:rw,nosuid,nodev,noexec,size=16m,uid=999,gid=999,mode=700
+      - /var/run/postgresql:rw,nosuid,nodev,noexec,size=16m,U,mode=700
     networks: [database]
     shm_size: 256m
     mem_limit: "${SLK_DB_MEMORY_LIMIT:-2G}"
@@ -48,7 +48,7 @@ services:
 
   cache:
     <<: *security
-    image: docker.io/library/redis:8.10.2-alpine
+    image: docker.io/library/redis:8.10.3-alpine
     user: "999:1000"
     userns_mode: "keep-id:uid=999,gid=1000"
     # Redis holds sessions, rate limits and synchronization; persist across cutover/restarts.
@@ -100,6 +100,7 @@ services:
       ASSETS_TRANSFORM_MAX_CONCURRENT: "${SLK_ASSET_TRANSFORM_CONCURRENCY:-8}"
       NPM_CONFIG_CACHE: /tmp/npm
       TEMP_PATH: /directus/.tmp
+      PM2_HOME: /directus/.tmp/pm2
       XDG_CACHE_HOME: /directus/.tmp/cache
     command:
       - /bin/sh
@@ -126,7 +127,7 @@ services:
       - ./src/directus/contents:/directus/contents:ro,z
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,size=256m,mode=1777
-      - /directus/.tmp:rw,nosuid,nodev,noexec,size=512m,uid=1000,gid=1000,mode=700
+      - /directus/.tmp:rw,nosuid,nodev,noexec,size=512m,U,mode=700
       - /run:rw,nosuid,nodev,noexec,size=16m,mode=755
       - /var/tmp:rw,nosuid,nodev,noexec,size=16m,mode=1777
     networks: [database, services, edge]
@@ -200,7 +201,7 @@ services:
         umask 077;
         rm -rf .output;
         slk_input=$$(node scripts/productionOutput.mts prepare);
-        npm ci --no-audit --no-fund;
+        npm ci --include=dev --no-audit --no-fund;
         npm run build;
         node scripts/productionOutput.mts stamp "$$slk_input";
         find /release -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +;
@@ -216,7 +217,6 @@ services:
       dockerfile: Containerfile
     image: localhost/slk-podman-maintenance:${SLK_PODMAN_TAG:-local}
     volumes:
-      - ./podman/maintenance/maintenance-meta.js:/srv/maintenance-meta.js:ro,z
       - ./src/frontend/assets/images/Stadt-Land-Klima-Logotype_bordered.svg:/srv/logo.svg:ro,z
     networks: [edge]
     mem_limit: 64m

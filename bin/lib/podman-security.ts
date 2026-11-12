@@ -1,6 +1,6 @@
 /** Fail-closed host/runtime checks. Never print inspect/config JSON: it contains secrets. */
 import { execFileSync } from "node:child_process";
-import { lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,7 +17,7 @@ function strings(value: unknown): string[] {
     throw new PodmanSecurityError("Invalid Podman security list");
   return value;
 }
-export function assertPodmanHost(value: unknown): string {
+export function assertPodmanHost(value: unknown, developmentAppArmorHost = false): string {
   const info = record(value);
   const host = record(info.host);
   const security = record(host.security);
@@ -32,7 +32,7 @@ export function assertPodmanHost(value: unknown): string {
   if (host.arch !== "amd64") throw new PodmanSecurityError("The existing Typst image build supports Linux x86_64 only");
   if (security.rootless !== true) throw new PodmanSecurityError("Rootless Podman is required; do not use sudo");
   if (security.seccompEnabled !== true) throw new PodmanSecurityError("Podman must have seccomp enabled");
-  if (security.apparmorEnabled !== true && security.selinuxEnabled !== true)
+  if (security.apparmorEnabled !== true && security.selinuxEnabled !== true && !developmentAppArmorHost)
     throw new PodmanSecurityError("Enable the host AppArmor or SELinux container confinement");
   if (host.cgroupVersion !== "v2" || !["memory", "pids"].every((key) => strings(host.cgroupControllers).includes(key)))
     throw new PodmanSecurityError("Rootless cgroup v2 memory and pids delegation is required");
@@ -178,7 +178,19 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
           maxBuffer: 4 * 1024 * 1024,
         }),
       );
-      const profile = assertPodmanHost(info);
+      // Rootless Podman cannot apply AppArmor profiles on this platform. Only
+      // development may run on an AppArmor-enabled kernel without a container
+      // profile; production still requires the engine's effective LSM support.
+      const developmentAppArmorHost =
+        process.argv[3] === "development" &&
+        existsSync("/sys/module/apparmor/parameters/enabled") &&
+        readFileSync("/sys/module/apparmor/parameters/enabled", "utf8").trim() === "Y";
+      const profile = assertPodmanHost(info, developmentAppArmorHost);
+      const security = record(record(record(info).host).security);
+      if (developmentAppArmorHost && security.apparmorEnabled !== true && security.selinuxEnabled !== true)
+        process.stderr.write(
+          "Development host: rootless AppArmor profiles are unavailable; production LSM acceptance is not established.\n",
+        );
       const stat = lstatSync(profile);
       if (!stat.isFile() || (stat.mode & 0o022) !== 0 || ![0, process.getuid?.()].includes(stat.uid))
         throw new PodmanSecurityError(

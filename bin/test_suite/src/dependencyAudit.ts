@@ -16,6 +16,7 @@ const packages = [
   "src/frontend",
   "src/directus/cli",
   "bin/test_suite",
+  "bin",
   "podman/directus/security-patches",
   "src/directus/openapi-documentation",
   ...readdirSync(join(root, "src/directus/extensions"), { withFileTypes: true })

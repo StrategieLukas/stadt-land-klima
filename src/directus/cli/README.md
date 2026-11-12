@@ -11,7 +11,7 @@ For normal code-first application configuration use the repository launcher from
 the root (include the actual environment/storage overrides when necessary):
 
 ```bash
-./bin/podman.sh development compose exec directus /directus/cli/import-all.sh
+./bin/slk stack compose --env development -- exec directus /directus/cli/import-all.sh
 ```
 
 That launcher checks types, preserves/transfers supported legacy tour data before

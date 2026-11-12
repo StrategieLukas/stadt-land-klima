@@ -76,7 +76,7 @@ function container() {
 test("Podman production retains all pinned Directus, logging and private listener controls", () => {
   assertReleasePolicy(base, production);
   assert.match(read("podman/database/Containerfile"), /postgis\/postgis:17-3\.6@sha256:/);
-  assert.match(read("podman/meilisearch/Containerfile"), /meilisearch:v1\.55\.0/);
+  assert.match(read("podman/meilisearch/Containerfile"), /meilisearch:v1\.56\.2/);
   assert.match(read("podman/directus/RuntimeContainerfile"), /directus\/directus:11\.17\.4/);
   for (const service of ["db", "cache", "meilisearch"]) assert.equal(base.services[service].ports, undefined);
   assert.equal(production.services.directus.environment.SLK_STARTUP_SECURITY_CHECKS, "true");
@@ -131,14 +131,14 @@ test("only the disposable frontend builder relaxes rootfs writes; runtime code n
   assert.equal(builder.ports, undefined);
   assert.deepEqual(builder.depends_on, {});
   assert.deepEqual(production.services["frontend-build"].environment, production.services.frontend.environment);
-  assert.match(builder.command.join(" "), /npm ci.*npm run build.*productionOutput.mts stamp/);
+  assert.match(builder.command.join(" "), /npm ci --include=dev.*npm run build.*productionOutput.mts stamp/);
   assert.doesNotMatch(base.services.frontend.command.join(" "), /npm|build/);
   assert.match(base.services.frontend.command.join(" "), /productionOutput.mts verify/);
   assert.doesNotMatch(base.services.directus.command.join(" "), /npm ci/);
   assert.match(read("podman/directus/Containerfile"), /FROM localhost\/slk-podman-directus-runtime:local/);
   assert.match(read("podman/directus/Containerfile"), /npm --prefix "\$extension" run build/);
   assert.match(read("podman/directus/Containerfile"), /npm prune.*--omit=dev/);
-  assert.match(read("podman/directus/RuntimeContainerfile"), /FROM directus\/directus:11\.17\.4\n/);
+  assert.match(read("podman/directus/RuntimeContainerfile"), /FROM docker\.io\/directus\/directus:11\.17\.4\n/);
   assert.match(read(".containerignore"), /\*\*\/\.env\n/);
   assert.match(read(".containerignore"), /src\/directus\/uploads/);
   for (const service of Object.values(development.services) as Record<string, any>[])
@@ -170,6 +170,15 @@ test("host preflight fails closed for rootful, unconfined, legacy or undelegated
   old.version.Version = "4.9.3";
   assert.throws(() => assertPodmanHost(old), /5.4/);
   assert.throws(() => assertPodmanHost(null));
+});
+
+test("production rejects missing effective LSM; a verified development AppArmor host still enforces seccomp and rootless mode", () => {
+  const value = host();
+  value.host.security.apparmorEnabled = false;
+  assert.throws(() => assertPodmanHost(value), /AppArmor or SELinux/);
+  assert.doesNotThrow(() => assertPodmanHost(value, true));
+  value.host.security.seccompEnabled = false;
+  assert.throws(() => assertPodmanHost(value, true), /seccomp/);
 });
 
 test("seccomp selection rejects allow-default, disabled and empty profiles", () => {
@@ -212,15 +221,15 @@ test("production audit rejects permission drift and unexpected writable mounts w
     value[0]!.Mounts = [mount];
     assert.throws(() => assertPodmanContainer(value, "frontend"));
   }
-  const wrapper = read("bin/podman.sh");
+  const wrapper = read("bin/cli/stack.ts");
   assert.match(wrapper, /--in-pod=false/);
-  assert.match(wrapper, /--podman-args=--remote=false/);
+  assert.match(read("bin/cli/podman-local.mjs"), /--remote=false/);
   assert.doesNotMatch(wrapper, /\bpodman (?:build|ps|inspect|exec) /);
-  assert.match(wrapper, /frontend_stopped\n/);
+  assert.match(wrapper, /Stop frontend before preparing/);
   assert.match(wrapper, /\^Seccomp:/);
   assert.match(wrapper, /\^CapBnd:/);
   assert.doesNotMatch(wrapper, /logs --tail|down -v|chmod 777|prune -[af]/);
-  assert.ok(wrapper.indexOf("production audit") < wrapper.lastIndexOf("stop maintenance"));
+  assert.ok(wrapper.includes("await audit(rt)") && wrapper.includes('"stop", "maintenance"'));
 });
 
 test("derived seccomp blocks namespace creation and kernel attack surfaces while preserving threads and libc fallback", () => {
@@ -269,6 +278,7 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   for (const folder of [
     "bin/lib",
+    "bin/cli",
     "tools",
     "runtime",
     "podman/database",
@@ -279,11 +289,17 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
   ])
     mkdirSync(join(directory, folder), { recursive: true, mode: 0o700 });
   for (const file of [
-    "bin/podman.sh",
+    "bin/slk",
+    "bin/package.json",
+    "bin/cli/index.ts",
+    "bin/cli/stack.ts",
+    "bin/cli/podman-local.mjs",
+    "bin/cli/process.ts",
+    "bin/cli/operations.ts",
+    "bin/cli/core.ts",
     "bin/lib/podman-security.ts",
     "bin/lib/podman-environment.ts",
     "bin/lib/maintenance-meta.ts",
-    "bin/lib/package.json",
     "src/directus/cli/package.json",
   ])
     copyFileSync(fileURLToPath(new URL("../../../" + file, import.meta.url)), join(directory, file));
@@ -292,6 +308,11 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
   symlinkSync(
     fileURLToPath(new URL("../../../src/directus/cli/node_modules", import.meta.url)),
     join(directory, "src/directus/cli/node_modules"),
+    "dir",
+  );
+  symlinkSync(
+    fileURLToPath(new URL("../../../bin/node_modules", import.meta.url)),
+    join(directory, "bin/node_modules"),
     "dir",
   );
   const profile = join(directory, "seccomp.json");
@@ -319,7 +340,7 @@ esac
     "podman-compose": `#!/bin/sh
 case "$*" in *--version*) echo 'podman-compose version 1.5.0'; exit 0 ;; esac
 printf '%s\n' "$*" >> "$PROBE_ROOT/calls"
-case "$*" in *import-all.sh*) exit 23 ;; esac
+case "$*" in *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;; esac
 `,
     curl: "#!/bin/sh\nexit 0\n",
   };
@@ -330,31 +351,36 @@ case "$*" in *import-all.sh*) exit 23 ;; esac
   writeFileSync(join(directory, "calls"), "");
   writeFileSync(join(directory, "engine-calls"), "");
   writeFileSync(join(directory, "secret-input"), "");
-  const invoke = (args: string[], running = "no") =>
-    spawnSync("bash", ["bin/podman.sh", "production", ...args], {
-      cwd: directory,
-      encoding: "utf8",
-      timeout: 20_000,
-      env: {
-        ...process.env,
-        PATH: join(directory, "tools") + ":" + process.env.PATH,
-        PROBE_ROOT: directory,
-        PROBE_RUNNING: running,
-        XDG_RUNTIME_DIR: join(directory, "runtime"),
-        XDG_STATE_HOME: join(directory, "state"),
-        SLK_PODMAN_PROJECT: "slk-test",
-        SLK_PODMAN_TAG: "local",
-        SLK_PODMAN_WEB_PORT: "9000",
-        SLK_PODMAN_CMS_PORT: "9001",
-        SLK_PODMAN_MAINTENANCE_PORT: "9090",
-        CONTAINER_HOST: "",
-        CONTAINER_CONNECTION: "",
-        SLK_PODMAN_DB_ENV_FILE: "",
-        SLK_PODMAN_MEILI_ENV_FILE: "",
-        SLK_PODMAN_DIRECTUS_ENV_FILE: "",
-        SLK_PODMAN_FRONTEND_ENV_FILE: "",
+  const invoke = (args: string[], running = "no", importFailure = true) =>
+    spawnSync(
+      process.execPath,
+      ["bin/slk", "stack", args[0]!, "--env", "production", ...(args[0] === "compose" ? ["--"] : []), ...args.slice(1)],
+      {
+        cwd: directory,
+        encoding: "utf8",
+        timeout: 20_000,
+        env: {
+          ...process.env,
+          PATH: join(directory, "tools") + ":" + process.env.PATH,
+          PROBE_ROOT: directory,
+          PROBE_RUNNING: running,
+          PROBE_IMPORT_STATUS: importFailure ? "23" : "0",
+          XDG_RUNTIME_DIR: join(directory, "runtime"),
+          XDG_STATE_HOME: join(directory, "state"),
+          SLK_PODMAN_PROJECT: "slk-test",
+          SLK_PODMAN_TAG: "local",
+          SLK_PODMAN_WEB_PORT: "9000",
+          SLK_PODMAN_CMS_PORT: "9001",
+          SLK_PODMAN_MAINTENANCE_PORT: "9090",
+          CONTAINER_HOST: "",
+          CONTAINER_CONNECTION: "",
+          SLK_PODMAN_DB_ENV_FILE: "",
+          SLK_PODMAN_MEILI_ENV_FILE: "",
+          SLK_PODMAN_DIRECTUS_ENV_FILE: "",
+          SLK_PODMAN_FRONTEND_ENV_FILE: "",
+        },
       },
-    });
+    );
   return {
     invoke,
     calls: () => readFileSync(join(directory, "calls"), "utf8"),
@@ -372,7 +398,10 @@ test("failed Podman imports leave maintenance active and never prepare or restar
   assert.doesNotMatch(fixture.engineCalls(), /secret create/);
   assert.match(calls, /--profile maintenance up -d --no-build maintenance/);
   assert.match(calls, /stop frontend/);
-  assert.match(calls, /exec -T directus \/usr\/local\/bin\/slk-env \/directus\/cli\/import-all.sh/);
+  assert.match(
+    calls,
+    /run --rm --no-deps --entrypoint \/usr\/local\/bin\/slk-env directus node \/directus\/cli\/bootstrapConfiguration.ts/,
+  );
   assert.doesNotMatch(calls, /stop maintenance|frontend-build|--force-recreate frontend/);
 });
 
@@ -380,7 +409,7 @@ test("Podman prepare refuses to mutate an active frontend release", (t) => {
   const fixture = wrapperFixture(t);
   const result = fixture.invoke(["prepare"], "yes");
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /live artifact must not be overwritten/);
+  assert.match(result.stderr, /live artifacts must not be overwritten/);
   assert.equal(fixture.calls(), "");
 });
 
@@ -393,6 +422,8 @@ test("runtime mounts contain paths only and the builder receives no private moun
   };
   const plan = podmanEnvironmentPlan(paths, true);
   assert.equal(plan.services["frontend-build"], undefined);
+  assert.ok(plan.services.frontend!.volumes.includes("/private/web.env:/frontend/.env:ro,z"));
+  assert.ok(plan.services.directus!.volumes.includes("/private/cms.env:/directus/.env:ro,z"));
   assert.equal(
     plan.services.frontend!.environment.SLK_ENV_FILES,
     "/run/slk-env/frontend.env:/run/slk-env/meilisearch.env",
@@ -447,4 +478,13 @@ test("restart rereads mounted files without building or replacing output", (t) =
   assert.equal(result.status, 0, result.stderr);
   assert.match(fixture.calls(), /restart frontend/);
   assert.doesNotMatch(fixture.calls(), /frontend-build|build |productionOutput|--force-recreate/);
+});
+
+test("private YAML setup precedes the checked full CMS and never publishes helper ports", (t) => {
+  const fixture = wrapperFixture(t);
+  const result = fixture.invoke(["start", "--import", "--prepare-only"], "no", false);
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fixture.calls();
+  assert.ok(calls.indexOf("bootstrapConfiguration.ts") < calls.indexOf("--force-recreate directus"));
+  assert.doesNotMatch(calls, /--service-ports|SLK_STARTUP_SECURITY_CHECKS=false|stop maintenance/);
 });

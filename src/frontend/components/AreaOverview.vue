@@ -224,8 +224,7 @@
             <div class="text-sm leading-snug font-semibold text-gray-900">
               <span v-if="hoveredItem.prefix" class="mr-1 text-xs font-normal text-gray-400">{{
                 hoveredItem.prefix
-              }}</span
-              >{{ hoveredItem.name }}
+              }}</span>{{ hoveredItem.name }}
             </div>
             <div v-if="hoveredItem.statusLabel" class="mt-1 flex items-center gap-1.5">
               <span class="h-2 w-2 flex-none rounded-full" :style="`background:${hoveredItem.color}`" />

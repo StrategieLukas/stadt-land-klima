@@ -28,7 +28,7 @@ The source must have the embed route and partner framing policy deployed; see
 the deployment requirements below. The local-preview
 link switches to `http://localhost:8080/elections/wahlcheck/nettetal`, a published
 test election in the current local database. Start the development stack first
-(`bin/start_development.sh`) and choose another local published election if that
+(`bin/slk stack build --env development && ./bin/slk stack start --env development`) and choose another local published election if that
 record is unavailable. Published slugs are listed by
 `http://localhost:8080/api/public/wahlcheck`. Local and production databases can
 contain different elections. The test does not create or publish an election.

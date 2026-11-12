@@ -49,8 +49,8 @@ const rollback = {
 };
 const target = {
   services: {
-    db: { volumes: [{ type: "volume", source: "slk_migrated_db", target: "/var/lib/postgresql/data" }] },
-    meilisearch: { volumes: [{ type: "volume", source: "slk_migrated_meili", target: "/meili_data" }] },
+    db: { volumes: ["slk_migrated_db:/var/lib/postgresql/data:U,nosuid,nodev,noexec"] },
+    meilisearch: { volumes: ["slk_migrated_meili:/meili_data:U,nosuid,nodev,noexec"] },
   },
   volumes: {
     slk_migrated_db: { external: true, name: volumeName(dbVolume) },

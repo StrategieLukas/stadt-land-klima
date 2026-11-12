@@ -3,6 +3,7 @@ import { readdir, readFile, realpath, rm, symlink, writeFile } from "node:fs/pro
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { dependencyReplacements } from "./dependency-replacements.ts";
+import { deepmergePatches } from "./deepmerge-patches.ts";
 import { streamJsonPatches } from "./stream-json-patches.ts";
 
 const store = "/directus/node_modules/.pnpm";
@@ -32,13 +33,21 @@ for (const { name, original: originalVersion, replacement: alias, version } of d
   if (!count) throw new Error(`Directus layout changed: missing ${name}@${originalVersion}`);
 }
 const jsonFiles = await Promise.all(
-  streamJsonPatches.map(async ({ file, sha256, replacements }) => {
-    const installed = join(store, "stream-json@1.9.1/node_modules/stream-json", file);
+  [
+    ...streamJsonPatches.map((patch) => ({
+      ...patch,
+      installed: join(store, "stream-json@1.9.1/node_modules/stream-json", patch.file),
+    })),
+    ...deepmergePatches.map((patch) => ({
+      ...patch,
+      installed: join(store, "deepmerge@4.3.1/node_modules/deepmerge", patch.file),
+    })),
+  ].map(async ({ file, installed, sha256, replacements }) => {
     let source = await readFile(installed, "utf8");
     if (createHash("sha256").update(source).digest("hex") !== sha256)
-      throw new Error(`Unreviewed stream-json source: ${file}`);
+      throw new Error(`Unreviewed parser/merge source: ${file}`);
     for (const [marker, replacement] of replacements) {
-      if (!source.includes(marker)) throw new Error(`Missing stream-json patch marker: ${file}`);
+      if (!source.includes(marker)) throw new Error(`Missing parser/merge patch marker: ${file}`);
       source = source.replaceAll(marker, replacement);
     }
     return { installed, source };

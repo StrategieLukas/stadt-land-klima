@@ -1,5 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { frontendEnvironment, parseEnvFile, type TestConfig } from "./lib/config.js";
 import { EventEmitter } from "node:events";
 import type { Page } from "playwright";
 import { assertNoCredentialFields, assertNoDisclosure, captureBrowserBodies } from "./lib/disclosure.js";
@@ -82,5 +86,30 @@ test("browser disclosure capture drains delayed API bodies while ignoring unfini
     else assert.equal(await result, 2, "Both document and post-hydration API body must be scanned");
     assert.equal(page.listenerCount("response"), 0, "Capture listeners must be removed after success or failure");
     assert.equal(page.listenerCount("request"), 0);
+  }
+});
+
+test("security workflows read the selected Podman frontend file with standard dotenv grammar", () => {
+  const directory = mkdtempSync(join(tmpdir(), "slk-selected-env-"));
+  const path = join(directory, "frontend.env");
+  const previous = process.env.SLK_PODMAN_FRONTEND_ENV_FILE;
+  const override = process.env.TEST_FRONTEND_ENV_FILE;
+  try {
+    writeFileSync(path, 'DIRECTUS_PREVIEW_TOKEN="synthetic-$-preview-key" # comment\nMULTILINE="first\nsecond"\n', {
+      mode: 0o600,
+    });
+    delete process.env.TEST_FRONTEND_ENV_FILE;
+    process.env.SLK_PODMAN_FRONTEND_ENV_FILE = path;
+    const config = { envPath: join(directory, "directus.env") } as TestConfig;
+    assert.equal(frontendEnvironment(config).DIRECTUS_PREVIEW_TOKEN, "synthetic-$-preview-key");
+    assert.equal(parseEnvFile(path).MULTILINE, "first\nsecond");
+    process.env.TEST_FRONTEND_ENV_FILE = join(directory, "missing.env");
+    assert.throws(() => frontendEnvironment(config), /ENOENT/);
+  } finally {
+    if (previous === undefined) delete process.env.SLK_PODMAN_FRONTEND_ENV_FILE;
+    else process.env.SLK_PODMAN_FRONTEND_ENV_FILE = previous;
+    if (override === undefined) delete process.env.TEST_FRONTEND_ENV_FILE;
+    else process.env.TEST_FRONTEND_ENV_FILE = override;
+    rmSync(directory, { recursive: true, force: true });
   }
 });

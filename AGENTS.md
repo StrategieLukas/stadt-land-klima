@@ -13,7 +13,7 @@ All Directus configuration is **code-first**: the source of truth lives in YAML 
 ### Applying changes
 
 ```bash
-./bin/podman.sh development compose exec directus /directus/cli/import-all.sh
+./bin/slk stack compose --env development -- exec directus /directus/cli/import-all.sh
 ```
 
 > From the repo root (not from `bin/` — that script uses a relative path that breaks outside its directory).
@@ -48,7 +48,7 @@ npm run build
 Then restart Directus to pick up the new `dist/index.js`:
 
 ```bash
-./bin/podman.sh development restart directus
+./bin/slk stack restart --env development directus
 ```
 
 Extensions use **Directus CSS theme variables** (not hardcoded hex) so they render correctly in both light and dark mode:
@@ -185,4 +185,4 @@ See [resource hardening](PROJECT_DECISIONS.md#pinned-directus-and-dependency-sec
 
 ## Checks
 
-1. Run ./test_dev.sh in the bin folder and wait for checks to complete.
+1. Run ./slk test dev in the bin folder and wait for checks to complete.

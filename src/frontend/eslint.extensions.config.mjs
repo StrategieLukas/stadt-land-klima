@@ -2,7 +2,7 @@ import { createConfigForNuxt } from "@nuxt/eslint-config/flat";
 import prettier from "eslint-config-prettier";
 
 // Extensions have independent tsconfigs and host-provided dynamic CMS values.
-// Their strict compiler/source gates live in bin/check_extensions.sh. Do not
+// Their strict compiler/source gates live in bin/slk extensions check. Do not
 // point ESLint's project service at the unrelated frontend Nuxt project.
 export default createConfigForNuxt({ features: { stylistic: false, typescript: { strict: false } } }).append(
   prettier,

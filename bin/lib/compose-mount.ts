@@ -1,14 +1,7 @@
+import yaml from "yaml";
 import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { resolve } from "node:path";
 try {
-  const require = createRequire(new URL("../../src/directus/cli/package.json", import.meta.url));
-  const yaml = require("yaml") as {
-    parse: (input: string) => {
-      services: Record<string, { volumes?: Array<string | { type: string; source: string; target: string }> }>;
-      volumes?: Record<string, { name?: string }>;
-    };
-  };
   const [service, target, project] = process.argv.slice(2);
   if (!service || !target || !project) throw new Error("Missing mount selector");
   const config = yaml.parse(readFileSync(0, "utf8"));

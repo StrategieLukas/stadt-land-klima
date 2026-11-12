@@ -1,0 +1,25 @@
+{
+  "name": "slk-cli",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "slk": "./slk"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test cli/*.test.ts"
+  },
+  "dependencies": {
+    "dotenv": "18.0.10",
+    "yaml": "2.9.1",
+    "yargs": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/yargs": "17.0.35",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": "^24.22.3 || >=26.12.1"
+  }
+}

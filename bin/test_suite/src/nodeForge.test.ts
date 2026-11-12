@@ -7,12 +7,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { get } from "node:https";
-import { installedNodeForge, patchNodeForge } from "../../../src/frontend/scripts/patch-node-forge.mjs";
+import { installedNodeForge, checkNodeForge } from "../../../src/frontend/scripts/check-node-forge.mjs";
 
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 
 test("installed RSA verifier rejects nested DigestAlgorithm garbage and non-empty NULL parameters but accepts valid signatures with or without NULL", () => {
-  patchNodeForge(installedNodeForge(), true);
+  checkNodeForge(installedNodeForge());
   const forge = frontend("node-forge");
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 1024, publicExponent: 3 });
   const verifier = forge.pki.publicKeyFromPem(publicKey.export({ type: "spki", format: "pem" }));
@@ -36,41 +36,25 @@ test("installed RSA verifier rejects nested DigestAlgorithm garbage and non-empt
   }
 });
 
-test("backport check is idempotent and refuses missing patches, source tampering and version drift", () => {
+test("upstream integrity check refuses source tampering and version drift without modifying dependencies", () => {
   const directory = mkdtempSync(join(tmpdir(), "slk-forge-"));
   try {
     mkdirSync(join(directory, "lib"));
-    const metadata = JSON.stringify({ name: "node-forge", version: "1.4.0" });
     const source = readFileSync(join(installedNodeForge(), "lib/rsa.js"), "utf8");
-    writeFileSync(join(directory, "package.json"), metadata);
+    writeFileSync(join(directory, "package.json"), JSON.stringify({ name: "node-forge", version: "1.4.3" }));
     writeFileSync(join(directory, "lib/rsa.js"), source);
-    patchNodeForge(directory);
-    patchNodeForge(directory, true);
-    assert.equal(readFileSync(join(directory, "lib/rsa.js"), "utf8"), source);
-    // Reconstruct the exact upstream bytes to prove --check refuses an unpatched install.
-    const original = source
-      .replace(
-        /          \/\/ validate DigestInfo structure and element counts \(outer DigestInfo[\s\S]*?          var capture = \{\};/,
-        "          // validate DigestInfo structure and element count\n          var capture = {};",
-      )
-      .replace(
-        "obj.value.length !== 2 ||\n            obj.value[0].value.length !==\n              (('parameters' in capture) ? 2 : 1) ||\n            (('parameters' in capture) && capture.parameters !== '')",
-        "obj.value.length !== 2",
-      );
-    writeFileSync(join(directory, "lib/rsa.js"), original);
-    assert.throws(() => patchNodeForge(directory, true), /backport missing/);
-    patchNodeForge(directory);
+    checkNodeForge(directory);
     assert.equal(readFileSync(join(directory, "lib/rsa.js"), "utf8"), source);
     writeFileSync(join(directory, "lib/rsa.js"), source + "\n// unexpected modification");
-    assert.throws(() => patchNodeForge(directory), /Unexpected patched/);
-    writeFileSync(join(directory, "package.json"), JSON.stringify({ name: "node-forge", version: "1.4.1" }));
-    assert.throws(() => patchNodeForge(directory), /Reassess/);
+    assert.throws(() => checkNodeForge(directory), /Unexpected/);
+    writeFileSync(join(directory, "package.json"), JSON.stringify({ name: "node-forge", version: "1.4.0" }));
+    assert.throws(() => checkNodeForge(directory), /Reassess/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
 });
 
-test("Nitro listener still generates working localhost HTTPS certificates with the backport", async () => {
+test("Nitro listener still generates working localhost HTTPS certificates with the upstream fixes", async () => {
   const { listen } = await import(pathToFileURL(frontend.resolve("listhen")).href);
   const listener = await listen(
     (_request: unknown, response: { end: (body: string) => void }) => response.end("secure listener"),
