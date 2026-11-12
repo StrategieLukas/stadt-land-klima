@@ -1,0 +1,4 @@
+{
+	# Future uses Caddy ACME for its website and isolated CMS hostname.
+	import global-options.caddy
+}

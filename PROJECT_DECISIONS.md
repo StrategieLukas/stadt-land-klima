@@ -406,3 +406,21 @@ when NODE_ENV=production. Noninteractive builder runs use `-T`. GitHub workflows
 pin checkout 7.0.1, setup-node 7.1.0 and upload-artifact 7.0.2 by full commit IDs;
 release compatibility was checked against the official action release notes.
 Local workflow validation does not establish an actual hosted-runner execution.
+
+## Upstream integration (2026-11-12)
+
+- Preserve the feedback/UI fixes, safe legacy CMS HTML normalization, authored
+  homepage/editor-state guards and isolated CMS-origin routing from main.
+- Rootless production may use the administrator-installed, exact-source
+  `slk-rootless` AppArmor profile. Validate its enforcing kernel label, protected
+  policy source and denied writable canary; audit inherited container labels.
+  The development-only enabled-kernel fallback never establishes production acceptance.
+- The TypeScript `bin/slk` remains the sole bin entrypoint. It exposes portable
+  Podman backup create/verify, guarded release coordination and CMS-origin
+  checkpoint/restore. Preserve the tested upstream release protocol internally.
+- Do not reintroduce native per-key environment secrets or build-time credentials:
+  mounted dotenv reloads remain authoritative. Release volume overrides use the
+  shared flattening provider. Portable dumps reload the mounted DB operator environment.
+- Consolidate the newly introduced Docker-only full-export duplicate into the
+  portable Podman capture. Keep database-only, sanitized, release-recovery and
+  complete portable backups distinct by their recovery scope.

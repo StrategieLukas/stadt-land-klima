@@ -274,7 +274,7 @@ async function assertPdfButtonGeneratesValidPdf(
     timeout: 90_000,
   });
 
-  const pdfButton = page.getByRole("button", { name: /^PDF$/ }).first();
+  const pdfButton = page.getByRole("button", { name: /^PDF$/ }).filter({ visible: true }).first();
   await pdfButton.waitFor({ state: "visible", timeout: 20_000 });
   const viewerPromise = page.context().waitForEvent("page");
   await pdfButton.click();

@@ -30,6 +30,19 @@ import ts from "typescript";
 
 const root = new URL("../../../src/frontend/", import.meta.url);
 const require = createRequire(new URL("package.json", root));
+
+test("municipality type masks render transparent backgrounds and visible building silhouettes", () => {
+  const { Resvg } =
+    require("@resvg/resvg-js") as typeof import("../../../src/frontend/node_modules/@resvg/resvg-js/index.js");
+  for (const type of ["minor", "major"]) {
+    const icon = readFileSync(new URL(`public/icons/${type}-city-mask.svg`, root));
+    const rendered = new Resvg(icon, { fitTo: { mode: "width", value: 64 } }).render();
+    const alpha = rendered.pixels.filter((_channel, index) => index % 4 === 3);
+    const coverage = alpha.filter((value) => value > 0).length / alpha.length;
+    assert(coverage > 0.1 && coverage < 0.8, `${type} city must show a silhouette, not an empty or solid square`);
+    assert.equal(alpha[0], 0, "The icon background must remain transparent");
+  }
+});
 function load(name: string, dependencies: Record<string, unknown> = {}, globals: Record<string, unknown> = {}) {
   const module = { exports: {} as Record<string, any> };
   const source = readFileSync(new URL(name, root), "utf8");

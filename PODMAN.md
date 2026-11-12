@@ -8,12 +8,13 @@ remove existing private databases, uploads or backups automatically.
 ## Host requirements
 
 Use a dedicated non-root Linux deployment account with Podman 5.4+,
-`podman-compose` 1.5+, Node 24.22.3+, `curl`, `flock`, subordinate UID/GID ranges,
+`podman-compose` 1.6+, Node 24.22.3+, `curl`, `flock`, subordinate UID/GID ranges,
 `newuidmap`/`newgidmap`, Netavark/Aardvark DNS and delegated cgroup-v2 memory/PID
 controllers. Production requires effective AppArmor or SELinux confinement and
 seccomp. Rootless Podman on this AppArmor host reports no effective LSM support;
 development accepts a verified AppArmor-enabled kernel, while production
-preflight still refuses this host. This development exception does not certify
+preflight still refuses this host until effective or verified inherited confinement
+is configured. This development exception does not certify
 production confinement. The image's
 Typst binary currently targets x86_64. Native macOS/Windows/Podman-machine support
 is not established by this Linux deployment.
@@ -170,3 +171,95 @@ Adapt `podman/slk.service.example`, enable the user unit only after a successful
 manual release, and verify an actual reboot/logout on the target. Record effective
 kernel confinement, resource limits, certificates, real SMTP/provider delivery
 and restore/smoke results. A source/unit test pass is not live Podman acceptance.
+
+## Verified inherited AppArmor confinement
+
+### Ubuntu rootless AppArmor
+
+Ubuntu's Podman reports AppArmor unavailable for rootless containers. The maintained
+`podman/apparmor/slk-rootless` policy instead confines the engine and all inherited
+container processes. An administrator installs it as root-owned mode 0644 at
+`/etc/apparmor.d/slk-rootless`, loads it with `apparmor_parser -r`, and creates an
+empty, operator-owned mode 0600 file at
+`~/.local/state/slk-apparmor-denied` outside the profile. Keep AppArmor enabled.
+The wrapper enters the preloaded policy through `aa-exec`; no rootful engine or
+policy-loading privilege is granted to the operator.
+
+Preflight verifies the current stacked label, kernel policyfs enforce mode,
+root-owned policy bytes against the maintained file, and denial of opening the
+otherwise writable canary. Runtime audit checks PID 1's inherited label as well as
+the existing capability/seccomp controls. A `mixed` stack is accepted only when
+the named policy is independently verified in enforce mode; Ubuntu's additional
+unconfined runtime profiles do not remove this policy's restrictions. Engine
+mount/network operations remain available; application capabilities, read-only
+mounts and the separate syscall policy continue to constrain payloads.
+
+Ubuntu's packaged pasta profile may also need a narrow host override granting
+`mr` to `/usr/bin/pasta{,.avx2}` and signals between pasta and the rootless engine.
+Retain and reload its existing policy rather than disabling it. Verify a writable
+temporary `/tmp` mount permits ordinary files but rejects writing
+`/tmp/slk-apparmor-denied` under the inherited policy before deploying. Temporary private mounts use Podman's `U` option to select the service
+UID/GID; Docker-style `uid=`/`gid=` options are not accepted by `--tmpfs`.
+
+Install the host tools through your distribution, including `uidmap`
+(`newuidmap`/`newgidmap`), rootless networking (`passt`/pasta), and `podman-compose`.
+If the distro's Compose provider is older than 1.6, install a supported release
+in an isolated `pipx` environment. The wrapper explicitly selects this provider, disables pod grouping, and forces
+`engine.remote=false` through a private `CONTAINERS_CONF_OVERRIDE` file. This avoids
+the provider placing global `--remote` flags after the subcommand. It needs no engine socket.
+
+Run the stack as a dedicated deployment account with subordinate UID/GID ranges
+in `/etc/subuid` and `/etc/subgid`. An administrator must provision those ranges
+and, for unattended boot, enable lingering for that account. Keep its checkout,
+container storage and private backups inaccessible to other host users. The
+account owns the application containers; access to that account grants access to
+their environment credentials and volumes.
+
+Copy the four `.env.example` files as described in [README](README.md#development),
+replace placeholders and make the real `.env` files mode **0600**, owned by the
+operator. Symlinks and group/world access are rejected. The variables
+`SLK_PODMAN_DB_ENV_FILE`, `SLK_PODMAN_MEILI_ENV_FILE`,
+`SLK_PODMAN_DIRECTUS_ENV_FILE`, and `SLK_PODMAN_FRONTEND_ENV_FILE` can select
+private alternative files without changing tracked deployment files.
+
+```bash
+npm ci --prefix src/directus/cli
+./bin/slk stack doctor --env production
+./bin/slk stack build --env production
+```
+
+`doctor` fails if required kernel/runtime controls or environment-file permissions
+are missing. It does not install packages, change host ownership, disable host
+confinement, open a socket, or alter sysctls. Review any host preparation failure
+with the administrator; there is no unconfined/rootful fallback.
+
+## Application release coordination
+
+The production-only `slk release` command accepts `backup`, `stage`,
+`stage-prebuilt`, `activate` and `rollback` with a private host config, next tag
+and previous tag. It retains the upstream release protocol internally in
+`podman/release/run.sh`; operators use the TypeScript CLI.
+
+```bash
+./bin/slk release stage /private/host.env release-12345678 release-abcdef01 --env production
+```
+
+Tags must contain 8–40 lowercase hexadecimal revision characters and match a clean
+checkout. Runtime base images are prepared separately; prebuilt application images
+need matching OCI revision labels. Staging never replaces the active output.
+Activation requires both stage.ok and an off-host verified backup record, starts
+maintenance, snapshots the homepage/output, imports YAML, checks the new app and
+rolls back once on failure. Guarded homepage rollback preserves authored blocks
+and editor drafts. Data-service containers remain running. Temporary volume
+overrides are flattened by the shared runtime provider.
+
+Use `./bin/slk backup create --help` for a complete portable recovery bundle;
+see [capture and restoration](bin/PORTABLE_BACKUP.md). The release checkpoint and
+database-only exporters do not replace that bundle.
+
+For an isolated CMS origin, `slk cms-origin prepare <host.env> <private-state-dir>
+<https-origin>` checkpoints private URL/cookie/CORS configuration. `restore`
+refuses drift and restores it during release recovery. Retire old-origin
+interactive sessions separately through the checked CMS CLI helper; service
+identities and candidate/preview tokens stay intact. See the Caddy origin
+instructions and PROJECT_DECISIONS.md for the boundary.

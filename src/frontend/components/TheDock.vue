@@ -84,7 +84,8 @@ const followLink = (pageSlug: string) => {
 }
 
 .slk-dock-active {
-  color: var(--slk-accent-green);
+  color: var(--slk-text-strong);
+  background-color: var(--slk-surface-muted);
 }
 
 /* CMS SVGs can carry fixed paint attributes; preserve unpainted geometry. */

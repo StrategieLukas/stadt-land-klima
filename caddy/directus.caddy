@@ -1,0 +1,105 @@
+(slk_directus) {
+	@slk_same_origin expression true
+	@slk_wahlcheck_embed expression false
+	# Never log CMS paths, query strings, cookies, credentials or peer addresses.
+	log {
+		output stdout
+		format filter {
+			wrap json
+			fields {
+				request>uri delete
+				request>headers delete
+				request>remote_ip delete
+				request>client_ip delete
+				request>remote_port delete
+				request>tls delete
+				resp_headers delete
+				user_id delete
+			}
+		}
+	}
+	route {
+		vars slk_referrer_policy no-referrer
+		import slk_security_headers
+		@slk_cms_blocked path /graphql /graphql/* /utils/hash /utils/hash/*
+		respond @slk_cms_blocked 403
+		@slk_cms_deep expression `{http.request.uri.query}.matches('(?i)(^|&)(d|%64)(e|%65)(e|%65)(p|%70)=')`
+		respond @slk_cms_deep 400
+		@slk_cms_upgrade header Upgrade *
+		respond @slk_cms_upgrade 403
+		# Sibling subdomains are same-site. Origin checks are required for browser writes.
+		@slk_cms_cross_write {
+			method POST PUT PATCH DELETE
+			header Origin *
+			not header Origin https://directus.stadt-land-klima.de
+		}
+		respond @slk_cms_cross_write 403
+		@slk_cms_cross_metadata {
+			method POST PUT PATCH DELETE
+			expression `{http.request.header.Sec-Fetch-Site} in ['same-site', 'cross-site']`
+		}
+		respond @slk_cms_cross_metadata 403
+		rate_limit {
+			disable_metrics
+			sweep_interval 10s
+			zone slk_cms_api_burst {
+				match {
+					not path /admin/assets/* /assets/*
+				}
+				key {remote_host}
+				events 21
+				window 1s
+			}
+			zone slk_cms_api_sustained {
+				match {
+					not path /admin/assets/* /assets/*
+				}
+				key {remote_host}
+				events 620
+				window 1m
+			}
+			zone slk_cms_assets_burst {
+				match {
+					path /admin/assets/* /assets/*
+				}
+				key {remote_host}
+				events 501
+				window 1s
+			}
+			zone slk_cms_assets_sustained {
+				match {
+					path /admin/assets/* /assets/*
+				}
+				key {remote_host}
+				events 6500
+				window 1m
+			}
+		}
+		# Cross-origin website images/SVGs are anonymous, even when the browser has CMS cookies.
+		@slk_cms_public_asset {
+			path /assets/*
+			expression `{http.request.header.Origin} == 'https://future.stadt-land-klima.de' || {http.request.header.Sec-Fetch-Site} in ['same-site', 'cross-site']`
+		}
+		handle @slk_cms_public_asset {
+			uri query -access_token
+			reverse_proxy {$SLK_CADDY_CMS_UPSTREAM:127.0.0.1:9001} {
+				import slk_proxy_headers
+				import slk_long_transport
+				header_up -Authorization
+				header_up -Cookie
+				header_down -Access-Control-Allow-Credentials
+				header_down Access-Control-Allow-Origin https://future.stadt-land-klima.de
+				header_down +Vary Origin
+			}
+		}
+		handle {
+			request_body {
+				max_size 536870912
+			}
+			reverse_proxy {$SLK_CADDY_CMS_UPSTREAM:127.0.0.1:9001} {
+				import slk_proxy_headers
+				import slk_long_transport
+			}
+		}
+	}
+}

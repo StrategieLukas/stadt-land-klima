@@ -213,11 +213,9 @@ services:
     <<: *security
     profiles: [maintenance]
     build:
-      context: ./podman/maintenance
-      dockerfile: Containerfile
+      context: .
+      dockerfile: podman/maintenance/Containerfile
     image: localhost/slk-podman-maintenance:${SLK_PODMAN_TAG:-local}
-    volumes:
-      - ./src/frontend/assets/images/Stadt-Land-Klima-Logotype_bordered.svg:/srv/logo.svg:ro,z
     networks: [edge]
     mem_limit: 64m
     pids_limit: 32

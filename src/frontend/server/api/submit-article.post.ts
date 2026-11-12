@@ -509,7 +509,7 @@ async function submitArticle(event: H3Event) {
       resourceId: article.data.id,
       outcome: "success",
     });
-    const directusPublicUrl = config.directusPublicUrl || "https://stadt-land-klima.de/backend";
+    const directusPublicUrl = config.directusPublicUrl || "https://directus.stadt-land-klima.de";
     const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "articles", article.data.id);
     const notifyAdminFlowUrl = config.directusFlowNotifyAdmin as string | undefined;
     const notificationEmail = config.erfolgsprojekteNotificationEmail || "presse@stadt-land-klima.de";

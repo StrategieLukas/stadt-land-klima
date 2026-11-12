@@ -8,12 +8,16 @@ ConditionPathExists=%h/stadt-land-klima/podman-compose.yaml
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# The CLI manages shutdown; preserve container monitors and port forwarders.
+KillMode=process
 WorkingDirectory=%h/stadt-land-klima
 ExecStart=%h/stadt-land-klima/bin/slk stack start --env production
 ExecStop=%h/stadt-land-klima/bin/slk stack stop --env production
 Environment=SLK_PODMAN_PROJECT=slk-podman-production
 TimeoutStartSec=30min
 TimeoutStopSec=180
+Restart=on-failure
+RestartSec=30s
 
 [Install]
 WantedBy=default.target

@@ -3,7 +3,10 @@ import { hideBin } from "yargs/helpers";
 import { performStack, runtime } from "./stack.ts";
 import { checkCoreData, upgradeCore } from "./core.ts";
 import { databaseTransfer, sanitize, migrate, databaseRole, extensions, tests, update } from "./operations.ts";
-import { run, CommandError, type Environment } from "./process.ts";
+import { hostEnvironment } from "./host-environment.ts";
+import { createBundle, verifyBundle } from "../lib/portable-backup.ts";
+import { prepareCmsOrigin, restoreCmsOrigin } from "../lib/cms-origin.ts";
+import { run, root, CommandError, type Environment } from "./process.ts";
 
 process.umask(0o077);
 const passthrough = (args: unknown): string[] => (Array.isArray(args) ? args.map(String) : []);
@@ -102,7 +105,7 @@ const parser = yargs(hideBin(process.argv))
           ...(argv.action === "shell"
             ? ["bash"]
             : argv.action === "cli"
-              ? ["directus-cli"]
+              ? ["node", "/directus/cli/index.mjs"]
               : [`/directus/cli/${argv.action}-all.sh`]),
           ...args,
         ]);
@@ -144,6 +147,76 @@ const parser = yargs(hideBin(process.argv))
       }),
     async (argv) => {
       await tests(argv.target!, passthrough(argv["--"]));
+    },
+  )
+  .command(
+    "backup <action> [directory]",
+    "Create or verify a complete private Podman recovery bundle",
+    (p) =>
+      p
+        .positional("action", { choices: ["create", "verify"] as const })
+        .positional("directory", { type: "string" })
+        .option("project", { type: "string" })
+        .option("output", { type: "string" })
+        .option("config", { type: "string", array: true, default: [] })
+        .option("writers-stopped", { type: "boolean", default: false }),
+    async (argv) => {
+      if (argv.action === "verify") {
+        if (!argv.directory) throw new Error("Provide a backup directory to verify");
+        await verifyBundle(argv.directory);
+        console.log("All backup checksums verified.");
+      } else {
+        const project = argv.project ?? process.env.SLK_PODMAN_PROJECT;
+        if (!project || !argv.output) throw new Error("Provide --project and --output for the stopped source stack");
+        console.log(
+          await createBundle({
+            engine: "podman",
+            project,
+            output: argv.output,
+            configs: argv.config,
+            writersStopped: argv.writersStopped,
+          }),
+        );
+      }
+    },
+  )
+  .command(
+    "release <action> <config> <tag> <previous>",
+    "Stage, back up, activate or roll back an application release",
+    (p) =>
+      p
+        .positional("action", { choices: ["backup", "stage", "stage-prebuilt", "activate", "rollback"] as const })
+        .positional("config", { type: "string" })
+        .positional("tag", { type: "string" })
+        .positional("previous", { type: "string" }),
+    async (argv) => {
+      if (argv.env !== "production") throw new Error("Release operations require explicit --env production");
+      await run("bash", [root + "podman/release/run.sh", argv.config!, argv.action!, argv.tag!, argv.previous!], {
+        env: hostEnvironment(argv.config!, false),
+      });
+    },
+  )
+  .command(
+    "cms-origin <action> <config> <state> [origin]",
+    "Checkpoint or restore private CMS origin settings",
+    (p) =>
+      p
+        .positional("action", { choices: ["prepare", "restore"] as const })
+        .positional("config", { type: "string" })
+        .positional("state", { type: "string" })
+        .positional("origin", { type: "string" }),
+    async (argv) => {
+      try {
+        if (argv.action === "prepare") {
+          if (!argv.origin) throw new Error("Provide the HTTPS CMS origin");
+          console.log(JSON.stringify(prepareCmsOrigin(argv.config!, argv.state!, argv.origin)));
+        } else {
+          restoreCmsOrigin(argv.config!, argv.state!);
+          console.log("Private origin configuration restored");
+        }
+      } catch {
+        throw new Error("CMS origin update failed; private configuration values are withheld");
+      }
     },
   )
   .command(

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { launchBrowser, waitForHydration, collectPublicPageErrors } from "./lib/browser.js";
 import { waitFor } from "./lib/wait.js";
 import { MunicipalityUpdatesSchema } from "../../../src/frontend/shared/contracts/municipalityUpdates.js";
+import { assertMunicipalityDetailLayout } from "./lib/municipalityDetail.js";
 
 const base = new URL(process.argv[2] ?? "http://localhost:8080").origin;
 const history = await waitFor(
@@ -27,6 +28,7 @@ try {
     await page.setViewportSize(viewport);
     await page.goto(detail, { waitUntil: "networkidle" });
     await waitForHydration(page);
+    await assertMunicipalityDetailLayout(page);
     const canvas = page.locator('[data-testid="municipality-polar-chart"] canvas:visible').first();
     await canvas.waitFor();
     await waitFor("first-load chart renders visible sectors", () =>
@@ -59,7 +61,13 @@ try {
       timeout: 90_000,
     });
     const viewerPromise = context.waitForEvent("page");
-    await page.getByRole("button", { name: "PDF", exact: true }).first().click();
+    const pdfButton = page.getByRole("button", { name: "PDF", exact: true }).filter({ visible: true });
+    if (viewport.width === 1440) {
+      await pdfButton.focus();
+      await page.keyboard.press("Enter");
+    } else {
+      await pdfButton.click();
+    }
     const viewer = await viewerPromise;
     const pdf = await pdfResponse;
     assert.equal(pdf.status(), 200);
@@ -70,6 +78,7 @@ try {
     );
     assert.equal(pdf.headers()["content-type"], "application/pdf");
     assert.ok(Number(pdf.headers()["content-length"]) > 1_000);
+    assert.equal(page.url(), detail, "Export keeps the municipality page open");
     await viewer.close();
   }
   const imageUrl = await page.locator('meta[property="og:image"]').getAttribute("content");
@@ -89,6 +98,18 @@ try {
     ).status,
     404,
   );
+  await page
+    .getByTestId("municipality-sidebar-actions")
+    .filter({ visible: true })
+    .locator('a[href*="/municipalities/updates"]')
+    .click();
+  await page.waitForURL(
+    (url) =>
+      url.pathname === "/municipalities/updates" &&
+      url.searchParams.get("municipality") === initial.municipality.slug &&
+      url.searchParams.get("v") === initial.catalog,
+  );
+  await page.getByRole("heading", { name: "Bewertungsverlauf", exact: true }).waitFor();
   for (const path of ["news", "events"]) {
     await page.goto(`${base}/${path}`, { waitUntil: "networkidle" });
     await waitForHydration(page);

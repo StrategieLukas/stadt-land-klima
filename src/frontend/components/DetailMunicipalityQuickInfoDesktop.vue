@@ -65,7 +65,9 @@
           <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
           <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
         </div>
-        <span class="text-right text-sm font-bold text-gray-900">{{ municipality.population.toLocaleString() }}</span>
+        <span data-testid="municipality-population" class="text-right text-sm font-bold text-gray-900">{{
+          Number(municipality.population).toLocaleString($locale)
+        }}</span>
       </div>
 
       <div v-if="municipality?.mayor" class="flex items-center justify-between">
@@ -121,7 +123,8 @@
         </div>
         <span class="text-right text-sm font-bold text-gray-900">
           {{
-            new Date(municipality.localteam_id.date_created).toLocaleDateString("de-DE", {
+            new Date(municipality.localteam_id.date_created).toLocaleDateString($locale, {
+              timeZone: "Europe/Berlin",
               year: "numeric",
               month: "2-digit",
               day: "2-digit",
@@ -164,7 +167,7 @@ import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
 import { getScorePercentageColor } from "~/shared/utils";
 import { overwriteSvgStyles } from "~/shared/svg-logic";
-const { $t } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 
 const MunicipalitySvg = ref("");
 

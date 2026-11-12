@@ -133,7 +133,7 @@ DO NOT update Directus beyond 11.17.4
 10. Do not edit public-role permissions. Website read permissions belong to `src/directus/policies/Frontend-Server.yaml` and checked Nuxt DTOs.
 11. Extensions and the CLI script are to be written in Typescript only. Avoid nonsense interfaces for only a single primitive field.
 12. Elsewhere prefer typescript for all new implementations, unless it would be significant effort or would cause interop problems.
-13. NEVER commit automatically. The user must use the diff to be able to review your changes.
+13. NEVER PUSH automatically. Give meaningful names to Commits. When asked to create a new branch, make sure it is a real new branch and DOES NOT point to origin/main
 14. However, if in a git worktree where the project root dir folder contains the word "agent", always commit and squash commits + push when done.
 15. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
 16. In German user-facing text and translations, use proper German characters (`ä`, `ö`, `ü`, `ß`) instead of ASCII transliterations (`ae`, `oe`, `ue`, `ss`). Keep ASCII transliterations only for stable identifiers, enum values, slugs, emails, URLs, or other machine-facing keys.
@@ -186,3 +186,16 @@ See [resource hardening](PROJECT_DECISIONS.md#pinned-directus-and-dependency-sec
 ## Checks
 
 1. Run ./slk test dev in the bin folder and wait for checks to complete.
+
+## Deployment
+
+You may deploy to STAGING and FUTURE, but only if ASKED TO.
+Staging: `ssh root@staging`
+Future: `ssh root@future`
+
+NEVER deploy to PRODUCTION or any other server. Ask user to confirm-verify if you ever think the user intends to deploy to PRODUCTION.
+
+### Rules for deployment
+
+- Use the `deploy` user (i.e. `su deploy`) to run the deployment and keep all files there
+- DO NOT change files that are checked into the repository locally for the deployment. Instead, change them in the repository and inform the user that they need to be pushed.

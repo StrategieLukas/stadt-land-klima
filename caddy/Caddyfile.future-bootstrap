@@ -1,0 +1,22 @@
+# Temporary certificate/proxy provisioning; final cutover uses Caddyfile.future.
+import global.future.caddy
+import application.caddy
+import directus.caddy
+
+http://future.stadt-land-klima.de, http://directus.stadt-land-klima.de {
+	redir https://{host}{uri} 308
+}
+
+https://future.stadt-land-klima.de {
+	tls {$SLK_CADDY_CERT} {$SLK_CADDY_KEY} {
+		protocols tls1.2 tls1.3
+	}
+	import slk_application
+}
+
+https://directus.stadt-land-klima.de {
+	tls {$SLK_CADDY_CERT} {$SLK_CADDY_KEY} {
+		protocols tls1.2 tls1.3
+	}
+	import slk_directus
+}

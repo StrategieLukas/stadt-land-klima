@@ -13,112 +13,55 @@
         :disabled="creating"
         @click="createNewsItem"
       />
-      <CanonicalButton
-        href="/municipalities/updates"
-        :label="$t('municipality.updates.title')"
-        icon-slug="mdi:history"
-        color="dark"
-      />
     </header>
 
     <!-- Type filter pills -->
-    <div class="mb-6 flex flex-wrap gap-2">
-      <button
-        type="button"
-        :class="[
-          'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors',
-          activeFilter === null
-            ? 'border-[#374151] bg-[#374151] text-white'
-            : 'border-[#e5e7eb] bg-[#e5e7eb] text-[#374151] hover:bg-[#d1d5db]',
-        ]"
-        @click="activeFilter = null"
-      >
-        Alle
+    <div class="slk-news-filters mb-6 flex w-full flex-wrap gap-2">
+      <button type="button" class="slk-news-filter" :aria-pressed="activeFilter === null" @click="activeFilter = null">
+        {{ $t("generic.all") }}
       </button>
       <button
         v-for="f in filterOptions"
         :key="f.value"
         type="button"
-        :class="[
-          'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors',
-          activeFilter === f.value ? f.activeClass : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400',
-        ]"
+        class="slk-news-filter"
+        :aria-pressed="activeFilter === f.value"
         @click="activeFilter = f.value"
       >
         {{ f.label }}
       </button>
     </div>
 
-    <!-- Sidebar + feed layout -->
-    <!-- Mobile sticky scroll nav -->
+    <!-- Full-width timeline navigation -->
     <nav
-      class="sticky z-10 -mx-4 mb-6 border-b border-gray-100 bg-base-100 px-4 xl:hidden"
+      class="slk-timeline-navigation sticky z-10 mb-6 w-full border-b border-(--slk-border) bg-base-100"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
       <div
         ref="mobilePillStrip"
-        class="flex gap-2 overflow-x-auto py-2"
+        class="flex w-full gap-2 overflow-x-auto py-2"
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
         <a
           v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')"
           href="#section-zukunftig"
-          :class="[
-            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
-            activeSection === 'section-zukunftig'
-              ? 'bg-[#1da64a]/10 font-semibold text-[#1da64a]'
-              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
-          ]"
+          class="slk-timeline-pill"
+          :aria-current="activeSection === 'section-zukunftig' ? 'location' : undefined"
           >Zukünftig</a
         >
         <a
           v-for="group in groupedByMonth"
           :key="group.monthKey"
           :href="`#section-${group.monthKey}`"
-          :class="[
-            'shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors',
-            activeSection === `section-${group.monthKey}`
-              ? 'bg-[#006e94]/10 font-semibold text-[#006e94]'
-              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
-          ]"
+          class="slk-timeline-pill"
+          :aria-current="activeSection === `section-${group.monthKey}` ? 'location' : undefined"
           >{{ group.label }}</a
         >
       </div>
     </nav>
 
     <div class="flex items-start gap-8">
-      <!-- Left sticky nav (desktop only) -->
-      <nav class="sticky hidden w-44 shrink-0 self-start text-sm xl:block" :style="`top: ${headerHeight + 12}px`">
-        <p class="mb-3 text-xs font-bold tracking-widest text-gray-400 uppercase">Abschnitte</p>
-        <ul class="space-y-1">
-          <li v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')">
-            <a
-              href="#section-zukunftig"
-              :class="[
-                'block truncate rounded-sm px-2 py-1 transition-colors',
-                activeSection === 'section-zukunftig'
-                  ? 'bg-[#1da64a]/5 font-semibold text-[#1da64a]'
-                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
-              ]"
-              >Zukünftig</a
-            >
-          </li>
-          <li v-for="group in groupedByMonth" :key="group.monthKey">
-            <a
-              :href="`#section-${group.monthKey}`"
-              :class="[
-                'block truncate rounded-sm px-2 py-1 transition-colors',
-                activeSection === `section-${group.monthKey}`
-                  ? 'bg-[#006e94]/5 font-semibold text-[#006e94]'
-                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700',
-              ]"
-              >{{ group.label }}</a
-            >
-          </li>
-        </ul>
-      </nav>
-
       <!-- Main feed -->
       <div class="min-w-0 flex-1">
         <!-- Zukünftige Veranstaltungen: upcoming events preview -->
@@ -129,7 +72,7 @@
           :style="`scroll-margin-top: ${sectionOffset}px`"
         >
           <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-2">
-            <h2 class="text-base font-semibold tracking-wide text-gray-500 uppercase">Zukünftig</h2>
+            <h2 class="text-base font-semibold text-gray-500">Zukünftig</h2>
             <NuxtLink
               to="/events"
               class="flex shrink-0 items-center gap-1 text-sm font-medium text-[#1da64a] hover:underline"
@@ -198,7 +141,7 @@
                 <div class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span
                     v-if="ev.event_type"
-                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold tracking-wide text-[#1da64a] uppercase dark:bg-(--slk-green) dark:text-(--slk-text-strong)"
+                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold text-[#1da64a] dark:bg-(--slk-green) dark:text-(--slk-text-strong)"
                   >
                     {{
                       { conference: "Konferenz", workshop: "Workshop", webinar: "Webinar", other: "Sonstiges" }[
@@ -262,7 +205,7 @@
           :style="`scroll-margin-top: ${sectionOffset}px`"
         >
           <!-- Month heading -->
-          <h2 class="mb-4 border-b border-gray-200 pb-2 text-base font-semibold tracking-wide text-gray-500 uppercase">
+          <h2 class="mb-4 border-b border-gray-200 pb-2 text-base font-semibold text-gray-500">
             {{ group.label }}
           </h2>
 
@@ -365,7 +308,7 @@
                 <span
                   v-if="item.status && item.status !== 'published'"
                   :class="[
-                    'absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs font-bold tracking-wide uppercase',
+                    'absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs font-bold',
                     item.status === 'draft' ? 'bg-[#fbbf24] text-[#78350f]' : 'bg-[#9ca3af] text-white',
                   ]"
                   >{{ item.status === "draft" ? "Entwurf" : "Archiviert" }}</span
@@ -392,7 +335,7 @@
                 <div v-if="item.type === 'event'" class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span
                     v-if="item.eventType"
-                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold tracking-wide text-[#1da64a] uppercase dark:bg-(--slk-green) dark:text-(--slk-text-strong)"
+                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold text-[#1da64a] dark:bg-(--slk-green) dark:text-(--slk-text-strong)"
                   >
                     {{
                       { conference: "Konferenz", workshop: "Workshop", webinar: "Webinar", other: "Sonstiges" }[
@@ -518,7 +461,7 @@ const NuxtLinkComponent = resolveComponent("NuxtLink");
 const { $t } = useNuxtApp();
 
 const { isAuthenticated, initialize } = useAuth();
-const { headerHeight, isDesktop, pillTop, sectionOffset, activeSection, mobilePillStrip } = useTimelineNavigation();
+const { isDesktop, pillTop, sectionOffset, activeSection, mobilePillStrip } = useTimelineNavigation();
 
 // Null until the admin re-fetch completes; when set, overrides the SSR news list
 const editor = useNewsEditor();
@@ -645,10 +588,10 @@ const allItems = computed(() => {
 const activeFilter = ref<string | null>(null);
 
 const filterOptions = [
-  { value: "news", label: "Neuigkeiten", activeClass: "bg-teal-600 text-white border-teal-600" },
-  { value: "project", label: "Erfolgsprojekte", activeClass: "bg-[#006e94] text-white border-[#006e94]" },
-  { value: "event", label: "Veranstaltungen", activeClass: "bg-[#1da64a] text-white border-[#1da64a]" },
-  { value: "catalog", label: "Maßnahmenkataloge", activeClass: "bg-[#6b7280] text-white border-[#6b7280]" },
+  { value: "news", label: "Neuigkeiten" },
+  { value: "project", label: "Erfolgsprojekte" },
+  { value: "event", label: "Veranstaltungen" },
+  { value: "catalog", label: "Maßnahmenkataloge" },
 ];
 
 const visibleItems = computed(() =>

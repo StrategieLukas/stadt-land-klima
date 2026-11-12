@@ -5,6 +5,9 @@
     <div id="assessment" class="scroll-mt-28" />
     <!-- Mobile: Single column layout -->
     <div class="block w-full flex-col justify-center lg:hidden">
+      <div class="mb-8">
+        <ItemRanking :municipality-score="municipalityScore" />
+      </div>
       <div class="mb-4">
         <CanonicalToggleGroup
           v-model="activeTab"
@@ -67,6 +70,8 @@
         </div>
       </div>
 
+      <MunicipalityDetailActions :score="municipalityScore" class="mb-4" />
+
       <DetailMunicipalitySectorCards :municipality-score="municipalityScore" :ratings-by-sector="ratingsBySector" />
 
       <!-- Mobile: Associated Projects Link -->
@@ -87,6 +92,9 @@
     <div class="hidden w-full lg:grid lg:grid-cols-3 lg:gap-8">
       <!-- Left Column: Main content (2/3 width) -->
       <div class="lg:col-span-2">
+        <div class="mb-8">
+          <ItemRanking :municipality-score="municipalityScore" />
+        </div>
         <div class="mb-4">
           <CanonicalToggleGroup
             v-model="activeTab"
@@ -162,6 +170,8 @@
         <div class="sticky top-24 space-y-6">
           <!-- Municipality Quick Info -->
           <DetailMunicipalityQuickInfoDesktop :municipality-score="municipalityScore" />
+
+          <MunicipalityDetailActions :score="municipalityScore" />
 
           <!-- Participate Section -->
           <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-xs p-2 shadow-list md:px-2">

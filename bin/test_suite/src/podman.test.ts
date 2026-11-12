@@ -23,6 +23,8 @@ import {
   hardenedPodmanSeccomp,
   blockedPodmanSyscalls,
   podmanServices,
+  assertAppArmorLabel,
+  assertInheritedAppArmor,
 } from "../../lib/podman-security.js";
 import {
   podmanEnvironmentPlan,
@@ -172,6 +174,36 @@ test("host preflight fails closed for rootful, unconfined, legacy or undelegated
   assert.throws(() => assertPodmanHost(null));
 });
 
+test("inherited AppArmor rejects missing, spoofed, complain and untrusted policy evidence", () => {
+  const valid = {
+    label: "crun//&slk-rootless (mixed)",
+    profiles: "other (complain)\nslk-rootless (enforce)\n",
+    source: "maintained policy",
+    expectedSource: "maintained policy",
+    stat: { isFile: () => true, uid: 0, mode: 0o644 },
+  };
+  assert.doesNotThrow(() => assertInheritedAppArmor(valid));
+  assert.doesNotThrow(() => assertAppArmorLabel("slk-rootless (enforce)"));
+  for (const label of ["unconfined", "slk-rootless (complain)", "fake-slk-rootless (enforce)", "crun (enforce)"])
+    assert.throws(() => assertInheritedAppArmor({ ...valid, label }));
+  for (const profiles of ["", "slk-rootless (complain)", "fake-slk-rootless (enforce)"])
+    assert.throws(() => assertInheritedAppArmor({ ...valid, profiles }));
+  assert.throws(() => assertInheritedAppArmor({ ...valid, source: "changed policy" }));
+  for (const stat of [
+    { ...valid.stat, isFile: () => false },
+    { ...valid.stat, uid: 1000 },
+    { ...valid.stat, mode: 0o664 },
+    { ...valid.stat, mode: 0o646 },
+  ])
+    assert.throws(() => assertInheritedAppArmor({ ...valid, stat }));
+  const ubuntu = host();
+  ubuntu.host.security.apparmorEnabled = false;
+  assert.throws(() => assertPodmanHost(ubuntu));
+  assert.doesNotThrow(() => assertPodmanHost(ubuntu, true));
+  ubuntu.host.security.rootless = false;
+  assert.throws(() => assertPodmanHost(ubuntu, true), /Rootless/);
+});
+
 test("production rejects missing effective LSM; a verified development AppArmor host still enforces seccomp and rootless mode", () => {
   const value = host();
   value.host.security.apparmorEnabled = false;
@@ -292,6 +324,7 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
     "bin/slk",
     "bin/package.json",
     "bin/cli/index.ts",
+    "bin/cli/host-environment.ts",
     "bin/cli/stack.ts",
     "bin/cli/podman-local.mjs",
     "bin/cli/process.ts",
@@ -300,6 +333,9 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
     "bin/lib/podman-security.ts",
     "bin/lib/podman-environment.ts",
     "bin/lib/maintenance-meta.ts",
+    "bin/lib/portable-backup.ts",
+    "bin/lib/container-environment.ts",
+    "bin/lib/cms-origin.ts",
     "src/directus/cli/package.json",
   ])
     copyFileSync(fileURLToPath(new URL("../../../" + file, import.meta.url)), join(directory, file));
@@ -338,7 +374,11 @@ case "$*" in
 esac
 `,
     "podman-compose": `#!/bin/sh
-case "$*" in *--version*) echo 'podman-compose version 1.5.0'; exit 0 ;; esac
+case "$*" in *--version*) echo 'podman-compose version 1.6.0'; exit 0 ;; esac
+for descriptor in /proc/self/fd/*; do
+  target=$(readlink "$descriptor" || true)
+  case "$target" in *.lock) echo 'lock descriptor inherited' >&2; exit 91 ;; esac
+done
 printf '%s\n' "$*" >> "$PROBE_ROOT/calls"
 case "$*" in *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;; esac
 `,
@@ -487,4 +527,151 @@ test("private YAML setup precedes the checked full CMS and never publishes helpe
   const calls = fixture.calls();
   assert.ok(calls.indexOf("bootstrapConfiguration.ts") < calls.indexOf("--force-recreate directus"));
   assert.doesNotMatch(calls, /--service-ports|SLK_STARTUP_SECURITY_CHECKS=false|stop maintenance/);
+});
+
+test("release staging failure leaves the live application untouched and activation requires a verified backup", (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "slk-release-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const tools = join(directory, "tools");
+  const repo = join(directory, "repo");
+  mkdirSync(tools);
+  mkdirSync(join(repo, "bin"), { recursive: true });
+  mkdirSync(join(repo, "podman/release"), { recursive: true });
+  const script = join(repo, "podman/release/run.sh");
+  copyFileSync(new URL("../../../podman/release/run.sh", import.meta.url), script);
+  chmodSync(script, 0o700);
+  const calls = join(directory, "calls");
+  mkdirSync(join(repo, "bin/lib"), { recursive: true });
+  mkdirSync(join(repo, "bin/cli"), { recursive: true });
+  copyFileSync(new URL("../../cli/host-environment.ts", import.meta.url), join(repo, "bin/cli/host-environment.ts"));
+  copyFileSync(new URL("../../lib/podman-security.ts", import.meta.url), join(repo, "bin/lib/podman-security.ts"));
+  copyFileSync(new URL("../../package.json", import.meta.url), join(repo, "bin/package.json"));
+  symlinkSync(fileURLToPath(new URL("../../node_modules", import.meta.url)), join(repo, "bin/node_modules"), "dir");
+  writeFileSync(
+    join(repo, "bin/lib/maintenance-meta.ts"),
+    'import {writeFileSync} from "node:fs";writeFileSync(process.argv[2]!,"// fixture metadata\\n");',
+  );
+  writeFileSync(
+    join(repo, "bin/slk"),
+    `#!/bin/sh
+command=$2; shift 2
+if [ "$1" = --env ]; then shift 2; fi
+if [ "$1" = -- ]; then shift; fi
+set -- production "$command" "$@"
+for descriptor in /proc/self/fd/*; do
+  target=$(readlink "$descriptor" || true)
+  case "$target" in *.lock) echo 'lock descriptor inherited' >&2; exit 91 ;; esac
+done
+printf '%s:%s\n' "$SLK_PODMAN_TAG" "$*" >> "$RELEASE_PROBE_CALLS"
+case "$*" in
+  *'--profile maintenance build '*) exit 33 ;;
+  *'up -d --no-build --no-deps directus'*) if [ \"$RELEASE_PROBE_ALLOW_START\" != 1 ]; then exit 34; fi ;;
+  *'production audit'*) if [ "$RELEASE_PROBE_FAIL_AUDIT" = 1 ]; then exit 36; fi ;;
+esac
+`,
+    { mode: 0o700 },
+  );
+  writeFileSync(
+    join(tools, "git"),
+    `#!/bin/sh
+case "$*" in 'rev-parse HEAD') echo deadbeef00000000000000000000000000000000 ;; esac
+`,
+    { mode: 0o700 },
+  );
+  writeFileSync(
+    join(tools, "id"),
+    `#!/bin/sh
+echo 1000
+`,
+    { mode: 0o700 },
+  );
+  writeFileSync(
+    join(tools, "stat"),
+    `#!/bin/sh
+case "$*" in *host.env*) echo 600:1000 ;; *) echo 700:1000 ;; esac
+`,
+    { mode: 0o700 },
+  );
+  const config = join(directory, "host.env");
+  writeFileSync(config, "SLK_PODMAN_PROJECT=slk-test\nSLK_PODMAN_TAG=release-b477ac14\n", { mode: 0o600 });
+  const runtime = join(directory, "runtime");
+  mkdirSync(join(runtime, "slk-podman"), { recursive: true });
+  const env = {
+    ...process.env,
+    HOME: directory,
+    PATH: tools + ":" + process.env.PATH,
+    XDG_RUNTIME_DIR: runtime,
+    SLK_PODMAN_PROJECT: "slk-test",
+    RELEASE_PROBE_CALLS: calls,
+  };
+  const run = (action: string, allowStart = false, failAudit = false) =>
+    spawnSync("bash", [script, config, action, "release-deadbeef", "release-b477ac14"], {
+      env: {
+        ...env,
+        RELEASE_PROBE_ALLOW_START: allowStart ? "1" : "0",
+        RELEASE_PROBE_FAIL_AUDIT: failAudit ? "1" : "0",
+      },
+      encoding: "utf8",
+    });
+  assert.equal(run("stage").status, 33);
+  assert.doesNotMatch(readFileSync(calls, "utf8"), /stop|up -d|import-all/);
+  const state = join(directory, ".local/state/slk-releases/release-deadbeef");
+  const staged = parse(readFileSync(join(state, "stage.yaml"), "utf8"));
+  assert.deepEqual(staged.services.frontend.volumes, ["staged-output:/frontend/.output:ro,U"]);
+  assert.deepEqual(staged.services["frontend-build"].volumes, ["staged-output:/release:U"]);
+  writeFileSync(join(state, "stage.ok"), "");
+  assert.equal(run("activate").status, 1);
+  assert.doesNotMatch(readFileSync(calls, "utf8"), /stop|up -d|import-all/);
+  writeFileSync(join(state, "backup.verified"), "fixture backup");
+  writeFileSync(
+    join(tools, "podman"),
+    `#!/bin/sh
+case "$*" in
+  *'volume create'*) echo 'volume already exists' >&2; exit 125 ;;
+  *'ps -aq'*) echo probe-container ;;
+esac
+`,
+    { mode: 0o700 },
+  );
+  writeFileSync(
+    join(tools, "curl"),
+    `#!/bin/sh
+case "$*" in
+  *'/api/public/pages/index'*) echo '{"page":{"id":"homepage"}}' ;;
+  *'/api/public/blocks'*) echo '{"blocks":[]}' ;;
+esac
+`,
+    { mode: 0o700 },
+  );
+  assert.equal(run("stage-prebuilt").status, 1, "Unlabelled images must never become staged releases");
+  assert.throws(
+    () => readFileSync(join(state, "stage.ok")),
+    "Failed re-staging must invalidate the old approval marker",
+  );
+  writeFileSync(join(state, "stage.ok"), "");
+  const failed = run("activate");
+  assert.equal(failed.status, 34, failed.stderr);
+  const recorded = readFileSync(calls, "utf8");
+  assert.match(recorded, /release-b477ac14:production compose up -d --no-build --no-deps directus/);
+  assert.doesNotMatch(recorded, /stop maintenance/);
+  assert.match(failed.stderr, /maintenance retained/);
+  writeFileSync(join(state, "import.started"), "");
+  const restored = run("rollback", true);
+  assert.equal(restored.status, 0, restored.stderr);
+  assert.equal(readFileSync(join(state, "rollback.ok"), "utf8"), "");
+  assert.throws(() => readFileSync(join(state, "import.started")));
+  const rollbackCalls = readFileSync(calls, "utf8");
+  assert.match(rollbackCalls, /production compose run .*rollbackHomepage.ts/);
+  assert.match(rollbackCalls, /release-b477ac14:production compose up -d --no-build --no-deps frontend/);
+  assert.match(rollbackCalls, /production compose --profile maintenance stop maintenance/);
+  const auditFailure = run("activate", true, true);
+  assert.equal(auditFailure.status, 36, auditFailure.stderr);
+  assert.equal(
+    (auditFailure.stdout.match(/Restoring previous application images/g) ?? []).length,
+    1,
+    "Only the coordinating shell may start rollback",
+  );
+  const activated = run("activate", true);
+  assert.equal(activated.status, 0, activated.stderr);
+  assert.equal(readFileSync(join(state, "activate.ok"), "utf8"), "");
 });

@@ -52,3 +52,5 @@ bin/db_exports
 **/.data
 **/coverage
 **/logs
+core.[0-9]*
+**/core.[0-9]*

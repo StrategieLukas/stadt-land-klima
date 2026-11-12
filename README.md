@@ -160,3 +160,8 @@ Canonical/social/sitemap URLs use runtime `PUBLIC_URL` (or explicit
 `NUXT_PUBLIC_SITE_URL`), not incoming Host headers. SEO translations are checked
 in German/English/Italian. Newsletter/Listmonk and other external integrations
 remain separately operated; preserve actual routing and TLS hostname verification.
+
+Portable application recovery uses `./bin/slk backup create` and `backup verify`;
+see [the recovery guide](bin/PORTABLE_BACKUP.md). Production application release
+coordination and private CMS-origin checkpoints are described in
+[PODMAN.md](PODMAN.md#application-release-coordination).

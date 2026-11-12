@@ -38,7 +38,7 @@ try {
       "-subj",
       "/CN=www.stadt-land-klima.de",
       "-addext",
-      "subjectAltName=DNS:www.stadt-land-klima.de,DNS:stadt-land-klima.de,DNS:staging.stadt-land-klima.de",
+      "subjectAltName=DNS:www.stadt-land-klima.de,DNS:stadt-land-klima.de,DNS:staging.stadt-land-klima.de,DNS:future.stadt-land-klima.de,DNS:directus.stadt-land-klima.de",
       "-days",
       "1",
       "-keyout",
@@ -90,7 +90,7 @@ try {
     "/config:rw,nosuid,nodev,noexec,size=16m,U,mode=700",
   ];
   if (process.env.SLK_CADDY_SECCOMP) confined.push("--security-opt", "seccomp=" + process.env.SLK_CADDY_SECCOMP);
-  for (const file of ["Caddyfile", "Caddyfile.staging"])
+  for (const file of ["Caddyfile", "Caddyfile.staging", "Caddyfile.future", "Caddyfile.future-bootstrap"])
     podman(
       "run",
       "--rm",
@@ -369,7 +369,15 @@ try {
   assert.equal((await fetch("/elections/thesen/unavailable")).status, 503);
   const tooLarge = await fetch("/ai/chat", { "Content-Length": String(10485761) }, Buffer.alloc(10485761));
   assert.equal(tooLarge.status, 413, "AI retains Caddy's 10 MiB body limit");
-  await fetch("/_test/cms-down");
+  const adminAssets = await Promise.all(
+    Array.from({ length: 180 }, (_, index) => fetch(`/backend/admin/assets/chunk-${index}.js`)),
+  );
+  assert.ok(
+    adminAssets.every((response) => response.status === 200 && response.body.includes('"path":"/admin/assets/')),
+    "Directus must load its initial admin bundle without exhausting the CMS API budget",
+  );
+  assert.equal((await fetch("/backend/server/ping")).status, 200, "Admin chunks leave API capacity available");
+  assert.equal((await fetch("/_test/cms-down")).status, 200, "Fixture CMS stop reaches its control endpoint");
   assert.match(
     (await fetch("/backend/server/health")).body,
     /"maintenance":true/,
@@ -404,8 +412,92 @@ try {
     }
   }
   assert.match(logs, /"userAgent":"bot"/);
+  await new Promise((resolve) => setTimeout(resolve, 1100));
+  await fetch("/_test/cms-up");
+  podman(
+    "exec",
+    name,
+    "/usr/bin/caddy",
+    "reload",
+    "--address",
+    "unix//run/caddy/admin.sock",
+    "--config",
+    "/etc/caddy/Caddyfile.future",
+    "--adapter",
+    "caddyfile",
+  );
+  const cms = (path: string, headers: Record<string, string> = {}, body?: Buffer) =>
+    fetch(path, headers, body, "directus.stadt-land-klima.de");
+  const website = (path: string, headers: Record<string, string> = {}, body?: Buffer) =>
+    fetch(path, headers, body, "future.stadt-land-klima.de");
+  for (const [path, destination] of [
+    ["/backend", "https://directus.stadt-land-klima.de/admin/"],
+    ["/backend/", "https://directus.stadt-land-klima.de/admin/"],
+    ["/backend/admin/content/pages", "https://directus.stadt-land-klima.de/admin/content/pages"],
+    ["/backend/assets/example?width=80", "https://directus.stadt-land-klima.de/assets/example?width=80"],
+  ]) {
+    const result = await website(path!);
+    assert.equal(result.status, 308);
+    assert.equal(result.headers.location, destination);
+    assert.equal(result.headers["referrer-policy"], "no-referrer");
+    assert.match(String(result.headers["set-cookie"]), /Max-Age=0/);
+  }
+  for (const path of ["/backend/auth/login", "/backend/items/pages", "/ai/chat"])
+    assert.equal((await website(path)).status, 410);
+  assert.equal((await website("/backend/admin", {}, Buffer.from("private-body-canary"))).status, 410);
+  for (const path of ["/graphql", "/utils/hash/generate", "/utils/%68ash/verify"])
+    assert.equal((await cms(path)).status, 403);
+  assert.equal((await cms("/items/pages?deep=%7B%7D")).status, 400);
+  assert.equal((await cms("/server/ping", { Upgrade: "websocket" })).status, 403);
+  const foreignHeaders: Record<string, string>[] = [
+    { Origin: "https://future.stadt-land-klima.de" },
+    { Origin: "https://attacker.example" },
+    { "Sec-Fetch-Site": "same-site" },
+    { "Sec-Fetch-Site": "cross-site" },
+  ];
+  for (const headers of foreignHeaders)
+    assert.equal((await cms("/auth/login", headers, Buffer.from("{}"))).status, 403);
+  assert.equal(
+    (
+      await cms(
+        "/auth/login",
+        { Origin: "https://directus.stadt-land-klima.de", "Sec-Fetch-Site": "same-origin" },
+        Buffer.from("{}"),
+      )
+    ).status,
+    200,
+  );
+  const publicAsset = await cms("/assets/example?access_token=private-query-canary&width=80", {
+    Origin: "https://future.stadt-land-klima.de",
+    Cookie: "private-cookie-canary",
+    Authorization: "Bearer private-auth-canary",
+  });
+  assert.equal(publicAsset.status, 200);
+  assert.doesNotMatch(publicAsset.body, /private-(?:query|cookie|auth)-canary|access_token/);
+  assert.equal(publicAsset.headers["access-control-allow-origin"], "https://future.stadt-land-klima.de");
+  assert.equal(publicAsset.headers["access-control-allow-credentials"], undefined);
+  const privateAsset = await cms("/assets/example", {
+    Origin: "https://directus.stadt-land-klima.de",
+    "Sec-Fetch-Site": "same-origin",
+    Cookie: "private-cookie-canary",
+    Authorization: "Bearer private-auth-canary",
+  });
+  assert.match(privateAsset.body, /private-cookie-canary/);
+  assert.match(privateAsset.body, /private-auth-canary/);
+  const initialChunks = await Promise.all(
+    Array.from({ length: 180 }, (_, index) => cms(`/admin/assets/chunk-${index}.js`)),
+  );
+  assert(initialChunks.every((response) => response.status === 200));
+  assert.equal((await cms("/server/ping")).status, 200);
+  const apiBurst = await Promise.all(Array.from({ length: 80 }, () => cms("/items/pages")));
+  assert(
+    apiBurst.some((response) => response.status === 429),
+    "The isolated CMS API retains its own rate limit",
+  );
+  const isolatedLogs = podman("logs", name);
+  assert.doesNotMatch(isolatedLogs, /private-(?:query|cookie|auth|body)-canary/);
   process.stdout.write(
-    "Caddy: production/staging validation, TLS redirects, proxy guards/headers, nonce CSP, private logs/referrers, body limits, maintenance and independent rate budgets passed.\n",
+    "Caddy: production/staging validation, TLS redirects, proxy guards/headers, nonce CSP, private logs/referrers, body limits, maintenance, independent rate budgets and isolated CMS redirects/origin/CSRF/anonymous-asset boundaries passed.\n",
   );
 } finally {
   if (process.env.TEST_KEEP_CADDY_FIXTURE === "1")

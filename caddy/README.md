@@ -108,10 +108,44 @@ files use the same fallback/cache behavior. Metadata is a read-only runtime moun
 generated from allowlisted public settings when maintenance starts/restarts;
 private application keys never enter that script or image.
 
-The `test:security:caddy` fixture validates both entrypoints with trusted temporary
+The `test:security:caddy` fixture validates all four entrypoints with trusted temporary
 TLS and isolated Node upstreams. It covers redirects, query/path/upgrade guards,
 forwarding, nonce CSP, referrers/log canaries, body bounds, maintenance fallback and
-independent static/page budgets. No application database or mail is used. Actual
+independent static/page budgets and 180-chunk CMS admin loading. No application database or mail is used. Actual
 certificate renewal, rootless engine behavior, host systemd/reboot and full traffic
 acceptance remain target checks. `SLK_CADDY_IMAGE` selects a reviewed prebuilt image;
 `SLK_CADDY_SECCOMP` applies the derived confinement profile to the fixture.
+
+## Future: isolated Directus origin
+
+`Caddyfile.future` serves the website on `future.stadt-land-klima.de` and the CMS
+on `directus.stadt-land-klima.de`, with automatic ACME certificates configured by
+`global.future.caddy` and shared `global-options.caddy`. Both hostnames must resolve
+to Future before switching the application's public CMS URL. Do not point a Future
+CMS hostname at the production server.
+
+Install the maintained files unchanged. `Caddyfile.future-bootstrap` provisions the
+second TLS/proxy hostname while the existing website prefix still works; it is an
+explicit temporary phase, not a completed security cutover. After activating and
+checking the application with its new public CMS origin, select `Caddyfile.future`.
+Its `legacy-cms.caddy` redirects GET/HEAD Admin and asset bookmarks, expires the old
+host cookies and returns 410 for the former authenticated API and AI aliases.
+`/backend` also retains a Nuxt compatibility redirect for other gateway setups.
+
+`directus.caddy` retains denied GraphQL/hash/deep/upgrade routes and separate API
+and static budgets. Browser writes from sibling/cross-site origins are denied.
+Only the configured CMS origin is allowed by Directus CORS. Website image/SVG
+requests have Cookie, Authorization and query access tokens removed, and receive
+credential-free CORS for the exact Future website origin. CMS-origin asset requests
+retain their personal authorization, so private Admin previews still work.
+
+The deployment environment migration sets secure host-only `__Host-` session and
+refresh cookies with SameSite Strict. SameSite alone does not isolate sibling
+subdomains. Retire old-origin interactive sessions after cutover; service/static
+credentials and candidate/municipality-preview tokens remain untouched.
+
+The real TLS fixture in `bin/test_suite/src/caddySecurity.ts` validates all four
+entrypoints, redirects, closed legacy APIs, cross-origin write denial, credential
+stripping on public assets, retained private asset authorization, 180 admin chunks,
+continued API rate limiting and filtered logs. DNS/ACME and authenticated editorial
+flows remain live deployment acceptance checks.

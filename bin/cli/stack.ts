@@ -180,6 +180,17 @@ export class Runtime {
   }
 }
 export async function runtime(environment: Environment, doctor = false): Promise<Runtime> {
+  if (
+    existsSync("/etc/apparmor.d/slk-rootless") &&
+    !readFileSync("/proc/self/attr/current", "utf8").includes("slk-rootless")
+  ) {
+    if (!process.execve) throw new Error("Node 24 or newer is required");
+    process.execve(
+      "/usr/bin/env",
+      ["env", "aa-exec", "-p", "slk-rootless", "--", process.execPath, ...process.argv.slice(1)],
+      process.env,
+    );
+  }
   if (process.getuid?.() === 0) throw new Error("Use a non-root deployment account, without sudo.");
   if (process.env.CONTAINER_HOST || process.env.CONTAINER_CONNECTION)
     throw new Error("Remote Podman connections are not supported.");
@@ -198,9 +209,10 @@ export async function runtime(environment: Environment, doctor = false): Promise
     throw new Error("Invalid SLK_PODMAN_TAG.");
   if (Number(process.versions.node.split(".")[0]) < 24) throw new Error("Node 24 or newer is required.");
   const provider = /podman-compose version (\d+)\.(\d+)\.(\d+)/.exec(await capture("podman-compose", ["--version"]));
-  if (!provider || +provider[1]! < 1 || (+provider[1]! === 1 && +provider[2]! < 5))
-    throw new Error("podman-compose 1.5 or newer is required.");
+  if (!provider || +provider[1]! < 1 || (+provider[1]! === 1 && +provider[2]! < 6))
+    throw new Error("podman-compose 1.6 or newer is required.");
   const seccomp = await node("bin/lib/podman-security.ts", ["host", environment], { capture: true });
+  process.env.CONTAINERS_CONF_OVERRIDE = join(process.env.XDG_RUNTIME_DIR!, "slk-podman/engine.conf");
   await node("bin/lib/podman-security.ts", ["environment"]);
   const env = {
     ...process.env,
@@ -225,6 +237,8 @@ export async function runtime(environment: Environment, doctor = false): Promise
   const storage = `podman/core-storage/${environment}.compose.json`;
   const rt = new Runtime(environment, project, args, env, web, cms);
   if (existsSync(join(root, storage))) await rt.useStorageOverlay(join(root, storage));
+  if (!doctor && process.env.SLK_PODMAN_VOLUME_OVERLAY)
+    await rt.useStorageOverlay(resolve(process.env.SLK_PODMAN_VOLUME_OVERLAY));
   return rt;
 }
 export async function performStack(
@@ -382,6 +396,10 @@ async function audit(rt: Runtime) {
       "-ec",
       'test "$(id -u)" != 0; grep -Eq "^NoNewPrivs:[[:space:]]+1$" /proc/1/status; grep -Eq "^Seccomp:[[:space:]]+2$" /proc/1/status; grep -Eq "^CapEff:[[:space:]]+0+$" /proc/1/status; grep -Eq "^CapBnd:[[:space:]]+0+$" /proc/1/status',
     ]);
+    if (readFileSync("/proc/self/attr/current", "utf8").includes("slk-rootless")) {
+      const label = await capture("podman", ["--remote=false", "exec", id, "cat", "/proc/1/attr/current"]);
+      await node("bin/lib/podman-security.ts", ["apparmor"], { input: label });
+    }
     console.log(`Runtime confinement verified: ${service}`);
   }
 }

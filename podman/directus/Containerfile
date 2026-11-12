@@ -21,6 +21,6 @@ RUN npm ci --prefix /directus/cli --include=dev --no-audit --no-fund \
 # Runtime source and dependencies belong to a different UID and cannot be modified.
 USER root
 RUN chown -R root:root /directus/cli /directus/extensions \
-    && chmod -R go-w /directus/cli /directus/extensions
+    && chmod -R a+rX,go-w /directus/cli /directus/extensions
 USER node
 WORKDIR /directus

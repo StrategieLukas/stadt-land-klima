@@ -37,7 +37,7 @@
           <template v-if="hasChildren(item)">
             <div
               class="flex w-full items-center justify-between border-b border-gray-100 transition-colors hover:bg-gray-50"
-              :class="{ 'bg-solid-light-green-10': anyChildActive(item) }"
+              :class="{ 'bg-(--slk-surface-muted)': anyChildActive(item) }"
             >
               <!-- Label: navigates if the item has a link -->
               <component
@@ -46,7 +46,11 @@
                 :to="resolveHref(item)"
                 class="flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold"
                 :class="
-                  isActive(item) ? 'text-olive-green' : anyChildActive(item) ? 'text-olive-green' : 'text-gray-800'
+                  isActive(item)
+                    ? 'text-(--slk-text-strong)'
+                    : anyChildActive(item)
+                      ? 'text-(--slk-text-strong)'
+                      : 'text-gray-800'
                 "
                 @click="closeDrawer"
               >
@@ -124,7 +128,7 @@
                     :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                     :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                     class="relative block h-20 overflow-hidden rounded-lg"
-                    :class="{ 'ring-2 ring-olive-green': child.link_type === 'page' && isActive(child) }"
+                    :class="{ 'ring-2 ring-(--slk-text-strong)': child.link_type === 'page' && isActive(child) }"
                     @click="closeDrawer"
                   >
                     <img :src="imageUrlMap[child.image_id ?? '']" class="h-full w-full object-cover" alt="" />
@@ -152,7 +156,8 @@
                     :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                     class="flex flex-col px-7 py-2.5 text-sm transition-colors"
                     :class="{
-                      'bg-solid-light-green-10 text-olive-green': child.link_type === 'page' && isActive(child),
+                      'bg-(--slk-surface-muted) text-(--slk-text-strong)':
+                        child.link_type === 'page' && isActive(child),
                       'text-gray-700 hover:bg-gray-50': !(child.link_type === 'page' && isActive(child)),
                     }"
                     @click="closeDrawer"
@@ -194,7 +199,7 @@
             :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
             class="flex w-full items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold transition-colors"
             :class="{
-              'bg-solid-light-green-10 text-olive-green': item.link_type === 'page' && isActive(item),
+              'bg-(--slk-surface-muted) text-(--slk-text-strong)': item.link_type === 'page' && isActive(item),
               'text-gray-800 hover:bg-gray-50': !(item.link_type === 'page' && isActive(item)),
             }"
             @click="closeDrawer"
