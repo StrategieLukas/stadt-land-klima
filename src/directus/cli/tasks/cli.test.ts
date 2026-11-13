@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { parse, stringify } from "yaml";
 import type { ZodType } from "zod";
 import { provisionServiceUsers } from "./provisionServiceUsers.ts";
+import { provisionTranslationWorker } from "../provisionTranslationWorker.ts";
 import {
   DashboardSchema,
   FlowSchema,
@@ -705,6 +706,47 @@ test("service-user provisioning uses valid owned-domain emails and reuses raw or
   reset(() => ({ data: [{ id: "ambiguous-one" }, { id: "ambiguous-two" }] }));
   await assert.rejects(provisionServiceUsers(url, "fixture-token"), /not uniquely found/);
   assert.equal(requests.filter((call) => call.method !== "GET").length, 0);
+});
+
+test("translation deployment creates the missing restricted identity with its configured token and reuses it", async () => {
+  const configured = "c".repeat(64);
+  let user: Record<string, unknown> | undefined;
+  let roleOverrides: Record<string, unknown> = {};
+  let directPolicies: string[] = [];
+  reset((call) => {
+    if (call.path === "/roles") return { data: [{
+      id: "translation-role", parent: null,
+      policies: [{ policy: { id: "translation-policy", name: "Content-Translation-Worker", admin_access: false, app_access: false, permissions: [] } }],
+      ...roleOverrides,
+    }] };
+    assert.equal(call.path, "/users");
+    if (call.method === "GET") return { data: user ? [{ ...user, policies: directPolicies }] : [] };
+    assert.equal(call.method, "POST");
+    assert.equal(call.body.token, configured);
+    assert.equal(call.body.email, "content-translation-worker@stadt-land-klima.de");
+    user = { id: "translation-user", ...call.body };
+    return { data: user };
+  });
+  const stored = { read: async () => configured, close: async () => {} };
+  const created = await provisionTranslationWorker(url, "fixture-token", stored, configured);
+  assert.deepEqual(created, { CONTENT_TRANSLATION_WORKER_TOKEN: configured });
+  assert.deepEqual(await provisionTranslationWorker(url, "fixture-token", stored, "d".repeat(64)), created);
+  assert.equal(requests.filter((call) => call.method !== "GET").length, 1, "redeploy must never rotate the account");
+  for (const unsafe of [
+    { parent: "administrator" },
+    { policies: [] },
+    { policies: [{ policy: { name: "Content-Translation-Worker", admin_access: true, app_access: false, permissions: [] } }] },
+    { policies: [{ policy: { name: "Content-Translation-Worker", admin_access: false, app_access: false, permissions: [{ id: "extra-access" }] } }] },
+  ]) {
+    roleOverrides = unsafe;
+    await assert.rejects(provisionTranslationWorker(url, "fixture-token", stored, configured), /restricted policy/);
+  }
+  roleOverrides = {};
+  directPolicies = ["administrator-policy"];
+  await assert.rejects(provisionTranslationWorker(url, "fixture-token", stored, configured), /direct policies/);
+  directPolicies = [];
+  await assert.rejects(provisionTranslationWorker(url, "fixture-token", stored, "weak"), /64 lowercase/);
+  assert.equal(requests.filter((call) => call.method !== "GET").length, 1);
 });
 
 test("service-user provisioning rejects conflicting, disabled or weak existing identities before any writes", async () => {

@@ -318,6 +318,7 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
     "podman/maintenance",
     "src/directus/cli",
     "src/frontend",
+    "src/frontend/shared",
   ])
     mkdirSync(join(directory, folder), { recursive: true, mode: 0o700 });
   for (const file of [
@@ -326,6 +327,7 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
     "bin/cli/index.ts",
     "bin/cli/host-environment.ts",
     "bin/cli/stack.ts",
+    "bin/cli/translation-worker.ts",
     "bin/cli/podman-local.mjs",
     "bin/cli/process.ts",
     "bin/cli/operations.ts",
@@ -337,6 +339,7 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
     "bin/lib/container-environment.ts",
     "bin/lib/cms-origin.ts",
     "src/directus/cli/package.json",
+    "src/frontend/shared/runtimeEnvironment.ts",
   ])
     copyFileSync(fileURLToPath(new URL("../../../" + file, import.meta.url)), join(directory, file));
   for (const file of ["podman/database/.env", "podman/meilisearch/.env", "src/directus/.env", "src/frontend/.env"])
@@ -381,6 +384,7 @@ for descriptor in /proc/self/fd/*; do
 done
 printf '%s\n' "$*" >> "$PROBE_ROOT/calls"
 case "$*" in *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;; esac
+case "$*" in *provisionTranslationWorker.ts*) cat > "$PROBE_ROOT/worker-input"; if [ "$PROBE_WORKER_STATUS" != 0 ]; then exit "$PROBE_WORKER_STATUS"; fi; echo "CONTENT_TRANSLATION_WORKER_TOKEN=$(printf '%064d' 0)" ;; esac
 `,
     curl: "#!/bin/sh\nexit 0\n",
   };
@@ -391,7 +395,7 @@ case "$*" in *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;; 
   writeFileSync(join(directory, "calls"), "");
   writeFileSync(join(directory, "engine-calls"), "");
   writeFileSync(join(directory, "secret-input"), "");
-  const invoke = (args: string[], running = "no", importFailure = true) =>
+  const invoke = (args: string[], running = "no", importFailure = true, workerFailure = false) =>
     spawnSync(
       process.execPath,
       ["bin/slk", "stack", args[0]!, "--env", "production", ...(args[0] === "compose" ? ["--"] : []), ...args.slice(1)],
@@ -405,6 +409,7 @@ case "$*" in *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;; 
           PROBE_ROOT: directory,
           PROBE_RUNNING: running,
           PROBE_IMPORT_STATUS: importFailure ? "23" : "0",
+          PROBE_WORKER_STATUS: workerFailure ? "24" : "0",
           XDG_RUNTIME_DIR: join(directory, "runtime"),
           XDG_STATE_HOME: join(directory, "state"),
           SLK_PODMAN_PROJECT: "slk-test",
@@ -423,6 +428,7 @@ case "$*" in *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;; 
     );
   return {
     invoke,
+    directory,
     calls: () => readFileSync(join(directory, "calls"), "utf8"),
     engineCalls: () => readFileSync(join(directory, "engine-calls"), "utf8"),
     secretInput: () => readFileSync(join(directory, "secret-input"), "utf8"),
@@ -470,10 +476,13 @@ test("runtime mounts contain paths only and the builder receives no private moun
   );
   assert.ok(plan.services.directus!.environment.SLK_ENV_LOCKED_KEYS?.includes("CACHE_ENABLED"));
   assert.ok(plan.services.directus!.environment.SLK_ENV_LOCKED_KEYS?.includes("SLK_STARTUP_SECURITY_CHECKS"));
-  for (const service of Object.values(plan.services)) {
+  for (const [name, service] of Object.entries(plan.services)) {
     assert.ok(service.volumes.every((mount) => mount.endsWith(":ro,z")));
-    assert.deepEqual(Object.keys(service.environment).sort(), ["SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"]);
+    assert.deepEqual(Object.keys(service.environment).sort(), name === "frontend" ? ["SLK_DEPLOYMENT_TARGET", "SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"] : ["SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"]);
   }
+  assert.equal(plan.services.frontend!.environment.SLK_DEPLOYMENT_TARGET, "production");
+  assert.equal(podmanEnvironmentPlan(paths, true, "staging").services.frontend!.environment.SLK_DEPLOYMENT_TARGET, "staging");
+  assert.ok(plan.services.frontend!.environment.SLK_ENV_LOCKED_KEYS?.includes("SLK_DEPLOYMENT_TARGET"));
 });
 
 test("managed runtime controls are declared in their Compose environments", () => {
@@ -512,12 +521,31 @@ test("compose exec reloads mounts and preserves explicit per-command environment
   assert.doesNotMatch(fixture.calls(), /not-a-credential/);
 });
 
-test("restart rereads mounted files without building or replacing output", (t) => {
+test("restart recreates frontend mounts without building or replacing output", (t) => {
   const fixture = wrapperFixture(t);
   const result = fixture.invoke(["restart", "frontend"]);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(fixture.calls(), /restart frontend/);
-  assert.doesNotMatch(fixture.calls(), /frontend-build|build |productionOutput|--force-recreate/);
+  assert.match(fixture.calls(), /stop frontend/);
+  assert.match(fixture.calls(), /--force-recreate frontend/);
+  assert.doesNotMatch(fixture.calls(), /frontend-build|\sbuild\s|productionOutput/);
+});
+
+test("production restart reconciles the translation identity before frontend startup; staging skips it", (t) => {
+  const fixture = wrapperFixture(t);
+  const path = join(fixture.directory, "src/frontend/.env");
+  const settings = `DEEPL_API_KEY=private-provider-canary\nCONTENT_TRANSLATION_ENABLED=true\nCONTENT_TRANSLATION_GENERATION_ENABLED=true\nCONTENT_TRANSLATION_WORKER_TOKEN=${"a".repeat(64)}\n`;
+  writeFileSync(path, settings);
+  const result = fixture.invoke(["restart", "frontend"]);
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fixture.calls();
+  assert.ok(calls.indexOf("stop frontend") < calls.indexOf("provisionTranslationWorker.ts"));
+  assert.ok(calls.indexOf("provisionTranslationWorker.ts") < calls.indexOf("--force-recreate frontend"));
+  assert.equal(readFileSync(join(fixture.directory, "worker-input"), "utf8"), "a".repeat(64));
+  assert.doesNotMatch(calls + result.stdout + result.stderr, /private-provider-canary|a{64}/);
+  writeFileSync(path, settings + "SLK_DEPLOYMENT_TARGET=staging\n");
+  writeFileSync(join(fixture.directory, "calls"), "");
+  assert.equal(fixture.invoke(["restart", "frontend"]).status, 0);
+  assert.doesNotMatch(fixture.calls(), /provisionTranslationWorker/);
 });
 
 test("private YAML setup precedes the checked full CMS and never publishes helper ports", (t) => {
@@ -527,6 +555,18 @@ test("private YAML setup precedes the checked full CMS and never publishes helpe
   const calls = fixture.calls();
   assert.ok(calls.indexOf("bootstrapConfiguration.ts") < calls.indexOf("--force-recreate directus"));
   assert.doesNotMatch(calls, /--service-ports|SLK_STARTUP_SECURITY_CHECKS=false|stop maintenance/);
+});
+
+test("failed translation provisioning after YAML import retains maintenance and blocks frontend startup", (t) => {
+  const fixture = wrapperFixture(t);
+  writeFileSync(join(fixture.directory, "src/frontend/.env"), "DEEPL_API_KEY=private-canary\nCONTENT_TRANSLATION_ENABLED=true\nCONTENT_TRANSLATION_GENERATION_ENABLED=true\n");
+  const result = fixture.invoke(["start", "--import"], "no", false, true);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Translation worker provisioning failed/);
+  const calls = fixture.calls();
+  assert.ok(calls.indexOf("bootstrapConfiguration.ts") < calls.indexOf("provisionTranslationWorker.ts"));
+  assert.doesNotMatch(calls, /frontend-build|--force-recreate frontend|stop maintenance/);
+  assert.doesNotMatch(calls + result.stderr, /private-canary/);
 });
 
 test("release staging failure leaves the live application untouched and activation requires a verified backup", (t) => {
@@ -674,4 +714,8 @@ esac
   const activated = run("activate", true);
   assert.equal(activated.status, 0, activated.stderr);
   assert.equal(readFileSync(join(state, "activate.ok"), "utf8"), "");
+  const releaseCalls = readFileSync(calls, "utf8");
+  const activation = releaseCalls.slice(releaseCalls.lastIndexOf("production compose exec -T directus /directus/cli/import-all.sh"));
+  assert.ok(activation.indexOf("production translation-worker") < activation.indexOf("production compose up -d --no-build --no-deps frontend"));
+  assert.match(rollbackCalls, /release-b477ac14:production translation-worker/);
 });

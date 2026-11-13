@@ -135,6 +135,7 @@ rollback() {
   persist_tag "$previous_tag" || return 1
   compose up -d --no-build --no-deps directus || return 1
   wait_ready "http://127.0.0.1:${SLK_PODMAN_CMS_PORT:-9001}/server/health" || return 1
+  host_command translation-worker || return 1
   compose up -d --no-build --no-deps frontend || return 1
   wait_ready "http://127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}/" || return 1
   compose --profile maintenance stop maintenance || return 1
@@ -196,6 +197,7 @@ case "$action" in
       touch "$state/import.started"
     fi
     compose exec -T directus /directus/cli/import-all.sh
+    host_command translation-worker
     copy_output "$staged" "$active"
     persist_tag "$next_tag"
     compose up -d --no-build --no-deps frontend

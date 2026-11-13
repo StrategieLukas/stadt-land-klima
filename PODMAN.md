@@ -128,6 +128,14 @@ and loopback 9000/9001 in production. Override the wrapper's
 `SLK_PODMAN_MAINTENANCE_PORT` (plus development `SLK_PODMAN_DB_PORT` and
 `SLK_PODMAN_HMR_PORT`) together with the gateway configuration when needed.
 `SLK_PODMAN_PROJECT` selects the project; do not reuse another deployment's name.
+`SLK_DEPLOYMENT_TARGET` selects the translation background-work target separately
+from the build profile. Production profiles default to `production`; set `staging`
+in staging's private frontend dotenv or release host configuration, and `future`
+on preview hosts. Development always disables generation. Production start,
+frontend restart and release activation/rollback reconcile the restricted worker
+identity before frontend startup when translation generation and its key are enabled.
+They reuse existing tokens and atomically synchronise only the selected private
+frontend dotenv. Conflicts block startup. See [translation setup](DYNAMIC_CONTENT_TRANSLATION.md).
 
 `./bin/slk --help` is the single operational entrypoint. Stack, CMS, database,
 extension, deployment and test subcommands share the checked provider. Use

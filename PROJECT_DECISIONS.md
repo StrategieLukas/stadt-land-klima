@@ -47,18 +47,29 @@ website requests work.** Add the minimum fields and publication/ownership filter
 to the private service policy and expose a checked Nuxt DTO. Existing legacy
 policies are compatibility/deployment state, not templates for new access.
 
-| Identity / policy family                 | Intended authority                                                                                                         |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Frontend-Server                          | Private Nuxt service; scoped website reads, never browser configuration.                                                   |
-| Frontend-Public                          | Minimal public-asset identity; currently no frontend token consumer. Public asset safety cannot depend on token secrecy.   |
-| Frontend-Preview                         | Isolated private verifier; distinct from individual municipality preview links.                                            |
-| Legacy Frontend                          | Retire after replacement access works; never reuse for new browser integrations.                                           |
-| Content-Translation-Worker               | Private translation job/memory controls, separate from public readers and ordinary CMS authority.                          |
-| LokalteamAdmin / LokalteamMitglied       | Existing local-team ownership through the user/team junction and scoped policies. A URL slug is not proof of membership.   |
-| BlokkliEditor / Blokkli-Editor           | Personal editorial access, scoped draft/publication operations.                                                            |
-| ErfolgsprojekteRedaktion / Planungsteam  | Existing editorial and article-editor invitation workflows; preserve their distinct authority.                             |
-| Maßnahmenteam, Recruiter, WahlcheckAdmin | Named editorial responsibilities defined by their checked policies.                                                        |
-| API and remaining roles                  | Keep the exact checked allowlists in `src/directus/{roles,policies}`; do not infer administrator access from a role label. |
+| Identity / policy family                | Intended authority                                                                                                                                                                                                                                      |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend-Server                         | Private Nuxt service; scoped website reads, never browser configuration.                                                                                                                                                                                |
+| Frontend-Public                         | Minimal public-asset identity; currently no frontend token consumer. Public asset safety cannot depend on token secrecy.                                                                                                                                |
+| Frontend-Preview                        | Isolated private verifier; distinct from individual municipality preview links.                                                                                                                                                                         |
+| Legacy Frontend                         | Retire after replacement access works; never reuse for new browser integrations.                                                                                                                                                                        |
+| Content-Translation-Worker              | Private translation job/memory controls, separate from public readers and ordinary CMS authority.                                                                                                                                                       |
+| LokalteamAdmin / LokalteamMitglied      | Existing local-team ownership through the user/team junction and scoped policies. A URL slug is not proof of membership.                                                                                                                                |
+| BlokkliEditor / Blokkli-Editor          | Personal editorial access, scoped draft/publication operations.                                                                                                                                                                                         |
+| ErfolgsprojekteRedaktion / Planungsteam | Existing editorial and article-editor invitation workflows; preserve their distinct authority.                                                                                                                                                          |
+| Maßnahmenteam                           | Read-only measures/ratings including drafts and archived catalogues, related scores/templates and Maßnahmen panels; no other-user data, internal notes, contacts or preview secrets. Own-account/consent permissions remain inherited from MinimalUser. |
+| Recruiter, WahlcheckAdmin               | Named editorial responsibilities defined by their checked policies.                                                                                                                                                                                     |
+| API and remaining roles                 | Keep the exact checked allowlists in `src/directus/{roles,policies}`; do not infer administrator access from a role label.                                                                                                                              |
+
+Native Insights metric/chart query callbacks use GraphQL, which Caddy intentionally
+blocks on both CMS origins. Maintained Allgemein/Maßnahmen panels therefore use
+`slk-rest-metric` / `slk-rest-pie-chart` from the community-activity bundle. These
+reuse native query builders, options and renderers with the current CMS user's
+REST authority; no service credentials or new server endpoint are involved.
+Requests are serialized to respect gateway budgets, stale queries are cancelled,
+and failed reads show an error/retry rather than a false zero. Dashboard variables
+remain resolved by Directus. Native dashboard refresh/auto-refresh is retained
+through the SDK-exposed Insights store, and each panel also has a refresh control.
 
 Administrator role invitations offer only the six maintained roles:
 ErfolgsprojekteRedaktion, Maßnahmenteam, Planungsteam, Recruiter, WahlcheckAdmin
@@ -424,3 +435,34 @@ Local workflow validation does not establish an actual hosted-runner execution.
 - Consolidate the newly introduced Docker-only full-export duplicate into the
   portable Podman capture. Keep database-only, sanitized, release-recovery and
   complete portable backups distinct by their recovery scope.
+
+## Service failure handling
+
+Translation persistence authorization errors (including bare proxy 401/403 responses)
+stop generation until private credentials are repaired and the process restarts.
+Prepared translation reads remain available. Do not replace worker credentials
+with administrator authority or rotate an existing service token as an automatic
+retry. Production start, frontend restart and release activation/rollback call the
+guarded `provisionTranslationWorker.ts` tool before frontend starts. It checks the
+parentless role, single non-admin/non-app policy without collection permissions,
+and absence of direct user policies. A missing account uses its configured strong
+token; an existing account keeps its token. Deployment atomically synchronises only
+the selected private frontend dotenv (0600), with credentials confined to stdin and
+captured private output. Conflicts fail startup instead of silently repurposing users.
+`--prepare-only` leaves provisioning until the actual frontend start.
+
+The build profile and deployment identity are separate. `SLK_DEPLOYMENT_TARGET`
+accepts production/staging/future/development; production profiles default to
+production and development profiles always disable generation. Staging/preview host
+configuration must select staging/future even with production builds. The mounted
+launcher locks this setting and forces background generation off outside production,
+regardless of copied generation switches. Prepared reads and explicit bounded sample
+commands remain available. Production deployment still requires explicit authorization;
+repository changes and read-only diagnosis do not authorize a live deployment.
+
+CMS catalogue reads share concurrent requests and a 30-second fresh metadata cache.
+The editor alone may use a successful result up to five minutes old during a
+transient upstream failure. Validation on save never uses stale-on-error metadata.
+Authentication failures and invalid metadata are not hidden by this fallback.
+Climate lookup diagnostics retain status/category, never raw upstream payloads,
+URLs or credentials; uncertain lookups continue to leave existing values alone.

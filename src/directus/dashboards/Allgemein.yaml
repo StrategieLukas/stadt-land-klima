@@ -8,7 +8,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 1
     position_y: 3
     width: 14
@@ -16,7 +16,7 @@ panels:
     options:
       collection: directus_users
       function: countDistinct
-      field: email
+      field: id
       filter:
         _and:
           - _or:
@@ -31,7 +31,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 16
     position_y: 3
     width: 14
@@ -42,15 +42,15 @@ panels:
         _and:
           - role:
               name:
-                _contains: EditorArticles
+                _eq: ErfolgsprojekteRedaktion
       function: countDistinct
-      field: email
+      field: id
   - name: "# Admins"
     icon: null
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 31
     position_y: 3
     width: 11
@@ -58,19 +58,19 @@ panels:
     options:
       collection: directus_users
       size: half
-      field: email
+      field: id
       function: countDistinct
       filter:
         _and:
           - role:
               name:
-                _contains: Administrator
+                _eq: Administrator
   - name: Bewertete Maßnahmen (v1.0)
     icon: null
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 1
     position_y: 12
     width: 18
@@ -94,7 +94,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 30
     position_y: 12
     width: 19
@@ -113,7 +113,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 51
     position_y: 12
     width: 19
@@ -134,7 +134,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 3
     position_y: 18
     width: 20
@@ -156,7 +156,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 30
     position_y: 18
     width: 19
@@ -183,7 +183,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 51
     position_y: 18
     width: 19
@@ -210,7 +210,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 1
     position_y: 24
     width: 18
@@ -234,7 +234,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 30
     position_y: 24
     width: 19
@@ -261,7 +261,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 51
     position_y: 24
     width: 19
@@ -288,7 +288,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 30
     position_y: 30
     width: 19
@@ -315,7 +315,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 51
     position_y: 30
     width: 19
@@ -344,7 +344,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 30
     position_y: 38
     width: 19

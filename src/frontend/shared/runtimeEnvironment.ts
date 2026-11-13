@@ -40,6 +40,13 @@ export const FRONTEND_RUNTIME_ALIASES: Readonly<Record<string, string>> = {
   CARTO_BASEMAP_API_KEY: "NUXT_CARTO_BASEMAP_API_KEY",
 };
 
+/** Build profile and deployment target are separate: staging can run production builds. */
+export function translationDeploymentTarget(profile: string | undefined, target?: string): string {
+  if (target !== undefined && !["production", "staging", "future", "development"].includes(target))
+    throw new Error("Invalid SLK_DEPLOYMENT_TARGET");
+  return profile === "production" ? (target ?? "production") : "development";
+}
+
 export function frontendRuntimeEnvironment(input: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const environment = { ...input };
   const set = (key: string, value: string | undefined) => {
@@ -50,6 +57,8 @@ export function frontendRuntimeEnvironment(input: NodeJS.ProcessEnv): NodeJS.Pro
     const boolean = key === "CONTENT_TRANSLATION_ENABLED" || key === "CONTENT_TRANSLATION_GENERATION_ENABLED";
     set(alias, boolean && value !== undefined ? String(value === "true") : value);
   }
+  if (translationDeploymentTarget(input.SLK_ENV, input.SLK_DEPLOYMENT_TARGET) !== "production")
+    environment.NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED = "false";
   set("NUXT_MEILISEARCH_MASTER_KEY", input.MEILISEARCH_MASTER_KEY ?? input.MEILI_MASTER_KEY);
   set(
     "NUXT_FORM_RESPONSE_NOTIFICATION_EMAIL",

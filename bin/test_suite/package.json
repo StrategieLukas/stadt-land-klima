@@ -21,6 +21,7 @@
     "test:seo": "tsx --test src/seo.test.ts && tsx src/seoSmoke.ts",
     "test:public": "tsx src/publicSmoke.ts",
     "test:wahlcheck-embed": "tsx src/wahlcheckEmbed.ts",
+    "test:wahlcheck-theme": "tsx src/wahlcheckTheme.ts",
     "test:components": "tsx --test src/phase5.test.ts",
     "test:boundaries": "tsx --test src/phase7.test.ts src/blokkliAdapter.test.ts",
     "test:pages": "tsx --test src/phase6.test.ts",

@@ -1,5 +1,7 @@
 /** Read-only runtime mounts: provider arguments contain paths, never dotenv values. */
-import { existsSync, lstatSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import dotenv from "dotenv";
+import { translationDeploymentTarget } from "../../src/frontend/shared/runtimeEnvironment.ts";
 import { randomUUID } from "node:crypto";
 import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,7 +23,7 @@ export const managedPodmanEnvironment = {
     "PM2_HOME",
     "XDG_CACHE_HOME",
   ],
-  frontend: ["NPM_CONFIG_CACHE"],
+  frontend: ["NPM_CONFIG_CACHE", "SLK_DEPLOYMENT_TARGET"],
 };
 export const managedPodmanProductionEnvironment = {
   db: [],
@@ -33,6 +35,7 @@ export const managedPodmanProductionEnvironment = {
 export function podmanEnvironmentPlan(
   paths: Record<"db" | "meilisearch" | "directus" | "frontend", string>,
   production: boolean,
+  target?: string,
 ) {
   const services: Record<string, { volumes: string[]; environment: Record<string, string> }> = {};
   for (const service of Object.keys(paths) as (keyof typeof paths)[]) {
@@ -55,7 +58,10 @@ export function podmanEnvironmentPlan(
             ? [`${paths.directus}:/directus/.env:ro,z`]
             : []),
       ],
-      environment: { SLK_ENV_FILES: files.join(":"), SLK_ENV_LOCKED_KEYS: locked.join(",") },
+      environment: {
+        SLK_ENV_FILES: files.join(":"), SLK_ENV_LOCKED_KEYS: locked.join(","),
+        ...(service === "frontend" ? { SLK_DEPLOYMENT_TARGET: translationDeploymentTarget(production ? "production" : "development", target) } : {}),
+      },
     };
   }
   // Build artifacts contain defaults only. No runtime env files or credentials enter builds.
@@ -96,7 +102,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
         mode: 0o600,
         flag: "wx",
       });
-    const plan = podmanEnvironmentPlan(paths, environment === "production");
+    const target = process.env.SLK_DEPLOYMENT_TARGET ?? dotenv.parse(readFileSync(paths.frontend)).SLK_DEPLOYMENT_TARGET;
+    const plan = podmanEnvironmentPlan(paths, environment === "production", target);
     plan.services.maintenance = { volumes: [`${metadata}:/srv/maintenance-meta.js:ro,z`], environment: {} };
     writeFileSync(temporary, JSON.stringify(plan) + "\n", { mode: 0o600, flag: "wx" });
     renameSync(temporary, output);

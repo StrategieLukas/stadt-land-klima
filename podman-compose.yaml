@@ -160,6 +160,7 @@ services:
       context: .
       dockerfile: podman/frontend/Containerfile
     environment:
+      SLK_DEPLOYMENT_TARGET: development
       NPM_CONFIG_CACHE: /tmp/npm
     # Refuse stale output. Dependencies/builds never run in the production server.
     command:

@@ -1,6 +1,6 @@
 name: Maßnahmen-Team
 icon: zoom_in
-description: Leseberechtigungen für Maßnahmen, Bewertungen und verknüpfte Werte
+description: Nur lesender Zugriff auf Maßnahmen, Bewertungen, Kataloge und Gemeindewerte ohne personenbezogene Daten
 enforce_tfa: false
 admin_access: false
 app_access: false
@@ -13,20 +13,47 @@ permissions:
     validation: {}
     presets: null
     fields:
-      - "*"
+      - color
+      - icon
+      - id
+      - name
+      - note
+      - panels
+  - collection: directus_panels
+    action: read
+    permissions:
+      dashboard:
+        name:
+          _eq: Maßnahmen
+    validation: {}
+    presets: null
+    fields:
+      - color
+      - dashboard
+      - height
+      - icon
+      - id
+      - name
+      - note
+      - options
+      - position_x
+      - position_y
+      - show_header
+      - type
+      - width
   - collection: localteams
     action: read
     permissions: null
     validation: null
     presets: null
     fields:
-      - id
-      - name
-      - municipality_name
-      - municipality_id
-      - slug
-      - date_updated
       - date_created
+      - date_updated
+      - id
+      - municipality_id
+      - municipality_name
+      - name
+      - slug
       - status
   - collection: measure_catalog
     action: read
@@ -34,115 +61,121 @@ permissions:
     validation: {}
     presets: null
     fields:
-      - "*"
-  - collection: measures
+      - date_created
+      - hidden
+      - id
+      - isCurrentBackend
+      - isCurrentFrontend
+      - name
+  - collection: measure_questions_template
     action: read
-    permissions:
-      _and:
-        - status:
-            _eq: published
-        - catalog_version:
-            hidden:
-              _eq: false
+    permissions: {}
     validation: {}
     presets: null
     fields:
       - id
-      - status
       - measure_id
+      - sector
+      - thesis
+      - title
+  - collection: measures
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - accordion-p4jgb8
+      - catalog_version
+      - choices_rating
       - date_created
       - date_updated
-      - name
-      - slug
-      - sector
-      - impact
-      - weight
-      - feasibility
-      - feasibility_political
-      - feasibility_economical
-      - choices_rating
+      - description
       - description_about
-      - description_evaluation_criteria
-      - description_verification
-      - accordion-p4jgb8
       - description_benefit
       - description_contribution
+      - description_evaluation_criteria
+      - description_funding
       - description_implementation
       - description_legal
-      - description_funding
       - description_tutorial
-      - recommended_search_queries
-      - description
-      - verification_description
-      - notes
-      - catalog_version
+      - description_verification
+      - feasibility
+      - feasibility_economical
+      - feasibility_political
+      - id
+      - image
+      - image_credits
+      - impact
+      - measure_id
       - must_be_rated_again
+      - name
+      - recommended_search_queries
+      - sector
+      - slug
+      - status
+      - verification_description
+      - weight
   - collection: municipalities
     action: read
     permissions: {}
     validation: {}
     presets: null
     fields:
-      - status
-      - id
+      - ars
+      - climate_region_type
       - date_created
       - date_updated
-      - overall_status_comment
-      - name
-      - slug
-      - municipality_type
-      - climate_region_type
-      - localteam_id
-      - scores
-      - notice-kcc40f
-      - public_contact
-      - links-g1sxxi
-      - state
-      - population
-      - mayor
-      - party_mayor
-      - ars
-      - description
       - geolocation
-      - details
-      - image
+      - id
+      - localteam_id
+      - municipality_type
+      - name
+      - population
+      - scores
+      - slug
+      - state
+      - status
   - collection: municipality_scores
     action: read
     permissions: {}
     validation: {}
     presets: null
     fields:
-      - "*"
+      - catalog_version
+      - date_created
+      - date_updated
+      - id
+      - municipality
+      - percentage_rated
+      - published
+      - rank
+      - score_agriculture
+      - score_buildings
+      - score_energy
+      - score_industry
+      - score_management
+      - score_max
+      - score_points
+      - score_total
+      - score_transport
   - collection: ratings_measures
     action: read
-    permissions:
-      _and:
-        - measure_published:
-            _eq: true
-        - measure_id:
-            status:
-              _eq: published
-        - measure_id:
-            catalog_version:
-              hidden:
-                _eq: false
+    permissions: {}
     validation: {}
     presets: null
     fields:
-      - id
-      - status
-      - measure_published
+      - applicable
+      - approved
+      - choices
+      - current_progress
       - date_created
       - date_updated
-      - measure_id
-      - links-jv6and
-      - internal_note
-      - applicable
+      - id
       - localteam_id
-      - why_not_applicable
-      - choices
-      - rating
-      - current_progress
-      - source
-      - approved
+      - measure_id
       - measure_info_preview
+      - measure_published
+      - rating
+      - source
+      - status
+      - why_not_applicable

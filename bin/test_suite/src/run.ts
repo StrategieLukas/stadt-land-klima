@@ -85,7 +85,7 @@ async function main(): Promise<void> {
         });
       }
       try {
-        await runErfolgsprojekteInviteDashboardFlow(runner, fixture);
+        await runErfolgsprojekteInviteDashboardFlow(runner, fixture, browser);
       } catch (e) {
         runner.results.push({
           name: "Erfolgsprojekte invite dashboard flow",

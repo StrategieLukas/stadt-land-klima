@@ -399,7 +399,9 @@ const props = defineProps({
 
 const { $t } = useNuxtApp();
 const config = useRuntimeConfig();
-const { isDark } = useTheme();
+const { isDark: siteIsDark } = useTheme();
+const { isLocalzero } = useWahlcheckTheme();
+const isDark = computed(() => !isLocalzero.value && siteIsDark.value);
 const isPartyElection = computed(() => props.election?.is_party_election === true);
 
 // State
@@ -470,11 +472,11 @@ function getCandidateParty(candidateId: string) {
 }
 
 function getProgressColorHex(percentage: number) {
-  if (percentage >= 80) return "#1EA64A";
-  if (percentage >= 60) return "#AFCA0B";
-  if (percentage >= 40) return "#FFD400";
-  if (percentage >= 20) return "#F39200";
-  return "#E30613";
+  if (percentage >= 80) return isLocalzero.value ? "#2e7041" : "#1EA64A";
+  if (percentage >= 60) return isLocalzero.value ? "#a3d869" : "#AFCA0B";
+  if (percentage >= 40) return isLocalzero.value ? "#ffc80c" : "#FFD400";
+  if (percentage >= 20) return isLocalzero.value ? "#c05031" : "#F39200";
+  return isLocalzero.value ? "#b13c28" : "#E30613";
 }
 
 // Generate share URL

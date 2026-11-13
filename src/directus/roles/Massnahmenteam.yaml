@@ -1,5 +1,6 @@
 name: Maßnahmenteam
 icon: zoom_in
+description: Maßnahmen und Bewertungen lesen, ohne Zugriff auf persönliche Daten
 parent: MinimalUser
 policies:
   - Maßnahmen-Team

@@ -336,3 +336,98 @@ test("rating radio choices render without an undefined block property and preser
   assert.match(html, /aria-pressed="false" disabled/);
   assert.deepEqual(warnings, []);
 });
+
+test("REST Insights panels preserve query permissions, variables, refresh and explicit failures without GraphQL", async () => {
+  const mounted: Array<() => void> = [];
+  const updated: Array<() => void> = [];
+  const unmounted: Array<() => void> = [];
+  const requests: Array<{ path: string; params: unknown; signal: AbortSignal }> = [];
+  type Action = { name: string; args: unknown[]; after: (callback: () => void) => void };
+  let onAction: (action: Action) => void = () => undefined;
+  let deny = false;
+  let unsubscribed = false;
+  const native = {
+    id: "metric",
+    component: "native-metric",
+    options: [{ field: "collection" }],
+    query: (attrs: Record<string, unknown>) => ({
+      collection: attrs.collection,
+      query: { aggregate: { countDistinct: ["id"] }, filter: attrs.filter, limit: 1 },
+    }),
+  };
+  const { createRestPanel } = load<{
+    createRestPanel: (type: string) => {
+      component: {
+        setup: (
+          props: object,
+          context: { attrs: Record<string, unknown> },
+        ) => () => { children: Array<{ type: string; props: { data: unknown } }> };
+      };
+    };
+  }>(
+    "community-activity/src/rest-panels/createRestPanel.ts",
+    {
+      AbortController,
+      setTimeout: (callback: () => void) => {
+        queueMicrotask(callback);
+        return 0;
+      },
+    },
+    {
+      "@directus/extensions-sdk": {
+        definePanel: (config: unknown) => config,
+        useExtensions: () => ({ panels: vue.ref([native]) }),
+        useStores: () => ({
+          useInsightsStore: () => ({
+            $onAction: (handler: typeof onAction) => {
+              onAction = handler;
+              return () => {
+                unsubscribed = true;
+              };
+            },
+          }),
+        }),
+        useApi: () => ({
+          get: async (path: string, options: { params: unknown; signal: AbortSignal }) => {
+            requests.push({ path, ...options });
+            if (deny) throw new Error("Forbidden");
+            return { data: { data: [{ countDistinct: { id: 7 } }] } };
+          },
+        }),
+      },
+      vue: {
+        ...vue,
+        onMounted: (callback: () => void) => mounted.push(callback),
+        onUpdated: (callback: () => void) => updated.push(callback),
+        onBeforeUnmount: (callback: () => void) => unmounted.push(callback),
+        resolveComponent: (name: string) => name,
+      },
+    },
+  );
+  const attrs = { collection: "directus_users", dashboard: "dashboard-1", filter: { status: { _eq: "active" } } };
+  const render = createRestPanel("metric").component.setup({}, { attrs });
+  const tick = () => new Promise<void>((resolve) => setImmediate(resolve));
+  mounted.forEach((callback) => callback());
+  await tick();
+  assert.equal(requests[0]?.path, "/users");
+  assert.deepEqual(requests[0]?.params, { aggregate: { countDistinct: ["id"] }, filter: attrs.filter, limit: 1 });
+  assert.equal(render().children[0]?.type, "native-metric");
+  assert.deepEqual(render().children[0]?.props.data, [{ countDistinct: { id: 7 } }]);
+  // A resolved dashboard variable changes the REST filter, not a GraphQL batch.
+  attrs.filter = { status: { _eq: "draft" } };
+  updated.forEach((callback) => callback());
+  await tick();
+  assert.equal(requests.length, 2);
+  assert.equal(requests[0]?.signal.aborted, true);
+  deny = true;
+  onAction({ name: "refresh", args: ["dashboard-1"], after: (callback) => callback() });
+  await tick();
+  assert.equal(render().children[0]?.type, "v-notice", "Denied reads cannot render a metric zero");
+  deny = false;
+  onAction({ name: "refresh", args: ["dashboard-1"], after: (callback) => callback() });
+  await tick();
+  assert.equal(render().children[0]?.type, "native-metric", "Native refresh retries a failed read");
+  unmounted.forEach((callback) => callback());
+  assert.equal(unsubscribed, true);
+  assert.equal(requests.at(-1)?.signal.aborted, true);
+});

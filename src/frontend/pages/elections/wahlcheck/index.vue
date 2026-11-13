@@ -1,5 +1,5 @@
 <template>
-  <div class="elections-flow min-h-screen bg-mild-white">
+  <div :data-wahlcheck-theme="wahlcheckTheme" class="elections-flow min-h-screen bg-mild-white">
     <!-- Header -->
     <div class="border-b border-solid-gray-10 bg-white shadow-xs">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
@@ -87,7 +87,10 @@
           <NuxtLink
             v-for="election in publicElections"
             :key="election.id"
-            :to="`/elections/wahlcheck/${election.municipalitySlug || election.localteam?.slug || election.id}`"
+            :to="{
+              path: `/elections/wahlcheck/${election.municipalitySlug || election.localteam?.slug || election.id}`,
+              query: wahlcheckQuery,
+            }"
             class="group rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-all duration-300 hover:border-solid-ff-green-30 hover:shadow-xl"
           >
             <div class="mb-4 flex items-start justify-between">
@@ -209,6 +212,7 @@ import { ref, onMounted } from "vue";
 import type { z } from "zod";
 import type { PublicElectionListSchema } from "~/shared/contracts/elections";
 const fetchContent = useContentFetch();
+const { wahlcheckTheme, wahlcheckQuery } = useWahlcheckTheme();
 
 const { $t, $locale } = useNuxtApp();
 const publicElections = ref<z.output<typeof PublicElectionListSchema>[]>([]);

@@ -26,7 +26,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: pie-chart
+    type: slk-rest-pie-chart
     position_x: 1
     position_y: 8
     width: 26
@@ -50,7 +50,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 29
     position_y: 8
     width: 17
@@ -74,7 +74,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: metric
+    type: slk-rest-metric
     position_x: 29
     position_y: 15
     width: 17
@@ -100,7 +100,7 @@ panels:
     color: null
     show_header: true
     note: null
-    type: pie-chart
+    type: slk-rest-pie-chart
     position_x: 1
     position_y: 26
     width: 26

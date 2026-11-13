@@ -18,7 +18,7 @@ export default {
       if (!req.accountability?.user) return res.status(401).json({ error: "Authentication required" });
 
       try {
-        const collections = await getDataPageCatalog(env.DATA_PAGE_CATALOG_BASE_URL);
+        const collections = await getDataPageCatalog(env.DATA_PAGE_CATALOG_BASE_URL, true);
         return res.json({ collections });
       } catch (error) {
         extensionError(logger, "app.custom-slk-interfaces.data-page-catalog.endpoint.failed", error);

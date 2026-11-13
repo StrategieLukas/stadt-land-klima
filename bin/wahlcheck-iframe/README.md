@@ -22,6 +22,14 @@ The embed layout renders only the Wahlcheck, without the site's header, footer,
 mobile dock or search. Result links generated inside the iframe open the normal
 standalone Wahlcheck.
 
+Append `?theme=localzero` to a Wahlcheck URL to opt into LocalZero colours and
+the self-hosted Fabrikat font. This works on the overview, standalone and embed
+routes, for example `/embed/wahlcheck/nettetal?theme=localzero`. If the URL already
+has a query string, append `&theme=localzero`. The host's `url` parameter must
+contain this complete, URL-encoded URL. Wahlcheck navigation and shared result
+links preserve the theme. It always uses light surfaces within the Wahlcheck;
+the site's stored theme, content, layout, logos and normal view remain unchanged.
+
 The default source is
 `https://future.stadt-land-klima.de/elections/wahlcheck/sachsen-anhalt-landesebene`.
 The source must have the embed route and partner framing policy deployed; see

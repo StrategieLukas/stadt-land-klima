@@ -226,3 +226,55 @@ test("authored scale interactions are preserved and non-Cartesian charts receive
     assert.deepEqual(withNativeScaleZoom(spec, "automatic"), { spec, enabled: false });
   }
 });
+
+test("CMS catalog shares concurrent reads and serves short stale results only to the editor on transient failures", async () => {
+  const source = readFileSync(
+    new URL("../../../src/directus/extensions/custom-slk-interfaces/src/data-page-catalog/catalog.ts", import.meta.url),
+    "utf8",
+  );
+  const module = {
+    exports: {} as {
+      getDataPageCatalog: (base?: string, allowStale?: boolean) => Promise<Array<{ id: string; title: string }>>;
+    },
+  };
+  let now = 1000;
+  let status = 200;
+  let calls = 0;
+  const fetcher = async () => {
+    calls++;
+    return status === 200
+      ? Response.json({ collections: [{ id: "solar", title: { "de-DE": "Solar" } }] })
+      : new Response("upstream unavailable", { status });
+  };
+  runInNewContext(
+    ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } })
+      .outputText,
+    {
+      module,
+      exports: module.exports,
+      fetch: fetcher,
+      AbortSignal,
+      structuredClone,
+      Date: { now: () => now },
+    },
+  );
+  const read = module.exports.getDataPageCatalog;
+  const [first, second] = await Promise.all([read("http://frontend"), read("http://frontend", true)]);
+  assert.equal(calls, 1, "Concurrent editor and validation reads share one upstream call");
+  assert.deepEqual(first, [{ id: "solar", title: "Solar" }]);
+  first[0]!.title = "Changed by caller";
+  assert.equal(second[0]!.title, "Solar");
+  assert.equal((await read("http://frontend"))[0]!.title, "Solar", "Callers cannot mutate cached validation data");
+  status = 503;
+  now += 31_000;
+  const [editor, validation] = await Promise.allSettled([read("http://frontend", true), read("http://frontend")]);
+  assert.equal(editor.status, "fulfilled", "Editor retains its recent successful list during a brief outage");
+  assert.equal(validation.status, "rejected", "Saving cannot validate against stale-on-error metadata");
+  assert.equal(calls, 3, "Failed refresh shares its manifest/fallback reads");
+  status = 401;
+  await assert.rejects(read("http://frontend", true), "Credentials errors must not be hidden by stale data");
+  status = 503;
+  now += 300_000;
+  await assert.rejects(read("http://frontend", true), "Stale metadata has a finite lifetime");
+  await assert.rejects(read("http://other", true), "Never reuse metadata across configured service URLs");
+});

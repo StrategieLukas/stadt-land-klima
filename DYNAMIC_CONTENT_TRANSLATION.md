@@ -92,7 +92,14 @@ new deployment, use the following sequence from the repository root. Directus st
    CONTENT_TRANSLATION_GENERATION_ENABLED=true
    ```
 
-   `CONTENT_TRANSLATION_WORKER_TOKEN` must already be configured. The key, worker token and
+   Production `stack start`, frontend `stack restart`, and release activation reconcile
+   the restricted worker identity before starting frontend. A missing account uses the
+   configured strong token; an existing account keeps its token. If no token was configured,
+   provisioning generates one and saves it atomically in the selected private frontend
+   environment (mode 0600). Existing-account tokens are synchronised there without rotation.
+   A conflicting account or overprivileged role blocks startup. `--prepare-only` leaves
+   provisioning until the real start. The manual command above is only needed for explicit
+   operator/sample work. The key, worker token and
    provider settings belong only to private runtime configuration. No browser SDK, public
    config, payload, URL or log receives the credentials. Development reloads configuration;
    production needs a frontend process restart to apply private environment changes.
@@ -103,7 +110,7 @@ new deployment, use the following sequence from the repository root. Directus st
    set `CONTENT_TRANSLATION_GENERATION_ENABLED=false` to pause generation while continuing to serve prepared translations.
    Setting `CONTENT_TRANSLATION_ENABLED=false` disables the reader as well.
 
-With both switches enabled, a normal first run starts after the debounce/poll window, generally within 30–90 seconds.
+With both switches enabled on the production target, a normal first run starts after the debounce/poll window, generally within 30–90 seconds.
 Preparation continues in the background. A partially translated site remains usable through
 field-level German fallback; supplying a key does not synchronously translate every page.
 
@@ -136,11 +143,19 @@ Installation above. In staging's private frontend environment use runtime overri
 NUXT_CONTENT_TRANSLATION_ENABLED=true
 NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED=false
 NUXT_DEEPL_API_KEY=your-private-key
+SLK_DEPLOYMENT_TARGET=staging
 ```
 
 The unprefixed variants are supported as development/build defaults. Matching `NUXT_`
 variables override the built server at runtime ([Nuxt runtime configuration](https://github.com/nuxt/nuxt/blob/main/docs/3.guide/6.going-further/10.runtime-config.md)).
 Keep all keys private. The sample command accepts either form, with `NUXT_` taking precedence.
+`SLK_DEPLOYMENT_TARGET` separates deployment identity from the build profile: production
+profiles default to `production`; development profiles always disable background generation.
+Set `staging` in the staging frontend dotenv or private release host configuration, and
+`future` on preview hosts. The mounted launcher locks this target and forces background
+generation off outside production, even if copied legacy/`NUXT_` flags enable it. Stored
+translation reads and the explicit bounded sample runner remain available. `deploy staging`
+also supplies the staging target explicitly. No account is automatically provisioned there.
 Restart the staging frontend with the same Compose configuration used to deploy it so the
 mounted environment is reloaded. With the repository's production profile:
 

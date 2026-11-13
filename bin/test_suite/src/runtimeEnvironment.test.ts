@@ -13,9 +13,9 @@ import {
 test("every legacy runtime key maps without rebuilding and explicit Nuxt overrides win", () => {
   for (const [key, alias] of Object.entries(FRONTEND_RUNTIME_ALIASES)) {
     const boolean = key === "CONTENT_TRANSLATION_ENABLED" || key === "CONTENT_TRANSLATION_GENERATION_ENABLED";
-    assert.equal(frontendRuntimeEnvironment({ [key]: "first" })[alias], boolean ? "false" : "first", key);
-    assert.equal(frontendRuntimeEnvironment({ [key]: "second" })[alias], boolean ? "false" : "second", key);
-    assert.equal(frontendRuntimeEnvironment({ [key]: "first", [alias]: "override" })[alias], "override", key);
+    assert.equal(frontendRuntimeEnvironment({ SLK_ENV: "production", [key]: "first" })[alias], boolean ? "false" : "first", key);
+    assert.equal(frontendRuntimeEnvironment({ SLK_ENV: "production", [key]: "second" })[alias], boolean ? "false" : "second", key);
+    assert.equal(frontendRuntimeEnvironment({ SLK_ENV: "production", [key]: "first", [alias]: "override" })[alias], "override", key);
   }
   const env = frontendRuntimeEnvironment({
     SLK_ENV: "production",
@@ -39,6 +39,21 @@ test("every legacy runtime key maps without rebuilding and explicit Nuxt overrid
       .NUXT_SECURITY_HEADERS_CONTENT_SECURITY_POLICY_IMG_SRC,
     undefined,
   );
+});
+
+test("background translation runs only on the production target, even with copied Nuxt switches", () => {
+  for (const target of ["staging", "future", "development"]) {
+    const env = frontendRuntimeEnvironment({
+      SLK_ENV: "production", SLK_DEPLOYMENT_TARGET: target,
+      CONTENT_TRANSLATION_ENABLED: "true", CONTENT_TRANSLATION_GENERATION_ENABLED: "true",
+      NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED: "true",
+    });
+    assert.equal(env.NUXT_CONTENT_TRANSLATION_ENABLED, "true", "prepared translations remain readable");
+    assert.equal(env.NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED, "false");
+  }
+  assert.equal(frontendRuntimeEnvironment({ SLK_ENV: "development", SLK_DEPLOYMENT_TARGET: "production", CONTENT_TRANSLATION_GENERATION_ENABLED: "true" }).NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED, "false");
+  assert.equal(frontendRuntimeEnvironment({ SLK_ENV: "production", CONTENT_TRANSLATION_GENERATION_ENABLED: "true" }).NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED, "true");
+  assert.throws(() => frontendRuntimeEnvironment({ SLK_ENV: "production", SLK_DEPLOYMENT_TARGET: "typo" }));
 });
 
 test("real mounted-env launcher reloads values and exec rejects failures without exposing credentials", () => {

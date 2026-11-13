@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { reconcileTranslationWorker } from "./translation-worker.ts";
 import {
   run,
   capture,
@@ -249,7 +250,7 @@ export async function performStack(
 ) {
   const rt = await runtime(environment, action === "doctor");
   if (
-    ["start", "prepare", "build", "restart", "stop", "maintenance"].includes(action) &&
+    ["start", "prepare", "build", "restart", "stop", "maintenance", "translation-worker"].includes(action) &&
     process.env.SLK_DEPLOYMENT_LOCK !== rt.project
   ) {
     return run(
@@ -278,7 +279,18 @@ export async function performStack(
       break;
     case "restart":
       await node("bin/lib/maintenance-meta.ts", [rt.metadataPath]);
+      if (environment === "production" && (!args.length || args.includes("frontend"))) {
+        await rt.raw(["stop", "frontend"]);
+        const others = args.length ? args.filter((service) => service !== "frontend") : ["db", "cache", "meilisearch", "directus"];
+        if (others.length) await rt.raw(["restart", ...others]);
+        await rt.ready(`http://127.0.0.1:${rt.cmsPort}/server/health`);
+        await reconcileTranslationWorker(rt);
+        return rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "frontend"]);
+      }
       return rt.raw(["restart", ...args]);
+    case "translation-worker":
+      await reconcileTranslationWorker(rt);
+      break;
     case "maintenance":
       await maintenance(rt);
       break;
@@ -353,6 +365,7 @@ export async function performStack(
       await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "directus"]);
       await rt.ready(`http://127.0.0.1:${rt.cmsPort}/server/health`);
       if (options.prepareOnly) break;
+      await reconcileTranslationWorker(rt);
       await rt.prepare();
       await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "frontend"]);
       await rt.ready(`http://127.0.0.1:${rt.webPort}/`);

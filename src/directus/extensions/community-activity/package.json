@@ -28,6 +28,16 @@
         "type": "panel",
         "name": "community-activity-panel",
         "source": "src/panel/index.ts"
+      },
+      {
+        "type": "panel",
+        "name": "slk-rest-metric",
+        "source": "src/rest-panels/metric.ts"
+      },
+      {
+        "type": "panel",
+        "name": "slk-rest-pie-chart",
+        "source": "src/rest-panels/pieChart.ts"
       }
     ]
   },

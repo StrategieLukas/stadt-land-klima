@@ -40,7 +40,14 @@ Provisioning reuses strong existing tokens and rejects conflicting accounts. Cop
 private server/preview values into `src/frontend/.env`; never use public runtime
 config for them. Set real mail-flow UUIDs, canonical/public/private URLs and strong
 signing/session secrets. Translation-worker setup is in its separate operator
-guide. If needed, rehearse/apply the restricted database-role cutover from README.
+guide. Production start/restart/release activation now provision the translation worker
+automatically when translation generation and a provider key are enabled. Existing worker
+tokens are reused; the selected private frontend dotenv is synchronised before frontend
+is recreated. Provisioning failure blocks startup. Set `SLK_DEPLOYMENT_TARGET=staging`
+in staging's private frontend dotenv or release host configuration, including when using
+`--env production`; staging serves stored translations without background generation or
+automatic worker provisioning. Use `future` for preview hosts. Development always disables
+background generation. If needed, rehearse/apply the restricted database-role cutover from README.
 
 ## Caddy and runtime verification
 
