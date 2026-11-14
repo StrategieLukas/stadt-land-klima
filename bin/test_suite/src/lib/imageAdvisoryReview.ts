@@ -47,4 +47,11 @@ export const IMAGE_ADVISORY_REVIEW = [
     control:
       "Operator monitoring CLI regex; maintained start scripts run Directus directly, not PM2. No request-controlled regex reaches its CLI.",
   },
+  {
+    name: "deepmerge",
+    version: "4.3.1",
+    id: "GHSA-gcqx-w48m-w2h4",
+    control:
+      "Exact-source CJS/UMD backport defines destination keys as own data; rebuilt-image regression retains __proto__ data and prevents inherited privileges while preserving arrays/nested merges.",
+  },
 ] as const;

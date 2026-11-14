@@ -1,7 +1,7 @@
-FROM localhost/slk-caddy:2.11.7
+FROM localhost/slk-caddy:2.11.9
 COPY podman/maintenance/Caddyfile /etc/caddy/Caddyfile
-COPY docker/maintenance/index.html docker/maintenance/maintenance-meta.js /usr/share/caddy/
-COPY src/frontend/assets/images/Stadt-Land-Klima-Logotype_bordered.svg /usr/share/caddy/logo.svg
+COPY podman/maintenance/index.html /srv/
+COPY src/frontend/assets/images/Stadt-Land-Klima-Logotype_bordered.svg /srv/logo.svg
+ENV XDG_DATA_HOME=/tmp/caddy/data XDG_CONFIG_HOME=/tmp/caddy/config
 USER 1000:1000
-ENTRYPOINT ["/usr/bin/caddy"]
-CMD ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+EXPOSE 8080

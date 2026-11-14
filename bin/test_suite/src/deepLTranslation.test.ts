@@ -750,3 +750,125 @@ test("bounded staging apply persists both locales, verifies public overlays and 
   assert.equal(paidCalls, 2);
   assert.equal(enqueues, 2);
 });
+
+test("translation authentication failures retain HTTP status even with empty or HTML proxy bodies", async () => {
+  const { translationTransport, TranslationPersistenceError } =
+    await import("../../../src/frontend/server/utils/contentTranslationPersistence.js");
+  for (const status of [401, 403]) {
+    for (const body of [null, "<html>Forbidden</html>"]) {
+      const request = translationTransport(
+        "http://directus:8055",
+        "private-token",
+        async () => new Response(body, { status }),
+      );
+      await assert.rejects(
+        request("/content-translations", new AbortController().signal, { op: "claim" }),
+        (error: unknown) => error instanceof TranslationPersistenceError && error.status === status,
+      );
+    }
+  }
+});
+
+test("worker pauses after credential rejection, preserves prepared reads and still retries transient failures", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { runInNewContext } = await import("node:vm");
+  const ts = await import("typescript");
+  const { TranslationPersistenceError } =
+    await import("../../../src/frontend/server/utils/contentTranslationPersistence.js");
+  const code = readFileSync(
+    new URL("../../../src/frontend/server/plugins/content-translation-worker.ts", import.meta.url),
+    "utf8",
+  ).replaceAll("import.meta.prerender", "false");
+  for (const status of [401, 403, 503]) {
+    const module = { exports: {} as { default?: (nitro: unknown) => void } };
+    const callbacks: Array<() => void> = [];
+    const closes: Array<() => void> = [];
+    const logs: unknown[][] = [];
+    const readers: unknown[] = [];
+    let calls = 0;
+    let clears = 0;
+    const prepared = { enabled: true };
+    const dependencies: Record<string, unknown> = {
+      "../utils/contentTranslation": {
+        configureContentTranslationReader: (reader: unknown) => readers.push(reader),
+        noopContentTranslationReader: {},
+      },
+      "../utils/contentTranslationPersistence": {
+        TranslationPersistenceError,
+        createPersistedTranslationReader: () => prepared,
+        createTranslationPersistence: () => ({}),
+      },
+      "../utils/deepLTranslation": { deepLNamespace, DeepLSettingsSchema, createDeepLTranslator: () => ({}) },
+      "../utils/contentTranslationWorker": {
+        runContentTranslationWorker: async () => {
+          calls++;
+          throw new TranslationPersistenceError("forbidden", status);
+        },
+      },
+      "../utils/publicItems": {
+        readPublicItems() {
+          throw new Error("No source/provider work before authentication");
+        },
+      },
+      "../utils/securityLogging": { systemLog: (...values: unknown[]) => logs.push(values) },
+      "~/shared/contentTranslation": { contentTranslationPolicy },
+    };
+    runInNewContext(
+      ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } })
+        .outputText,
+      {
+        module,
+        exports: module.exports,
+        require: (id: string) => {
+          assert(id in dependencies, id);
+          return dependencies[id];
+        },
+        defineNitroPlugin: (callback: unknown) => callback,
+        useRuntimeConfig: () => ({
+          contentTranslationEnabled: true,
+          contentTranslationGenerationEnabled: true,
+          deeplApiKey: "fixture-never-real",
+          deeplApiEndpoint: "auto",
+          deeplModel: "prefer_quality_optimized",
+          deeplGlossaryEn: "",
+          deeplGlossaryIt: "",
+          deeplPolicyRevision: "v1",
+          directusServerUrl: "http://directus:8055",
+          directusFrontendServerToken: "private-server-token",
+          contentTranslationWorkerToken: "private-worker-token",
+        }),
+        process: { env: {} },
+        AbortController,
+        setInterval: (callback: () => void) => {
+          callbacks.push(callback);
+          return 1;
+        },
+        setTimeout: (callback: () => void) => {
+          callbacks.push(callback);
+          return 2;
+        },
+        clearInterval: () => {
+          clears++;
+        },
+        clearTimeout() {},
+      },
+    );
+    module.exports.default!({ hooks: { hook: (_name: string, callback: () => void) => closes.push(callback) } });
+    callbacks[1]!();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    callbacks[0]!();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    assert.equal(readers.at(-1), prepared, "Prepared translations remain readable");
+    assert.equal(calls, status === 503 ? 2 : 1, "Only transient errors can trigger another claim");
+    assert.equal(clears, status === 503 ? 0 : 1, "Invalid credentials stop the polling interval");
+    assert(
+      logs.some(
+        (entry) =>
+          entry[1] ===
+          (status === 503 ? "content.translation.worker_deferred" : "content.translation.worker_unauthorized"),
+      ),
+    );
+    assert(!JSON.stringify(logs).includes("private-worker-token"));
+    closes.forEach((callback) => callback());
+  }
+});

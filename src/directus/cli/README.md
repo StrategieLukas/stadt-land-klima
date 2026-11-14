@@ -1,255 +1,93 @@
-# Directus CLI for v11.17.4+
+# Directus configuration CLI
 
-This CLI tool provides import/export functionality for Directus v11.17.4 and later, with full support for the new **Policies and Permissions** system.
+The maintained CLI targets the project's pinned Directus **11.17.4**. It runs
+inside the Directus container with the private `CLI_DIRECTUS_STATIC_TOKEN`.
+Architecture, role boundaries and version decisions are in
+[PROJECT_DECISIONS.md](../../../PROJECT_DECISIONS.md).
 
-## Overview
+## Import and export
 
-Directus v11 introduced a major change to access control:
-
-- **Permissions are no longer attached directly to roles**
-- **Policies** are a new concept that hold permissions
-- Roles can have multiple policies attached to them
-- Users can also have policies attached directly
-
-This CLI has been updated to handle this new structure properly.
-
-## Key Changes from v10 to v11
-
-### Old Structure (v10)
-
-```yaml
-# roles/frontend.yaml
-name: frontend
-permissions:
-  - collection: articles
-    action: read
-    fields: ["*"]
-```
-
-### New Structure (v11+)
-
-```yaml
-# policies/frontend.yaml
-name: frontend
-permissions:
-  - collection: articles
-    action: read
-    fields: ["*"]
-
-# roles/frontend.yaml
-name: frontend
-policies:
-  - Frontend # Exact policy name
-```
-
-## Installation
-
-The CLI is already included in the Directus container. No additional installation is needed.
-
-## Usage
-
-### Export All Configuration
+For normal code-first application configuration use the repository launcher from
+the root (include the actual environment/storage overrides when necessary):
 
 ```bash
-./directus-cli export:all /path/to/output
+./bin/slk stack compose --env development -- exec directus /directus/cli/import-all.sh
 ```
 
-This will export:
+That launcher checks types, preserves/transfers supported legacy tour data before
+schema removal, imports configuration in order, installs translation outbox
+triggers and seeds maintained native content idempotently. Keep those preflights
+for fresh/restored databases. The raw `import:all` command does not include these
+application-specific steps.
 
-1. `schema/` - Collection and field definitions
-2. `policies/` - Policy definitions with permissions
-3. `roles/` - Role definitions with policy references
-4. `flows/` - Flow definitions
-5. `presets/` - Preset definitions
-6. `translations/` - Translation files
-7. `settings/` - Settings
-8. `dashboards/` - Dashboard and panel definitions
-
-### Import All Configuration
+Inside the container, inspect commands and defaults with:
 
 ```bash
-./directus-cli import:all /path/to/input
+./directus-cli --help
+./directus-cli import:all --help
+./directus-cli export:all --help
 ```
 
-This will import in the correct order:
+| Command                                        | Purpose                                                                                                                      |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `import:all [src]`                             | Sequential schema, policies/roles, flows, presets, translations, settings and dashboards; defaults to the current directory. |
+| `export:all [dest]`                            | Export portable configuration to the selected base directory.                                                                |
+| `import:<kind> [src]` / `export:<kind> [dest]` | Work with schema, policies, roles, flows, presets, translations, settings or dashboards individually.                        |
+| `import:roles-and-policies [src]`              | Import policy definitions before attaching them to roles.                                                                    |
+| `auth:set-token`                               | Configure the CLI administrator credential.                                                                                  |
 
-1. Schema
-2. **Policies** (must be imported before roles)
-3. Roles (references policies)
-4. Flows
-5. Presets
-6. Translations
-7. Settings
+Policies contain permissions; roles reference policies by their exact names.
+Role parent/children references also use names rather than instance UUIDs. New
+website access belongs in the scoped private service policy plus a checked Nuxt
+route; never broaden public-role permissions. A missing policy means import order
+or references need fixing, not that permissions should be granted elsewhere.
 
-8. Dashboards
+Options depend on the command; use its `--help`:
 
-### Individual Commands
+- `-v`, `--verbose`: additional progress.
+- `-f`, `--force`: overwrite existing entries where supported.
+- `-r`, `--remove-orphans`: remove entries absent from input; review the source
+  inventory first. Missing/malformed source directories fail rather than erase data.
+- `-c`, `--clear`: clear exported files where supported. Policy exports always
+  clear their YAML destination first; use a dedicated export directory.
 
-#### Export Policies
-
-```bash
-./directus-cli export:policies /path/to/policies
-```
-
-#### Import Policies
-
-```bash
-./directus-cli import:policies /path/to/policies
-```
-
-#### Export Roles
-
-```bash
-./directus-cli export:roles /path/to/roles
-```
-
-#### Import Roles
-
-```bash
-./directus-cli import:roles /path/to/roles
-```
-
-> **Note:** Policies must be imported before roles, as roles reference policies by name.
-
-#### Export Dashboards
-
-```bash
-./directus-cli export:dashboards /path/to/dashboards
-```
-
-#### Import Dashboards
-
-```bash
-./directus-cli import:dashboards /path/to/dashboards
-```
-
-## Command Line Options
-
-### Global Options
-
-- `-v, --verbose` - Run with verbose logging
-- `-f, --force` - Overwrite existing entries
-- `-r, --remove-orphans` - Remove entries not present in the imported data
-- `-c, --clear` - Clear existing files before export
-
-### Examples
-
-```bash
-# Export with verbose logging
-./directus-cli -v export:all /output
-
-# Import and overwrite existing entries
-./directus-cli -f import:all /input
-
-# Import and remove orphaned entries
-./directus-cli -r import:policies /policies
-```
-
-## Migration from v10 to v11
-
-If you have existing role YAML files from Directus v10 (with permissions directly on roles), you can use the migration helper:
-
-```bash
-node tasks/shared/migrateRolesToPolicies.ts /path/to/roles /path/to/policies
-```
-
-This will:
-
-1. Create policy files from the permissions in each role
-2. Update role files to reference the policies instead
-
-After migration:
-
-1. Import policies: `./directus-cli import:policies /path/to/policies`
-2. Import roles: `./directus-cli import:roles /path/to/roles`
-
-## File Formats
-
-### Policy YAML Format
-
-```yaml
-name: Editor Policy
-icon: supervised_user_circle
-description: Policy for editors
-ip_access: null
-enforce_tfa: false
-admin_access: false
-app_access: true
-permissions:
-  - collection: articles
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields: ["*"]
-  - collection: articles
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields: ["*"]
-```
-
-### Role YAML Format
+Example role file:
 
 ```yaml
 name: Editor
 icon: edit
-description: Editor role
 parent: null
 children: []
 policies:
-  - Editor Policy # Exact policy name, not a UUID
+  - Editor Policy
 ```
 
-## Troubleshooting
+Exports/imports validate YAML shapes and resolve operation references/layout
+coordinates. Mutations are awaited and failures propagate. Multi-request imports
+are not universally transactional; keep recoverable backups before applying a
+configuration snapshot.
 
-### "Policy not found" errors during role import
+Runtime mounts are read-only. Set a token through authenticated CMS administration
+and edit the private host dotenv file for container deployments. `auth:set-token`
+requires a writable local `.env` and refuses before rotating the account when it
+cannot persist the result; it is not a writer into a read-only runtime mount.
 
-This means you're trying to import roles before importing the policies they reference. Make sure to:
+## Development and checks
 
-1. Import policies first: `./directus-cli import:policies /path/to/policies`
-2. Then import roles: `./directus-cli import:roles /path/to/roles`
-
-Or use `import:all` which handles the order automatically.
-
-### Permissions not working after import
-
-Check that:
-
-1. Policies were imported successfully
-2. Roles have the correct policy IDs
-3. The policy IDs in roles match the actual policy IDs in the database
-
-You can verify by running:
+Implementation is TypeScript; `index.mjs` is the minimal executable bootstrap
+using the locked tsx runtime. Mounted source changes are available inside the
+container. Install with `npm ci --include=dev`.
 
 ```bash
-./directus-cli -v import:all /path/to/input
+npm run typecheck
+npm test
 ```
 
-### SDK version compatibility
-
-This CLI uses `@directus/sdk@^27.0.0` which supports the v11 API including policies.
-
-## Development
-
-To test changes:
-
-1. Make changes to files in `src/directus/cli/`
-2. The changes are automatically available in the mounted volume
-3. Run commands from within the Directus container
-
-## See Also
-
-- [Directus v11 Breaking Changes](https://directus.io/docs/releases/breaking-changes/version-11)
-- [Policies Documentation](https://directus.io/docs/api/policies)
-- [Permissions Documentation](https://directus.io/docs/api/permissions)
-
-## Compiler and regression gates
-
-Install with `npm ci --include=dev`. `npm run typecheck` enforces strict NodeNext checking and source inclusion; `npm run build` runs that gate. `npm test` adds isolated command and failure-gate tests without live services. `npm run test:integration` and `npm run test:tour-migration` require the disposable local Directus/database environment and must be run serially with other CMS fixture suites. Import/export orchestration and container startup reject compiler failures before administrative writes/startup.
-
-The executable remains `index.mjs`; implementation and internal imports are TypeScript loaded by the existing tsx runtime. Source directories must exist, operation references must resolve, and flow operations/dashboard panels must include their required layout coordinates. Legacy development-token provisioning is disabled in production. See `DIRECTUS_CLI_TYPES_REVIEW.md` for verification and deployment details.
+The compiler checks strict NodeNext and source inclusion; `build` enforces that
+gate. Tests cover commands, failure propagation and negative compiler/build probes.
+`test:integration`, `test:tour-migration` and `test:database-role` require disposable
+CMS/database environments. Run writable fixture profiles serially. Container
+startup/import orchestration refuses compiler failures before administrative work.
 
 ## Migrating rating catalogues
 

@@ -181,7 +181,7 @@ test("search startup stays closed on failed reconciliation and becomes ready onl
       defineNitroPlugin: (fn: () => Promise<void>) => {
         plugin = fn;
       },
-      useRuntimeConfig: () => ({ directusFrontendServerToken: "private" }),
+      useRuntimeConfig: () => ({ public: { appEnv: "production" }, directusFrontendServerToken: "private" }),
       getMeilisearch: () => ({ index: () => index, tasks: { waitForTask: async () => ({ status: "succeeded" }) } }),
     },
   );

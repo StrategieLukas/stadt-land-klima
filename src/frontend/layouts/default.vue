@@ -38,9 +38,6 @@
         <!-- Main Content -->
         <main class="flex min-w-0 grow flex-col bg-mild-white px-2">
           <div class="mx-auto flex w-full max-w-(--breakpoint-xl) min-w-0 flex-col">
-            <p v-if="showMachineTranslationNotice" class="my-3 alert text-sm alert-info" role="note">
-              {{ $t("translation.machine_notice") }}
-            </p>
             <slot />
           </div>
         </main>
@@ -107,15 +104,6 @@ const fetchContent = useContentFetch();
 
 const { $locale } = useNuxtApp();
 const analyticsRoute = useRoute();
-const machineTranslations = useState("slk-machine-translations", () => false);
-const showMachineTranslationNotice = computed(
-  () =>
-    machineTranslations.value &&
-    $locale !== "de-DE" &&
-    !/^\/(?:backend|previews|auth|api|elections\/thesen)(?:\/|$)/.test(analyticsRoute.path) &&
-    !analyticsRoute.query.preview &&
-    !analyticsRoute.query.preview_token,
-);
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 
 const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();

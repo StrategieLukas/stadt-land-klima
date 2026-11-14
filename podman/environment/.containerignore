@@ -1,0 +1,6 @@
+*
+!Containerfile
+!go.mod
+!main.go
+!main_test.go
+!DOTENV_LICENSE

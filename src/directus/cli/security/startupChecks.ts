@@ -165,7 +165,7 @@ const sensitiveAccessWhitelist: Record<string, string[]> = {
   "directus_flows:read": ["Planungsteam"],
   "directus_panels:create": ["Planungsteam"],
   "directus_panels:delete": ["Planungsteam"],
-  "directus_panels:read": ["Planungsteam"],
+  "directus_panels:read": ["Maßnahmenteam", "Massnahmenteam", "Planungsteam"],
   "directus_panels:update": ["Planungsteam"],
   "directus_roles:read": ["Planungsteam", "ErfolgsprojekteRedaktion"],
   "directus_shares:read": ["Planungsteam"],

@@ -10,8 +10,7 @@ import {
 /**
  * Unified administrative area search composable.
  *
- * Replaces useAdministrativeAreaSearch and the direct API calls in
- * AdministrativeAreaSearchBar. Returns enriched, reactive results with full
+ * Used by AdministrativeAreaSearchBar. Returns enriched, reactive results with full
  * label + CTA chip metadata so all search surfaces render consistently.
  *
  * @param {object} options

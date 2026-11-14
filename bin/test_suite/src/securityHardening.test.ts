@@ -550,103 +550,82 @@ test("notification flow escapes every submitted HTML value before rendering eith
   }
 });
 
-test("core data cutover preserves old clusters, refuses missing/colliding paths, and rolls back a partial move failure", async () => {
-  const { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync } = await import("node:fs");
+test("core data cutover preserves clusters, preflights collisions and rolls back a partial rename", async () => {
+  const { cutover } = await import("../../cli/core-cutover.ts");
+  const { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync, renameSync } = await import("node:fs");
   const { tmpdir } = await import("node:os");
   const { join } = await import("node:path");
-  const { spawnSync } = await import("node:child_process");
-  const script = new URL("bin/lib/core-data-cutover.sh", root).pathname;
-  const fixture = () => {
-    const dir = mkdtempSync(join(tmpdir(), "slk-cutover-"));
+  const dir = mkdtempSync(join(tmpdir(), "slk-cutover-"));
+  try {
     for (const name of ["db", "meilisearch"])
       for (const suffix of ["", ".upgrade-test"]) {
         mkdirSync(join(dir, name + suffix));
         writeFileSync(join(dir, name + suffix, suffix ? "new" : "old"), "fixture");
       }
-    return dir;
-  };
-  let dir = fixture();
-  try {
-    assert.equal(spawnSync("sh", [script, "test", dir]).status, 0);
-    for (const name of ["db", "meilisearch"]) {
-      assert.ok(existsSync(join(dir, name, "new")));
-      assert.ok(existsSync(join(dir, name + ".before-test", "old")));
-    }
-    assert.notEqual(spawnSync("sh", [script, "test", dir]).status, 0);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
-  dir = fixture();
-  try {
-    rmSync(join(dir, "meilisearch.upgrade-test"), { recursive: true });
-    assert.notEqual(spawnSync("sh", [script, "test", dir]).status, 0);
-    assert.ok(existsSync(join(dir, "db", "old")));
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
-  dir = fixture();
-  try {
-    const commands = join(dir, "commands");
-    mkdirSync(commands);
-    const marker = join(dir, "failed");
-    writeFileSync(
-      join(commands, "mv"),
-      `#!/bin/sh\ncase "$1" in *meilisearch.upgrade-test) if [ ! -e '${marker}' ]; then touch '${marker}'; exit 42; fi;; esac\nexec /bin/mv "$@"\n`,
-      { mode: 0o755 },
+    let failed = false;
+    assert.throws(
+      () =>
+        cutover(dir, "test", (source, target) => {
+          if (String(source).endsWith("meilisearch.upgrade-test") && !failed) {
+            failed = true;
+            throw new Error("Injected filesystem failure");
+          }
+          renameSync(source, target);
+        }),
+      /Injected/,
     );
-    const result = spawnSync("sh", [script, "test", dir], {
-      env: { ...process.env, PATH: commands + ":" + process.env.PATH },
-    });
-    assert.equal(result.status, 42);
     for (const name of ["db", "meilisearch"]) {
       assert.ok(existsSync(join(dir, name, "old")));
       assert.ok(existsSync(join(dir, name + ".upgrade-test", "new")));
     }
+    cutover(dir, "test");
+    for (const name of ["db", "meilisearch"]) {
+      assert.ok(existsSync(join(dir, name, "new")));
+      assert.ok(existsSync(join(dir, name + ".before-test", "old")));
+    }
+    assert.throws(() => cutover(dir, "test"), /preflight/);
+    assert.throws(() => cutover(dir, "../unsafe"), /Invalid/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
 test("core startup guard refuses old data and migration rejects unsupported mounts before stopping or writing", async () => {
-  const { mkdtempSync, writeFileSync, rmSync } = await import("node:fs");
+  const { checkCoreData, upgradeCore } = await import("../../cli/core.ts");
+  const { Runtime } = await import("../../cli/stack.ts");
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import("node:fs");
   const { tmpdir } = await import("node:os");
   const { join } = await import("node:path");
-  const { spawnSync } = await import("node:child_process");
-  const dir = mkdtempSync(join(tmpdir(), "slk-core-guard-"));
-  const log = join(dir, "calls");
+  const dir = mkdtempSync(join(tmpdir(), "slk-core-guard-")),
+    previousPath = process.env.PATH;
   try {
+    mkdirSync(join(dir, "tools"));
     writeFileSync(
-      join(dir, "docker"),
-      `#!/usr/bin/env python3
+      join(dir, "tools/podman"),
+      String.raw`#!/usr/bin/env python3
 import os,sys,json
 args=sys.argv[1:]
-with open(os.environ['SLK_TEST_CALLS'],'a') as f: f.write(json.dumps(args)+'\\n')
-if args[0]=='compose':
- if 'config' in args: print('postgis/postgis:17-3.6\\ngetmeili/meilisearch:v1.55.0')
- elif 'ps' in args: print(args[-1]+'-fixture')
-elif args[0]=='inspect':
- if '.Mounts' in args[-1]: print(os.environ.get('SLK_TEST_MOUNT','bind')+'|/fixture/data|fixture-volume')
- else: print('fixture-image')
-elif args[0]=='run':
- print(os.environ.get('SLK_TEST_PG','17') if args[-1]=='PG_VERSION' else '1.55.0')
-else: sys.exit('Unexpected Docker operation')
+with open(os.environ['SLK_TEST_CALLS'],'a') as f:f.write(json.dumps(args)+'\n')
+if args[0]=='inspect': print(json.dumps([{'Mounts':[{'Type':'volume','Source':'/fixture','Name':'fixture-volume','Destination':'/var/lib/postgresql/data'},{'Type':'volume','Source':'/fixture','Name':'fixture-search','Destination':'/meili_data'}]}]))
+elif args[0]=='volume':pass
+elif args[0]=='run':print(os.environ.get('SLK_TEST_PG','17') if args[-1]=='PG_VERSION' else '1.56.2')
+else:sys.exit('Unexpected operation')
 `,
       { mode: 0o755 },
     );
-    const env = { ...process.env, PATH: dir + ":" + process.env.PATH, SLK_TEST_CALLS: log };
-    const guard = new URL("bin/check_core_service_data.sh", root).pathname;
-    assert.equal(spawnSync("bash", [guard, "production"], { env }).status, 0);
-    assert.equal(spawnSync("bash", [guard, "production"], { env: { ...env, SLK_TEST_PG: "13" } }).status, 1);
-    assert.equal(spawnSync("bash", [guard, "unknown"], { env }).status, 2);
-    const migration = new URL("bin/upgrade_core_services.sh", root).pathname;
-    const rejected = spawnSync("bash", [migration, "production", "--apply"], {
-      env: { ...env, SLK_TEST_MOUNT: "volume" },
-      encoding: "utf8",
-    });
-    assert.equal(rejected.status, 1);
-    assert.match(rejected.stderr, /requires bind mounts/);
-    assert.doesNotMatch(readFileSync(log, "utf8"), /"(?:stop|start|pull|exec|cp|rm)"/);
+    process.env.PATH = join(dir, "tools") + ":" + previousPath;
+    process.env.SLK_TEST_CALLS = join(dir, "calls");
+    const rt = new Runtime("production", "fixture", [], {}, 9000, 9001);
+    rt.raw = async (args) => args.at(-1) + "-fixture";
+    await checkCoreData(rt);
+    process.env.SLK_TEST_PG = "13";
+    await assert.rejects(checkCoreData(rt), /requires migration/);
+    await assert.rejects(upgradeCore(rt, true, false), /require --logical/);
+    assert.doesNotMatch(readFileSync(join(dir, "calls"), "utf8"), /"(?:stop|start|pull|exec|cp|rm)"/);
   } finally {
+    process.env.PATH = previousPath;
+    delete process.env.SLK_TEST_CALLS;
+    delete process.env.SLK_TEST_PG;
     rmSync(dir, { recursive: true, force: true });
   }
 });
@@ -1052,7 +1031,7 @@ test("pinned analytics retains normal delivery and drops candidate/preview event
 });
 
 test("pinned Directus runtime guards reject inherited deep paths, SQL geometry and oversized transforms without running a CMS", async () => {
-  const guards = await import("../../../docker/directus/security-patches/patch-api.js");
+  const guards = await import("../../../podman/directus/security-patches/patch-api.js");
   const validateDeep = new Function("deep", "InvalidQueryError", guards.deepGuard);
   validateDeep({ translations: { _filter: { language: { _eq: "de" } } } }, Error);
   validateDeep({ name: { _limit: 1 }, translations: { _filter: { name: { _eq: "de" }, length: { _gt: 1 } } } }, Error);

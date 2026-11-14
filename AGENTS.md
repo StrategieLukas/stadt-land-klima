@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Nuxt 4 frontend + Directus CMS backend, running in Podman with Caddy.
+Nuxt 4 frontend + Directus CMS backend, running in rootless Podman with Caddy.
 Code language and variables always favour english language.
 ---
 
@@ -13,7 +13,7 @@ All Directus configuration is **code-first**: the source of truth lives in YAML 
 ### Applying changes
 
 ```bash
-docker compose -f docker-compose.yaml exec directus /directus/cli/import-all.sh
+./bin/slk stack compose --env development -- exec directus /directus/cli/import-all.sh
 ```
 
 > From the repo root (not from `bin/` — that script uses a relative path that breaks outside its directory).
@@ -36,19 +36,19 @@ The frontend reads public website data through Nuxt `/api/public/*` routes. Serv
 
 ### Custom interface extensions
 
-Located in `src/directus/extensions/directus-extension-interface-<name>/`.
+Grouped interfaces live in `src/directus/extensions/custom-slk-interfaces/src/<name>/`.
 
 After editing `src/interface.vue`, rebuild:
 
 ```bash
-cd src/directus/extensions/directus-extension-interface-<name>
+cd src/directus/extensions/custom-slk-interfaces
 npm run build
 ```
 
 Then restart Directus to pick up the new `dist/index.js`:
 
 ```bash
-docker restart stadt-land-klima-directus-1
+./bin/slk stack restart --env development directus
 ```
 
 Extensions use **Directus CSS theme variables** (not hardcoded hex) so they render correctly in both light and dark mode:
@@ -130,7 +130,7 @@ DO NOT update Directus beyond 11.17.4
 7. Reuse existing Vue-components where possible (/frontend/components)
 8. IMPORTANT: Always verify if changes to the frontend actually work by doing curl requests to localhost:8080
 9. The frontend automatically hot-reloads when changes are made, no need to restart containers.
-10. Do not edit the permissions of public.yaml. The frontend permissions belong to frontend.yaml.
+10. Do not edit public-role permissions. Website read permissions belong to `src/directus/policies/Frontend-Server.yaml` and checked Nuxt DTOs.
 11. Extensions and the CLI script are to be written in Typescript only. Avoid nonsense interfaces for only a single primitive field.
 12. Elsewhere prefer typescript for all new implementations, unless it would be significant effort or would cause interop problems.
 13. NEVER PUSH automatically. Give meaningful names to Commits. When asked to create a new branch, make sure it is a real new branch and DOES NOT point to origin/main
@@ -153,10 +153,8 @@ FEATURES.md is the canonical inventory of application functionality and its regr
 2. src/directus - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
 3. src/directus/extensions - our custom extensions. Compile with `npm install` and then `npm run build`.
 
-## Applying changes for directus yamls
-
-1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.
-2. The yamls are sorted to be in alphabetical order, ensure that you stick to this formatting.
+Keep Directus YAML files alphabetically ordered and use the importer command above
+with the correct target Compose profile/host storage overlay.
 
 ## Text
 
@@ -165,13 +163,12 @@ FEATURES.md is the canonical inventory of application functionality and its regr
 3. Every Directus `string` or `text` field must set `meta.options.trim: true` whenever its interface exposes the trim option. The standard `input`, `input-multiline`, and custom `auto-slug` interfaces support it. Verify support before setting the option; do not add ignored options to interfaces that do not expose trimming.
 4. Address users consistently with the informal German `du` form in user-facing text and translations. Content sent to candidates or parties—including access-token pages and related emails—must use the formal `Sie` form instead.
 
-## Technical Debt
+## Project decisions
 
-See [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for tracked technical debt items, future upgrades, and items requiring follow-up. Key items:
-
-- **TypeScript 7 upgrade:** Currently on TypeScript 6.0.3, the newest stable compiler supported by typescript-eslint and Blökkli. Recheck their peer ranges and Vue tooling before upgrading to 7.x.
-- **Framework stack:** Nuxt 4.6.2 with Vite 8.3.5 and Blökkli 2.0.0-alpha.73. Keep platform bindings optional and preserve the Blökkli virtual-file Vite integration; see SECURITY_HARDENING.md#framework-editor-and-typescript-phases.
-- **Permanent TypeScript gate:** No diagnostic baseline. `npm run typecheck` enforces strict app/server/shared/node and Vue checking, source coverage, `lint:types`, scripts and checked JS tooling. Keep new maintained sources in these gates; see SECURITY_HARDENING.md#framework-editor-and-typescript-phases.
+[PROJECT_DECISIONS.md](PROJECT_DECISIONS.md) is the canonical architecture,
+security, role, version and maintenance record. Keep strict TypeScript enforcement
+without a diagnostic baseline, the Directus 11.17.4 cap, optional platform bindings
+and the Blökkli virtual-file integration. Review it before changing these boundaries.
 
 ## Rate limiting
 
@@ -184,13 +181,18 @@ All API endpoints that write data (POST/PUT/PATCH/DELETE) or perform expensive o
 3. Write endpoints use `max: 5, windowSeconds: 60`; expensive read endpoints use `max: 10`
 4. Simple cached reads may skip rate limiting
 
-See [resource hardening](SECURITY_HARDENING.md#runtime-and-pinned-directus-safeguards) (original finding S14) for context. The rate limiter uses Redis sorted sets with per-IP sliding windows.
+See [resource hardening](PROJECT_DECISIONS.md#pinned-directus-and-dependency-security) for context. The rate limiter uses Redis sorted sets with per-IP sliding windows.
 
 ## Checks
 
-1. Run ./test_dev.sh in the bin folder and wait for checks to complete.
+1. Before finishing and before every authorized push, run `./bin/slk check ready` from the repository root and wait for completion. This runs the shared GitHub Actions gates plus the local production build, development regressions and final formatting/diff checks. Do not push with failures.
+2. During iteration use `./bin/slk check ready --only <id-or-group>`; discover selectors with `--list`. A selected run does not replace the final full run. Use `--output json` for machine-readable results, `--output full` to stream everything, and `--tail 80` for longer failure excerpts. Complete private logs and reports are saved under `.reports/checks/`; outcomes use exit statuses, never text matching.
+3. Native macOS/Windows and deployed acceptance require their own environments: `./bin/slk check native` and `./bin/slk check release --target staging` (or an explicitly authorized production read-only target). These commands do not deploy. Report unavailable/failed checks and pending native/deployed verification explicitly; never claim all CI passed from a partial or Linux-only run.
+4. Review the final diff for security regressions and unintended generated files; curl the relevant `localhost:8080` route after frontend changes. Never weaken checks, suppress advisories or raise the Directus cap to obtain a pass. No automatic push or deployment is authorized by this checklist.
+5. [Check runner reference](docs/CHECKS.md) documents prerequisites and profiles. The shared plan is `bin/cli/check-plan.ts`; GitHub Actions calls the same runner. Keep workflow coverage and its targeted `bin/cli/checks.test.ts` regressions aligned when adding or changing gates.
 
 ## Deployment
+
 You may deploy to STAGING and FUTURE, but only if ASKED TO.
 Staging: `ssh root@staging`
 Future: `ssh root@future`
@@ -198,6 +200,6 @@ Future: `ssh root@future`
 NEVER deploy to PRODUCTION or any other server. Ask user to confirm-verify if you ever think the user intends to deploy to PRODUCTION.
 
 ### Rules for deployment
+
 - Use the `deploy` user (i.e. `su deploy`) to run the deployment and keep all files there
 - DO NOT change files that are checked into the repository locally for the deployment. Instead, change them in the repository and inform the user that they need to be pushed.
-

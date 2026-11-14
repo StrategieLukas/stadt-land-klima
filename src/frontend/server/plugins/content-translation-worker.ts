@@ -2,6 +2,7 @@ import { configureContentTranslationReader, noopContentTranslationReader } from 
 import {
   createPersistedTranslationReader,
   createTranslationPersistence,
+  TranslationPersistenceError,
   translationDeadline,
 } from "../utils/contentTranslationPersistence";
 import {
@@ -106,8 +107,19 @@ export default defineNitroPlugin((nitro) => {
       });
       if (result.generated || result.preparedFields)
         systemLog("info", "content.translation.prepared", { count: result.generated });
-    } catch {
-      if (!controller.signal.aborted) systemLog("warn", "content.translation.worker_deferred");
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        if (error instanceof TranslationPersistenceError && [401, 403].includes(error.status)) {
+          // Credentials cannot heal through retries. Keep the prepared reader
+          // available, but stop generation until configuration is repaired and
+          // the process restarts. Never fall back to an administrator identity.
+          systemLog("error", "content.translation.worker_unauthorized", { status: error.status });
+          controller.abort();
+          clearInterval(interval);
+        } else {
+          systemLog("warn", "content.translation.worker_deferred");
+        }
+      }
     } finally {
       running = false;
     }

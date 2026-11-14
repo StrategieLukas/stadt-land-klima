@@ -1,5 +1,5 @@
 /** Explicit PostgreSQL application-role cutover. Never demotes the bootstrap operator.
- * Plan/apply run through bin/harden_database_role.sh with the application stopped.
+ * Plan/apply run through bin/slk database role with the application stopped.
  * This changes database roles/ownership only; Directus configuration remains YAML-first.
  */
 import { randomBytes } from "node:crypto";

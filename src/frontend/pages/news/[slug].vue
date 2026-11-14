@@ -162,8 +162,7 @@
                   {{ $t("news.editor.image_id_hint_prefix") }}
                   <a :href="`${directusUrl}/admin/files`" target="_blank" class="underline">{{
                     $t("news.editor.directus_file_manager")
-                  }}</a
-                  >.
+                  }}</a>.
                 </p>
               </div>
               <div class="flex items-center gap-3">

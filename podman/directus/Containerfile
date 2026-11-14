@@ -1,16 +1,15 @@
-# Built first from docker/directus/Dockerfile, including all pinned security patches.
+# Extends the pinned, patched CMS runtime.
 FROM localhost/slk-podman-directus-runtime:local
 USER node
 COPY --chown=1000:1000 src/directus/cli /directus/cli
 COPY --chown=1000:1000 src/directus/extensions /directus/extensions
 # Extension bundles share the portable logger with Nuxt; retain its real source path.
-COPY --chown=1000:1000 src/frontend/shared/securityLog.ts /frontend/shared/securityLog.ts
-COPY --chown=1000:1000 src/frontend/shared/municipalityClassification.ts /frontend/shared/municipalityClassification.ts
-COPY --chown=1000:1000 src/frontend/shared/contentTranslationProtocol.ts /frontend/shared/contentTranslationProtocol.ts
+COPY --chown=1000:1000 src/frontend/shared/securityLog.ts src/frontend/shared/contentTranslationProtocol.ts src/frontend/shared/municipalityClassification.ts /frontend/shared/
+USER root
+RUN mkdir -p /frontend/node_modules && ln -s /directus/cli/node_modules/zod /frontend/node_modules/zod
+USER node
 COPY --chown=1000:1000 src/frontend/server/utils/rateLimitConfig.ts /frontend/server/utils/rateLimitConfig.ts
-# Shared protocol imports resolve the translation extension's locked Zod copy.
-RUN ln -s /directus/extensions/content-translations/node_modules /frontend/node_modules \
-    && npm ci --prefix /directus/cli --include=dev --no-audit --no-fund \
+RUN npm ci --prefix /directus/cli --include=dev --no-audit --no-fund \
     && npm --prefix /directus/cli run typecheck \
     && for extension in /directus/extensions/*; do \
          if [ -f "$extension/package.json" ]; then \

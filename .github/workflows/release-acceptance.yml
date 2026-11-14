@@ -15,28 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
       - name: Install locked browser tooling
         run: |
+          npm ci --prefix bin --ignore-scripts
           npm ci --prefix bin/test_suite --ignore-scripts
           npm --prefix bin/test_suite exec -- playwright install --with-deps chromium
       - name: Public routes, production CSP and styles
-        working-directory: bin/test_suite
         env:
           SLK_RELEASE_TARGET: ${{ inputs.target }}
         shell: bash
-        run: |
-          set -euo pipefail
-          case "$SLK_RELEASE_TARGET" in
-            staging) slk_origin=https://staging.stadt-land-klima.de ;;
-            production) slk_origin=https://www.stadt-land-klima.de ;;
-            *) exit 64 ;;
-          esac
-          npm run test:public -- "$slk_origin"
-          npm run test:security:csp -- "$slk_origin"
-          npm run test:styles -- "$slk_origin"
+        run: node bin/slk check release --target "$SLK_RELEASE_TARGET" --output full
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: release-checks
+          path: .reports/checks/
+          include-hidden-files: true
+          retention-days: 14

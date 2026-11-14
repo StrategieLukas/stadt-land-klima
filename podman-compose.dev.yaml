@@ -1,13 +1,13 @@
 services:
   db:
-    ports: ["127.0.0.1:5432:5432"]
+    ports: ["127.0.0.1:${SLK_PODMAN_DB_PORT:-5432}:5432"]
   directus:
     ports: ["127.0.0.1:${SLK_PODMAN_CMS_PORT:-8081}:8055"]
     environment:
       SLK_ENV: development
   frontend:
-    ports: ["127.0.0.1:${SLK_PODMAN_WEB_PORT:-8080}:3000", "127.0.0.1:24678:24678"]
-    command: [sh, /start_dev.sh]
+    ports: ["127.0.0.1:${SLK_PODMAN_WEB_PORT:-8080}:3000", "127.0.0.1:${SLK_PODMAN_HMR_PORT:-24678}:24678"]
+    command: [/bin/sh, /start_dev.sh]
     environment:
       SLK_ENV: development
     volumes:

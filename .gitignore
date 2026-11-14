@@ -1,5 +1,7 @@
-# docker volumes
-/docker/data
+# Legacy local data is private and is never removed by source cleanup.
+/docker/
+# podman volumes
+/podman/data
 
 # env files
 .env
@@ -96,7 +98,6 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
 .env.test
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -154,4 +155,7 @@ out
 /.reports/
 
 # Host-specific, verified core-service storage cutovers.
-/docker/core-storage/
+/podman/core-storage/
+
+# macOS Finder metadata
+.DS_Store

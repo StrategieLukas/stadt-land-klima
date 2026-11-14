@@ -1,6 +1,7 @@
 /** Fail-closed host/runtime checks. Never print inspect/config JSON: it contains secrets. */
 import { execFileSync } from "node:child_process";
 import {
+  existsSync,
   closeSync,
   lstatSync,
   mkdirSync,
@@ -250,7 +251,22 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
           maxBuffer: 4 * 1024 * 1024,
         }),
       );
-      const profile = assertPodmanHost(info, verifyInheritedAppArmor());
+      const inherited = verifyInheritedAppArmor();
+      const developmentAppArmorHost =
+        process.argv[3] === "development" &&
+        existsSync("/sys/module/apparmor/parameters/enabled") &&
+        readFileSync("/sys/module/apparmor/parameters/enabled", "utf8").trim() === "Y";
+      const profile = assertPodmanHost(info, inherited || developmentAppArmorHost);
+      const security = record(record(record(info).host).security);
+      if (
+        developmentAppArmorHost &&
+        !inherited &&
+        security.apparmorEnabled !== true &&
+        security.selinuxEnabled !== true
+      )
+        process.stderr.write(
+          "Development host: production requires effective or verified inherited LSM confinement.\n",
+        );
       const stat = lstatSync(profile);
       if (!stat.isFile() || (stat.mode & 0o022) !== 0 || ![0, process.getuid?.()].includes(stat.uid))
         throw new PodmanSecurityError(
@@ -285,8 +301,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       const uid = process.getuid?.();
       if (uid === undefined) throw new PodmanSecurityError("Linux filesystem ownership is required");
       for (const path of [
-        process.env.SLK_PODMAN_DB_ENV_FILE || "docker/db/.env",
-        process.env.SLK_PODMAN_MEILI_ENV_FILE || "docker/meilisearch/.env",
+        process.env.SLK_PODMAN_DB_ENV_FILE || "podman/database/.env",
+        process.env.SLK_PODMAN_MEILI_ENV_FILE || "podman/meilisearch/.env",
         process.env.SLK_PODMAN_DIRECTUS_ENV_FILE || "src/directus/.env",
         process.env.SLK_PODMAN_FRONTEND_ENV_FILE || "src/frontend/.env",
       ])

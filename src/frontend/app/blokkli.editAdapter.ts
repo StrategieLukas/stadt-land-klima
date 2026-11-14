@@ -1309,7 +1309,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       // snapshot so an edit made just after preview opened is not missed.
       if (!previewPollingStarted) {
         previewPollingStarted = true;
-        return editStateDateUpdated || 1;
+        return new Date(editStateDateUpdated || 1).toISOString();
       }
       // Preview has its own adapter instance; its in-memory timestamp never
       // changes when another tab saves. Read both recovery stores instead.
@@ -1325,10 +1325,10 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
             limit: 1,
           }),
         );
-        return Math.max(localDate, Date.parse(records[0]?.date_updated || "") || 0, 1);
+        return new Date(Math.max(localDate, Date.parse(records[0]?.date_updated || "") || 0, 1)).toISOString();
       } catch {
         clientDiagnostic("app.app.blokkli.editAdapter.degraded", "warn");
-        return Math.max(localDate, editStateDateUpdated, 1);
+        return new Date(Math.max(localDate, editStateDateUpdated, 1)).toISOString();
       }
     },
 

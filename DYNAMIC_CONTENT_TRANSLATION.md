@@ -1,12 +1,12 @@
 # DeepL CMS content translation
 
-The integration is implemented. **Generation is disabled until you supply a private API key
-and explicitly enable generation.** German (`de-DE`) remains the source; prepared content targets English
+The integration is implemented. **Generation defaults to disabled; supply a private API key
+and explicitly enable generation to activate it.** German (`de-DE`) remains the source; prepared content targets English
 (`en-GB`) and Italian (`it-IT`). Page requests only read prepared translations. They never
 contact DeepL, create jobs, reserve credits or write translation data.
 
 The existing typed DE/EN/IT interface dictionaries remain separate. Machine translated
-content has a maintained three-language notice; previews and candidate access pages are
+content has a small translated legal note in non-German public footers; previews and candidate access pages are
 excluded. Missing translations fall back to the current German field. Incomplete or failed
 lookups are `no-store`, so completed preparation becomes visible on the next request.
 
@@ -51,7 +51,7 @@ The local schema, endpoint extension and private worker identity have been prepa
 new deployment, use the following sequence from the repository root. Directus stays on
 **11.17.4**.
 
-1. Install/build the new extension, or use `./bin/check_extensions.sh --build` for all:
+1. Install/build the new extension, or use `./bin/slk extensions check --build` for all:
 
    ```bash
    npm --prefix src/directus/extensions/content-translations ci
@@ -61,13 +61,13 @@ new deployment, use the following sequence from the repository root. Directus st
 2. Import the maintained YAML and outbox definition:
 
    ```bash
-   docker compose -f docker-compose.yaml exec directus /directus/cli/import-all.sh
+   ./bin/slk stack compose --env development -- exec directus /directus/cli/import-all.sh
    ```
 
 3. Restart Directus to load the compiled endpoint:
 
    ```bash
-   docker restart stadt-land-klima-directus-1
+   ./bin/slk stack restart --env development directus
    ```
 
 4. Provision the isolated identity using the existing private CLI administrator credential.
@@ -76,7 +76,7 @@ new deployment, use the following sequence from the repository root. Directus st
 
    ```bash
    umask 077
-   docker compose -f docker-compose.yaml exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 directus \
+   ./bin/slk stack compose --env development -- exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 directus \
      /directus/cli/node_modules/.bin/tsx /directus/cli/provisionTranslationWorker.ts \
      > /private/path/translation-worker.env
    ```
@@ -92,7 +92,14 @@ new deployment, use the following sequence from the repository root. Directus st
    CONTENT_TRANSLATION_GENERATION_ENABLED=true
    ```
 
-   `CONTENT_TRANSLATION_WORKER_TOKEN` must already be configured. The key, worker token and
+   Production `stack start`, frontend `stack restart`, and release activation reconcile
+   the restricted worker identity before starting frontend. A missing account uses the
+   configured strong token; an existing account keeps its token. If no token was configured,
+   provisioning generates one and saves it atomically in the selected private frontend
+   environment (mode 0600). Existing-account tokens are synchronised there without rotation.
+   A conflicting account or overprivileged role blocks startup. `--prepare-only` leaves
+   provisioning until the real start. The manual command above is only needed for explicit
+   operator/sample work. The key, worker token and
    provider settings belong only to private runtime configuration. No browser SDK, public
    config, payload, URL or log receives the credentials. Development reloads configuration;
    production needs a frontend process restart to apply private environment changes.
@@ -103,17 +110,16 @@ new deployment, use the following sequence from the repository root. Directus st
    set `CONTENT_TRANSLATION_GENERATION_ENABLED=false` to pause generation while continuing to serve prepared translations.
    Setting `CONTENT_TRANSLATION_ENABLED=false` disables the reader as well.
 
-With both switches enabled, a normal first run starts after the debounce/poll window, generally within 30–90 seconds.
+With both switches enabled on the production target, a normal first run starts after the debounce/poll window, generally within 30–90 seconds.
 Preparation continues in the background. A partially translated site remains usable through
 field-level German fallback; supplying a key does not synchronously translate every page.
 
-Before enabling generation, load and verify any restrictive Directus limits. Docker
-`env_file` changes require container recreation with the same Compose profiles used to
-start the environment; a plain restart retains the old container environment. For local
+Before enabling generation, load and verify any restrictive Directus limits. Mounted dotenv changes are reloaded by the service entrypoint on restart.
+Use the same Podman deployment/project as the target. For local
 development:
 
 ```bash
-docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --no-deps directus
+./bin/slk stack restart --env development directus
 ```
 
 Wait for Directus health, then use the operator `status` command below to verify the
@@ -122,35 +128,39 @@ Compose files when doing the equivalent deployment recreation.
 
 ### Local off and staging sample mode
 
-Both switches default to false. Deploying this change leaves automatic preparation off
-unless the new generation switch is explicitly enabled:
+Both switches default to false. Automatic preparation runs only when explicitly enabled:
 
-| Enabled | Generation enabled | Behaviour                                                                                                                                 |
-| ------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| false   | either             | No stored CMS translation overlay, notice, background worker or DeepL requests. Existing UI dictionaries and private memory are retained. |
-| true    | false              | Serve stored translations and German fallback. No automatic source sweep or provider calls, even with a valid key.                        |
-| true    | true               | Serve stored translations and run automatic background preparation when private credentials are configured.                               |
+| Enabled | Generation enabled | Behaviour                                                                                                                                                                                |
+| ------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| false   | either             | No stored CMS translation overlay, background worker or DeepL requests. Non-German public footers retain the small legal note. Existing UI dictionaries and private memory are retained. |
+| true    | false              | Serve stored translations and German fallback. No automatic source sweep or provider calls, even with a valid key.                                                                       |
+| true    | true               | Serve stored translations and run automatic background preparation when private credentials are configured.                                                                              |
 
-Local private configuration now has both switches false, verified after a normal frontend
-restart with the saved key present. This replaces the earlier process-only pause.
-
-On the **staging host**, deploy this change and the schema/extension/private identity from
+On the **staging host**, install the schema/extension/private identity from
 Installation above. In staging's private frontend environment use runtime overrides:
 
 ```dotenv
 NUXT_CONTENT_TRANSLATION_ENABLED=true
 NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED=false
 NUXT_DEEPL_API_KEY=your-private-key
+SLK_DEPLOYMENT_TARGET=staging
 ```
 
 The unprefixed variants are supported as development/build defaults. Matching `NUXT_`
 variables override the built server at runtime ([Nuxt runtime configuration](https://github.com/nuxt/nuxt/blob/main/docs/3.guide/6.going-further/10.runtime-config.md)).
 Keep all keys private. The sample command accepts either form, with `NUXT_` taking precedence.
-Recreate the staging frontend with the same Compose configuration used to deploy it so the
-environment is reloaded. With the repository's production profile:
+`SLK_DEPLOYMENT_TARGET` separates deployment identity from the build profile: production
+profiles default to `production`; development profiles always disable background generation.
+Set `staging` in the staging frontend dotenv or private release host configuration, and
+`future` on preview hosts. The mounted launcher locks this target and forces background
+generation off outside production, even if copied legacy/`NUXT_` flags enable it. Stored
+translation reads and the explicit bounded sample runner remain available. `deploy staging`
+also supplies the staging target explicitly. No account is automatically provisioned there.
+Restart the staging frontend with the same Compose configuration used to deploy it so the
+mounted environment is reloaded. With the repository's production profile:
 
 ```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --no-deps frontend
+./bin/slk stack restart --env production frontend
 ```
 
 Confirm the frontend startup log reports `content.translation.generation_paused` before
@@ -206,15 +216,6 @@ Run the identical apply command again: with unchanged titles and settings, expec
 `providerCalls: 0` and `billedDelta: 0`. Existing complete fields can be reused even after
 the local budget is exhausted. Keep automatic generation false after the test. Set the
 master switch false as well to deactivate the integration fully on staging.
-
-The local disable/staging-tool change passed the full frontend and operator typechecks,
-28 focused translation tests and the default development wrapper (245 application tests,
-41 CLI tests, 24 integration/browser steps). Real local DE and IT CMS responses matched
-exactly after a normal restart, and the rendered machine-translation notice was absent.
-The new CLI dry-run used no provider calls or writes. The EN/IT apply and exhausted-budget
-reuse path is covered with mocked provider/private transports; no staging deployment or
-additional real provider generation was performed for this change. Stored billed usage
-remained 1,597 characters.
 
 ### Budgets
 
@@ -390,12 +391,12 @@ the full site; broader prose and terminology review remains separate from the bo
 
 ## Implementation and regression coverage
 
-| Area                                                   | Implementation                                                                                                                                                                                                | Coverage                                                                                                                                                                                                                                                                                                                                |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| HTTP locale / read-only overlay                        | `composables/useContentFetch.ts`; `shared/contentTranslation.ts`; `server/utils/contentTranslation.ts`; `server/plugins/content-translation.ts`                                                               | Targeted automated: `contentTranslation.test.ts`, including actual H3 serialization, locale isolation, immutable fallback and no generation from page requests.                                                                                                                                                                         |
-| Format protection, provider and economical preparation | `server/utils/{contentTranslationFormat,deepLTranslation,contentTranslationWorker}.ts`                                                                                                                        | Targeted automated: `deepLTranslation.test.ts` — markup/Markdown/GFM/code/link/placeholder preservation, escaped output, quota/batch bounds, no paid retries, cross-field reuse, one-sentence edits, reverts, markup-only changes and disabled/missing-key startup. Real EN/IT translation quality is manual-only and not yet measured. |
-| Persistence and durable outbox                         | `server/utils/contentTranslationPersistence.ts`; `server/plugins/content-translation-worker.ts`; private YAML; `src/directus/cli/installTranslationOutbox.ts`; `src/directus/extensions/content-translations` | Targeted automated: `contentTranslationDatabase.test.ts` in the database profile — atomic source rollback, concurrent leases/reservations, idempotent commit, budgets, safe refunds, ambiguous/crashed requests, stale source, control rate limits, real role denials and full source enumeration.                                      |
-| UI locale / notice                                     | `plugins/directus.server.ts`; `layouts/default.vue`; `components/LanguageSelector.vue`; DE/EN/IT `translation.machine_notice` keys                                                                            | Targeted automated locale flow: `sharedStateFlow.ts` (SSR, hydration, saved preference, reload preserving route/query/fragment); notice and stored overlay also checked in the keyless-reader acceptance profile.                                                                                                                       |
+| Area                                                   | Implementation                                                                                                                                                                                                | Coverage                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP locale / read-only overlay                        | `composables/useContentFetch.ts`; `shared/contentTranslation.ts`; `server/utils/contentTranslation.ts`; `server/plugins/content-translation.ts`                                                               | Targeted automated: `contentTranslation.test.ts`, including actual H3 serialization, locale isolation, immutable fallback and no generation from page requests.                                                                                                                                                                     |
+| Format protection, provider and economical preparation | `server/utils/{contentTranslationFormat,deepLTranslation,contentTranslationWorker}.ts`                                                                                                                        | Targeted automated: `deepLTranslation.test.ts` — markup/Markdown/GFM/code/link/placeholder preservation, escaped output, quota/batch bounds, no paid retries, cross-field reuse, one-sentence edits, reverts, markup-only changes and disabled/missing-key startup. Real EN/IT prose quality and terminology require manual review. |
+| Persistence and durable outbox                         | `server/utils/contentTranslationPersistence.ts`; `server/plugins/content-translation-worker.ts`; private YAML; `src/directus/cli/installTranslationOutbox.ts`; `src/directus/extensions/content-translations` | Targeted automated: `contentTranslationDatabase.test.ts` in the database profile — atomic source rollback, concurrent leases/reservations, idempotent commit, budgets, safe refunds, ambiguous/crashed requests, stale source, control rate limits, real role denials and full source enumeration.                                  |
+| UI locale / notice                                     | `plugins/directus.server.ts`; `components/TranslationLegalNote.vue`; `components/TheFooter{Desktop,Mobile}.vue`; `components/LanguageSelector.vue`; DE/EN/IT `translation.machine_notice` keys                | Targeted automated locale flow: `sharedStateFlow.ts` (SSR, hydration, saved preference, reload preserving route/query/fragment); notice and stored overlay also checked in the keyless-reader acceptance profile.                                                                                                                   |
 
 Run from the repository root:
 
@@ -404,7 +405,7 @@ npm --prefix src/frontend run typecheck
 npm --prefix bin/test_suite run typecheck
 npm --prefix bin/test_suite run test:content-translation
 npm --prefix bin/test_suite run test:content-translation:database
-cd bin && ./test_dev.sh
+cd bin && ./slk test dev
 ```
 
 For the keyless frontend restart/SSR acceptance check, stop other Nuxt dev processes first
@@ -415,58 +416,6 @@ provider-key variables empty and starts/stops its own frontend.
 The database profile requires the local imported/restarted Directus and frontend. Its
 transaction tests use a temporary isolated schema and clean up their fixtures. It never
 calls DeepL. Dependencies remain subject to the repository's raw audit/backport checks.
-
-## Pre-key implementation verification (2026-10-27)
-
-- YAML import completed; transaction-bound outbox installed for 30 source collections.
-  Compiled endpoint loaded after restarting pinned Directus 11.17.4; private worker identity
-  provisioned in ignored frontend configuration. Generation remains disabled with no key.
-- Frontend full typecheck, CLI typecheck/source coverage, test-suite typecheck, extension
-  build/typecheck/lint and repository formatting passed.
-- `cd bin && ./test_dev.sh` passed 243 application tests, 41 CLI tests and 24 fast
-  integration/browser steps. This is the default regression profile, not every editorial flow.
-- The separate database profile passed all 8 tests, including a sweep of 146 public source
-  responses. The keyless reader profile passed real SSR/API, restart, revert, fallback and
-  unpublishing assertions. Explicit localhost:8080 page and EN/IT API curls returned 200.
-- New extension raw audit: no reported vulnerabilities. Frontend raw audit: 7 high graph
-  entries all lead to the existing `node-forge` advisory; the maintained CVE-2026-85393
-  backport verifier passes. Outdated packages were reviewed; framework/compiler pins and
-  Directus were preserved. This does not claim a clean raw frontend audit.
-- No real DeepL requests or credits were used. Provider authentication, account-specific
-  behaviour and real translation quality remain the only provider activation checks.
-
-## Bounded live provider check (2026-10-27)
-
-A real key authenticated successfully through the usage endpoint. The automatically started
-worker had already prepared 50 English units / 24 fields using 1,561 characters while the
-old container limits were still active. Generation was paused before further inspection.
-The development Directus container was recreated with the correct Compose overlay; status
-then confirmed the latest private limits: **100,000 overall and 5,000/day**. No limit was
-raised or usage counter reset for this check.
-
-A separate bounded run selected only three published navigation titles, with a hard
-200-character ceiling on its provider transport. English reused existing memory. Italian
-needed one paid request for **36 characters**, preparing three fields. Total billed usage
-became **1,597**; DeepL's reported remaining allowance decreased by exactly 36.
-
-| German source          | Prepared English           | Prepared Italian           |
-| ---------------------- | -------------------------- | -------------------------- |
-| Ranking                | Ranking                    | Classifica                 |
-| Mitmachen \| Lokalteam | Get involved \| Local team | Partecipa \| Gruppo locale |
-| Über uns               | About us                   | Chi siamo                  |
-
-All six fields matched the live public API. Repeated stored reads returned identical values
-without provider calls. A real reservation exceeding the active daily cap was rejected
-before generation, with no charged reservation. The existing key was retained privately.
-Broader prose/terminology quality review remains manual-only. The post-check
-`cd bin && ./test_dev.sh` run passed 243 application tests, 41 CLI tests and all 24 fast
-integration/browser steps without further provider usage. The raw dependency audit reports
-the existing single `node-forge` advisory; its maintained backport check passes.
-
-The initial check used temporary empty API-key process overrides to pause automatic
-preparation while serving stored results. The key stayed private in `.env`. That temporary
-pause has now been replaced by both translation switches being false in local private
-configuration. A normal local frontend restart keeps the integration fully disabled.
 
 ## Scope retained for separate work
 

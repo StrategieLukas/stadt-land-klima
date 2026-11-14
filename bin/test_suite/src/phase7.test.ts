@@ -259,6 +259,7 @@ test("the actual MapLibre component validates its constructed style before creat
   const geometry = await import("../../../src/frontend/shared/contracts/geometry.js");
   const helpers = await import("../../../src/frontend/shared/visualization.js");
   const safety = await import("../../../src/frontend/shared/visualizationSafety.js");
+  const collectionItems = await import("../../../src/frontend/utils/collectionItems.js");
   for (const invalid of [false, true]) {
     const created: State[] = [];
     let workerUrl = "";

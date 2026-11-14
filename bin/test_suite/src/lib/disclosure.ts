@@ -1,8 +1,6 @@
-import { existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
 import type { Page, Request as BrowserRequest, Response as BrowserResponse } from "playwright";
 import { assert } from "./assert.js";
-import { parseEnvFile, type TestConfig } from "./config.js";
+import { frontendEnvironment, type TestConfig } from "./config.js";
 import { waitForHydration } from "./browser.js";
 import { waitFor } from "./wait.js";
 
@@ -50,8 +48,7 @@ export function assertNoCredentialFields(value: unknown, context: string): void 
 }
 
 export function configuredSecrets(config: TestConfig): HiddenValue[] {
-  const frontendEnv = process.env.TEST_FRONTEND_ENV_FILE || resolve(dirname(config.envPath), "../frontend/.env");
-  const env = { ...config.env, ...(existsSync(frontendEnv) ? parseEnvFile(frontendEnv) : {}), ...process.env };
+  const env = { ...config.env, ...frontendEnvironment(config), ...process.env };
   const names = [
     "CLI_DIRECTUS_STATIC_TOKEN",
     "DIRECTUS_ADMIN_TOKEN",

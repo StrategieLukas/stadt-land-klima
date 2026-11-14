@@ -7,10 +7,9 @@
 **/*.tsbuildinfo
 src/frontend/public/
 src/directus/uploads/
-docker/data/
+podman/data/
 backups/
 .reports/
-docs/legacy/
 
 # Code-first Directus exports keep the CLI YAML serializer's canonical layout.
 # Do not rewrite permissions/content as part of source-code formatting.
@@ -24,3 +23,6 @@ src/directus/schema/
 src/directus/settings/
 src/directus/translations/
 src/directus/webhooks/
+
+# Preserved local data from pre-Podman deployments.
+docker/

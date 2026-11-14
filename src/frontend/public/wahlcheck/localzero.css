@@ -1,0 +1,294 @@
+/* Opt-in Wahlcheck palette only. Source: https://localzero.net/assets/css/lz-default.css
+   Fabrikat font sources: https://localzero.net/assets/fonts/FabrikatNormal-{Regular,Medium,Bold}.woff2
+   Navy/yellow follow LocalZero; darker cyan and green keep text and controls readable.
+   No geometry, imagery, content or site-theme preference changes. */
+@font-face {
+  font-family: "Wahlcheck Fabrikat";
+  src: url("/wahlcheck/fonts/FabrikatNormal-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Wahlcheck Fabrikat";
+  src: url("/wahlcheck/fonts/FabrikatNormal-Medium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Wahlcheck Fabrikat";
+  src: url("/wahlcheck/fonts/FabrikatNormal-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] {
+  color-scheme: light;
+  font-family: "Wahlcheck Fabrikat", sans-serif;
+  color: #011633;
+  background-color: #ffffff;
+  --color-primary: #ffc80c;
+  --color-primary-content: #011633;
+  --color-secondary: #011633;
+  --color-secondary-content: #ffffff;
+  --color-accent: #007a98;
+  --color-accent-content: #ffffff;
+  --color-base-100: #ffffff;
+  --color-base-200: #f4f7fa;
+  --color-base-300: #c3cbd4;
+  --color-base-content: #011633;
+  --color-neutral: #011633;
+  --color-neutral-content: #ffffff;
+  --slk-page: #ffffff;
+  --slk-surface: #ffffff;
+  --slk-surface-subdued: #f4f7fa;
+  --slk-text: #011633;
+  --slk-text-strong: #011633;
+  --slk-text-muted: #4b5c70;
+  --slk-border: #c3cbd4;
+  --slk-blue: #011633;
+  --slk-accent-green: #ffc80c;
+}
+
+html
+  .elections-flow[data-wahlcheck-theme="localzero"]
+  :is(h1, h2, h3, h4, h5, h6, button, input, select, textarea, .font-sans, .font-heading) {
+  font-family: "Wahlcheck Fabrikat", sans-serif;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-mild-white,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-white,
+html .elections-flow[data-wahlcheck-theme="localzero"] .card,
+html .elections-flow[data-wahlcheck-theme="localzero"] .modal-box {
+  background-color: #ffffff !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-black,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-gray,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-stats-dark,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-ff-green,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-light-green,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-primary {
+  color: #011633 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-mid-gray,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-solid-gray-50,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-solid-gray-60,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-solid-stats-dark-60,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-solid-stats-dark-80 {
+  color: #4b5c70 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-ff-green,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-primary {
+  background-color: #ffc80c !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-stats-dark {
+  background-color: #011633 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-ff-green-05,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-ff-green-10,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-ff-green-20,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-ff-green\/15,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-ff-green\/20 {
+  background-color: #fff4ce !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-very-light-blue-60,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-stats-light-50,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-stats-light\/20,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-stats-light\/35,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-stats-dark\/5 {
+  background-color: #e1f3f8 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-gray-05,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-gray-10,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-gray-20,
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-gray-30 {
+  background-color: #edf1f5 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-solid-gray-10,
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-solid-gray-20 {
+  border-color: #c3cbd4 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-solid-gray-30,
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-solid-light-blue-30 {
+  border-color: #697b8d !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-ff-green,
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-solid-ff-green-20,
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-solid-ff-green-30 {
+  border-color: #007a98 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-orange,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-orange-700,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-orange-800 {
+  color: #854300 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-red {
+  color: #a33225 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-rating-4,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-solid-rating-4-60,
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-solid-rating-4-90 {
+  color: #2e7041 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-solid-rating-4-10 {
+  background-color: #edf7e4 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-rating-0 {
+  background-color: #b13c28 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-rating-0 {
+  border-color: #b13c28 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-rating-0 {
+  color: #b13c28 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-rating-1 {
+  background-color: #ffc80c !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-rating-1 {
+  border-color: #697b8d !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-rating-1 {
+  color: #011633 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-rating-2 {
+  background-color: #ffc80c !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-rating-2 {
+  border-color: #697b8d !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-rating-2 {
+  color: #011633 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-rating-3 {
+  background-color: #a3d869 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-rating-3 {
+  border-color: #697b8d !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-rating-3 {
+  color: #011633 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-rating-4 {
+  background-color: #2e7041 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-rating-4 {
+  border-color: #2e7041 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-rating-4 {
+  color: #2e7041 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .bg-rating-na {
+  background-color: #697584 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .border-rating-na {
+  border-color: #697584 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-rating-na {
+  color: #697584 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .text-white {
+  color: #ffffff !important;
+}
+
+html
+  .elections-flow[data-wahlcheck-theme="localzero"]
+  :is(.bg-ff-green, .bg-primary, .bg-rating-1, .bg-rating-2, .bg-rating-3),
+html
+  .elections-flow[data-wahlcheck-theme="localzero"]
+  :is(.bg-ff-green, .bg-primary, .bg-rating-1, .bg-rating-2, .bg-rating-3)
+  .text-white {
+  color: #011633 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .hover\:bg-solid-ff-green-05:hover,
+html .elections-flow[data-wahlcheck-theme="localzero"] .hover\:bg-solid-ff-green-10:hover {
+  background-color: #fff4ce !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .hover\:bg-stats-light:hover,
+html .elections-flow[data-wahlcheck-theme="localzero"] .hover\:bg-mild-white:hover,
+html .elections-flow[data-wahlcheck-theme="localzero"] .hover\:bg-solid-gray-05:hover {
+  background-color: #e1f3f8 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .hover\:border-ff-green:hover,
+html .elections-flow[data-wahlcheck-theme="localzero"] .hover\:border-solid-ff-green-30:hover,
+html .elections-flow[data-wahlcheck-theme="localzero"] .hover\:border-solid-gray-40:hover {
+  border-color: #007a98 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .group:hover .group-hover\:text-ff-green {
+  color: #007a98 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] :is(button, a, input, select, textarea):focus-visible,
+html .elections-flow[data-wahlcheck-theme="localzero"] .option-btn:has(input:focus-visible) {
+  outline: 2px solid #011633 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] :is(button, a, input, select, textarea):focus-visible,
+html .elections-flow[data-wahlcheck-theme="localzero"] .option-btn:has(input:focus-visible) {
+  outline-offset: 3px !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .weight-toggle-checkbox:checked {
+  background-color: #ffc80c !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .weight-toggle-checkbox:checked {
+  color: #011633 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] ::-webkit-scrollbar-track {
+  background-color: #edf1f5 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] ::-webkit-scrollbar-thumb {
+  background-color: #007a98 !important;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .weight-toggle-checkbox:checked::after {
+  color: #011633;
+}
+
+html .elections-flow[data-wahlcheck-theme="localzero"] .btn-primary {
+  color: #011633 !important;
+}

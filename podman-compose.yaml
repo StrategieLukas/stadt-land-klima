@@ -1,4 +1,4 @@
-# Use bin/podman.sh; never layer this file onto docker-compose.yaml.
+# Rootless deployment; invoke through bin/slk stack for runtime mounts and confinement.
 x-podman:
   in_pod: false
 
@@ -6,7 +6,7 @@ x-security: &security
   cap_drop: [ALL]
   security_opt:
     - no-new-privileges
-    - seccomp=${SLK_PODMAN_SECCOMP:?Run bin/podman.sh to select the host seccomp profile}
+    - seccomp=${SLK_PODMAN_SECCOMP:?Run bin/slk stack to select the host seccomp profile}
   read_only: true
   user: "1000:1000"
   userns_mode: "keep-id:uid=1000,gid=1000"
@@ -22,11 +22,14 @@ x-security: &security
 services:
   db:
     <<: *security
-    image: docker.io/postgis/postgis:17-3.6@sha256:d7053f57b0d62c427ffbf412208b6625317124d62eebf40672e990fea81e9d53
+    image: localhost/slk-podman-database:${SLK_PODMAN_TAG:-local}
+    build:
+      context: ./podman/database
+      dockerfile: Containerfile
     user: "999:999"
     userns_mode: "keep-id:uid=999,gid=999"
     volumes:
-      # :U is restricted to new Podman-owned named volumes, never host bind mounts.
+      # :U initializes ownership only on Podman-owned named volumes and private tmpfs, never host binds.
       - database:/var/lib/postgresql/data:U,nosuid,nodev,noexec
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777
@@ -38,14 +41,14 @@ services:
     mem_limit: "${SLK_DB_MEMORY_LIMIT:-2G}"
     pids_limit: 512
     healthcheck:
-      test: [CMD-SHELL, 'pg_isready -h db -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      test: [CMD, /usr/local/bin/slk-env, /bin/sh, -ec, 'pg_isready -h db -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
       interval: 3s
       timeout: 5s
       retries: 20
 
   cache:
     <<: *security
-    image: docker.io/library/redis:8.10.2-alpine
+    image: docker.io/library/redis:8.10.3-alpine
     user: "999:1000"
     userns_mode: "keep-id:uid=999,gid=1000"
     # Redis holds sessions, rate limits and synchronization; persist across cutover/restarts.
@@ -63,7 +66,10 @@ services:
 
   meilisearch:
     <<: *security
-    image: docker.io/getmeili/meilisearch:v1.55.0
+    image: localhost/slk-podman-meilisearch:${SLK_PODMAN_TAG:-local}
+    build:
+      context: ./podman/meilisearch
+      dockerfile: Containerfile
     environment:
       MEILI_NO_ANALYTICS: "true"
     volumes:
@@ -94,9 +100,10 @@ services:
       ASSETS_TRANSFORM_MAX_CONCURRENT: "${SLK_ASSET_TRANSFORM_CONCURRENCY:-8}"
       NPM_CONFIG_CACHE: /tmp/npm
       TEMP_PATH: /directus/.tmp
+      PM2_HOME: /directus/.tmp/pm2
       XDG_CACHE_HOME: /directus/.tmp/cache
     command:
-      - sh
+      - /bin/sh
       - -ec
       - >-
         umask 077;
@@ -147,15 +154,17 @@ services:
 
   frontend: &frontend
     <<: *security
+    entrypoint: [/usr/local/bin/slk-env, node, scripts/runtimeEnvironment.mts]
     image: localhost/slk-podman-frontend:${SLK_PODMAN_TAG:-local}
     build:
       context: .
       dockerfile: podman/frontend/Containerfile
     environment:
+      SLK_DEPLOYMENT_TARGET: development
       NPM_CONFIG_CACHE: /tmp/npm
     # Refuse stale output. Dependencies/builds never run in the production server.
     command:
-      - sh
+      - /bin/sh
       - -ec
       - >-
         umask 077;
@@ -179,6 +188,7 @@ services:
   # Explicit build-only service. It shares the image/env/security controls with frontend.
   frontend-build:
     <<: *frontend
+    entrypoint: [/usr/local/bin/slk-env]
     profiles: [build]
     restart: "no"
     read_only: false
@@ -186,13 +196,13 @@ services:
     healthcheck:
       disable: true
     command:
-      - sh
+      - /bin/sh
       - -ec
       - >-
         umask 077;
         rm -rf .output;
         slk_input=$$(node scripts/productionOutput.mts prepare);
-        npm ci --no-audit --no-fund;
+        npm ci --include=dev --no-audit --no-fund;
         npm run build;
         node scripts/productionOutput.mts stamp "$$slk_input";
         find /release -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +;

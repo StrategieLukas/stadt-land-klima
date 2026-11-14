@@ -158,6 +158,7 @@
         </div>
       </div>
     </div>
+    <TranslationLegalNote />
   </footer>
 
   <AuthLoginModal :is-open="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />

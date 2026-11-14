@@ -22,7 +22,7 @@ test(
     assert.notEqual(env.SLK_ENV, "production");
     const frontend = fileURLToPath(new URL("../../../src/frontend/", import.meta.url));
     const front = parseEnvFile(`${frontend}/.env`);
-    const search = parseEnvFile(fileURLToPath(new URL("../../../docker/meilisearch/.env", import.meta.url)));
+    const search = parseEnvFile(fileURLToPath(new URL("../../../podman/meilisearch/.env", import.meta.url)));
     const admin = await createAdminClient("http://127.0.0.1:8081", env);
     const probe = createServer();
     probe.listen(0, "127.0.0.1");
@@ -159,7 +159,7 @@ test(
       });
       assert.equal(page.status, 200);
       const html = await page.text();
-      assert.match(html, /Machine translated content may differ/);
+      assert.doesNotMatch(html, /class="[^"]*alert[^"]*"[^>]*>\s*Machine translated content may differ/);
       assert(html.includes(`en-GB|${sourceTitle}`));
       for (const secret of [
         front.DIRECTUS_FRONTEND_SERVER_TOKEN,

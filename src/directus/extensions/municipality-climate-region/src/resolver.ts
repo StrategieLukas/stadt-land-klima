@@ -1,4 +1,4 @@
-import { extensionLog } from "../../shared/securityLogger.ts";
+import { extensionLog, errorStatus, failureKind } from "../../shared/securityLogger.ts";
 import type { ApiExtensionContext } from "@directus/types";
 import { z } from "zod";
 
@@ -156,7 +156,7 @@ async function requestJson<T extends z.ZodType>(
   if (config.authorization) headers.set("Authorization", config.authorization);
   try {
     const response = await fetch(url, { ...init, headers, redirect: "error", signal: controller.signal });
-    if (!response.ok) throw new Error(`Upstream returned HTTP ${response.status}`);
+    if (!response.ok) throw Object.assign(new Error("Upstream request failed"), { statusCode: response.status });
     const contentLength = Number(response.headers.get("content-length"));
     if (contentLength > MAX_RESPONSE_BYTES) throw new Error("Upstream response too large");
     if (!response.body) throw new Error("Empty upstream response");
@@ -209,8 +209,11 @@ async function resolveArs(
           .map((area) => area.ars),
       );
       if (ars) return ars;
-    } catch {
-      extensionLog(logger, "warn", "app.municipality-climate-region.resolver.resolveArs.degraded");
+    } catch (error) {
+      extensionLog(logger, "warn", "app.municipality-climate-region.resolver.resolveArs.degraded", {
+        status: errorStatus(error),
+        failureKind: failureKind(error),
+      });
     }
   }
   if (!config.nominatimUrl || !config.overpassUrl) return null;
@@ -248,8 +251,11 @@ async function resolveArs(
         )
         .map((element) => element.tags?.["de:regionalschluessel"]),
     );
-  } catch {
-    extensionLog(logger, "warn", "app.municipality-climate-region.resolver.resolveArs.degraded");
+  } catch (error) {
+    extensionLog(logger, "warn", "app.municipality-climate-region.resolver.resolveArs.degraded", {
+      status: errorStatus(error),
+      failureKind: failureKind(error),
+    });
     return null;
   }
 }
@@ -285,8 +291,11 @@ async function resolveMunicipality(
     try {
       const climateRegion = await resolveClimateRegionType(ars, config);
       if (climateRegion) update.climate_region_type = climateRegion;
-    } catch {
-      extensionLog(context.logger, "warn", "app.municipality-climate-region.resolver.resolveMunicipality.degraded");
+    } catch (error) {
+      extensionLog(context.logger, "warn", "app.municipality-climate-region.resolver.resolveMunicipality.degraded", {
+        status: errorStatus(error),
+        failureKind: failureKind(error),
+      });
     }
   }
   if (Object.keys(update).length) {

@@ -15,9 +15,9 @@ const root = fileURLToPath(new URL("../../../", import.meta.url));
 const directory = mkdtempSync(join(tmpdir(), "slk-caddy-"));
 const name = "slk-caddy-" + randomUUID();
 const upstream = name + "-upstream";
-const image = process.env.SLK_CADDY_IMAGE || "slk-caddy-security:local";
-const docker = (...args: string[]) =>
-  execFileSync("docker", args, {
+const image = process.env.SLK_CADDY_IMAGE || "localhost/slk-caddy-security:local";
+const podman = (...args: string[]) =>
+  execFileSync("podman", args, {
     cwd: root,
     encoding: "utf8",
     timeout: 600_000,
@@ -26,7 +26,7 @@ const docker = (...args: string[]) =>
 let created = false;
 let upstreamCreated = false;
 try {
-  if (!process.env.SLK_CADDY_IMAGE) docker("build", "-t", image, "-f", "caddy/Containerfile", "caddy");
+  if (!process.env.SLK_CADDY_IMAGE) podman("build", "-t", image, "-f", "caddy/Containerfile", "caddy");
   execFileSync(
     "openssl",
     [
@@ -74,6 +74,8 @@ try {
     "ALL",
     "--security-opt",
     "no-new-privileges",
+    "--userns",
+    "keep-id:uid=1000,gid=1000",
     "--user",
     "1000:1000",
     "--memory",
@@ -81,15 +83,15 @@ try {
     "--pids-limit",
     "128",
     "--tmpfs",
-    "/run/caddy:rw,nosuid,nodev,noexec,size=16m,uid=1000,gid=1000,mode=700",
+    "/run/caddy:rw,nosuid,nodev,noexec,size=16m,U,mode=700",
     "--tmpfs",
-    "/data:rw,nosuid,nodev,noexec,size=16m,uid=1000,gid=1000,mode=700",
+    "/data:rw,nosuid,nodev,noexec,size=16m,U,mode=700",
     "--tmpfs",
-    "/config:rw,nosuid,nodev,noexec,size=16m,uid=1000,gid=1000,mode=700",
+    "/config:rw,nosuid,nodev,noexec,size=16m,U,mode=700",
   ];
   if (process.env.SLK_CADDY_SECCOMP) confined.push("--security-opt", "seccomp=" + process.env.SLK_CADDY_SECCOMP);
   for (const file of ["Caddyfile", "Caddyfile.staging", "Caddyfile.future", "Caddyfile.future-bootstrap"])
-    docker(
+    podman(
       "run",
       "--rm",
       "--network",
@@ -104,7 +106,7 @@ try {
       "--adapter",
       "caddyfile",
     );
-  docker(
+  podman(
     "run",
     "-d",
     "--name",
@@ -119,12 +121,14 @@ try {
     image,
   );
   created = true;
-  docker(
+  podman(
     "run",
     "-d",
     "--name",
     upstream,
     "--network",
+    "container:" + name,
+    "--userns",
     "container:" + name,
     "--read-only",
     "--cap-drop",
@@ -139,13 +143,13 @@ try {
     "64",
     "--mount",
     `type=bind,source=${join(root, "bin/test_suite/src/fixtures/caddy-upstream.ts")},target=/upstream.ts,readonly`,
-    "node:24.22.1-trixie-slim",
+    "docker.io/library/node:24.22.3-trixie-slim",
     "node",
     "/upstream.ts",
   );
   upstreamCreated = true;
-  const port = Number(docker("port", name, "8443/tcp").split(":").at(-1));
-  const httpPort = Number(docker("port", name, "8080/tcp").split(":").at(-1));
+  const port = Number(podman("port", name, "8443/tcp").split(":").at(-1));
+  const httpPort = Number(podman("port", name, "8080/tcp").split(":").at(-1));
   const ca = readFileSync(join(directory, "cert.pem"));
   type Result = { status: number; headers: import("node:http").IncomingHttpHeaders; body: string };
   const fetch = (
@@ -181,8 +185,19 @@ try {
         },
       );
       req.setTimeout(5000, () => req.destroy(new Error("Fixture proxy timeout")));
-      req.on("error", reject);
-      req.end(body);
+      req.on("error", (error) =>
+        reject(
+          new Error(`Caddy fixture request failed: ${new URL(path, "https://fixture.invalid").pathname}`, {
+            cause: error,
+          }),
+        ),
+      );
+      if (body && body.length > 64 * 1024) {
+        // Let the proxy reject Content-Length before flooding a closed socket.
+        req.setHeader("Expect", "100-continue");
+        req.on("continue", () => req.end(body));
+        req.flushHeaders();
+      } else req.end(body);
     });
   let ready = false;
   for (let attempt = 0; attempt < 50 && !ready; attempt++) {
@@ -353,7 +368,7 @@ try {
   assert.equal((await fetch("/_nuxt/unavailable.js")).status, 503, "Static errors do not trigger maintenance");
   assert.equal((await fetch("/elections/thesen/unavailable")).status, 503);
   const tooLarge = await fetch("/ai/chat", { "Content-Length": String(10485761) }, Buffer.alloc(10485761));
-  assert.equal(tooLarge.status, 413, "AI retains nginx's 10 MiB body limit");
+  assert.equal(tooLarge.status, 413, "AI retains Caddy's 10 MiB body limit");
   const adminAssets = await Promise.all(
     Array.from({ length: 180 }, (_, index) => fetch(`/backend/admin/assets/chunk-${index}.js`)),
   );
@@ -379,7 +394,7 @@ try {
     pages.some((response) => response.status === 429),
     "Dynamic pages remain rate limited",
   );
-  const logs = docker("logs", name);
+  const logs = podman("logs", name);
   assert.doesNotMatch(
     logs,
     /private-(?:path|query|referrer|auth|cookie|body)-canary|forged-json-canary|203\.0\.113\.55/,
@@ -399,7 +414,7 @@ try {
   assert.match(logs, /"userAgent":"bot"/);
   await new Promise((resolve) => setTimeout(resolve, 1100));
   await fetch("/_test/cms-up");
-  docker(
+  podman(
     "exec",
     name,
     "/usr/bin/caddy",
@@ -479,7 +494,7 @@ try {
     apiBurst.some((response) => response.status === 429),
     "The isolated CMS API retains its own rate limit",
   );
-  const isolatedLogs = docker("logs", name);
+  const isolatedLogs = podman("logs", name);
   assert.doesNotMatch(isolatedLogs, /private-(?:query|cookie|auth|body)-canary/);
   process.stdout.write(
     "Caddy: production/staging validation, TLS redirects, proxy guards/headers, nonce CSP, private logs/referrers, body limits, maintenance, independent rate budgets and isolated CMS redirects/origin/CSRF/anonymous-asset boundaries passed.\n",
@@ -488,8 +503,8 @@ try {
   if (process.env.TEST_KEEP_CADDY_FIXTURE === "1")
     process.stdout.write(`Retained Caddy fixture ${name} ${directory}\n`);
   else {
-    if (upstreamCreated) docker("rm", "-f", upstream);
-    if (created) docker("rm", "-f", name);
+    if (upstreamCreated) podman("rm", "-f", upstream);
+    if (created) podman("rm", "-f", name);
     rmSync(directory, { recursive: true, force: true });
   }
 }

@@ -211,6 +211,9 @@ export async function runMunicipalityDisclosureFlow(runner: TestRunner, fixture:
         try {
           // The caller's own URL credential is allowed in route state. An unrelated
           // stored credential and private relations must never reach this browser.
+          // Force fresh network bodies: Chromium can omit cached module bodies
+          // during navigation. Nuxt's application fetch cache stays exercised.
+          await page.route("**/*", (route) => route.continue());
           const finish = captureBrowserBodies(page, [
             { label: "unrelated preview credential", value: otherToken },
             { label: "private team comment", value: internalText },

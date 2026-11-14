@@ -15,6 +15,7 @@ services:
   frontend:
     ports: ["127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}:3000"]
     environment: &frontend-environment
+      NODE_ENV: production
       SLK_ENV: production
       TRUST_PROXY: "true"
   frontend-build:

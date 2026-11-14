@@ -123,8 +123,18 @@ async function importRoles(src: string, options: TaskOptions = {}) {
 
     const roles = readYamlFiles(path.join(src), RoleSchema);
 
+    // Validate the whole reference graph before changing metadata or creating roles.
+    const roleNames = new Set([...existingRoles, ...roles].map((role) => role.name));
+    for (const role of roles) {
+      if (["Administrator", "Public"].includes(role.name) || !role.parent) continue;
+      validateNotUuid(role.parent, "role");
+      if (!roleNames.has(role.parent))
+        throw new Error(`Could not resolve parent role reference by name: ${role.parent}`);
+    }
+
     const rolesToCreate: Role[] = [];
     const rolesToUpdate: Role[] = [];
+    const parentReferences: Array<{ name: string; parent: string | null }> = [];
 
     // --- Process roles ---
     for (const role of roles) {
@@ -149,6 +159,8 @@ async function importRoles(src: string, options: TaskOptions = {}) {
         continue;
       }
 
+      if (role.parent !== undefined) parentReferences.push({ name: role.name, parent: role.parent });
+
       const existingRole = find(existingRoles, ["name", role.name]);
       const resolvedExistingRole = await resolveRoleByName(client, role.name, existingRoles, options);
 
@@ -172,16 +184,6 @@ async function importRoles(src: string, options: TaskOptions = {}) {
           hasChanges = true;
         }
 
-        // Resolve parent reference (can be UUID or name) to ID
-        if (role.parent !== undefined) {
-          const resolvedParent = await resolveRoleRef(role.parent, client, existingRoles, options.verbose);
-          const currentParentId = relationId(existingRole?.parent);
-          if (resolvedParent !== currentParentId) {
-            roleToUpdate.parent = resolvedParent || null;
-            hasChanges = true;
-          }
-        }
-
         if (hasChanges) {
           roleToUpdate.policiesToAttach = resolvedPolicies;
           roleToUpdate.policyRefsToAttach = policyRefsToAttach;
@@ -203,14 +205,6 @@ async function importRoles(src: string, options: TaskOptions = {}) {
           icon: role.icon,
           description: role.description,
         };
-
-        // Resolve parent reference (can be UUID or name) to ID
-        if (role.parent !== undefined) {
-          const resolvedParent = await resolveRoleRef(role.parent, client, existingRoles, options.verbose);
-          if (resolvedParent) {
-            roleToCreate.parent = resolvedParent;
-          }
-        }
 
         roleToCreate.policiesToAttach = resolvedPolicies;
         roleToCreate.policyRefsToAttach = policyRefsToAttach;
@@ -279,6 +273,15 @@ async function importRoles(src: string, options: TaskOptions = {}) {
       }),
     );
     existingPolicies = await client.request(readPolicies({ limit: -1 }));
+
+    // Parents may appear later in alphabetical YAML order. Resolve them only
+    // after every role exists; preserve users and unrelated metadata.
+    for (const reference of parentReferences) {
+      const role = updatedRoles.find((candidate) => candidate.name === reference.name);
+      if (!role) throw new Error(`Could not find imported role: ${reference.name}`);
+      const parent = await resolveRoleRef(reference.parent, client, updatedRoles, options.verbose);
+      if (parent !== relationId(role.parent)) await client.request(updateRole(role.id, { parent: parent || null }));
+    }
 
     // --- Attach policies to roles ---
     // In v11, roles can have multiple policies attached via many-to-many relationship

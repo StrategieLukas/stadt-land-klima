@@ -1,14 +1,9 @@
 # Portable application backup and recovery
 
-For the original production Docker workflow, use [`full-export.sh`](full-export.sh)
-and its [capture/restore guide](FULL_EXPORT.md). It stops existing app/data services
-and captures cold checkout data as well as logical SQL and external mounts.
-The Node tool below also supports Podman and requires services to be stopped first.
-
-The earlier tooling is `bin/podman-release.sh … backup` (release recovery snapshots)
-and `bin/db_exports/export_db.sh` (database only). Neither is a complete portable
-application backup. The standalone Node 24+ tool below captures a recovery bundle.
-It has no npm dependencies and never stops/restarts services or changes host setup.
+`bin/slk backup create` captures a complete private Podman recovery bundle.
+`bin/slk release backup` keeps an application-release rollback checkpoint and
+`bin/slk database export` exports one database; those have different recovery scopes.
+The portable capture never stops/restarts services or changes host setup.
 Git history must be available locally (shallow checkouts are refused).
 Its output must be a **new directory under this checkout's `backups/`**; a failed
 capture has no valid `SHA256SUMS` and must not be used. Do not reuse its directory.
@@ -24,23 +19,22 @@ The examples here are operator instructions, not steps already executed.
    Gracefully stop `frontend` and `directus`, then `cache` and `meilisearch` through
    the normal production Compose selector. Keep `db` running. Never use `down -v`.
    For Podman, source the trusted private host env in your operator shell first,
-   then use `bin/podman.sh production compose stop frontend directus` and
-   `bin/podman.sh production compose stop cache meilisearch`. Docker hosts must use
-   `core_compose production` from `bin/lib/core-service-data.sh` and its
-   `CORE_COMPOSE` array so migrated storage overlays are honored.
+   then use `bin/slk stack compose --env production -- stop frontend directus` and
+   `bin/slk stack compose --env production -- stop cache meilisearch`. The wrapper
+   honors active migrated storage overlays.
 2. Record the actual Compose project (`SLK_PODMAN_PROJECT` for Podman), and run:
 
    ```bash
-   node bin/lib/portable-backup.ts create \
-     --engine podman --project ACTUAL_PROJECT \
+   ./bin/slk backup create \
+     --project ACTUAL_PROJECT \
      --output backups/production-YYYYMMDD-HHMMSS --writers-stopped \
      --config host=/home/deploy/.config/slk/production.env
    ```
 
-   Use `--engine docker` for Docker. Container selection uses exact project/service
-   labels, including stopped containers. The Docker default local context is used;
+   Container selection uses exact Podman project/service labels, including
+   stopped containers. Only the local engine is used;
    remote engine/context overrides are refused. The four required env files default
-   to `docker/db/.env`, `docker/meilisearch/.env`, `src/directus/.env`,
+   to `podman/database/.env`, `podman/meilisearch/.env`, `src/directus/.env`,
    `src/frontend/.env`. The existing `SLK_PODMAN_{DB,MEILI,DIRECTUS,FRONTEND}_ENV_FILE`
    variables select private paths. Alternatively override individual inputs with
    `--config db=/path`, `--config meilisearch=/path`, `--config directus=/path` and
@@ -65,7 +59,7 @@ The examples here are operator instructions, not steps already executed.
    storage/transport. Check integrity at the destination:
 
    ```bash
-   node /path/to/checkout/bin/lib/portable-backup.ts verify /path/to/copied-bundle
+   /path/to/checkout/bin/slk backup verify /path/to/copied-bundle
    # Or, with standard Unix tools:
    cd /path/to/copied-bundle
    sha256sum --check SHA256SUMS
@@ -87,7 +81,7 @@ The examples here are operator instructions, not steps already executed.
   Redis/search must be stopped cleanly, preserving their persisted sessions,
   synchronization state, indexes, settings and search API keys.
 - `images.tar`: Docker archive of the five exact runtime image IDs. Loadable by
-  either engine on the **same Linux CPU architecture**. This avoids depending on
+  Podman on the **same Linux CPU architecture**. This avoids depending on
   registries or npm to recover existing runtime images. Maintenance/gateway images
   and host security tooling are provisioned separately using the maintained docs.
 - `repository.bundle`: all locally available Git refs/history, so release and
@@ -130,15 +124,13 @@ acceptance. Never restore over production or an existing accepted instance.
    Review `manifest.json` and copy private `config-*` files into new private paths.
    Adapt host paths, project/ports, service URLs and storage overlays to the new
    host; never reuse original absolute bind paths or old volume names. Retain the
-   signing/session/service/search keys. Recreate native Podman secrets from the
-   saved env files using the normal `bin/podman.sh` setup; secret IDs from the old
-   host are not portable.
+   signing/session/service/search keys. Restore the private dotenv files with mode `0600` and configure their read-only
+   mounts through `bin/slk stack`; native engine secret IDs are not used.
 
 2. Provision the documented engine/security prerequisites (`PODMAN.md` or
-   `README.md`). Load images with `podman --remote=false load -i images.tar` or
-   `docker load -i images.tar`. For every service, tag its saved `Image` ID to the
+   `README.md`). Load images with `podman --remote=false load -i images.tar`. For every service, tag its saved `Image` ID to the
    target Compose image name from `Config.Image` in the manifest. Do not rebuild
-   or pull application images during offline recovery. Docker and Podman storage
+   or pull application images during offline recovery. Podman storage
    names may differ; directory contents are restored through target containers.
 3. Create/start only the new database. Bootstrap it with a **new unique superuser
    name absent from `globals.sql`** (e.g. a random `slk_restore_*`) and a distinct
@@ -146,7 +138,7 @@ acceptance. Never restore over production or an existing accepted instance.
    temporary values avoid duplicate-role conflicts. The image must provide the
    captured PostgreSQL/PostGIS extensions. Keep original target application env
    credentials for use after the restore.
-4. Restore roles and then databases. Set `engine` to `docker` or `podman`, `target_db`
+4. Restore roles and then databases. Set `engine` to `podman`, `target_db`
    to the new DB container ID, `restore_operator` to the unique bootstrap name,
    `scratch_db` to the scratch database and `bundle` to the verified directory:
 
@@ -171,7 +163,7 @@ acceptance. Never restore over production or an existing accepted instance.
 
    ```bash
    restore_directory() {
-     ./bin/podman.sh production compose run --rm --no-deps -T \
+     ./bin/slk stack compose --env production -- run --rm --no-deps -T \
        --entrypoint sh "$1" -ec '
          test -z "$(find "$1" -mindepth 1 -maxdepth 1 -print -quit)"
          tar --no-same-owner -xf - -C "$1"
@@ -185,8 +177,7 @@ acceptance. Never restore over production or an existing accepted instance.
 
    The frontend output mount is read-only during normal runtime: use a private
    **target-only** Compose overlay making that mount writable for restoration, then
-   remove the override. Docker targets can use the same helper with their target
-   `CORE_COMPOSE` array, explicitly selecting the target service UID. Docker Redis
+   remove the override. Redis
    has no persistent cache mount by default: add a target-only `/data` volume first.
    Restore ownership as the target service user using `--no-same-owner`; never chown
    original source mounts. No raw PostgreSQL data directory is copied.

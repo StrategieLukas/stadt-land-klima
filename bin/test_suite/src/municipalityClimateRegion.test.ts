@@ -379,3 +379,29 @@ test("hooks resolve creates and relevant updates, ignore unrelated writes and re
   await scheduled!();
   assert.equal(runs, 1);
 });
+
+test("degraded lookups retain safe status and failure category without exposing credentials or upstream payloads", async (t) => {
+  for (const kind of ["status", "timeout", "schema"]) {
+    const f = fixture([city({ ars })]);
+    const records: Array<Record<string, unknown>> = [];
+    const logging = t.mock.method(f.context.logger, "warn", (record: unknown) => {
+      if (record && typeof record === "object") records.push(record as Record<string, unknown>);
+    });
+    const upstream = t.mock.method(globalThis, "fetch", async () => {
+      if (kind === "timeout") throw new DOMException("private-credential https://private.example/secret", "AbortError");
+      if (kind === "status") return new Response("private-credential upstream payload", { status: 503 });
+      return Response.json({ unexpected: "private-credential upstream payload" });
+    });
+    await resolveMunicipalityById("city", f.context);
+    assert.equal(f.writes.length, 0, "Failures cannot populate uncertain municipality data");
+    assert.equal(records[0]?.status, kind === "status" ? 503 : 500);
+    assert.equal(
+      records[0]?.failureKind,
+      kind === "timeout" ? "timeout" : kind === "schema" ? "validation" : "unknown",
+    );
+    assert(!JSON.stringify(records).includes("private-credential"));
+    assert(!JSON.stringify(records).includes("private.example"));
+    upstream.mock.restore();
+    logging.mock.restore();
+  }
+});

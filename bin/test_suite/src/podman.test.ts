@@ -3,6 +3,7 @@ import {
   symlinkSync,
   chmodSync,
   copyFileSync,
+  cpSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -27,10 +28,10 @@ import {
   assertInheritedAppArmor,
 } from "../../lib/podman-security.js";
 import {
-  podmanSecretPlan,
+  podmanEnvironmentPlan,
   managedPodmanEnvironment,
   managedPodmanProductionEnvironment,
-} from "../../lib/podman-secrets.js";
+} from "../../lib/podman-environment.js";
 import { assertReleasePolicy } from "./lib/releasePolicy.js";
 
 const require = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
@@ -40,8 +41,6 @@ const read = (file: string) => readFileSync(new URL("../../../" + file, import.m
 const base = parse(read("podman-compose.yaml"));
 const production = parse(read("podman-compose.prod.yaml"));
 const development = parse(read("podman-compose.dev.yaml"));
-const docker = parse(read("docker-compose.yaml"));
-const dockerProduction = parse(read("docker-compose.prod.yaml"));
 
 function host() {
   return {
@@ -79,19 +78,12 @@ function container() {
 
 test("Podman production retains all pinned Directus, logging and private listener controls", () => {
   assertReleasePolicy(base, production);
-  for (const service of ["db", "cache", "meilisearch"]) {
-    assert.equal(
-      base.services[service].image.replace(/^docker.io\/(?:library\/)?/, ""),
-      docker.services[service].image,
-    );
-    assert.equal(base.services[service].ports, undefined);
-  }
-  for (const [key, value] of Object.entries(docker.services.directus.environment))
-    assert.equal(base.services.directus.environment[key], value, key);
-  for (const [key, value] of Object.entries(dockerProduction.services.directus.environment))
-    assert.equal(production.services.directus.environment[key], value, key);
+  assert.match(read("podman/database/Containerfile"), /postgis\/postgis:17-3\.6@sha256:/);
+  assert.match(read("podman/meilisearch/Containerfile"), /meilisearch:v1\.56\.2/);
+  assert.match(read("podman/directus/RuntimeContainerfile"), /directus\/directus:11\.17\.4/);
+  for (const service of ["db", "cache", "meilisearch"]) assert.equal(base.services[service].ports, undefined);
   assert.equal(production.services.directus.environment.SLK_STARTUP_SECURITY_CHECKS, "true");
-  assert.deepEqual(production.services.frontend.environment, dockerProduction.services.frontend.environment);
+  assert.equal(production.services.frontend.environment.NODE_ENV, "production");
   assert.equal(production.services.meilisearch.environment.MEILI_ENV, "production");
 });
 
@@ -116,7 +108,7 @@ test("all Podman runtimes are non-root, capless, read-only, seccomp confined and
     assert.ok(service.pids_limit > 0, name);
     assert.equal(service.logging.driver, "journald");
     for (const mount of service.volumes ?? []) {
-      assert.doesNotMatch(mount, /\.sock|docker\/data|core-storage/);
+      assert.doesNotMatch(mount, /\.sock|podman\/data|core-storage/);
       if (mount.startsWith("./")) {
         assert.match(mount, /:ro,z$/);
         assert.doesNotMatch(mount, /:.*(?:\bU\b|\bZ\b)/);
@@ -142,14 +134,14 @@ test("only the disposable frontend builder relaxes rootfs writes; runtime code n
   assert.equal(builder.ports, undefined);
   assert.deepEqual(builder.depends_on, {});
   assert.deepEqual(production.services["frontend-build"].environment, production.services.frontend.environment);
-  assert.match(builder.command.join(" "), /npm ci.*npm run build.*productionOutput.mts stamp/);
+  assert.match(builder.command.join(" "), /npm ci --include=dev.*npm run build.*productionOutput.mts stamp/);
   assert.doesNotMatch(base.services.frontend.command.join(" "), /npm|build/);
   assert.match(base.services.frontend.command.join(" "), /productionOutput.mts verify/);
   assert.doesNotMatch(base.services.directus.command.join(" "), /npm ci/);
   assert.match(read("podman/directus/Containerfile"), /FROM localhost\/slk-podman-directus-runtime:local/);
   assert.match(read("podman/directus/Containerfile"), /npm --prefix "\$extension" run build/);
   assert.match(read("podman/directus/Containerfile"), /npm prune.*--omit=dev/);
-  assert.match(read("docker/directus/Dockerfile"), /FROM directus\/directus:11\.17\.4\n/);
+  assert.match(read("podman/directus/RuntimeContainerfile"), /FROM docker\.io\/directus\/directus:11\.17\.4\n/);
   assert.match(read(".containerignore"), /\*\*\/\.env\n/);
   assert.match(read(".containerignore"), /src\/directus\/uploads/);
   for (const service of Object.values(development.services) as Record<string, any>[])
@@ -213,6 +205,15 @@ test("inherited AppArmor rejects missing, spoofed, complain and untrusted policy
   assert.throws(() => assertPodmanHost(ubuntu, true), /Rootless/);
 });
 
+test("production rejects missing effective LSM; a verified development AppArmor host still enforces seccomp and rootless mode", () => {
+  const value = host();
+  value.host.security.apparmorEnabled = false;
+  assert.throws(() => assertPodmanHost(value), /AppArmor or SELinux/);
+  assert.doesNotThrow(() => assertPodmanHost(value, true));
+  value.host.security.seccompEnabled = false;
+  assert.throws(() => assertPodmanHost(value, true), /seccomp/);
+});
+
 test("seccomp selection rejects allow-default, disabled and empty profiles", () => {
   const profile = {
     defaultAction: "SCMP_ACT_ERRNO",
@@ -253,16 +254,15 @@ test("production audit rejects permission drift and unexpected writable mounts w
     value[0]!.Mounts = [mount];
     assert.throws(() => assertPodmanContainer(value, "frontend"));
   }
-  const wrapper = read("bin/podman.sh");
+  const wrapper = read("bin/cli/stack.ts");
   assert.match(wrapper, /--in-pod=false/);
-  assert.match(wrapper, /CONTAINERS_CONF_OVERRIDE=.*engine\.conf/);
-  assert.doesNotMatch(wrapper, /--podman-args=--remote=false/);
+  assert.match(read("bin/cli/podman-local.mjs"), /--remote=false/);
   assert.doesNotMatch(wrapper, /\bpodman (?:build|ps|inspect|exec) /);
-  assert.match(wrapper, /frontend_stopped\n/);
+  assert.match(wrapper, /Stop frontend before preparing/);
   assert.match(wrapper, /\^Seccomp:/);
   assert.match(wrapper, /\^CapBnd:/);
   assert.doesNotMatch(wrapper, /logs --tail|down -v|chmod 777|prune -[af]/);
-  assert.ok(wrapper.indexOf("production audit") < wrapper.lastIndexOf("stop maintenance"));
+  assert.ok(wrapper.includes("await audit(rt)") && wrapper.includes('"stop", "maintenance"'));
 });
 
 test("derived seccomp blocks namespace creation and kernel attack surfaces while preserving threads and libc fallback", () => {
@@ -311,27 +311,41 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   for (const folder of [
     "bin/lib",
+    "bin/cli",
     "tools",
     "runtime",
-    "docker/db",
-    "docker/meilisearch",
+    "podman/database",
+    "podman/meilisearch",
+    "podman/maintenance",
     "src/directus/cli",
     "src/frontend",
+    "src/frontend/shared",
   ])
     mkdirSync(join(directory, folder), { recursive: true, mode: 0o700 });
+  cpSync(fileURLToPath(new URL("../../../bin/cli", import.meta.url)), join(directory, "bin/cli"), { recursive: true });
   for (const file of [
-    "bin/podman.sh",
+    "bin/slk",
+    "bin/package.json",
     "bin/lib/podman-security.ts",
-    "bin/lib/podman-secrets.ts",
-    "bin/lib/package.json",
+    "bin/lib/podman-environment.ts",
+    "bin/lib/maintenance-meta.ts",
+    "bin/lib/portable-backup.ts",
+    "bin/lib/container-environment.ts",
+    "bin/lib/cms-origin.ts",
     "src/directus/cli/package.json",
+    "src/frontend/shared/runtimeEnvironment.ts",
   ])
     copyFileSync(fileURLToPath(new URL("../../../" + file, import.meta.url)), join(directory, file));
-  for (const file of ["docker/db/.env", "docker/meilisearch/.env", "src/directus/.env", "src/frontend/.env"])
+  for (const file of ["podman/database/.env", "podman/meilisearch/.env", "src/directus/.env", "src/frontend/.env"])
     writeFileSync(join(directory, file), "PROBE=not-a-credential\n", { mode: 0o600 });
   symlinkSync(
     fileURLToPath(new URL("../../../src/directus/cli/node_modules", import.meta.url)),
     join(directory, "src/directus/cli/node_modules"),
+    "dir",
+  );
+  symlinkSync(
+    fileURLToPath(new URL("../../../bin/node_modules", import.meta.url)),
+    join(directory, "bin/node_modules"),
     "dir",
   );
   const profile = join(directory, "seccomp.json");
@@ -363,7 +377,8 @@ for descriptor in /proc/self/fd/*; do
   case "$target" in *.lock) echo 'lock descriptor inherited' >&2; exit 91 ;; esac
 done
 printf '%s\n' "$*" >> "$PROBE_ROOT/calls"
-case "$*" in *import-all.sh*) exit 23 ;; esac
+case "$*" in *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;; esac
+case "$*" in *provisionTranslationWorker.ts*) cat > "$PROBE_ROOT/worker-input"; if [ "$PROBE_WORKER_STATUS" != 0 ]; then exit "$PROBE_WORKER_STATUS"; fi; echo "CONTENT_TRANSLATION_WORKER_TOKEN=$(printf '%064d' 0)" ;; esac
 `,
     curl: "#!/bin/sh\nexit 0\n",
   };
@@ -374,33 +389,40 @@ case "$*" in *import-all.sh*) exit 23 ;; esac
   writeFileSync(join(directory, "calls"), "");
   writeFileSync(join(directory, "engine-calls"), "");
   writeFileSync(join(directory, "secret-input"), "");
-  const invoke = (args: string[], running = "no") =>
-    spawnSync("bash", ["bin/podman.sh", "production", ...args], {
-      cwd: directory,
-      encoding: "utf8",
-      timeout: 20_000,
-      env: {
-        ...process.env,
-        PATH: join(directory, "tools") + ":" + process.env.PATH,
-        PROBE_ROOT: directory,
-        PROBE_RUNNING: running,
-        XDG_RUNTIME_DIR: join(directory, "runtime"),
-        XDG_STATE_HOME: join(directory, "state"),
-        SLK_PODMAN_PROJECT: "slk-test",
-        SLK_PODMAN_TAG: "local",
-        SLK_PODMAN_WEB_PORT: "9000",
-        SLK_PODMAN_CMS_PORT: "9001",
-        SLK_PODMAN_MAINTENANCE_PORT: "9090",
-        CONTAINER_HOST: "",
-        CONTAINER_CONNECTION: "",
-        SLK_PODMAN_DB_ENV_FILE: "",
-        SLK_PODMAN_MEILI_ENV_FILE: "",
-        SLK_PODMAN_DIRECTUS_ENV_FILE: "",
-        SLK_PODMAN_FRONTEND_ENV_FILE: "",
+  const invoke = (args: string[], running = "no", importFailure = true, workerFailure = false) =>
+    spawnSync(
+      process.execPath,
+      ["bin/slk", "stack", args[0]!, "--env", "production", ...(args[0] === "compose" ? ["--"] : []), ...args.slice(1)],
+      {
+        cwd: directory,
+        encoding: "utf8",
+        timeout: 20_000,
+        env: {
+          ...process.env,
+          PATH: join(directory, "tools") + ":" + process.env.PATH,
+          PROBE_ROOT: directory,
+          PROBE_RUNNING: running,
+          PROBE_IMPORT_STATUS: importFailure ? "23" : "0",
+          PROBE_WORKER_STATUS: workerFailure ? "24" : "0",
+          XDG_RUNTIME_DIR: join(directory, "runtime"),
+          XDG_STATE_HOME: join(directory, "state"),
+          SLK_PODMAN_PROJECT: "slk-test",
+          SLK_PODMAN_TAG: "local",
+          SLK_PODMAN_WEB_PORT: "9000",
+          SLK_PODMAN_CMS_PORT: "9001",
+          SLK_PODMAN_MAINTENANCE_PORT: "9090",
+          CONTAINER_HOST: "",
+          CONTAINER_CONNECTION: "",
+          SLK_PODMAN_DB_ENV_FILE: "",
+          SLK_PODMAN_MEILI_ENV_FILE: "",
+          SLK_PODMAN_DIRECTUS_ENV_FILE: "",
+          SLK_PODMAN_FRONTEND_ENV_FILE: "",
+        },
       },
-    });
+    );
   return {
     invoke,
+    directory,
     calls: () => readFileSync(join(directory, "calls"), "utf8"),
     engineCalls: () => readFileSync(join(directory, "engine-calls"), "utf8"),
     secretInput: () => readFileSync(join(directory, "secret-input"), "utf8"),
@@ -412,12 +434,14 @@ test("failed Podman imports leave maintenance active and never prepare or restar
   const result = fixture.invoke(["start", "--import"]);
   assert.equal(result.status, 23, result.stderr);
   const calls = fixture.calls();
-  assert.match(fixture.secretInput(), /not-a-credential/);
   assert.doesNotMatch(fixture.engineCalls() + calls + result.stderr + result.stdout, /not-a-credential/);
-  assert.match(fixture.engineCalls(), /secret create slk_.* -/);
+  assert.doesNotMatch(fixture.engineCalls(), /secret create/);
   assert.match(calls, /--profile maintenance up -d --no-build maintenance/);
   assert.match(calls, /stop frontend/);
-  assert.match(calls, /exec -T directus \/directus\/cli\/import-all.sh/);
+  assert.match(
+    calls,
+    /run --rm --no-deps --entrypoint \/usr\/local\/bin\/slk-env directus node \/directus\/cli\/bootstrapConfiguration.ts/,
+  );
   assert.doesNotMatch(calls, /stop maintenance|frontend-build|--force-recreate frontend/);
 });
 
@@ -425,96 +449,129 @@ test("Podman prepare refuses to mutate an active frontend release", (t) => {
   const fixture = wrapperFixture(t);
   const result = fixture.invoke(["prepare"], "yes");
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /live artifact must not be overwritten/);
+  assert.match(result.stderr, /live artifacts must not be overwritten/);
   assert.equal(fixture.calls(), "");
 });
 
-test("native Podman secrets omit dotenv values and credential hashes from provider configuration", () => {
-  const credential = "private-canary-\r\n-do-not-print";
-  const inputs = {
-    db: { POSTGRES_PASSWORD: credential },
-    meilisearch: { MEILI_MASTER_KEY: credential },
-    directus: { SECRET: credential, SLK_STARTUP_SECURITY_CHECKS: "false", CACHE_ENABLED: "true" },
-    frontend: { PRIVATE_TOKEN: credential, EMPTY_OPTION: "" },
+test("runtime mounts contain paths only and the builder receives no private mounts", () => {
+  const paths = {
+    db: "/private/db.env",
+    meilisearch: "/private/search.env",
+    directus: "/private/cms.env",
+    frontend: "/private/web.env",
   };
-  const plan = podmanSecretPlan(inputs, true, "slk-test");
-  const serialized = JSON.stringify(plan.overlay);
-  assert.ok(!serialized.includes(credential));
-  for (const value of Object.values(plan.manifest)) assert.ok(!serialized.includes(value.digest));
-  assert.deepEqual(plan.overlay.services["frontend-build"], plan.overlay.services.frontend);
-  assert.equal(plan.overlay.services.frontend!.environment.EMPTY_OPTION, "");
+  const plan = podmanEnvironmentPlan(paths, true);
+  assert.equal(plan.services["frontend-build"], undefined);
+  assert.ok(plan.services.frontend!.volumes.includes("/private/web.env:/frontend/.env:ro,z"));
+  assert.ok(plan.services.directus!.volumes.includes("/private/cms.env:/directus/.env:ro,z"));
   assert.equal(
-    plan.overlay.services.directus!.secrets.some((secret) => secret.target === "CACHE_ENABLED"),
-    false,
+    plan.services.frontend!.environment.SLK_ENV_FILES,
+    "/run/slk-env/frontend.env:/run/slk-env/meilisearch.env",
   );
-  assert.equal(
-    plan.overlay.services.directus!.secrets.some((secret) => secret.target === "SLK_STARTUP_SECURITY_CHECKS"),
-    false,
-  );
-  for (const [name, value] of plan.values) {
-    assert.equal(value, credential);
-    assert.match(name, /^slk_slk-test_[a-f0-9]{32}$/);
+  assert.ok(plan.services.directus!.environment.SLK_ENV_LOCKED_KEYS?.includes("CACHE_ENABLED"));
+  assert.ok(plan.services.directus!.environment.SLK_ENV_LOCKED_KEYS?.includes("SLK_STARTUP_SECURITY_CHECKS"));
+  for (const [name, service] of Object.entries(plan.services)) {
+    assert.ok(service.volumes.every((mount) => mount.endsWith(":ro,z")));
+    assert.deepEqual(
+      Object.keys(service.environment).sort(),
+      name === "frontend"
+        ? ["SLK_DEPLOYMENT_TARGET", "SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"]
+        : ["SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"],
+    );
   }
-  const unchanged = podmanSecretPlan(inputs, true, "slk-test", plan.manifest);
-  assert.deepEqual(unchanged.manifest, plan.manifest);
-  const changed = podmanSecretPlan(
-    { ...inputs, db: { POSTGRES_PASSWORD: "rotated-private-value" } },
-    true,
-    "slk-test",
-    plan.manifest,
+  assert.equal(plan.services.frontend!.environment.SLK_DEPLOYMENT_TARGET, "production");
+  assert.equal(
+    podmanEnvironmentPlan(paths, true, "staging").services.frontend!.environment.SLK_DEPLOYMENT_TARGET,
+    "staging",
   );
-  assert.notEqual(changed.manifest["db:POSTGRES_PASSWORD"]!.name, plan.manifest["db:POSTGRES_PASSWORD"]!.name);
-  assert.equal(changed.manifest["frontend:PRIVATE_TOKEN"]!.name, plan.manifest["frontend:PRIVATE_TOKEN"]!.name);
+  assert.ok(plan.services.frontend!.environment.SLK_ENV_LOCKED_KEYS?.includes("SLK_DEPLOYMENT_TARGET"));
 });
 
-test("native secret transport provides a FIFO and preserves literal multiline input outside argv", (t) => {
-  const directory = mkdtempSync(join(tmpdir(), "slk-secret-fifo-"));
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const output = join(directory, "received.json");
-  writeFileSync(
-    join(directory, "podman"),
-    `#!/usr/bin/env node
-const fs=require('node:fs');
-if(!fs.fstatSync(0).isFIFO())process.exit(125);
-fs.writeFileSync(process.env.SECRET_PROBE_OUTPUT,JSON.stringify({args:process.argv.slice(2),input:fs.readFileSync(0,'utf8')}),{mode:0o600});
-`,
-    { mode: 0o700 },
-  );
-  const value = "literal-$()-'quotes'\r\nsecond line ä";
-  const moduleUrl = new URL("../../lib/podman-secrets.ts", import.meta.url).href;
-  const result = spawnSync(
-    process.execPath,
-    [
-      "--input-type=module",
-      "-e",
-      `import {createPodmanSecret} from ${JSON.stringify(moduleUrl)}; import fs from 'node:fs'; createPodmanSecret('slk_transport_probe',fs.readFileSync(0,'utf8'));`,
-    ],
-    {
-      input: value,
-      encoding: "utf8",
-      env: { ...process.env, PATH: directory + ":" + process.env.PATH, SECRET_PROBE_OUTPUT: output },
-    },
-  );
-  assert.equal(result.status, 0, result.stderr);
-  assert.deepEqual(JSON.parse(readFileSync(output, "utf8")), {
-    args: ["--remote=false", "secret", "create", "slk_transport_probe", "-"],
-    input: value,
-  });
-  assert.ok(!result.stdout.includes(value) && !result.stderr.includes(value));
-});
-
-test("native secret exclusions exactly track maintained Compose controls and dotenv never enters provider env_file", () => {
+test("managed runtime controls are declared in their Compose environments", () => {
   for (const service of Object.keys(managedPodmanEnvironment) as (keyof typeof managedPodmanEnvironment)[]) {
     assert.equal(base.services[service].env_file, undefined);
-    assert.deepEqual(
-      [...managedPodmanEnvironment[service]].sort(),
-      Object.keys(base.services[service].environment || {}).sort(),
-    );
-    assert.deepEqual(
-      [...managedPodmanProductionEnvironment[service]].sort(),
-      Object.keys(production.services[service]?.environment || {}).sort(),
-    );
+    for (const key of managedPodmanEnvironment[service])
+      assert.ok(key in (base.services[service].environment ?? {}), key);
+    for (const key of managedPodmanProductionEnvironment[service])
+      assert.ok(key in (production.services[service]?.environment ?? {}), key);
   }
+});
+
+test("prepare-only retains maintenance and never touches the frontend artifact", (t) => {
+  const fixture = wrapperFixture(t);
+  const result = fixture.invoke(["start", "--prepare-only"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(fixture.calls(), /stop frontend/);
+  assert.match(fixture.calls(), /--force-recreate directus/);
+  assert.doesNotMatch(fixture.calls(), /frontend-build|--force-recreate frontend|stop maintenance/);
+});
+
+test("compose exec reloads mounts and preserves explicit per-command environment overrides", (t) => {
+  const fixture = wrapperFixture(t);
+  const result = fixture.invoke([
+    "compose",
+    "exec",
+    "-T",
+    "-e",
+    "DIRECTUS_URL=http://127.0.0.1:8055",
+    "directus",
+    "node",
+    "cli/task.ts",
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(fixture.calls(), /directus \/usr\/local\/bin\/slk-env --keep=DIRECTUS_URL node cli\/task.ts/);
+  assert.doesNotMatch(fixture.calls(), /not-a-credential/);
+});
+
+test("restart recreates frontend mounts without building or replacing output", (t) => {
+  const fixture = wrapperFixture(t);
+  const result = fixture.invoke(["restart", "frontend"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(fixture.calls(), /stop frontend/);
+  assert.match(fixture.calls(), /--force-recreate frontend/);
+  assert.doesNotMatch(fixture.calls(), /frontend-build|\sbuild\s|productionOutput/);
+});
+
+test("production restart reconciles the translation identity before frontend startup; staging skips it", (t) => {
+  const fixture = wrapperFixture(t);
+  const path = join(fixture.directory, "src/frontend/.env");
+  const settings = `DEEPL_API_KEY=private-provider-canary\nCONTENT_TRANSLATION_ENABLED=true\nCONTENT_TRANSLATION_GENERATION_ENABLED=true\nCONTENT_TRANSLATION_WORKER_TOKEN=${"a".repeat(64)}\n`;
+  writeFileSync(path, settings);
+  const result = fixture.invoke(["restart", "frontend"]);
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fixture.calls();
+  assert.ok(calls.indexOf("stop frontend") < calls.indexOf("provisionTranslationWorker.ts"));
+  assert.ok(calls.indexOf("provisionTranslationWorker.ts") < calls.indexOf("--force-recreate frontend"));
+  assert.equal(readFileSync(join(fixture.directory, "worker-input"), "utf8"), "a".repeat(64));
+  assert.doesNotMatch(calls + result.stdout + result.stderr, /private-provider-canary|a{64}/);
+  writeFileSync(path, settings + "SLK_DEPLOYMENT_TARGET=staging\n");
+  writeFileSync(join(fixture.directory, "calls"), "");
+  assert.equal(fixture.invoke(["restart", "frontend"]).status, 0);
+  assert.doesNotMatch(fixture.calls(), /provisionTranslationWorker/);
+});
+
+test("private YAML setup precedes the checked full CMS and never publishes helper ports", (t) => {
+  const fixture = wrapperFixture(t);
+  const result = fixture.invoke(["start", "--import", "--prepare-only"], "no", false);
+  assert.equal(result.status, 0, result.stderr);
+  const calls = fixture.calls();
+  assert.ok(calls.indexOf("bootstrapConfiguration.ts") < calls.indexOf("--force-recreate directus"));
+  assert.doesNotMatch(calls, /--service-ports|SLK_STARTUP_SECURITY_CHECKS=false|stop maintenance/);
+});
+
+test("failed translation provisioning after YAML import retains maintenance and blocks frontend startup", (t) => {
+  const fixture = wrapperFixture(t);
+  writeFileSync(
+    join(fixture.directory, "src/frontend/.env"),
+    "DEEPL_API_KEY=private-canary\nCONTENT_TRANSLATION_ENABLED=true\nCONTENT_TRANSLATION_GENERATION_ENABLED=true\n",
+  );
+  const result = fixture.invoke(["start", "--import"], "no", false, true);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Translation worker provisioning failed/);
+  const calls = fixture.calls();
+  assert.ok(calls.indexOf("bootstrapConfiguration.ts") < calls.indexOf("provisionTranslationWorker.ts"));
+  assert.doesNotMatch(calls, /frontend-build|--force-recreate frontend|stop maintenance/);
+  assert.doesNotMatch(calls + result.stderr, /private-canary/);
 });
 
 test("release staging failure leaves the live application untouched and activation requires a verified backup", (t) => {
@@ -524,13 +581,28 @@ test("release staging failure leaves the live application untouched and activati
   const repo = join(directory, "repo");
   mkdirSync(tools);
   mkdirSync(join(repo, "bin"), { recursive: true });
-  const script = join(repo, "bin/podman-release.sh");
-  copyFileSync(new URL("../../podman-release.sh", import.meta.url), script);
+  mkdirSync(join(repo, "podman/release"), { recursive: true });
+  const script = join(repo, "podman/release/run.sh");
+  copyFileSync(new URL("../../../podman/release/run.sh", import.meta.url), script);
   chmodSync(script, 0o700);
   const calls = join(directory, "calls");
+  mkdirSync(join(repo, "bin/lib"), { recursive: true });
+  mkdirSync(join(repo, "bin/cli"), { recursive: true });
+  copyFileSync(new URL("../../cli/host-environment.ts", import.meta.url), join(repo, "bin/cli/host-environment.ts"));
+  copyFileSync(new URL("../../lib/podman-security.ts", import.meta.url), join(repo, "bin/lib/podman-security.ts"));
+  copyFileSync(new URL("../../package.json", import.meta.url), join(repo, "bin/package.json"));
+  symlinkSync(fileURLToPath(new URL("../../node_modules", import.meta.url)), join(repo, "bin/node_modules"), "dir");
   writeFileSync(
-    join(repo, "bin/podman.sh"),
+    join(repo, "bin/lib/maintenance-meta.ts"),
+    'import {writeFileSync} from "node:fs";writeFileSync(process.argv[2]!,"// fixture metadata\\n");',
+  );
+  writeFileSync(
+    join(repo, "bin/slk"),
     `#!/bin/sh
+command=$2; shift 2
+if [ "$1" = --env ]; then shift 2; fi
+if [ "$1" = -- ]; then shift; fi
+set -- production "$command" "$@"
 for descriptor in /proc/self/fd/*; do
   target=$(readlink "$descriptor" || true)
   case "$target" in *.lock) echo 'lock descriptor inherited' >&2; exit 91 ;; esac
@@ -574,6 +646,7 @@ case "$*" in *host.env*) echo 600:1000 ;; *) echo 700:1000 ;; esac
     HOME: directory,
     PATH: tools + ":" + process.env.PATH,
     XDG_RUNTIME_DIR: runtime,
+    SLK_PODMAN_PROJECT: "slk-test",
     RELEASE_PROBE_CALLS: calls,
   };
   const run = (action: string, allowStart = false, failAudit = false) =>
@@ -646,4 +719,13 @@ esac
   const activated = run("activate", true);
   assert.equal(activated.status, 0, activated.stderr);
   assert.equal(readFileSync(join(state, "activate.ok"), "utf8"), "");
+  const releaseCalls = readFileSync(calls, "utf8");
+  const activation = releaseCalls.slice(
+    releaseCalls.lastIndexOf("production compose exec -T directus /directus/cli/import-all.sh"),
+  );
+  assert.ok(
+    activation.indexOf("production translation-worker") <
+      activation.indexOf("production compose up -d --no-build --no-deps frontend"),
+  );
+  assert.match(rollbackCalls, /release-b477ac14:production translation-worker/);
 });

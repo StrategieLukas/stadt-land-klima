@@ -20,7 +20,7 @@ import {
   setExtensionLogActor,
 } from "../../../src/directus/extensions/shared/securityLogger.ts";
 import { safeRequestRoute } from "../../../src/frontend/server/utils/securityLogging.ts";
-import { loggingPatches } from "../../../docker/directus/security-patches/logging-patches.ts";
+import { loggingPatches } from "../../../podman/directus/security-patches/logging-patches.ts";
 const userA = "11111111-1111-4111-8111-111111111111";
 const userB = "22222222-2222-4222-8222-222222222222";
 const secret = "PRIVATE-CREDENTIAL-DO-NOT-LOG";

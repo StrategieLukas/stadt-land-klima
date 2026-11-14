@@ -1,126 +1,114 @@
-# Security branch deployment checklist
+# Deployment acceptance
 
-**2026-10-24. Run on staging first, then production.** The code stays on Directus **11.17.4**. The repository fixes and exact current advisory dispositions are recorded in [SECURITY_HARDENING.md](SECURITY_HARDENING.md#security-closure-review--2026-10-24). This procedure establishes actual target acceptance; local verification does not establish production deployment. Complete the operator gates in [REMAINING_TODOS.md](REMAINING_TODOS.md) before exposing the release.
+Use restored staging data before production. Current constraints are in
+[PROJECT_DECISIONS.md](PROJECT_DECISIONS.md); host/runtime details are in
+[PODMAN.md](PODMAN.md). Directus remains **11.17.4**.
 
-## 1. Back up and select the reviewed release
+## Prepare and build
 
-- Keep a fresh off-host SQL + uploads/configuration backup, including `docker/core-storage/`, private environment files and the active host nginx configuration. Test restoration on staging. Check free disk space before building.
-- Deploy the reviewed branch/revision after it has been committed/merged by the operator. Preserve host-local `.env` files and storage overlays. **Do not rerun `upgrade_core_services.sh` if the PostgreSQL/Meilisearch major upgrades already succeeded.**
-- Commands below run from `/home/deploy/staedtechallenge`. In the same shell, define the production Compose command, including this host's migrated storage:
+1. Preserve a verified off-host database/uploads/configuration/gateway backup and
+   all active `podman/core-storage/` overlays. Confirm restore and build RAM/disk.
+2. Install the reviewed revision/locks without overwriting private dotenv files.
+   Keep source readable and private files mode 0600/0400; do not recursively chmod
+   uploads/source or repeat completed major-service upgrades.
+3. Prepare the rootless host, real application DB role and imported policies on
+   the restored target. Production startup checks reject an unprepared target.
 
 ```bash
-cd /home/deploy/staedtechallenge
-umask 022
-slk_compose=(docker compose -f docker-compose.yaml -f docker-compose.prod.yaml)
-if [ -f docker/core-storage/production.compose.json ]; then
-  slk_compose+=(-f docker/core-storage/production.compose.json)
-fi
-slk_private="$(mktemp -d /home/deploy/slk-security-cutover-XXXXXX)"
+./bin/slk stack doctor --env production
+./bin/slk stack build --env production
+./bin/slk stack start --env production --import --prepare-only
+```
+
+Preparation leaves frontend stopped. Maintenance is a fallback, not a CMS write
+lock; pause external/editorial writers during sensitive operations. Build source,
+locked dependencies, extension bundles and matching YAML together.
+
+## Private service identities
+
+Use the mounted private CLI administrator credential:
+
+```bash
+slk_private="$(mktemp -d /tmp/slk-release.XXXXXX)"
 chmod 700 "$slk_private"
-```
-
-Use `umask 022` before checkout/pull and build operations so public source files remain readable inside images. Private directories are mode 0700 and credential files must be mode 0600; keep a restrictive backup umask scoped to its backup subprocess.
-
-## 2. Build and import while the website is stopped
-
-```bash
-./bin/stop.sh
-for slk_extension in src/directus/extensions/*; do
-  [ ! -f "$slk_extension/package.json" ] || npm --prefix "$slk_extension" ci --include=dev
-done
-./bin/check_extensions.sh --build
-./bin/build_production.sh
-./bin/start_production.sh --import --prepare-only
-```
-
-Use the project's supported host Node version for extension builds, or the matching Node 24 Docker image. On the shared 8 GB staging host, the frontend build needed a 3 GiB container RAM allowance plus 3 GiB of temporary host swap; a 2 GiB limit killed build workers. Budget build memory alongside the other applications and reserve disk for any temporary swap. Remove temporary swap only after the build and only with sufficient memory headroom. Ordinary restarts reuse the production output only when hashes of source, translations, effective environment, Node/platform/libc and output all match the last successful build. Changed or missing output forces a locked installation and the complete checked build; upgrades still need build capacity. The image build uses `--no-cache --pull`; clearing the npm cache is unnecessary. `--prepare-only` starts Directus and imports the code-first schema/roles/flows but leaves the frontend stopped. It stops on import/readiness failure. Maintenance is an nginx **fallback**, not a blanket firewall: the running CMS remains reachable; exclude editorial activity during the cutover. Do not change `public.yaml`.
-
-## 3. Create the private website service identities and configure secrets
-
-```bash
-"${slk_compose[@]}" exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 directus \
+./bin/slk stack compose --env production -- exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 directus \
   node /directus/cli/tasks/provisionServiceUsers.ts > "$slk_private/service-users.env"
 chmod 600 "$slk_private/service-users.env"
 ```
 
-Requires the private administrator `CLI_DIRECTUS_STATIC_TOKEN` already configured in Directus. The command creates missing Frontend-Server/Public/Preview accounts, reuses existing strong tokens, and refuses conflicting accounts. It does **not** rotate existing tokens. The container database credentials are also required to recover existing tokens concealed by the administrator API; that lookup performs no database writes. Treat its output as secret; do not paste it into tickets or logs.
+Provisioning reuses strong existing tokens and rejects conflicting accounts. Copy
+private server/preview values into `src/frontend/.env`; never use public runtime
+config for them. Set real mail-flow UUIDs, canonical/public/private URLs and strong
+signing/session secrets. Translation-worker setup is in its separate operator
+guide. Production start/restart/release activation now provision the translation worker
+automatically when translation generation and a provider key are enabled. Existing worker
+tokens are reused; the selected private frontend dotenv is synchronised before frontend
+is recreated. Provisioning failure blocks startup. Set `SLK_DEPLOYMENT_TARGET=staging`
+in staging's private frontend dotenv or release host configuration, including when using
+`--env production`; staging serves stored translations without background generation or
+automatic worker provisioning. Use `future` for preview hosts. Development always disables
+background generation. If needed, rehearse/apply the restricted database-role cutover from README.
 
-Copy `DIRECTUS_FRONTEND_SERVER_TOKEN` and `DIRECTUS_PREVIEW_TOKEN` from that private file into `src/frontend/.env`. The public-asset token is inventoried but currently has no frontend consumer; do not reintroduce any browser service token. Set the canonical frontend `PUBLIC_URL=https://www.stadt-land-klima.de` and preserve the correct private/public CMS URLs. Check actual imported UUIDs for the two protected mail webhook URLs. Keep `DIRECTUS_ADMIN_TOKEN` private and update aliases together if it is the same credential as the CLI token.
+## Caddy and runtime verification
 
-| Credential action                                                                         | Required handling                                                                                                                                                                                                                                                                                                                                        |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Retire the old `DIRECTUS_TOKEN` / legacy Frontend account**                             | Required after the new website has passed its smoke check. Step 6 does this. Never copy that token into the new private role.                                                                                                                                                                                                                            |
-| **Use a unique strong `ALTCHA_SECRET`**                                                   | At least 32 random characters; replace any example, shared or exposed value before starting the frontend. Generate privately with `openssl rand -hex 32`. Empty editor/candidate session secrets derive from it; changing it invalidates those sessions. Independent `EDITOR_SESSION_SECRET` / `CANDIDATE_SESSION_SECRET`, when set, must be strong too. |
-| **Database application login**                                                            | If Directus still uses a superuser, perform the staged role cutover below; it generates a fresh app password and preserves the bootstrap operator.                                                                                                                                                                                                       |
-| **Known/example/exposed admin, signing, database, SMTP, Meilisearch or provider secrets** | Replace affected credentials in the real service, then every consuming `.env`/instance, and verify delivery/access. Editing `ADMIN_PASSWORD` or `POSTGRES_PASSWORD` alone does not change persisted accounts. No private production values were inspected, so there is no evidence that every family needs a blanket rotation.                           |
-| Candidate invitations                                                                     | **Retain existing `candidate.access_token` values and invitation links**, per the owner decision. No candidate rotation or replacement invitations are required for this deployment.                                                                                                                                                                     |
-| Municipality preview links                                                                | Retain by default, per your decision. The private preview-verifier service token is a separate credential.                                                                                                                                                                                                                                               |
-
-The [complete 28-family inventory](SECURITY_DECISIONS.md#credential-inventory-and-rotation-policy--2026-10-24) and [editable policy](src/directus/cli/credential-rotation.yaml) record owners, selections and review/rotation dates without storing values. Provider/administrator/signing-secret rotations remain manual. Do not blindly change `SECRET`: test session invalidation and recovery of any stored encrypted values on a restored staging database first.
-
-If Directus still uses the bootstrap superuser, follow the [database-role cutover procedure](README.md#database-application-role-cutover) now. Rehearse it on restored staging data first. The tool creates a fresh non-superuser app identity without demoting the operator; normal backups retain operator access. Resume at step 4 after restarting/importing with the new credentials.
-
-## 4. Install the host proxy changes
-
-Install/diff the maintained `nginx/sites-available/stadt-land-klima.de` into the host's active site configuration, preserving its real TLS paths and staging-specific hostnames. Then:
-
-```bash
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-Verify only the intended public listeners are reachable. Production frontend/CMS should be loopback-only on 9000/9001; PostgreSQL, Redis and Meilisearch must not be reachable externally. Check host RAM against the configured container limits. The optional `SLK_STARTUP_SECURITY_CHECKS` now recognizes the current service/editorial roles and rejects missing secrets and elevated production DB role flags. It also detects database ownership and privileged role memberships through nested groups; preserving a non-secret legacy `KEY` is allowed. Enable it only after the database-role cutover and private configuration are in place. A separate CMS hostname is an explicit follow-up decision, not required by these commands; its URL/cookie/CORS/old-session changes must be deployed together.
-
-## 5. Start and verify the new website
+Validate/reload the selected Caddy gateway with the host's real TLS configuration.
+Keep isolated CMS guards, explicit trusted forwarding and separate API/page/asset
+budgets. Verify loopback application listeners, private data services, CSP/CORS/
+referrers, resource limits and required disabled CMS surfaces.
 
 ```bash
-./bin/start_production.sh
-curl --fail --silent --output /dev/null http://127.0.0.1:9001/server/health
-curl --fail --silent --output /dev/null http://127.0.0.1:9000/
+./bin/slk stack start --env production
+./bin/slk stack audit --env production
 npm --prefix bin/test_suite run test:public -- https://www.stadt-land-klima.de
 ```
 
-Use the staging hostname for the staging run. Verify public content/search/media, candidate access and a controlled submission, editor login/save/logout, and actual configured mail/newsletter/external data integrations. Website editors must sign in again once. Check the enforced nonce CSP and that public runtime data no longer contains the old browser token. Verify the running Node versions and source-verified image guards against the reviewed build. The public smoke is read-only; do not run writable full workflows against production data.
+Use the staging origin on staging. Verify actual content/search/media, controlled
+candidate/editor operations, nonce CSP and real configured integrations. Test a
+real `/contact` search hit; HTTP 200 with empty fallback is insufficient. Writable
+full workflows run only on isolated fixtures.
 
-## 6. Retire the old shared identity
+After an ordinary dotenv edit use `slk stack restart <service> --env production`.
+Validate the new effective setting with a safe functional check; do not print
+credentials or rely on inspect metadata (which intentionally has no mounted
+secret values). No image rebuild is needed. Explicit `NUXT_*` keys override their
+legacy aliases. Topology/image changes and persisted-account rotation are separate.
 
-Privately identify which actual Directus user owned the previously browser-exposed token. If it was an administrator or another role, rotate/revoke that underlying credential and all aliases explicitly: the retirement tool only suspends users of the legacy Frontend role. Do not assume a role name proves every exposed token has been retired.
+## Legacy credentials, if still present
 
-Review `src/directus/cli/credential-rotation.yaml` first: selection revokes only the legacy Frontend identity; candidate access tokens and municipality preview links are explicitly retained.
+Only after replacement access passes acceptance, review
+[credential-rotation.yaml](src/directus/cli/credential-rotation.yaml). Candidate
+invitation tokens and municipality preview links remain **retained**. The tool
+only revokes legacy Frontend-role accounts, not arbitrary exposed administrators.
 
 ```bash
-"${slk_compose[@]}" exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
+./bin/slk stack compose --env production -- exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
   -e PUBLIC_URL=https://www.stadt-land-klima.de directus \
   node /directus/cli/tasks/retireCredentials.ts plan /directus/.tmp/credential-retirement.json \
   --policy /directus/cli/credential-rotation.yaml
-"${slk_compose[@]}" cp directus:/directus/.tmp/credential-retirement.json "$slk_private/"
-"${slk_compose[@]}" cp directus:/directus/.tmp/credential-retirement.json.links.json "$slk_private/"
+./bin/slk stack compose --env production -- cp directus:/directus/.tmp/credential-retirement.json "$slk_private/"
+./bin/slk stack compose --env production -- cp directus:/directus/.tmp/credential-retirement.json.links.json "$slk_private/"
 ```
 
-Review both private files and back them up off-container. The current policy does not replace candidate invitations; the tool sends no mail. Pause credential-issuing writers, then apply **the same reviewed plan and unchanged policy selection**:
+Review/back up both private files off-container, pause credential-issuing writers,
+then apply the same reviewed plan with unchanged policy selection:
 
 ```bash
-"${slk_compose[@]}" exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
+./bin/slk stack compose --env production -- exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
   -e PUBLIC_URL=https://www.stadt-land-klima.de directus \
   node /directus/cli/tasks/retireCredentials.ts apply /directus/.tmp/credential-retirement.json \
   --policy /directus/cli/credential-rotation.yaml
 ```
 
-Confirm the old identity is suspended/token cleared and the new website still works. Reuse the same plan to resume a partial failure. Do not restore exposed tokens as rollback.
+Verify suspension/token removal and website access. Resume the same plan after a
+partial failure; never restore exposed tokens as rollback or rotate retained
+candidate/preview links as part of this operation.
 
-## 7. Finish acceptance
+## Finish acceptance
 
-Frontend startup now reconciles all existing search documents against published content, with complete pagination and successful-task checks. Verify the `[reindex] Reconciled public search` log and `/api/content-search?q=klima` before accepting search. Initial/failed reconciliation keeps search closed; live publication/member checks additionally protect every response. Restart the frontend to request a fresh reconciliation when required. Purge only identified stale application/CDN caches. Do not `FLUSHALL` Redis: it holds sessions and abuse controls. Review historical URL-bearing logs, observe errors/rate limits/CSP and record the deployment revision, credential actions and restore/smoke results. The pinned-image findings have exact dated dispositions and tested backports; preserve the required cache/TUS/WebSocket/MCP and outbound-network controls. CMS-origin separation remains an optional coordinated enhancement. Record actual target acceptance rather than inferring it from running containers.
-
-## Verify the rebuilt vendor layer before cutover
-
-After building the reviewed image, run its offline regression gate without starting another CMS process or exposing ports:
-
-```bash
-"${slk_compose[@]}" run --rm --no-deps --entrypoint node directus \
-  /opt/slk-directus-runtime-security/test-runtime.ts
-```
-
-This checks actual resolved vendor code/libraries; it does not mutate the application database or send external mail. Keep the CI image-advisory artifact with release evidence. The source-reviewed image disposition expires on 2026-11-24 and must be reassessed then. Raw frontend/image audit output is preserved even for locally patched versions.
-
-For prebuilt frontend output, supply the real runtime `NUXT_MEILISEARCH_MASTER_KEY` (or build with the correct shared `MEILI_MASTER_KEY`) and `NUXT_MEILISEARCH_URL` where the target differs. Remove or correct stale competing `MEILISEARCH_MASTER_KEY` values. Verify a real `/contact` hit from `/api/content-search?q=Kontakt&types=static_page`; HTTP 200 with an empty fallback is not evidence of working search. The maintained production startup builds inside the configured container environment; the standalone prebuilt-output test harness must set Nuxt runtime overrides explicitly.
+Run actual image regressions/audits with Podman and retain raw artifacts. The
+reviewed image dispositions expire **2026-11-24** and need evidence-based renewal.
+Check search reconciliation, safe logs, Redis/rate limits and real SMTP/providers.
+Purge identified stale application/CDN responses only; never `FLUSHALL` Redis.
+Record revision/date, restore evidence, effective runtime changes and smoke results.
+Verify certificates, reboot/systemd recovery and remote CI/branch protection on the
+actual target. Local tests do not establish production acceptance.

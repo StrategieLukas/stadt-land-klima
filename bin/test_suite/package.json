@@ -12,7 +12,7 @@
     "test:security:helpers": "tsx --test src/disclosure.test.ts",
     "test:contracts": "tsx --test src/contracts.test.ts src/typecheckGate.test.ts",
     "typecheck": "tsc --noEmit",
-    "test:unit": "tsx --test src/roleInvitations.test.ts src/projectMap.test.ts src/seo.test.ts src/contentTranslation.test.ts src/deepLTranslation.test.ts src/podman.test.ts src/securityLogging.test.ts src/municipalityPublishing.test.ts src/municipalityClimateRegion.test.ts src/productionOutput.test.ts src/images.test.ts src/dataPageDelivery.test.ts src/releasePolicy.test.ts src/framingPolicy.test.ts src/searchReconciliation.test.ts src/uiFixes.test.ts src/cmsOrigin.test.ts src/portableBackup.test.ts src/fullExport.test.ts src/municipalityUx.test.ts src/browserCertificate.test.ts src/cssMigration.test.ts src/contracts.test.ts src/typecheckGate.test.ts src/blokkliAdapter.test.ts src/mailFlowClient.test.ts src/disclosure.test.ts src/publicReads.test.ts src/newsDates.test.ts src/phase4.test.ts src/phase5.test.ts src/phase6.test.ts src/phase7.test.ts src/phase8.test.ts src/directusExtensions.test.ts src/securityHardening.test.ts src/lintGate.test.ts src/nodeForge.test.ts src/dependencyAudit.test.ts && npm run test:cli",
+    "test:unit": "tsx --test src/roleInvitations.test.ts src/projectMap.test.ts src/seo.test.ts src/contentTranslation.test.ts src/deepLTranslation.test.ts src/podman.test.ts src/securityLogging.test.ts src/municipalityPublishing.test.ts src/municipalityClimateRegion.test.ts src/productionOutput.test.ts src/images.test.ts src/dataPageDelivery.test.ts src/releasePolicy.test.ts src/framingPolicy.test.ts src/searchReconciliation.test.ts src/uiFixes.test.ts src/cmsOrigin.test.ts src/portableBackup.test.ts src/municipalityUx.test.ts src/browserCertificate.test.ts src/cssMigration.test.ts src/contracts.test.ts src/typecheckGate.test.ts src/blokkliAdapter.test.ts src/mailFlowClient.test.ts src/disclosure.test.ts src/publicReads.test.ts src/newsDates.test.ts src/phase4.test.ts src/phase5.test.ts src/phase6.test.ts src/phase7.test.ts src/phase8.test.ts src/directusExtensions.test.ts src/securityHardening.test.ts src/lintGate.test.ts src/nodeForge.test.ts src/dependencyAudit.test.ts src/runtimeEnvironment.test.ts && npm --prefix .. test && npm run test:cli && cd ../../podman/environment && go test ./...",
     "test:role-invitations:live": "tsx src/roleInvitationsSmoke.ts",
     "test:role-invitations": "tsx --test src/roleInvitations.test.ts",
     "test:municipality-ux:live": "tsx src/municipalityUxSmoke.ts",
@@ -21,6 +21,7 @@
     "test:seo": "tsx --test src/seo.test.ts && tsx src/seoSmoke.ts",
     "test:public": "tsx src/publicSmoke.ts",
     "test:wahlcheck-embed": "tsx src/wahlcheckEmbed.ts",
+    "test:wahlcheck-theme": "tsx src/wahlcheckTheme.ts",
     "test:components": "tsx --test src/phase5.test.ts",
     "test:boundaries": "tsx --test src/phase7.test.ts src/blokkliAdapter.test.ts",
     "test:pages": "tsx --test src/phase6.test.ts",
@@ -31,7 +32,6 @@
     "test:security:csp": "tsx src/cspProduction.ts",
     "test:core:logical": "tsx src/coreLogicalMigration.ts",
     "test:security:redis": "tsx src/securityRedis.ts",
-    "test:security:nginx": "tsx src/nginxSecurity.ts",
     "test:styles": "tsx src/cssMigration.ts",
     "test:security:image": "tsx src/directusImageSecurity.ts",
     "audit:directus-image": "tsx src/directusImageAudit.ts",
@@ -46,17 +46,19 @@
     "test:content-translation:reader": "SLK_TRANSLATION_READER_TEST=1 tsx --test src/contentTranslationReader.test.ts",
     "test:ui-feedback": "tsx src/uiFeedbackSmoke.ts",
     "test:data-page": "tsx --test src/dataPageDelivery.test.ts",
-    "test:feedback-followup": "tsx src/feedbackFollowupSmoke.ts"
+    "test:feedback-followup": "tsx src/feedbackFollowupSmoke.ts",
+    "test:runtime-environment": "tsx --test src/runtimeEnvironment.test.ts && cd ../../podman/environment && go test ./..."
   },
   "dependencies": {
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.0",
+    "dotenv": "18.0.10",
     "tsx": "^4.23.15",
     "typescript": "6.0.3"
   },
   "devDependencies": {
-    "@types/node": "^26.6.5"
+    "@types/node": "^26.6.6"
   },
   "engines": {
-    "node": "^24.22.1 || >=26.12.1"
+    "node": "^24.22.3 || >=26.12.1"
   }
 }

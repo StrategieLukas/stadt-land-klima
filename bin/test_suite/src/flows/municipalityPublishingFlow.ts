@@ -123,7 +123,7 @@ export async function runMunicipalityPublishingFlow(runner: TestRunner, fixture:
           const page = await previewContext.newPage();
           await page.goto(
             `${fixture.config.frontendUrl}/municipalities/${fixture.municipality.slug}?v=${encodeURIComponent(`publishing-${fixture.config.runId}`)}&preview=${fixture.municipality.preview_token}`,
-            { waitUntil: "networkidle" },
+            { waitUntil: "domcontentloaded" },
           );
           await page.getByText(`Vorschau: „${fixture.municipalityName}“`, { exact: true }).waitFor({ timeout: 20_000 });
           assert(

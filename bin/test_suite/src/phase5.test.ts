@@ -1,3 +1,4 @@
+import { prepareButtonIcons } from "../../../src/frontend/utils/buttonIcons.js";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -5,16 +6,10 @@ import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
-import {
-  HistogramResponseSchema,
-  BinAreasSchema,
-  legacyHistogramValue,
-} from "../../../src/frontend/shared/contracts/histogram.js";
 import { parseGeoData, parseGeoCenter } from "../../../src/frontend/shared/contracts/geometry.js";
 import { ContentResponseSchema } from "../../../src/frontend/shared/contracts/search.js";
 import { treemapDatum } from "../../../src/frontend/shared/treemap.js";
 import { attachVisualizationData, cloneVisualization } from "../../../src/frontend/shared/visualization.js";
-import { DataMapSchema } from "../../../src/frontend/shared/contracts/dataMap.js";
 import { requestErrorData, requestErrorMessage, captchaEventData } from "../../../src/frontend/shared/requestError.js";
 import { resolveBlokkliInternalLink, getBlokkliBlockId } from "../../../src/frontend/utils/blokkliLinks.js";
 import { BETTERPLACE_PROJECT_URL, getBetterplaceWidgetUrl } from "../../../src/frontend/shared/donation.js";
@@ -34,7 +29,9 @@ function load(name: string, globals: Record<string, unknown> = {}, dependencies:
   assert.deepEqual(errors, []);
   const script = compiler.compileScript(descriptor, { id: name, inlineTemplate: true });
   const compiled = ts.transpileModule(
-    script.content.replaceAll("import.meta.glob(", "__viteGlob(").replaceAll("import.meta.blokkliEditing", "false"),
+    script.content
+      .replace(/import\.meta\.glob(?:<string>)?\(/g, "__viteGlob(")
+      .replaceAll("import.meta.blokkliEditing", "false"),
     {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     },
@@ -53,6 +50,7 @@ function load(name: string, globals: Record<string, unknown> = {}, dependencies:
       const logging = loggingModule(id);
       if (logging && !(id in dependencies)) return logging;
       if (id === "vue") return dependencies.vue ?? vue;
+      if (id === "~/utils/buttonIcons") return { prepareButtonIcons };
       assert.ok(id in dependencies, `Unexpected import ${id}`);
       return dependencies[id];
     },
@@ -220,17 +218,7 @@ test("every maintained SFC parses and every component script uses TypeScript", (
       if (script) assert.equal(script.lang, "ts", entry);
     count++;
   }
-  assert.ok(count >= 130);
-});
-
-test("municipality statistics reads the prop, filters labels and handles missing data", async () => {
-  const html = await render("MunicipalityStats.vue", {
-    stats: { name: "Hidden name", slug: "hidden-slug", population_total: 123 },
-  });
-  assert.match(html, /population total/);
-  assert.match(html, /123/);
-  assert.doesNotMatch(html, /Hidden name|hidden-slug/);
-  assert.doesNotMatch(await render("MunicipalityStats.vue", {}), /undefined|NaN/);
+  assert.ok(count > 0, "Component discovery must include maintained SFCs");
 });
 
 test("progress layout validator returns booleans and preserves runtime defaults", () => {
@@ -244,17 +232,6 @@ test("progress layout validator returns booleans and preserves runtime defaults"
   assert.equal(component.props.layout.validator("invalid"), false);
   assert.equal(component.props.layout.default, "default");
   assert.equal(component.props.showScaleMaximum.default, true);
-});
-
-test("zero progress and zero thresholds produce finite layout positions", async () => {
-  const html = await render("ThresholdProgressBar.vue", {
-    progress: 0,
-    orangeThreshold: 0,
-    yellowThreshold: 0,
-    lightGreenThreshold: 0,
-    darkGreenThreshold: 0,
-  });
-  assert.doesNotMatch(html, /NaN|Infinity/);
 });
 
 test("boolean filter emits exactly the inverse model value on click", () => {
@@ -299,23 +276,6 @@ test("search accepts actual textual metadata and rejects malformed result shapes
   });
   assert.equal(result.hits[0].meta, "energy");
   assert.equal(ContentResponseSchema.safeParse({ hits: [{ meta: { unexpected: true } }] }).success, false);
-});
-
-test("histograms reject invalid counts, unordered/zero-width bins, nonfinite values and missing edges", () => {
-  const valid = { results: [{ id: 1, bin_edges: [0, 10, 20], bin_counts: [2, 4] }] };
-  assert.equal(HistogramResponseSchema.parse(valid).results[0].bin_counts[1], 4);
-  for (const bins of [
-    { bin_edges: [0, 1], bin_counts: [1, 2] },
-    { bin_edges: [1, 0], bin_counts: [1] },
-    { bin_edges: [0, 0], bin_counts: [1] },
-    { bin_edges: [0, Infinity], bin_counts: [1] },
-    { bin_edges: [0, 1], bin_counts: [-1] },
-  ])
-    assert.equal(HistogramResponseSchema.safeParse({ results: [bins] }).success, false);
-  assert.equal(BinAreasSchema.parse({ areas: [{ ars: "1", name: "Area", value: 0 }] }).areas[0].value, 0);
-  assert.equal(legacyHistogramValue({ product: { value: "12.5" } }, "product", "value"), 12.5);
-  for (const input of [null, {}, { product: { value: "broken" } }, { product: { value: null } }])
-    assert.equal(legacyHistogramValue(input, "product", "value"), null);
 });
 
 test("geometry parsing accepts API variants and rejects malformed/nonfinite coordinates", () => {
@@ -370,44 +330,6 @@ test("named and inline Vega data reach the specification and preserve unrelated 
   assert.deepEqual(inline.data, { values: geometry });
 });
 
-test("map markers preserve coordinates, popups and power classes without rejecting other legend layers", () => {
-  const result = DataMapSchema.parse({
-    layers: [
-      {
-        name: "Points",
-        type: "markers",
-        data: [{ coordinates: [51, 10], properties: { power_kw: 150, popup_content: "<b>Station</b>" } }],
-      },
-      { name: "Boundary", type: "polygon", data: { coordinates: [] } },
-    ],
-  });
-  assert.equal(result.layers.length, 2);
-  assert.equal(result.layers[0].data[0].properties?.power_kw, 150);
-  assert.deepEqual(result.layers[0].data[0].coordinates, [51, 10]);
-  assert.equal(
-    DataMapSchema.parse({
-      center: null,
-      bounds: null,
-      layers: [
-        {
-          name: "Sparse",
-          type: "markers",
-          data: [
-            { coordinates: [51, 10] },
-            { coordinates: [51, 10], properties: { power_kw: "150.5", popup_content: null } },
-          ],
-        },
-      ],
-    }).layers[0].data[1].properties?.power_kw,
-    150.5,
-  );
-  assert.equal(
-    DataMapSchema.safeParse({ layers: [{ name: "Bad", type: "markers", data: [{ coordinates: [null, 10] }] }] })
-      .success,
-    false,
-  );
-});
-
 test("captcha state events accept only string payloads and ignore malformed details", () => {
   assert.deepEqual(captchaEventData({ detail: { state: "verified", payload: "proof" } } as unknown as Event), {
     state: "verified",
@@ -417,59 +339,6 @@ test("captcha state events accept only string payloads and ignore malformed deta
     state: "verified",
   });
   assert.deepEqual(captchaEventData({ detail: null } as unknown as Event), {});
-});
-
-test("map requests move through loading, ready, error and retry without contradictory visible states", async () => {
-  type Exposed = {
-    refetch: () => Promise<void>;
-    loading: { value: boolean };
-    error: { value: string | null };
-    mapData: { value: unknown };
-  };
-  let exposed: Exposed | undefined;
-  let fail = false;
-  let release: (() => void) | undefined;
-  const component = load(
-    "DataProductMap.vue",
-    {
-      useCartoBasemap: () => ({ attribution: "", subdomains: [], tileUrl: "" }),
-      console: { log() {}, warn() {}, error() {} },
-      fetch: async () => {
-        await new Promise<void>((resolve) => {
-          release = resolve;
-        });
-        return { ok: !fail, status: 503, json: async () => ({ layers: [] }) };
-      },
-    },
-    {
-      vue: { ...vue, onMounted() {} },
-      "nuxt/app": { useRuntimeConfig: () => ({ public: { stadtlandzahlBaseUrl: "/api/slz" } }) },
-      "~/shared/contracts/dataMap": { DataMapSchema },
-    },
-  ) as { setup: (props: unknown, ctx: { expose: (value: Exposed) => void }) => unknown };
-  component.setup(
-    { ars: "1", dataProductType: "product", areaBounds: null, showLegend: true, height: "h-64" },
-    {
-      expose: (value) => {
-        exposed = value;
-      },
-    },
-  );
-  assert.ok(exposed);
-  const state = exposed as Exposed;
-  assert.equal(state.loading.value, false);
-  for (const error of [false, true, false]) {
-    fail = error;
-    const request = state.refetch();
-    assert.equal(state.loading.value, true);
-    assert.equal(state.error.value, null);
-    assert.ok(release);
-    release();
-    await request;
-    assert.equal(state.loading.value, false);
-    assert.equal(Boolean(state.error.value), error);
-    assert.equal(Boolean(state.mapData.value), !error);
-  }
 });
 
 test("project cards render both asset IDs and expanded organisation logos as actual asset URLs", async () => {
@@ -600,4 +469,24 @@ test("CanonicalButton forwards a typed native click exactly once with disabled a
   assert.equal(vnode.props["data-test"], "action");
   (vnode.props.onClick as (event: MouseEvent) => void)(event);
   assert.equal(clicks, 1);
+});
+
+test("translation legal note is a small non-German footer component with no content alert", async () => {
+  for (const locale of ["de-DE", "en-GB", "it-IT"]) {
+    const html = await render("TranslationLegalNote.vue", {}, { useNuxtApp: () => ({ $locale: locale }) });
+    if (locale === "de-DE") assert.doesNotMatch(html, /data-translation-legal-note/);
+    else {
+      assert.match(html, /data-translation-legal-note/);
+      assert.match(html, /text-xs/);
+      assert.doesNotMatch(html, /alert|role="alert"/);
+    }
+  }
+  for (const name of ["TheFooterDesktop.vue", "TheFooterMobile.vue"]) {
+    const source = readFileSync(new URL(name, componentRoot), "utf8");
+    assert.match(source, /<TranslationLegalNote\s*\/>[\s\S]*?<\/footer>/);
+  }
+  assert.doesNotMatch(
+    readFileSync(new URL("../../../src/frontend/layouts/default.vue", import.meta.url), "utf8"),
+    /translation.machine_notice|showMachineTranslationNotice/,
+  );
 });

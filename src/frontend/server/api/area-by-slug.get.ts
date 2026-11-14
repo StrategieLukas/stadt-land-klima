@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     const data = parseCms(
       AreaSchema,
       await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(slug)}/`, {
-        params: geometryOnly ? { geometry_only: "true" } : {},
+        ...(geometryOnly ? { params: { geometry_only: "true" } } : {}),
       }),
     );
     if (requireGeo && !data?.geo_area && !data?.geoArea) {

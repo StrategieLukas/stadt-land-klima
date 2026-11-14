@@ -1,5 +1,9 @@
 <template>
-  <div class="elections-flow bg-mild-white" :class="{ 'min-h-screen': !embedded }">
+  <div
+    :data-wahlcheck-theme="wahlcheckTheme"
+    class="elections-flow bg-mild-white"
+    :class="{ 'min-h-screen': !embedded }"
+  >
     <!-- Header -->
     <div class="border-b border-solid-gray-10 bg-white shadow-xs">
       <div class="mx-auto max-w-6xl px-4 py-4 text-center">
@@ -68,7 +72,7 @@
         <p class="mb-4">
           {{ $t("elections.no_public_election.description") }}
         </p>
-        <NuxtLink to="/elections/wahlcheck" class="btn btn-secondary">{{
+        <NuxtLink :to="{ path: '/elections/wahlcheck', query: wahlcheckQuery }" class="btn btn-secondary">{{
           $t("elections.back_to_wahlcheck_overview")
         }}</NuxtLink>
       </div>
@@ -136,6 +140,7 @@ withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 const embedScroll = useWahlcheckEmbedScroll();
 
 const route = useRoute();
+const { wahlcheckTheme, wahlcheckQuery } = useWahlcheckTheme();
 const { $t } = useNuxtApp();
 const municipalitySlug = routeSlug(route.params.municipalitySlug);
 if (!municipalitySlug) throw createError({ statusCode: 404, statusMessage: "Not found" });
@@ -259,7 +264,11 @@ function updateShareableUrl() {
     const encoded = btoa(encodeURIComponent(jsonString));
 
     // Update URL without reloading
-    const newUrl = `${window.location.pathname}?share=${encoded}`;
+    const query =
+      wahlcheckTheme.value === "localzero"
+        ? new URLSearchParams({ share: encoded, theme: "localzero" }).toString()
+        : `share=${encoded}`;
+    const newUrl = `${window.location.pathname}?${query}`;
     window.history.replaceState({}, "", newUrl);
   } catch (error) {
     clientFailure("app.pages.elections.wahlcheck._municipalitySlug_.updateShareableUrl.failed", error);

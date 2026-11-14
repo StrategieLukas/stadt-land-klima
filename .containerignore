@@ -14,12 +14,6 @@ src/directus/*
 !src/directus/extensions/**
 !src/directus/translations/
 !src/directus/translations/**
-!docker/
-docker/*
-!docker/maintenance/
-docker/maintenance/*
-!docker/maintenance/index.html
-!docker/maintenance/maintenance-meta.js
 
 # Podman builds from the repository root. Never send host secrets/data/artifacts.
 .git
@@ -35,8 +29,8 @@ docker/maintenance/*
 **/*.tsbuildinfo
 **/*.log
 **/report.*.json
-docker/data
-docker/core-storage
+podman/data
+podman/core-storage
 src/directus/uploads
 src/directus/schema/snapshot.yaml
 backups

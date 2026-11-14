@@ -2,10 +2,12 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import {
   securityRecord,
   errorStatus,
+  failureKind,
   statusLevel,
   type LogDetails,
   type LogLevel,
 } from "../../../frontend/shared/securityLog.ts";
+export { errorStatus, failureKind };
 
 type RequestContext = { user: () => unknown; requestId: string; userAgent: unknown; authenticatedUser?: unknown };
 const key = Symbol.for("stadt-land-klima.security-log-context.v1");

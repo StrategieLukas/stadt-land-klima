@@ -1,3 +1,4 @@
+import { containerEnvironment } from "./container-environment.ts";
 /** Application recovery bundle. Container commands are read-only; operators quiesce writers first. */
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -25,7 +26,7 @@ type Container = {
   Image: string;
   Config: { Image: string; Env?: string[] };
   State: { Running: boolean; ExitCode: number; Status: string; StartedAt?: string; FinishedAt?: string };
-  Mounts: { Destination: string }[];
+  Mounts: { Destination: string; Source?: string }[];
 };
 type Manifest = {
   format: 1;
@@ -145,7 +146,7 @@ export async function verifyBundle(directory: string): Promise<void> {
 }
 
 export async function createBundle(options: {
-  engine: "docker" | "podman";
+  engine: "podman";
   project: string;
   output: string;
   configs: string[];
@@ -161,11 +162,12 @@ export async function createBundle(options: {
     process.env.CONTAINER_CONNECTION
   )
     throw new Error("Remote/container context overrides are unsupported; use the local engine on the source host");
-  const engineArgs = options.engine === "podman" ? ["--remote=false"] : ["--context", "default"];
+  if (options.engine !== "podman") throw new Error("Only local Podman is supported");
+  const engineArgs = ["--remote=false"];
   const engine = (args: string[], output?: string) => command(options.engine, [...engineArgs, ...args], output);
   const containers = {} as Record<Service, Container>;
   for (const service of services) {
-    const label = options.engine === "podman" ? "io.podman.compose" : "com.docker.compose";
+    const label = "io.podman.compose";
     const ids = (
       await engine([
         "ps",
@@ -195,10 +197,14 @@ export async function createBundle(options: {
     containers[service] = container;
   }
   const db = containers.db.Id;
+  const dbEntry = containers.db.Config.Env?.some((entry) => entry.startsWith("SLK_ENV_FILES="))
+    ? ["/usr/local/bin/slk-env"]
+    : [];
   const sql = (query: string) =>
     engine([
       "exec",
       db,
+      ...dbEntry,
       "sh",
       "-ec",
       'exec psql -XqAt -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -c "$1"',
@@ -214,7 +220,7 @@ export async function createBundle(options: {
   ) as string[];
   if (!names.length) throw new Error("No databases found");
   // Non-local Directus storage cannot be recovered by archiving /directus/uploads.
-  const cmsEnv = containers.directus.Config.Env ?? [];
+  const cmsEnv = Object.entries(containerEnvironment(containers.directus)).map(([key, value]) => `${key}=${value}`);
   const storage =
     cmsEnv.find((entry) => entry.startsWith("STORAGE_LOCATIONS="))?.slice("STORAGE_LOCATIONS=".length) ?? "local";
   if (
@@ -234,8 +240,8 @@ export async function createBundle(options: {
     throw new Error("Missing standard uploads mount");
 
   const configs = [
-    `db=${process.env.SLK_PODMAN_DB_ENV_FILE || join(root, "docker/db/.env")}`,
-    `meilisearch=${process.env.SLK_PODMAN_MEILI_ENV_FILE || join(root, "docker/meilisearch/.env")}`,
+    `db=${process.env.SLK_PODMAN_DB_ENV_FILE || join(root, "podman/database/.env")}`,
+    `meilisearch=${process.env.SLK_PODMAN_MEILI_ENV_FILE || join(root, "podman/meilisearch/.env")}`,
     `directus=${process.env.SLK_PODMAN_DIRECTUS_ENV_FILE || join(root, "src/directus/.env")}`,
     `frontend=${process.env.SLK_PODMAN_FRONTEND_ENV_FILE || join(root, "src/frontend/.env")}`,
     ...options.configs,
@@ -276,7 +282,7 @@ export async function createBundle(options: {
     configs: [],
   };
   await engine(
-    ["exec", db, "sh", "-ec", 'exec pg_dumpall -U "$POSTGRES_USER" --globals-only --quote-all-identifiers'],
+    ["exec", db, ...dbEntry, "sh", "-ec", 'exec pg_dumpall -U "$POSTGRES_USER" --globals-only --quote-all-identifiers'],
     join(output, "globals.sql"),
   );
   for (const [index, name] of names.entries()) {
@@ -285,6 +291,7 @@ export async function createBundle(options: {
       [
         "exec",
         db,
+        ...dbEntry,
         "sh",
         "-ec",
         'exec pg_dump -U "$POSTGRES_USER" --format=custom --create --quote-all-identifiers -d "$1"',
@@ -322,7 +329,8 @@ export async function createBundle(options: {
     "--exclude=node_modules",
     "--exclude=.nuxt",
     "--exclude=.output",
-    "--exclude=./docker/data",
+    "--exclude=./docker",
+    "--exclude=./podman/data",
     "--exclude=./src/directus/uploads",
     "--exclude=./backups",
     "--exclude=./.reports",
@@ -338,11 +346,7 @@ export async function createBundle(options: {
   await command("git", ["bundle", "verify", join(output, "repository.bundle")], undefined, undefined, true);
   const imageIds = [...new Set(Object.values(containers).map((container) => container.Image))];
   await engine(
-    [
-      "save",
-      ...(options.engine === "podman" ? ["--format", "docker-archive", "--multi-image-archive"] : []),
-      ...imageIds,
-    ],
+    ["save", "--format", "docker-archive", "--multi-image-archive", ...imageIds],
     join(output, "images.tar"),
   );
   await command("tar", ["-tf", join(output, "images.tar")], undefined, undefined, true);
@@ -374,7 +378,7 @@ async function main(): Promise<void> {
   const [action, ...args] = process.argv.slice(2);
   if (action === "--help") {
     console.log(
-      "node bin/lib/portable-backup.ts create --engine docker|podman --project NAME --output backups/NAME --writers-stopped [--config label=/path]\nnode bin/lib/portable-backup.ts verify /path/to/bundle\nSee bin/PORTABLE_BACKUP.md for shutdown and restoration.",
+      "bin/slk backup create --project NAME --output backups/NAME --writers-stopped [--config label=/path]\nbin/slk backup verify /path/to/bundle\nSee bin/PORTABLE_BACKUP.md for shutdown and restoration.",
     );
     return;
   }
@@ -402,11 +406,10 @@ async function main(): Promise<void> {
       values.set(key, value);
     }
   }
-  const engine = values.get("--engine"),
+  const engine = values.get("--engine") ?? "podman",
     project = values.get("--project"),
     output = values.get("--output");
-  if ((engine !== "docker" && engine !== "podman") || !project || !output)
-    throw new Error("Missing arguments; use --help");
+  if (engine !== "podman" || !project || !output) throw new Error("Missing arguments; use --help");
   const directory = await createBundle({ engine, project, output, configs, writersStopped });
   console.log(
     `Backup complete: ${directory}\nCopy the entire private directory off-host and run verify there. Restoration rehearsal is still required.`,

@@ -22,13 +22,21 @@ The embed layout renders only the Wahlcheck, without the site's header, footer,
 mobile dock or search. Result links generated inside the iframe open the normal
 standalone Wahlcheck.
 
+Append `?theme=localzero` to a Wahlcheck URL to opt into LocalZero colours and
+the self-hosted Fabrikat font. This works on the overview, standalone and embed
+routes, for example `/embed/wahlcheck/nettetal?theme=localzero`. If the URL already
+has a query string, append `&theme=localzero`. The host's `url` parameter must
+contain this complete, URL-encoded URL. Wahlcheck navigation and shared result
+links preserve the theme. It always uses light surfaces within the Wahlcheck;
+the site's stored theme, content, layout, logos and normal view remain unchanged.
+
 The default source is
 `https://future.stadt-land-klima.de/elections/wahlcheck/sachsen-anhalt-landesebene`.
 The source must have the embed route and partner framing policy deployed; see
 the deployment requirements below. The local-preview
 link switches to `http://localhost:8080/elections/wahlcheck/nettetal`, a published
 test election in the current local database. Start the development stack first
-(`bin/start_development.sh`) and choose another local published election if that
+(`bin/slk stack build --env development && ./bin/slk stack start --env development`) and choose another local published election if that
 record is unavailable. Published slugs are listed by
 `http://localhost:8080/api/public/wahlcheck`. Local and production databases can
 contain different elections. The test does not create or publish an election.
@@ -43,9 +51,8 @@ For a running local frontend, enter
 `http://localhost:8080/elections/wahlcheck/YOUR-SLUG`. A different localhost port
 tests cross-origin behavior, but not all cross-site cookie restrictions. Loading
 the public HTTPS site from this local page also exercises cross-site embedding.
-The production domain will support the embed URL only after this change is
-deployed there; the previously deployed full-page URL includes the site's header
-and footer. For the final partner-domain check, serve these static files on the partner's
+Verify the target deployment exposes the embed route; full-page URLs retain the
+site header and footer. For the final partner-domain check, serve these static files on the partner's
 actual HTTPS origin; its own CSP, permissions policy and browser environment also
 affect the result. Do not expose the repository root through the static server.
 
@@ -88,7 +95,7 @@ so the page intentionally does not display an automatic success indicator.
 A connection error at localhost:8080 means the frontend is stopped. A Wahlcheck
 data 404 means the slug is not published in that server's database. An HTML 500
 is a server-rendering error: inspect the document response and frontend logs
-(`docker logs --tail 50 stadt-land-klima-frontend-1`). It is not fixed by adding
+(`podman logs --tail 50 stadt-land-klima-frontend-1`). It is not fixed by adding
 CORS permissions or hiding the error page.
 
 The checked-in production Nuxt and Nginx/Caddy policies allow these exact origins

@@ -45,7 +45,9 @@ test("verified production output survives ordinary restarts without persisting s
   assert.equal(f.verify(), true);
   const marker = readFileSync(join(f.frontend, ".output/.slk-production.json"), "utf8");
   assert.doesNotMatch(marker, /PRIVATE_SECRET|never-copy-this-secret/);
-  assert.equal(f.verify({ ...f.environment, PRIVATE_SECRET: "changed" }), false);
+  assert.equal(f.verify({ ...f.environment, PRIVATE_SECRET: "changed" }), true);
+  writeFileSync(join(f.frontend, ".env"), "PRIVATE_SECRET=changed-again");
+  assert.equal(f.verify(), true);
   invalidateProductionOutput(f.frontend);
   assert.equal(f.verify(), false);
 });

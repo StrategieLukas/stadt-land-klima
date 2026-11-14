@@ -11,9 +11,6 @@ export function asRecord(input: unknown): Record<string, unknown> | null {
     ? (input as Record<string, unknown>)
     : null;
 }
-export function parseUnknownJson(text: string): unknown {
-  return JSON.parse(text) as unknown;
-}
 export function displayScalar(value: unknown, fallback = ""): string {
   return typeof value === "string" ||
     typeof value === "number" ||

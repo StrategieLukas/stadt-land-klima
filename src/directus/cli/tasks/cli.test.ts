@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { parse, stringify } from "yaml";
 import type { ZodType } from "zod";
 import { provisionServiceUsers } from "./provisionServiceUsers.ts";
+import { provisionTranslationWorker } from "../provisionTranslationWorker.ts";
 import {
   DashboardSchema,
   FlowSchema,
@@ -620,6 +621,33 @@ test("role attachment synchronization persists exact policies and never updates 
   assert.equal(requests.filter((call) => call.path.startsWith("/users")).length, 0);
 });
 
+test("role imports resolve parents after creating every role, regardless of file order", async () => {
+  const source = folder("parent-roles");
+  writeFileSync(join(source, "a-child.yaml"), stringify({ name: "Child", parent: "Parent" }));
+  writeFileSync(join(source, "z-parent.yaml"), stringify({ name: "Parent" }));
+  const roles: Record<string, unknown>[] = [];
+  reset((call) => {
+    if (call.path === "/roles" && call.method === "GET") return { data: roles };
+    if (call.path === "/roles" && call.method === "POST") {
+      for (const row of call.rows) {
+        assert.equal(row.parent, undefined);
+        roles.push({ ...row, id: `role-${row.name}` });
+      }
+      return { data: roles };
+    }
+    if (call.path === "/roles/role-Child" && call.method === "PATCH") {
+      assert.equal(roles.length, 2);
+      assert.deepEqual(call.body, { parent: "role-Parent" });
+      return { data: { ...roles[0], parent: "role-Parent" } };
+    }
+    return { data: [] };
+  });
+  const result = await command("import:roles", source, "--force");
+  assert.equal(result.code, 0, result.output);
+  assert.equal(requests.filter((call) => call.method === "PATCH").length, 1);
+  assert.equal(requests.filter((call) => call.path.startsWith("/users")).length, 0);
+});
+
 test("service-user provisioning uses valid owned-domain emails and reuses raw or concealed tokens without writes", async () => {
   const users: Record<string, unknown>[] = [];
   let concealed = false;
@@ -678,6 +706,78 @@ test("service-user provisioning uses valid owned-domain emails and reuses raw or
   reset(() => ({ data: [{ id: "ambiguous-one" }, { id: "ambiguous-two" }] }));
   await assert.rejects(provisionServiceUsers(url, "fixture-token"), /not uniquely found/);
   assert.equal(requests.filter((call) => call.method !== "GET").length, 0);
+});
+
+test("translation deployment creates the missing restricted identity with its configured token and reuses it", async () => {
+  const configured = "c".repeat(64);
+  let user: Record<string, unknown> | undefined;
+  let roleOverrides: Record<string, unknown> = {};
+  let directPolicies: string[] = [];
+  reset((call) => {
+    if (call.path === "/roles")
+      return {
+        data: [
+          {
+            id: "translation-role",
+            parent: null,
+            policies: [
+              {
+                policy: {
+                  id: "translation-policy",
+                  name: "Content-Translation-Worker",
+                  admin_access: false,
+                  app_access: false,
+                  permissions: [],
+                },
+              },
+            ],
+            ...roleOverrides,
+          },
+        ],
+      };
+    assert.equal(call.path, "/users");
+    if (call.method === "GET") return { data: user ? [{ ...user, policies: directPolicies }] : [] };
+    assert.equal(call.method, "POST");
+    assert.equal(call.body.token, configured);
+    assert.equal(call.body.email, "content-translation-worker@stadt-land-klima.de");
+    user = { id: "translation-user", ...call.body };
+    return { data: user };
+  });
+  const stored = { read: async () => configured, close: async () => {} };
+  const created = await provisionTranslationWorker(url, "fixture-token", stored, configured);
+  assert.deepEqual(created, { CONTENT_TRANSLATION_WORKER_TOKEN: configured });
+  assert.deepEqual(await provisionTranslationWorker(url, "fixture-token", stored, "d".repeat(64)), created);
+  assert.equal(requests.filter((call) => call.method !== "GET").length, 1, "redeploy must never rotate the account");
+  for (const unsafe of [
+    { parent: "administrator" },
+    { policies: [] },
+    {
+      policies: [
+        { policy: { name: "Content-Translation-Worker", admin_access: true, app_access: false, permissions: [] } },
+      ],
+    },
+    {
+      policies: [
+        {
+          policy: {
+            name: "Content-Translation-Worker",
+            admin_access: false,
+            app_access: false,
+            permissions: [{ id: "extra-access" }],
+          },
+        },
+      ],
+    },
+  ]) {
+    roleOverrides = unsafe;
+    await assert.rejects(provisionTranslationWorker(url, "fixture-token", stored, configured), /restricted policy/);
+  }
+  roleOverrides = {};
+  directPolicies = ["administrator-policy"];
+  await assert.rejects(provisionTranslationWorker(url, "fixture-token", stored, configured), /direct policies/);
+  directPolicies = [];
+  await assert.rejects(provisionTranslationWorker(url, "fixture-token", stored, "weak"), /64 lowercase/);
+  assert.equal(requests.filter((call) => call.method !== "GET").length, 1);
 });
 
 test("service-user provisioning rejects conflicting, disabled or weak existing identities before any writes", async () => {

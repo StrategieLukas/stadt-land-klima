@@ -8,14 +8,14 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 const require = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 const { satisfies } = require("semver") as { satisfies: (version: string, range: string) => boolean };
-const image = process.env.SLK_SECURITY_IMAGE || "stadt-land-klima-directus";
+const image = process.env.SLK_SECURITY_IMAGE || "localhost/slk-podman-directus-runtime:local";
 if (!/^[a-zA-Z0-9][a-zA-Z0-9._/:@-]*$/.test(image)) throw Error("Invalid image reference");
 const reviewed = process.argv.includes("--reviewed");
 const output = resolve(process.argv.slice(2).find((arg) => arg !== "--reviewed") || ".reports/directus-image-audit");
 mkdirSync(output, { recursive: true, mode: 0o700 });
 const collector = String.raw`const{readdirSync,readFileSync,realpathSync,existsSync}=require('node:fs');const base='/directus/node_modules/.pnpm';const packages={};const seen=new Set();const add=d=>{if(typeof d.name==='string'&&/^\d+\.\d+\.\d+/.test(d.version)){(packages[d.name]??=new Set()).add(d.version)}};const visit=modules=>{if(!existsSync(modules))return;for(const name of readdirSync(modules)){if(name.startsWith('.'))continue;const paths=name.startsWith('@')?readdirSync(modules+'/'+name).map(n=>name+'/'+n):[name];for(const p of paths){try{const full=realpathSync(modules+'/'+p);if(seen.has(full))continue;seen.add(full);add(JSON.parse(readFileSync(full+'/package.json')));visit(full+'/node_modules')}catch{}}}};add(JSON.parse(readFileSync('/directus/package.json')));for(const dir of readdirSync(base)){try{visit(base+'/'+dir+'/node_modules')}catch{}}visit('/opt/slk-directus-runtime-security/node_modules');console.log(JSON.stringify(Object.fromEntries(Object.entries(packages).map(([n,v])=>[n,[...v]]))));`;
 const packages = JSON.parse(
-  execFileSync("docker", ["run", "--rm", "--network=none", "--entrypoint=node", image, "-e", collector], {
+  execFileSync("podman", ["run", "--rm", "--network=none", "--entrypoint=node", image, "-e", collector], {
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
     timeout: 60_000,
@@ -52,11 +52,11 @@ if (reviewed) {
     throw Error("Pinned-image advisory review expired; reassess before release");
   const { parse } = require("yaml") as { parse: (source: string) => Record<string, any> };
   assertReleasePolicy(
-    parse(readFileSync(new URL("../../../docker-compose.yaml", import.meta.url), "utf8")),
-    parse(readFileSync(new URL("../../../docker-compose.prod.yaml", import.meta.url), "utf8")),
+    parse(readFileSync(new URL("../../../podman-compose.yaml", import.meta.url), "utf8")),
+    parse(readFileSync(new URL("../../../podman-compose.prod.yaml", import.meta.url), "utf8")),
   );
   execFileSync(
-    "docker",
+    "podman",
     [
       "run",
       "--rm",

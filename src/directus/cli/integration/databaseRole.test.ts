@@ -22,14 +22,14 @@ test(
   async () => {
     const image = z
       .object({ services: z.object({ db: z.object({ image: z.string() }) }) })
-      .parse(parse(readFileSync(new URL("../../../../docker-compose.yaml", import.meta.url), "utf8"))).services
+      .parse(parse(readFileSync(new URL("../../../../podman-compose.yaml", import.meta.url), "utf8"))).services
       .db.image;
     const name = `slk-role-test-${randomUUID()}`;
     const password = randomBytes(32).toString("hex");
     let pool: pg.Pool | undefined;
     try {
       await execute(
-        "docker",
+        "podman",
         [
           "run",
           "-d",
@@ -49,7 +49,7 @@ test(
         ],
         { env: { ...process.env, POSTGRES_PASSWORD: password } },
       );
-      const port = Number((await execute("docker", ["port", name, "5432/tcp"])).stdout.trim().split(":").at(-1));
+      const port = Number((await execute("podman", ["port", name, "5432/tcp"])).stdout.trim().split(":").at(-1));
       const config = {
         host: "127.0.0.1",
         port,
@@ -206,7 +206,7 @@ test(
           await app.end();
         }
         const dump = await execute(
-          "docker",
+          "podman",
           ["exec", name, "sh", "-ec", 'exec pg_dump --clean -U "$POSTGRES_USER" -d slk_role_test'],
           { maxBuffer: 8 * 1024 * 1024 },
         );
@@ -218,7 +218,7 @@ test(
       }
     } finally {
       await pool?.end();
-      await execute("docker", ["rm", "-f", name]).catch(() => undefined);
+      await execute("podman", ["rm", "-f", name]).catch(() => undefined);
     }
   },
 );

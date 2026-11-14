@@ -382,16 +382,26 @@ test("clearing or replacing a search prevents a late response from restoring sta
       },
       { cancel() {} },
     );
-  const { useContentSearch } = load(
-    "composables/useContentSearch.ts",
-    { lodash: { debounce }, "~/shared/contracts/search": searchContracts },
+  const { useUnifiedSearch } = load(
+    "composables/useUnifiedSearch.ts",
     {
-      ref: vue.ref,
-      $fetch: (url: string) =>
-        new Promise((resolve) => requests.set(new URL(url, "http://test").searchParams.get("q")!, resolve)),
+      vue,
+      lodash: { debounce },
+      "~/shared/contracts/search": searchContracts,
+      "~/shared/utils": { getScorePercentageColor, getStateFromArs: () => "State" },
+      "~/shared/municipality-score-publishing": { isMunicipalityScoreComplete: () => false },
+    },
+    {
+      AbortController,
+      useNuxtApp: () => ({ $t: (key: string) => key }),
+      $fetch: (url: string) => {
+        if (url === "/api/area-search") return Promise.resolve([]);
+        if (url === "/api/public/municipalities") return Promise.resolve({ municipalities: [] });
+        return new Promise((resolve) => requests.set(new URL(url, "http://test").searchParams.get("q")!, resolve));
+      },
     },
   );
-  const search = useContentSearch();
+  const search = useUnifiedSearch();
   const hit = (id: string) => ({ hits: [{ id, type: "page", title: id, url: "/page" }] });
   search.search("old");
   search.search("new");
@@ -399,12 +409,12 @@ test("clearing or replacing a search prevents a late response from restoring sta
   await pending[1];
   requests.get("old")!(hit("old"));
   await pending[0];
-  assert.equal(search.results.value[0].id, "new");
+  assert.equal(search.flatResults.value[0].id, "new");
   search.search("late");
   search.clear();
   requests.get("late")!(hit("late"));
   await pending[2];
-  assert.deepEqual(plain(search.results.value), []);
+  assert.deepEqual(plain(search.flatResults.value), []);
   assert.equal(search.isLoading.value, false);
 });
 

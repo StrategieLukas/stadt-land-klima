@@ -24,8 +24,8 @@ function fixture() {
   const directory = mkdtempSync(join(fixtures, "case-"));
   for (const name of [
     "bin/lib",
-    "docker/db",
-    "docker/meilisearch",
+    "podman/database",
+    "podman/meilisearch",
     "src/directus",
     "src/frontend",
     "tools",
@@ -34,8 +34,11 @@ function fixture() {
   ])
     mkdirSync(join(directory, name), { recursive: true });
   copyFileSync(join(root, "bin/lib/portable-backup.ts"), join(directory, "bin/lib/portable-backup.ts"));
+  copyFileSync(join(root, "bin/lib/container-environment.ts"), join(directory, "bin/lib/container-environment.ts"));
+  copyFileSync(join(root, "bin/package.json"), join(directory, "bin/package.json"));
+  symlinkSync(join(root, "bin/node_modules"), join(directory, "bin/node_modules"), "dir");
   copyFileSync(join(root, "bin/PORTABLE_BACKUP.md"), join(directory, "bin/PORTABLE_BACKUP.md"));
-  for (const name of ["docker/db", "docker/meilisearch", "src/directus", "src/frontend"])
+  for (const name of ["podman/database", "podman/meilisearch", "src/directus", "src/frontend"])
     writeFileSync(join(directory, name, ".env"), "KEY=private\n");
   writeFileSync(join(directory, "tracked.txt"), "original");
   writeFileSync(join(directory, "deleted.txt"), "remove after commit");
@@ -97,7 +100,7 @@ if(action==='exec') {
 if(action==='cp'||action==='save') {process.stdout.write(fs.readFileSync(process.env.TEST_ARCHIVE));process.exit(0);}
 process.exit(8);
 `;
-  for (const name of ["docker", "podman"]) writeFileSync(join(directory, "tools", name), engine, { mode: 0o700 });
+  for (const name of ["podman"]) writeFileSync(join(directory, "tools", name), engine, { mode: 0o700 });
   const run = (engine: string, state = "ok", extra: string[] = []) =>
     spawnSync(
       process.execPath,
@@ -141,7 +144,7 @@ process.exit(8);
   };
 }
 
-for (const engine of ["docker", "podman"])
+for (const engine of ["podman"])
   test(`${engine}: portable capture survives relocation and restores directory contents`, async () => {
     const f = fixture();
     try {
@@ -211,7 +214,7 @@ for (const state of ["running", "missing", "unclean", "s3", "tablespaces", "dump
   test(`backup refuses ${state} and never certifies partial output`, () => {
     const f = fixture();
     try {
-      const result = f.run("docker", state);
+      const result = f.run("podman", state);
       assert.equal(result.status, 1);
       assert(!result.stderr.includes("SECRET"));
       assert.throws(() => statSync(join(f.output, "SHA256SUMS")));
@@ -232,7 +235,7 @@ test("backup rejects output symlinks, outside-repo writes and manifest path trav
     } finally {
       rmSync(link);
     }
-    assert.equal(f.run("docker").status, 0);
+    assert.equal(f.run("podman").status, 0);
     writeFileSync(join(f.output, "SHA256SUMS"), "a".repeat(64) + "  ../secret\n");
     await assert.rejects(verifyBundle(f.output), /Invalid/);
   } finally {
@@ -243,7 +246,7 @@ test("backup rejects output symlinks, outside-repo writes and manifest path trav
 test("explicit private config overrides a missing default and is never executed", async () => {
   const f = fixture();
   try {
-    rmSync(join(f.directory, "docker/db/.env"));
+    rmSync(join(f.directory, "podman/database/.env"));
     const config = join(f.directory, "operator.env");
     const text = "POSTGRES_USER=bootstrap\nKEY=$(touch /DO_NOT_EXECUTE)\n";
     writeFileSync(config, text);
@@ -259,7 +262,7 @@ test("explicit private config overrides a missing default and is never executed"
 test("capture requires an explicit writer shutdown acknowledgement", async () => {
   await assert.rejects(
     createBundle({
-      engine: "docker",
+      engine: "podman",
       project: "source-project",
       output: "backups/unused",
       configs: [],
@@ -272,7 +275,7 @@ test("capture requires an explicit writer shutdown acknowledgement", async () =>
 test("bundle verification refuses missing files, extra files and symlinked payloads", async () => {
   const f = fixture();
   try {
-    assert.equal(f.run("docker").status, 0);
+    assert.equal(f.run("podman").status, 0);
     const upload = join(f.output, "uploads.tar");
     const original = readFileSync(upload);
     rmSync(upload);

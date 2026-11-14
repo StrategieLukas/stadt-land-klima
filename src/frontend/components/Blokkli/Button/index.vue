@@ -90,44 +90,11 @@
 
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
+import { prepareButtonIcons } from "~/utils/buttonIcons";
 import { resolveBlokkliInternalLink } from "~/utils/blokkliLinks";
 
-const svgFiles = import.meta.glob("@/assets/icons/*.svg", { query: "?raw", import: "default", eager: true });
-
-/** Strip background rects, hardcoded dimensions, and rewrite fills/strokes to currentColor */
-function prepareIcon(raw: string): string {
-  let svg = raw;
-  // Remove XML declaration
-  svg = svg.replace(/<\?xml[^?]*\?>/g, "");
-  // Remove hardcoded width/height so the SVG scales with its container
-  svg = svg.replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1");
-  svg = svg.replace(/(<svg[^>]*?)\s+height="[^"]*"/g, "$1");
-  // Remove background <rect> with cls-2 class (solid bg)
-  svg = svg.replace(/<rect[^>]*class="cls-2"[^/>]*\/>/g, "");
-  svg = svg.replace(/<rect[^>]*class="cls-2"[^>]*>[^<]*<\/rect>/g, "");
-  // Remove cls-3 background rects (agriculture, hint icons)
-  svg = svg.replace(/<rect[^>]*class="cls-3"[^/>]*\/>/g, "");
-  svg = svg.replace(/<rect[^>]*class="cls-3"[^>]*>[^<]*<\/rect>/g, "");
-  // Remove st0 background circles (impact, invest, evaluation_criteria, politics icons)
-  svg = svg.replace(/<circle[^>]*class="st0"[^/>]*\/>/g, "");
-  svg = svg.replace(/<circle[^>]*class="st0"[^>]*>[^<]*<\/circle>/g, "");
-  // Replace CSS fill/stroke declarations with currentColor
-  svg = svg.replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, "fill: currentColor");
-  svg = svg.replace(/stroke:\s*#[0-9a-fA-F]{3,6}/g, "stroke: currentColor");
-  // Replace inline fill/stroke attributes with currentColor
-  svg = svg.replace(/fill="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'fill="currentColor"');
-  svg = svg.replace(/stroke="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'stroke="currentColor"');
-  // Keep fill="none" intact (restore after blanket replace)
-  // Not needed — our regex only matches color values, not "none"
-  return svg;
-}
-
-const iconMap: Record<string, string> = Object.fromEntries(
-  Object.entries(svgFiles).map(([path, svg]) => {
-    const name = path.split("/").pop()?.replace(".svg", "") || "";
-    return [name, prepareIcon(svg as string)];
-  }),
-);
+const svgFiles = import.meta.glob<string>("@/assets/icons/*.svg", { query: "?raw", import: "default", eager: true });
+const iconMap = prepareButtonIcons(svgFiles, "blokkli");
 
 const _isEditing = import.meta.blokkliEditing;
 

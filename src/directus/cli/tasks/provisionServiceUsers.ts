@@ -11,7 +11,7 @@ export async function provisionServiceUsers(
   url: string,
   adminToken: string,
   readStoredToken?: StoredTokenReader,
-  requestedDefinitions?: readonly { role: string; email: string; lastName: string; variable: string }[],
+  requestedDefinitions?: readonly { role: string; email: string; lastName: string; variable: string; token?: string }[],
 ) {
   const client = createDirectus<{}>(url).with(staticToken(adminToken)).with(rest());
   // Directus validates IANA top-level domains; reserved .local addresses are rejected.
@@ -35,6 +35,10 @@ export async function provisionServiceUsers(
       variable: "DIRECTUS_PREVIEW_TOKEN",
     },
   ];
+  for (const definition of definitions) {
+    if (definition.token !== undefined && !/^[a-f0-9]{64}$/.test(definition.token))
+      throw new Error("Configured service token must contain 64 lowercase hexadecimal characters");
+  }
   // Resolve every role and existing identity before writes. Never silently repurpose an account.
   const roles = await Promise.all(
     definitions.map(async (definition) => {
@@ -96,7 +100,7 @@ export async function provisionServiceUsers(
       assignments[definition.variable] = user.token;
       continue;
     }
-    const token = randomBytes(32).toString("hex");
+    const token = definition.token ?? randomBytes(32).toString("hex");
     await client.request(
       createUser({
         email: definition.email,

@@ -35,16 +35,13 @@
 
     <div v-if="stops.length" class="series-facts" :aria-label="$t('tour.itinerary')">
       <div>
-        <strong>{{ stops.length }}</strong
-        ><span>{{ $t("tour.stops") }}</span>
+        <strong>{{ stops.length }}</strong><span>{{ $t("tour.stops") }}</span>
       </div>
       <div>
-        <strong>{{ stateCount }}</strong
-        ><span>{{ $t("tour.states") }}</span>
+        <strong>{{ stateCount }}</strong><span>{{ $t("tour.states") }}</span>
       </div>
       <div>
-        <strong>{{ dayCount }}</strong
-        ><span>{{ $t("tour.days") }}</span>
+        <strong>{{ dayCount }}</strong><span>{{ $t("tour.days") }}</span>
       </div>
     </div>
 
@@ -63,8 +60,7 @@
         <div ref="explorerHeaderRef" class="tour-explorer__header">
           <div class="tour-explorer__toolbar">
             <div class="tour-explorer__heading">
-              <strong>{{ $t("tour.road_diary") }}</strong
-              ><small>{{ $t("tour.scroll_journey") }}</small>
+              <strong>{{ $t("tour.road_diary") }}</strong><small>{{ $t("tour.scroll_journey") }}</small>
             </div>
             <span v-if="nextStopIndex >= 0" class="tour-explorer__next"
               >{{ $t("tour.next_stop") }} · {{ formatShortDate(stops[nextStopIndex]!.start_date) }}
@@ -117,8 +113,7 @@
                 :style="{ '--pin-color': pinColor(index) }"
                 @click.prevent="selectStop(index)"
               >
-                <span>{{ String(index + 1).padStart(2, "0") }}</span
-                >{{ stop.location || stop.title }}
+                <span>{{ String(index + 1).padStart(2, "0") }}</span>{{ stop.location || stop.title }}
               </a>
             </nav>
             <button
@@ -186,8 +181,9 @@
                     <TourMediaPreview :item="reportMedia(stop.id)[0]!" />
                   </button>
                   <figcaption>
-                    <span v-if="reportMedia(stop.id)[0]!.caption">{{ reportMedia(stop.id)[0]!.caption }}</span
-                    ><small>{{ reportMedia(stop.id)[0]!.credit }}</small
+                    <span v-if="reportMedia(stop.id)[0]!.caption">{{ reportMedia(stop.id)[0]!.caption }}</span><small>{{
+                      reportMedia(stop.id)[0]!.credit
+                    }}</small
                     ><small>{{ $t("tour.media_count", { ":count": reportMedia(stop.id).length }) }}</small>
                   </figcaption>
                 </figure>
@@ -246,8 +242,7 @@
                     <TourMediaPreview :item="photo" preserve-aspect-ratio />
                   </button>
                   <figcaption>
-                    <span v-if="photo.caption">{{ photo.caption }}</span
-                    ><small>{{ photo.credit }}</small
+                    <span v-if="photo.caption">{{ photo.caption }}</span><small>{{ photo.credit }}</small
                     ><small>{{ $t("tour.media_count", { ":count": reportMedia(stop.id).length }) }}</small>
                   </figcaption>
                 </figure>
@@ -299,8 +294,7 @@
             />
           </div>
           <div v-else class="series-brand__fallback">
-            <span>{{ series.title }}</span
-            ><TourPin /><strong>Stadt.Land.Klima!</strong>
+            <span>{{ series.title }}</span><TourPin /><strong>Stadt.Land.Klima!</strong>
           </div>
         </div>
         <div

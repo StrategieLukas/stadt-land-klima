@@ -1,13 +1,13 @@
-To export a sanitized production-sized DB for staging or development, run:
+# Sanitized development data
+
+From the repository root:
 
 ```bash
-./db_exports/test_data_export.sh > sanitized_dump.sql
+umask 077
+./bin/slk database sanitize --env production > sanitized_dump.sql
+./bin/slk database import --env development < sanitized_dump.sql
 ```
 
-The script writes progress logs to stderr and the SQL dump to stdout.
-
-To import an SQL file, call `run_sql.sh` and pipe in the dump:
-
-```bash
-./run_sql.sh < sanitized_dump.sql
-```
+The sanitized export clones the source into a temporary database, removes personal
+data there, and leaves the source unchanged. Keep dumps private. Ordinary exports
+use `slk database export`; use `slk database sql -- -c 'SELECT 1'` for explicit SQL.

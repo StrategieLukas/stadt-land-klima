@@ -383,7 +383,10 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         "Published blocks of a draft report must remain private",
       );
       assertNotIncludes(
-        await pageHtml(`${config.frontendUrl}/projects/tours/${slug}/${past.slug}`),
+        (await pageHtml(`${config.frontendUrl}/projects/tours/${slug}/${past.slug}`)).replace(
+          /^[\s\S]*?<body\b[^>]*>/i,
+          "",
+        ),
         "Obsolete visit information fixture.",
         "Unreported stops should not render redundant visit details",
       );

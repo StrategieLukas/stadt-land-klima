@@ -17,5 +17,5 @@
     },
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts", "../lib/*.ts", "../../docker/directus/security-patches/*.ts"]
+  "include": ["src/**/*.ts", "../lib/*.ts", "../../podman/directus/security-patches/*.ts"]
 }

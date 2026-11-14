@@ -53,8 +53,7 @@
             <TourMediaPreview :item="item" :editor-preview="editorPreview" />
           </button>
           <figcaption class="p-3 text-sm">
-            <span v-if="item.caption" class="block">{{ item.caption }}</span
-            ><small>{{ item.credit }}</small>
+            <span v-if="item.caption" class="block">{{ item.caption }}</span><small>{{ item.credit }}</small>
           </figcaption>
         </figure>
       </div>

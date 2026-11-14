@@ -106,6 +106,12 @@ export function translationTransport(
         headers: { Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) },
         ...(body ? { body: JSON.stringify(body) } : {}),
       });
+      if (response.status === 401 || response.status === 403) {
+        // A proxy may reject credentials with an empty/non-JSON body. Preserve
+        // the authorization failure so the worker cannot retry it as a 503.
+        await response.body?.cancel().catch(() => {});
+        throw new TranslationPersistenceError("forbidden", response.status);
+      }
       const reader = response.body?.getReader();
       if (!reader) throw new TranslationPersistenceError("empty_persistence_response");
       let bytes = 0;
