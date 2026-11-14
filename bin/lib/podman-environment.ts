@@ -59,8 +59,11 @@ export function podmanEnvironmentPlan(
             : []),
       ],
       environment: {
-        SLK_ENV_FILES: files.join(":"), SLK_ENV_LOCKED_KEYS: locked.join(","),
-        ...(service === "frontend" ? { SLK_DEPLOYMENT_TARGET: translationDeploymentTarget(production ? "production" : "development", target) } : {}),
+        SLK_ENV_FILES: files.join(":"),
+        SLK_ENV_LOCKED_KEYS: locked.join(","),
+        ...(service === "frontend"
+          ? { SLK_DEPLOYMENT_TARGET: translationDeploymentTarget(production ? "production" : "development", target) }
+          : {}),
       },
     };
   }
@@ -102,7 +105,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
         mode: 0o600,
         flag: "wx",
       });
-    const target = process.env.SLK_DEPLOYMENT_TARGET ?? dotenv.parse(readFileSync(paths.frontend)).SLK_DEPLOYMENT_TARGET;
+    const target =
+      process.env.SLK_DEPLOYMENT_TARGET ?? dotenv.parse(readFileSync(paths.frontend)).SLK_DEPLOYMENT_TARGET;
     const plan = podmanEnvironmentPlan(paths, environment === "production", target);
     plan.services.maintenance = { volumes: [`${metadata}:/srv/maintenance-meta.js:ro,z`], environment: {} };
     writeFileSync(temporary, JSON.stringify(plan) + "\n", { mode: 0o600, flag: "wx" });

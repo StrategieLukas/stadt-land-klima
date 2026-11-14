@@ -281,7 +281,9 @@ export async function performStack(
       await node("bin/lib/maintenance-meta.ts", [rt.metadataPath]);
       if (environment === "production" && (!args.length || args.includes("frontend"))) {
         await rt.raw(["stop", "frontend"]);
-        const others = args.length ? args.filter((service) => service !== "frontend") : ["db", "cache", "meilisearch", "directus"];
+        const others = args.length
+          ? args.filter((service) => service !== "frontend")
+          : ["db", "cache", "meilisearch", "directus"];
         if (others.length) await rt.raw(["restart", ...others]);
         await rt.ready(`http://127.0.0.1:${rt.cmsPort}/server/health`);
         await reconcileTranslationWorker(rt);

@@ -478,10 +478,18 @@ test("runtime mounts contain paths only and the builder receives no private moun
   assert.ok(plan.services.directus!.environment.SLK_ENV_LOCKED_KEYS?.includes("SLK_STARTUP_SECURITY_CHECKS"));
   for (const [name, service] of Object.entries(plan.services)) {
     assert.ok(service.volumes.every((mount) => mount.endsWith(":ro,z")));
-    assert.deepEqual(Object.keys(service.environment).sort(), name === "frontend" ? ["SLK_DEPLOYMENT_TARGET", "SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"] : ["SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"]);
+    assert.deepEqual(
+      Object.keys(service.environment).sort(),
+      name === "frontend"
+        ? ["SLK_DEPLOYMENT_TARGET", "SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"]
+        : ["SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"],
+    );
   }
   assert.equal(plan.services.frontend!.environment.SLK_DEPLOYMENT_TARGET, "production");
-  assert.equal(podmanEnvironmentPlan(paths, true, "staging").services.frontend!.environment.SLK_DEPLOYMENT_TARGET, "staging");
+  assert.equal(
+    podmanEnvironmentPlan(paths, true, "staging").services.frontend!.environment.SLK_DEPLOYMENT_TARGET,
+    "staging",
+  );
   assert.ok(plan.services.frontend!.environment.SLK_ENV_LOCKED_KEYS?.includes("SLK_DEPLOYMENT_TARGET"));
 });
 
@@ -559,7 +567,10 @@ test("private YAML setup precedes the checked full CMS and never publishes helpe
 
 test("failed translation provisioning after YAML import retains maintenance and blocks frontend startup", (t) => {
   const fixture = wrapperFixture(t);
-  writeFileSync(join(fixture.directory, "src/frontend/.env"), "DEEPL_API_KEY=private-canary\nCONTENT_TRANSLATION_ENABLED=true\nCONTENT_TRANSLATION_GENERATION_ENABLED=true\n");
+  writeFileSync(
+    join(fixture.directory, "src/frontend/.env"),
+    "DEEPL_API_KEY=private-canary\nCONTENT_TRANSLATION_ENABLED=true\nCONTENT_TRANSLATION_GENERATION_ENABLED=true\n",
+  );
   const result = fixture.invoke(["start", "--import"], "no", false, true);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Translation worker provisioning failed/);
@@ -715,7 +726,12 @@ esac
   assert.equal(activated.status, 0, activated.stderr);
   assert.equal(readFileSync(join(state, "activate.ok"), "utf8"), "");
   const releaseCalls = readFileSync(calls, "utf8");
-  const activation = releaseCalls.slice(releaseCalls.lastIndexOf("production compose exec -T directus /directus/cli/import-all.sh"));
-  assert.ok(activation.indexOf("production translation-worker") < activation.indexOf("production compose up -d --no-build --no-deps frontend"));
+  const activation = releaseCalls.slice(
+    releaseCalls.lastIndexOf("production compose exec -T directus /directus/cli/import-all.sh"),
+  );
+  assert.ok(
+    activation.indexOf("production translation-worker") <
+      activation.indexOf("production compose up -d --no-build --no-deps frontend"),
+  );
   assert.match(rollbackCalls, /release-b477ac14:production translation-worker/);
 });

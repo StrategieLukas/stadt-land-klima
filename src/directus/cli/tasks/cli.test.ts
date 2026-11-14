@@ -714,11 +714,27 @@ test("translation deployment creates the missing restricted identity with its co
   let roleOverrides: Record<string, unknown> = {};
   let directPolicies: string[] = [];
   reset((call) => {
-    if (call.path === "/roles") return { data: [{
-      id: "translation-role", parent: null,
-      policies: [{ policy: { id: "translation-policy", name: "Content-Translation-Worker", admin_access: false, app_access: false, permissions: [] } }],
-      ...roleOverrides,
-    }] };
+    if (call.path === "/roles")
+      return {
+        data: [
+          {
+            id: "translation-role",
+            parent: null,
+            policies: [
+              {
+                policy: {
+                  id: "translation-policy",
+                  name: "Content-Translation-Worker",
+                  admin_access: false,
+                  app_access: false,
+                  permissions: [],
+                },
+              },
+            ],
+            ...roleOverrides,
+          },
+        ],
+      };
     assert.equal(call.path, "/users");
     if (call.method === "GET") return { data: user ? [{ ...user, policies: directPolicies }] : [] };
     assert.equal(call.method, "POST");
@@ -735,8 +751,23 @@ test("translation deployment creates the missing restricted identity with its co
   for (const unsafe of [
     { parent: "administrator" },
     { policies: [] },
-    { policies: [{ policy: { name: "Content-Translation-Worker", admin_access: true, app_access: false, permissions: [] } }] },
-    { policies: [{ policy: { name: "Content-Translation-Worker", admin_access: false, app_access: false, permissions: [{ id: "extra-access" }] } }] },
+    {
+      policies: [
+        { policy: { name: "Content-Translation-Worker", admin_access: true, app_access: false, permissions: [] } },
+      ],
+    },
+    {
+      policies: [
+        {
+          policy: {
+            name: "Content-Translation-Worker",
+            admin_access: false,
+            app_access: false,
+            permissions: [{ id: "extra-access" }],
+          },
+        },
+      ],
+    },
   ]) {
     roleOverrides = unsafe;
     await assert.rejects(provisionTranslationWorker(url, "fixture-token", stored, configured), /restricted policy/);

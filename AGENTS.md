@@ -186,6 +186,7 @@ See [resource hardening](PROJECT_DECISIONS.md#pinned-directus-and-dependency-sec
 ## Checks
 
 1. Run ./slk test dev in the bin folder and wait for checks to complete.
+2. Before every push, run `npm --prefix src/frontend run format:check` from the repository root (the same repository-wide formatting check used by GitHub Actions). If it fails, run `npm --prefix src/frontend run format`, review the diff, and rerun `format:check` until it passes. Repeat the check after any further edits and do not push with formatting failures.
 
 ## Deployment
 

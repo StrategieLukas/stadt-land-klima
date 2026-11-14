@@ -232,7 +232,10 @@ const parser = yargs(hideBin(process.argv))
         .option("no-frontend-build", { type: "boolean", default: false }),
     async (argv) => {
       if (argv.action === "staging")
-        await run("ssh", ["deploy@staging", "cd slk-testing && git pull && SLK_DEPLOYMENT_TARGET=staging ./bin/slk deploy update --env development"]);
+        await run("ssh", [
+          "deploy@staging",
+          "cd slk-testing && git pull && SLK_DEPLOYMENT_TARGET=staging ./bin/slk deploy update --env development",
+        ]);
       else
         await update(argv.env, {
           noBackup: argv.noBackup,
