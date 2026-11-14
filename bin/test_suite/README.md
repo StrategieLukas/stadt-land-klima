@@ -4,6 +4,13 @@ The suite is a TypeScript runner under `bin/test_suite`. It creates disposable D
 
 ## Running
 
+For the complete local CI/readiness gate with concise output, use
+`./bin/slk check ready` from the repository root. It runs isolated tests once,
+then the live half of the development suite without duplicating those tests.
+`./bin/slk check ready --only dev` includes isolated tests as a prerequisite.
+Use `--output json`, `--output full` or `--tail 80` as needed; full logs are retained.
+See [the check runner reference](../../docs/CHECKS.md) for all profiles and setup.
+
 Use the development wrapper from the repository root (or `./slk test dev` from `bin/`):
 
 ```bash

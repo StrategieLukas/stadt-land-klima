@@ -22,6 +22,15 @@ jobs:
       - name: Record the actual native platform
         run: node -p "JSON.stringify({platform:process.platform,arch:process.arch,node:process.version})"
       - name: Install locked dependencies with optional platform bindings
-        run: npm ci --prefix src/frontend
+        run: |
+          npm ci --prefix bin --ignore-scripts
+          npm ci --prefix src/frontend
       - name: Strict checking and production build
-        run: npm --prefix src/frontend run build
+        run: node bin/slk check native --output full
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: native-checks-${{ matrix.os }}
+          path: .reports/checks/
+          include-hidden-files: true
+          retention-days: 14

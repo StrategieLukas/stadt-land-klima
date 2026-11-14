@@ -3,6 +3,7 @@ import {
   symlinkSync,
   chmodSync,
   copyFileSync,
+  cpSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -321,17 +322,10 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
     "src/frontend/shared",
   ])
     mkdirSync(join(directory, folder), { recursive: true, mode: 0o700 });
+  cpSync(fileURLToPath(new URL("../../../bin/cli", import.meta.url)), join(directory, "bin/cli"), { recursive: true });
   for (const file of [
     "bin/slk",
     "bin/package.json",
-    "bin/cli/index.ts",
-    "bin/cli/host-environment.ts",
-    "bin/cli/stack.ts",
-    "bin/cli/translation-worker.ts",
-    "bin/cli/podman-local.mjs",
-    "bin/cli/process.ts",
-    "bin/cli/operations.ts",
-    "bin/cli/core.ts",
     "bin/lib/podman-security.ts",
     "bin/lib/podman-environment.ts",
     "bin/lib/maintenance-meta.ts",

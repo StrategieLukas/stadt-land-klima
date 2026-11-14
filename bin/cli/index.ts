@@ -1,11 +1,9 @@
 import yargs from "yargs";
+import { checkCommand } from "./check-command.ts";
+import { CHECK_PROFILES } from "./check-plan.ts";
 import { hideBin } from "yargs/helpers";
-import { performStack, runtime } from "./stack.ts";
-import { checkCoreData, upgradeCore } from "./core.ts";
-import { databaseTransfer, sanitize, migrate, databaseRole, extensions, tests, update } from "./operations.ts";
 import { hostEnvironment } from "./host-environment.ts";
 import { createBundle, verifyBundle } from "../lib/portable-backup.ts";
-import { prepareCmsOrigin, restoreCmsOrigin } from "../lib/cms-origin.ts";
 import { run, root, CommandError, type Environment } from "./process.ts";
 
 process.umask(0o077);
@@ -49,6 +47,7 @@ const parser = yargs(hideBin(process.argv))
         .option("no-directus-build", { type: "boolean", default: false })
         .option("no-frontend-build", { type: "boolean", default: false }),
     async (argv) => {
+      const { performStack } = await import("./stack.ts");
       const args = [...(argv.services ?? []), ...passthrough(argv["--"])];
       await performStack(argv.env, argv.action!, args, {
         import: argv.import,
@@ -67,6 +66,9 @@ const parser = yargs(hideBin(process.argv))
         .option("apply", { type: "boolean", default: false, description: "Apply a core upgrade after verification" })
         .option("logical", { type: "boolean", default: false, description: "Restore into new named volumes" }),
     async (argv) => {
+      const { runtime } = await import("./stack.ts");
+      const { databaseTransfer, sanitize, databaseRole } = await import("./operations.ts");
+      const { checkCoreData, upgradeCore } = await import("./core.ts");
       const rt = await runtime(argv.env),
         args = passthrough(argv["--"]);
       switch (argv.action) {
@@ -95,6 +97,8 @@ const parser = yargs(hideBin(process.argv))
     "Import/export YAML, open a shell or apply registered migrations",
     (p) => p.positional("action", { choices: ["import", "export", "shell", "migrate", "cli"] as const }),
     async (argv) => {
+      const { runtime } = await import("./stack.ts");
+      const { migrate } = await import("./operations.ts");
       const rt = await runtime(argv.env),
         args = passthrough(argv["--"]);
       if (argv.action === "migrate") await migrate(rt);
@@ -117,6 +121,7 @@ const parser = yargs(hideBin(process.argv))
     "Open the frontend runtime shell",
     (p) => p.positional("action", { choices: ["shell"] as const }),
     async (argv) => {
+      const { runtime } = await import("./stack.ts");
       await (await runtime(argv.env)).compose(["exec", "frontend", "bash", ...passthrough(argv["--"])]);
     },
   )
@@ -125,7 +130,44 @@ const parser = yargs(hideBin(process.argv))
     "Check or compile every maintained CMS extension",
     (p) => p.positional("action", { choices: ["check", "build"] as const }),
     async (argv) => {
+      const { extensions } = await import("./operations.ts");
       await extensions(argv.action === "build");
+    },
+  )
+  .command(
+    "check [profile]",
+    "Run shared CI/local gates with concise results and private full logs",
+    (p) =>
+      p
+        .positional("profile", { choices: CHECK_PROFILES, default: "ready" as const })
+        .option("only", {
+          type: "string",
+          array: true,
+          default: [],
+          description: "Check IDs/groups (comma-separated or repeated); includes prerequisites",
+        })
+        .option("output", { choices: ["summary", "json", "full"] as const, default: "summary" as const })
+        .option("list", { type: "boolean", default: false, description: "List the plan without executing checks" })
+        .option("tail", {
+          type: "number",
+          default: 30,
+          description: "Failure excerpt lines (1–200); full logs are always retained",
+        })
+        .option("timeout-seconds", { type: "number", description: "Override each check's timeout (1–7200 seconds)" })
+        .option("target", {
+          choices: ["staging", "production"] as const,
+          description: "Explicit deployed origin for the read-only release profile",
+        }),
+    async (argv) => {
+      await checkCommand({
+        profile: argv.profile,
+        only: argv.only,
+        output: argv.output,
+        list: argv.list,
+        tail: argv.tail,
+        ...(argv.timeoutSeconds === undefined ? {} : { timeoutSeconds: argv.timeoutSeconds }),
+        ...(argv.target ? { target: argv.target } : {}),
+      });
     },
   )
   .command(
@@ -147,6 +189,7 @@ const parser = yargs(hideBin(process.argv))
         ] as const,
       }),
     async (argv) => {
+      const { tests } = await import("./operations.ts");
       await tests(argv.target!, passthrough(argv["--"]));
     },
   )
@@ -208,6 +251,7 @@ const parser = yargs(hideBin(process.argv))
         .positional("origin", { type: "string" }),
     async (argv) => {
       try {
+        const { prepareCmsOrigin, restoreCmsOrigin } = await import("../lib/cms-origin.ts");
         if (argv.action === "prepare") {
           if (!argv.origin) throw new Error("Provide the HTTPS CMS origin");
           console.log(JSON.stringify(prepareCmsOrigin(argv.config!, argv.state!, argv.origin)));
@@ -231,6 +275,7 @@ const parser = yargs(hideBin(process.argv))
         .option("no-directus-build", { type: "boolean", default: false })
         .option("no-frontend-build", { type: "boolean", default: false }),
     async (argv) => {
+      const { update } = await import("./operations.ts");
       if (argv.action === "staging")
         await run("ssh", [
           "deploy@staging",
@@ -250,6 +295,8 @@ const parser = yargs(hideBin(process.argv))
   .example("$0 stack restart frontend --env production", "Reload edited runtime settings")
   .example("$0 stack compose --env development -- exec -T directus node --version", "Forward provider options after --")
   .example("$0 database export --env production > backup.sql", "Export through the bootstrap operator")
+  .example("$0 check ready", "Run local readiness gates with concise results")
+  .example("$0 check quality --only static --output json", "Run only static CI gates with a JSON report")
   .example("$0 test dev", "Run the required development regression suite")
   .showHelpOnFail(false)
   .fail((message, error) => {

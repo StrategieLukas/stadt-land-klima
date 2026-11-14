@@ -382,8 +382,15 @@ than frontend unsafe-type enforcement. CLI implementation is TypeScript with a
 minimal executable bootstrap and fail-fast imports; multi-request imports are
 not universally transactional. ESLint rejects warnings; formatting is separate.
 
-Run `cd bin && ./slk test dev` and wait for completion. Also run the relevant strict,
-lint/format and targeted checks, and curl localhost:8080 after frontend changes.
+Run `./bin/slk check ready` and wait for completion. The TypeScript plan in
+`bin/cli/check-plan.ts` supplies both local gates and all four GitHub Actions
+workflows; `bin/cli/checks.test.ts` checks workflow coverage. The runner keeps
+complete private logs and incremental/final JSON reports under `.reports/checks/`,
+with bounded diagnostic tails for agents. Exit codes, signals, timeouts and
+prerequisites determine outcomes; diagnostic text is never parsed to infer a pass.
+Selected runs do not replace complete verification. Native matrix and deployed
+revision acceptance remain explicit separate environments. See [check runner
+reference](docs/CHECKS.md). Curl localhost:8080 after frontend changes.
 Explicit full HTTPS/editor/image/proxy/storage tests use disposable environments;
 do not run writable fixture suites against production. The quality workflow and
 dependency audit run weekly/for relevant changes; remote activation and branch

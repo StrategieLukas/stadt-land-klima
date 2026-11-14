@@ -116,28 +116,22 @@ future work. Do not rerun apply after success or restore SUPERUSER as a shortcut
 ## Checks
 
 ```bash
-cd bin
-./slk test dev
+./bin/slk check ready
+./bin/slk check ready --only static --output json
+./bin/slk check quality --list
 ```
 
-Wait for completion. The default suite runs unit/CLI and fast live CMS/browser
-flows; `./slk test full` is writable and requires disposable data. Additional root checks:
+The shared TypeScript check runner is used locally and by all four GitHub Actions
+workflows. It prints concise results and bounded failure excerpts while retaining
+complete private logs and a JSON report in `.reports/checks/`. Use `--output full`
+to stream every byte. Exit statuses determine results; filtered text never decides
+whether a check passed. Selected checks include their prerequisites.
 
-```bash
-npm --prefix src/frontend run typecheck
-npm --prefix src/frontend run lint
-npm --prefix src/frontend run lintExtensions
-npm --prefix src/frontend run format:check
-npm --prefix src/directus/cli test
-npm --prefix bin/test_suite run typecheck
-npm --prefix bin/test_suite run test:runtime-environment
-curl --fail http://localhost:8080/
-```
-
-The env launcher uses Go 1.27.4+ for native tests; container builds supply the
-reviewed Go builder. See [test instructions](bin/test_suite/README.md) for image,
-proxy, storage, disclosure and read-only deployment profiles. Dependency audits
-retain raw advisories and expiring reviewed dispositions.
+See [the check runner reference](docs/CHECKS.md) for setup, profiles, selectors,
+timeouts, native/deployed limitations and report handling. The existing
+`./bin/slk test dev` and `./bin/slk test full` commands remain available; the full
+CMS fixture suite is writable and requires disposable data. The `ready` runner
+executes the development suite's unit and live halves once each.
 
 ## Newsletter SMTP routing on staging
 

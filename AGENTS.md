@@ -185,8 +185,11 @@ See [resource hardening](PROJECT_DECISIONS.md#pinned-directus-and-dependency-sec
 
 ## Checks
 
-1. Run ./slk test dev in the bin folder and wait for checks to complete.
-2. Before every push, run `npm --prefix src/frontend run format:check` from the repository root (the same repository-wide formatting check used by GitHub Actions). If it fails, run `npm --prefix src/frontend run format`, review the diff, and rerun `format:check` until it passes. Repeat the check after any further edits and do not push with formatting failures.
+1. Before finishing and before every authorized push, run `./bin/slk check ready` from the repository root and wait for completion. This runs the shared GitHub Actions gates plus the local production build, development regressions and final formatting/diff checks. Do not push with failures.
+2. During iteration use `./bin/slk check ready --only <id-or-group>`; discover selectors with `--list`. A selected run does not replace the final full run. Use `--output json` for machine-readable results, `--output full` to stream everything, and `--tail 80` for longer failure excerpts. Complete private logs and reports are saved under `.reports/checks/`; outcomes use exit statuses, never text matching.
+3. Native macOS/Windows and deployed acceptance require their own environments: `./bin/slk check native` and `./bin/slk check release --target staging` (or an explicitly authorized production read-only target). These commands do not deploy. Report unavailable/failed checks and pending native/deployed verification explicitly; never claim all CI passed from a partial or Linux-only run.
+4. Review the final diff for security regressions and unintended generated files; curl the relevant `localhost:8080` route after frontend changes. Never weaken checks, suppress advisories or raise the Directus cap to obtain a pass. No automatic push or deployment is authorized by this checklist.
+5. [Check runner reference](docs/CHECKS.md) documents prerequisites and profiles. The shared plan is `bin/cli/check-plan.ts`; GitHub Actions calls the same runner. Keep workflow coverage and its targeted `bin/cli/checks.test.ts` regressions aligned when adding or changing gates.
 
 ## Deployment
 
