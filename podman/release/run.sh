@@ -146,7 +146,7 @@ case "$action" in
     [[ ! -e "$state/backups.sha256" ]] || { echo 'Preserve the existing backup; use a new release record.' >&2; exit 1; }
     database="$(podman --remote=false ps -q --filter "label=io.podman.compose.project=$project" --filter label=io.podman.compose.service=db)"
     [[ -n "$database" ]] || exit 1
-    podman --remote=false exec "$database" /usr/local/bin/slk-env sh -ec 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$state/database.before.dump"
+    node "$SCRIPT_DIR/cli/release-backup.ts" "$database" > "$state/database.before.dump"
     podman --remote=false exec -i "$database" pg_restore --list < "$state/database.before.dump" > "$state/database.before.list"
     podman --remote=false volume export "${project}_uploads" > "$state/uploads.before.tar"
     podman --remote=false volume export "$active" > "$state/frontend-output.before.tar"

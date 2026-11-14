@@ -69,7 +69,9 @@ export class Runtime {
     // applying storage cutover so each destination has exactly one mount.
     type Mount = string | { type?: string; source?: string; target: string };
     type Service = { volumes?: Mount[]; build?: string | { context?: string }; image?: string };
-    const config = yaml.parse(await this.raw(["config"], { capture: true })) as {
+    const config = yaml.parse(
+      await this.raw(["--profile", "build", "--profile", "maintenance", "config"], { capture: true }),
+    ) as {
       services: Record<string, Service>;
       volumes?: Record<string, unknown>;
     };

@@ -1,0 +1,30 @@
+# Transition template for retained native-secret datastore containers.
+# Replace slk-podman-production with the existing project/container-name prefix,
+# and production.env with the private host configuration. Do not use this to
+# initialize or upgrade datastores: existing named containers are required.
+[Unit]
+Description=Stadt-Land-Klima application with retained datastores
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=%h/stadt-land-klima/podman-compose.yaml
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+KillMode=process
+WorkingDirectory=%h/stadt-land-klima
+EnvironmentFile=%h/.config/slk/production.env
+ExecStartPre=/usr/bin/aa-exec -p slk-rootless -- /usr/bin/podman --remote=false start slk-podman-production_db_1 slk-podman-production_cache_1 slk-podman-production_meilisearch_1
+ExecStart=%h/stadt-land-klima/bin/slk stack compose --env production -- up -d --no-build --no-deps directus
+ExecStart=/usr/bin/curl --fail --silent --show-error --output /dev/null --retry 60 --retry-all-errors --retry-delay 2 --max-time 5 http://127.0.0.1:9001/server/health
+ExecStart=%h/stadt-land-klima/bin/slk stack translation-worker --env production
+ExecStart=%h/stadt-land-klima/bin/slk stack compose --env production -- up -d --no-build --no-deps frontend
+ExecStart=/usr/bin/curl --fail --silent --show-error --output /dev/null --retry 60 --retry-all-errors --retry-delay 2 --max-time 5 http://127.0.0.1:9000/
+ExecStop=%h/stadt-land-klima/bin/slk stack compose --env production -- stop frontend directus
+TimeoutStartSec=30min
+TimeoutStopSec=180
+Restart=on-failure
+RestartSec=30s
+
+[Install]
+WantedBy=default.target
