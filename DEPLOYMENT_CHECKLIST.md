@@ -8,6 +8,8 @@ Use restored staging data before production. Current constraints are in
 
 1. Preserve a verified off-host database/uploads/configuration/gateway backup and
    all active `podman/core-storage/` overlays. Confirm restore and build RAM/disk.
+   Apply the [five-backup retention policy](docs/BACKUP_RETENTION.md); nightly
+   Restic storage and local release rollback checkpoints have separate scopes.
 2. Install the reviewed revision/locks without overwriting private dotenv files.
    Keep source readable and private files mode 0600/0400; do not recursively chmod
    uploads/source or repeat completed major-service upgrades.

@@ -153,6 +153,10 @@ case "$action" in
     tar --exclude=.git --exclude=node_modules --exclude=.nuxt --exclude=.output --exclude=uploads --exclude='core.*' --exclude=podman/data --exclude=docker/data --exclude=backups --exclude=.reports -czf "$state/source.before.tar.gz" .
     tar -czf "$state/config.before.tar.gz" "$config" "$HOME/.config/systemd/user/slk.service"
     (cd "$state"; sha256sum database.before.dump uploads.before.tar frontend-output.before.tar source.before.tar.gz config.before.tar.gz > backups.sha256)
+    (
+      exec {release_lock}>&- {project_lock}>&-
+      node "$SCRIPT_DIR/cli/release-retention.ts" --apply
+    )
     echo 'Backups recorded. Copy off-host and verify before creating backup.verified.'
     ;;
   stage|stage-prebuilt)

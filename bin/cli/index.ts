@@ -4,7 +4,7 @@ import { CHECK_PROFILES } from "./check-plan.ts";
 import { hideBin } from "yargs/helpers";
 import { hostEnvironment } from "./host-environment.ts";
 import { createBundle, verifyBundle } from "../lib/portable-backup.ts";
-import { run, root, CommandError, type Environment } from "./process.ts";
+import { node, run, root, CommandError, type Environment } from "./process.ts";
 
 process.umask(0o077);
 const passthrough = (args: unknown): string[] => (Array.isArray(args) ? args.map(String) : []);
@@ -195,17 +195,26 @@ const parser = yargs(hideBin(process.argv))
   )
   .command(
     "backup <action> [directory]",
-    "Create or verify a complete private Podman recovery bundle",
+    "Create/verify recovery bundles or retain the latest five local/cloud backups",
     (p) =>
       p
-        .positional("action", { choices: ["create", "verify"] as const })
+        .positional("action", { choices: ["create", "verify", "retain", "retain-cloud"] as const })
         .positional("directory", { type: "string" })
         .option("project", { type: "string" })
         .option("output", { type: "string" })
         .option("config", { type: "string", array: true, default: [] })
+        .option("host", { type: "string", description: "Explicit Restic snapshot host for cloud retention" })
+        .option("tag", { type: "string", description: "Explicit Restic app tag for cloud retention" })
+        .option("apply", { type: "boolean", default: false, description: "Apply retention; default is dry-run" })
         .option("writers-stopped", { type: "boolean", default: false }),
     async (argv) => {
-      if (argv.action === "verify") {
+      if (argv.action === "retain-cloud") {
+        const { retainCloudBackups } = await import("./cloud-retention.ts");
+        retainCloudBackups(argv.host ?? "", argv.tag ?? "", argv.apply);
+      } else if (argv.action === "retain") {
+        if (argv.directory) throw new Error("Local retention uses only this user's release directory");
+        await node("bin/cli/release-retention.ts", argv.apply ? ["--apply"] : []);
+      } else if (argv.action === "verify") {
         if (!argv.directory) throw new Error("Provide a backup directory to verify");
         await verifyBundle(argv.directory);
         console.log("All backup checksums verified.");
@@ -222,6 +231,18 @@ const parser = yargs(hideBin(process.argv))
           }),
         );
       }
+    },
+  )
+  .command(
+    "images <action>",
+    "Inspect or apply image retention while preserving active, previous and recovery images",
+    (p) =>
+      p
+        .positional("action", { choices: ["retain"] as const })
+        .option("project", { type: "string", demandOption: true })
+        .option("apply", { type: "boolean", default: false }),
+    async (argv) => {
+      await node("bin/cli/image-retention.ts", ["--project", argv.project, ...(argv.apply ? ["--apply"] : [])]);
     },
   )
   .command(
