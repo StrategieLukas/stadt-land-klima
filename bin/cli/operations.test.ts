@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import yaml from "yaml";
 import { Runtime } from "./stack.ts";
 import { databaseTransfer } from "./operations.ts";
 
@@ -36,4 +37,42 @@ test("database backup and restore use the bootstrap operator through the active 
     else process.env.SLK_PODMAN_DIRECTUS_ENV_FILE = previous;
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("staged output overlays include build/maintenance profiles and replace each destination once", async (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "slk-release-overlay-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const overlay = join(directory, "stage.yaml");
+  writeFileSync(
+    overlay,
+    yaml.stringify({
+      services: {
+        frontend: { volumes: ["staged:/frontend/.output:ro,U"] },
+        "frontend-build": { volumes: ["staged:/release:U"] },
+      },
+      volumes: { staged: { name: "fixture-staged-output" } },
+    }),
+  );
+  const runtime = new Runtime("production", "fixture", ["-f", "base.yaml"], { XDG_RUNTIME_DIR: directory }, 9000, 9001);
+  runtime.raw = async (args) =>
+    yaml.stringify({
+      services: {
+        frontend: { volumes: ["active:/frontend/.output:ro,U", "uploads:/uploads:ro"] },
+        ...(args.includes("build")
+          ? { "frontend-build": { profiles: ["build"], volumes: ["active:/release:U"] } }
+          : {}),
+        ...(args.includes("maintenance")
+          ? { maintenance: { profiles: ["maintenance"], image: "fixture-maintenance" } }
+          : {}),
+      },
+      volumes: { active: {}, uploads: {} },
+    });
+  await runtime.useStorageOverlay(overlay);
+  const output = yaml.parse(readFileSync(runtime.args.at(-1)!, "utf8"));
+  assert.deepEqual(output.services.frontend.volumes, ["uploads:/uploads:ro", "staged:/frontend/.output:ro,U"]);
+  assert.deepEqual(output.services["frontend-build"].volumes, ["staged:/release:U"]);
+  assert.equal(output.services.maintenance.image, "fixture-maintenance");
+  assert.equal(output.volumes.staged.name, "fixture-staged-output");
+  writeFileSync(overlay, yaml.stringify({ services: { unknown: { volumes: [] } } }));
+  await assert.rejects(runtime.useStorageOverlay(overlay), /unknown service/);
 });

@@ -4,7 +4,7 @@ import { TranslationLeaseSchema, type TranslationOperation } from "../../shared/
 import { contentTranslationPolicy, type ContentFormat } from "../../shared/contentTranslation";
 import {
   collectContentTranslationSegments,
-  contentTranslationKey,
+  contentTranslationUnitKey,
   type TranslationSegment,
 } from "./contentTranslation";
 import { prepareTranslationDocument, type TranslationDocument } from "./contentTranslationFormat";
@@ -17,14 +17,18 @@ import {
 } from "./contentTranslationPersistence";
 
 type Target = "en-GB" | "it-IT";
-type Field = { key: string; locale: Target; segment: TranslationSegment; document?: TranslationDocument };
+type Field = {
+  key: string;
+  locale: Target;
+  segment: TranslationSegment;
+  priority: number;
+  document?: TranslationDocument;
+};
 type Unit = { key: string; locale: Target; text: string };
 const claimSchema = z.object({ lease: TranslationLeaseSchema.nullable() });
 const reservedSchema = z.object({ reserved: z.literal(true) });
 const committedSchema = z.object({ committed: z.literal(true) });
-function unitKey(namespace: string, locale: Target, text: string) {
-  return contentTranslationKey(namespace, locale, { text, format: "text", context: "unit.public-climate" });
-}
+const unitKey = contentTranslationUnitKey;
 export type TranslationWorkerSummary = {
   generated: number;
   preparedFields: number;
@@ -51,6 +55,8 @@ export async function runContentTranslationWorker(input: {
   const summary: TranslationWorkerSummary = { generated: 0, preparedFields: 0, attention: false, changed: false };
   if (!claim.lease) return summary;
   const revision = claim.lease.revision;
+  const targets = claim.lease.targets;
+  let budget = claim.lease.budget;
   let lastRenew = Date.now();
   let finishError: Extract<TranslationOperation, { op: "finish" }>["error"] = "none";
   let activeBatch: string | undefined;
@@ -64,19 +70,27 @@ export async function runContentTranslationWorker(input: {
       const refreshed = claimSchema.parse(await persistence.operation({ op: "claim", ...ownership }, signal));
       if (!refreshed.lease || refreshed.lease.revision !== revision)
         throw new TranslationPersistenceError("source_changed", 409);
+      budget = refreshed.lease.budget;
       lastRenew = Date.now();
     };
     for await (const snapshot of collectPublicTranslationSnapshots({ ...input.source, progress })) {
       const policy = contentTranslationPolicy(snapshot.path)!;
-      for (const locale of ["en-GB", "it-IT"] as const) {
+      for (const [localeIndex, locale] of targets.entries()) {
         for (const [key, segment] of collectContentTranslationSegments(snapshot.data, policy, namespace, locale)) {
-          if (fields.has(key)) continue;
+          const priority =
+            localeIndex * 10 + Math.max(snapshot.priority ?? 0, segment.context === "current_progress" ? 3 : 0);
+          const existing = fields.get(key);
+          if (existing) {
+            existing.priority = Math.min(existing.priority, priority);
+            continue;
+          }
           sourceSize += segment.text.length;
           if (fields.size >= 20_000 || sourceSize > 20_000_000) throw new Error("Translation inventory limit exceeded");
-          fields.set(key, { key, locale, segment });
+          fields.set(key, { key, locale, segment, priority });
         }
       }
     }
+    const orderedFields = [...fields.values()].sort((a, b) => a.priority - b.priority);
     await progress();
     const fieldMemory = await persistence.load([...fields.keys()], signal);
     const units = new Map<string, Unit>();
@@ -102,7 +116,7 @@ export async function runContentTranslationWorker(input: {
     const readyFields = () => {
       const results: { key: string; locale: Target; format: ContentFormat; text: string }[] = [];
       let bytes = 0;
-      for (const field of fields.values()) {
+      for (const field of orderedFields) {
         if (!field.document || readyFieldKeys.has(field.key)) continue;
         try {
           const value = field.document.render((text) => {
@@ -140,7 +154,9 @@ export async function runContentTranslationWorker(input: {
     for (;;) {
       await progress();
       const eligible = new Set<string>();
-      for (const field of fields.values()) {
+      let priority = Infinity;
+      for (const field of orderedFields) {
+        if (field.priority > priority) break;
         if (!field.document || readyFieldKeys.has(field.key)) continue;
         const keys = field.document.texts.map((text) => unitKey(namespace, field.locale, text));
         const blocked = keys.some((key) => {
@@ -155,20 +171,27 @@ export async function runContentTranslationWorker(input: {
           summary.attention = true;
           continue;
         }
-        for (const key of keys) if (memory.get(key)?.state !== "ready") eligible.add(key);
+        for (const key of keys)
+          if (memory.get(key)?.state !== "ready") {
+            priority = field.priority;
+            eligible.add(key);
+          }
       }
       const firstKey = eligible.values().next().value;
       if (firstKey === undefined) break;
       const first = units.get(firstKey)!;
       const candidates = [...eligible].map((key) => units.get(key)!).filter((unit) => unit.locale === first.locale);
+      if (budget.day !== new Date().toISOString().slice(0, 10)) budget = await persistence.budget(signal);
+      const allowance = Math.min(budget.remaining, await provider.remaining(signal));
       const batch = deepLBatch(
         providerOptions,
         first.locale,
         candidates.map((unit) => unit.text),
+        allowance,
       );
-      const selected = candidates.slice(0, batch.texts.length);
-      if (!selected.length) throw new Error("Empty translation batch");
-      if ((await provider.remaining(signal)) < batch.characters) {
+      const byText = new Map(candidates.map((unit) => [unit.text, unit]));
+      const selected = batch.texts.map((text) => byText.get(text)!);
+      if (!selected.length) {
         finishError = "budget";
         break;
       }
@@ -189,6 +212,7 @@ export async function runContentTranslationWorker(input: {
           signal,
         ),
       );
+      budget.remaining -= batch.characters;
       generationStarted = true;
       const translated = await provider.translate(first.locale, batch.texts, signal);
       // Validate the complete batch before publishing any field. A bad result is quarantined,

@@ -445,6 +445,34 @@ Local workflow validation does not establish an actual hosted-runner execution.
 
 ## Service failure handling
 
+Directus must not mount an autoloaded `/directus/.env`. Its library loader can override
+protected process values from that file, re-enabling response caching and serving stale
+translation results after direct database commits. The launcher supplies private values
+through `/run/slk-env`; production CMS restarts recreate its mounts. Runtime/image audits
+check the effective library flags for cache, TUS, WebSockets and MCP, and reject a second
+autoloaded dotenv. Data-service containers remain intact during these application updates.
+
+An interrupted CMS settings PATCH is verified through bounded authenticated reads of
+every intended value. The importer continues only when all values match, and never
+replays the ambiguous write. Missing, masked or different values and authorization
+failures stop deployment. Errors omit private setting values. A real dropped-socket
+regression covers the single-write recovery path.
+
+The pinned Directus runtime backports the upstream 12.3.1 share-update guard for
+GHSA-7h45-q5jx-7r87: share creators cannot be reassigned and changes to item/collection
+are checked against share permission before mutation. Full and partial target changes,
+denied side effects and ordinary edits have targeted rebuilt-image coverage. Directus
+remains on 11.17.4.
+
+CMS translation generation targets are an ordered, validated private job setting, initially
+English only. Language changes invalidate pending plans while preserving purchased field
+and sentence memory and lifetime usage. The private reader may read ready fields and units
+to reconstruct changed bodies with German fallback only for missing sentences; public
+requests never generate work. Operator-only configure/run/clear controls preserve budgets
+and ambiguous-request quarantine. Source mutations requeue the configured targets after
+30 seconds; idle reconciliation runs every six hours. Editorial/current content precedes
+progress notes and historical catalogues within each configured language.
+
 Translation persistence authorization errors (including bare proxy 401/403 responses)
 stop generation until private credentials are repaired and the process restarts.
 Prepared translation reads remain available. Do not replace worker credentials
@@ -466,6 +494,17 @@ launcher locks this setting and forces background generation off outside product
 regardless of copied generation switches. Prepared reads and explicit bounded sample
 commands remain available. Production deployment still requires explicit authorization;
 repository changes and read-only diagnosis do not authorize a live deployment.
+
+Production host maintenance is installed from a clean reviewed Git revision using
+`slk host plan/install/verify` and private dotenv references. Root-owned copies of
+the standalone TypeScript backup/retention code use a SHA-256 pinned Node binary,
+without executing deployment-user-writable code as root at backup time. The host
+installer also owns the retained-datastore boot unit, production Caddy entrypoint
+and AppArmor policy; hashes, owners and modes are verified against Git. Existing
+secret files, datastores, uploads and purchased translation cache/usage remain
+persistent state. Cloud failures prevent local retention. Installed source drift
+requires a reviewed Git fix and reinstallation, rather than an on-host hotfix.
+See [host reproducibility](docs/HOST_REPRODUCIBILITY.md).
 
 CMS catalogue reads share concurrent requests and a 30-second fresh metadata cache.
 The editor alone may use a successful result up to five minutes old during a

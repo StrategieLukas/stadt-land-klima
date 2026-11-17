@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { execFileSync, spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,6 +9,44 @@ import {
   FRONTEND_RUNTIME_ALIASES,
   frontendRuntimeEnvironment,
 } from "../../../src/frontend/shared/runtimeEnvironment.js";
+import { directusRuntimeConfigProbe } from "../../lib/podman-environment.js";
+
+test("runtime audit checks effective Directus flags and rejects an autoloaded dotenv despite protected process values", () => {
+  const root = mkdtempSync(join(tmpdir(), "slk-directus-config-"));
+  try {
+    const api = join(root, "node_modules/@directus/api");
+    const env = join(root, "node_modules/@directus/env");
+    mkdirSync(api, { recursive: true });
+    mkdirSync(env, { recursive: true });
+    writeFileSync(join(root, "package.json"), "{}");
+    writeFileSync(join(api, "package.json"), '{"name":"@directus/api"}');
+    writeFileSync(join(env, "index.js"), "exports.useEnv=()=>JSON.parse(process.env.CONFIG_FIXTURE)");
+    const flags = { CACHE_ENABLED: false, TUS_ENABLED: false, WEBSOCKETS_ENABLED: false, MCP_ENABLED: false };
+    const invoke = (values: Record<string, unknown>) =>
+      spawnSync(process.execPath, ["--input-type=module", "-e", directusRuntimeConfigProbe(root)], {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          CACHE_ENABLED: "false",
+          CONFIG_FIXTURE: JSON.stringify({ ...values, SECRET: "private-canary" }),
+        },
+      });
+    assert.equal(invoke(flags).status, 0);
+    for (const key of Object.keys(flags)) {
+      const result = invoke({ ...flags, [key]: true });
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, new RegExp(key));
+      assert.doesNotMatch(result.stdout + result.stderr, /private-canary/);
+    }
+    writeFileSync(join(root, ".env"), "CACHE_ENABLED=true\nSECRET=private-canary\n");
+    const result = invoke(flags);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /must not autoload/);
+    assert.doesNotMatch(result.stdout + result.stderr, /private-canary/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("every legacy runtime key maps without rebuilding and explicit Nuxt overrides win", () => {
   for (const [key, alias] of Object.entries(FRONTEND_RUNTIME_ALIASES)) {

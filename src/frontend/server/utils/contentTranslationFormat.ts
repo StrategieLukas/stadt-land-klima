@@ -10,7 +10,7 @@ import type { TranslationSegment } from "./contentTranslation";
 
 export type TranslationDocument = {
   texts: readonly string[];
-  render: (lookup: (text: string) => string | undefined) => string | undefined;
+  render: (lookup: (text: string) => string | undefined, allowPartial?: boolean) => string | undefined;
 };
 const excludedHtml = new Set(["script", "style", "code", "pre", "svg", "math", "template", "iframe", "noscript"]);
 const sentenceSegmenter = new Intl.Segmenter("de", { granularity: "sentence" });
@@ -214,12 +214,16 @@ export function prepareTranslationDocument(segment: TranslationSegment): Transla
   }
   return {
     texts: [...texts],
-    render(lookup) {
+    render(lookup, allowPartial = false) {
       if (!texts.size) return source;
       const translated = new Map<string, string>();
       for (const text of texts) {
         const value = lookup(text);
-        if (value === undefined) return undefined;
+        if (value === undefined) {
+          if (!allowPartial) return undefined;
+          translated.set(text, text);
+          continue;
+        }
         // This is text, never markup. HTML/Markdown serializers escape provider syntax.
         if (
           !value.trim() ||

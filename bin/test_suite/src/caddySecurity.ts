@@ -90,7 +90,13 @@ try {
     "/config:rw,nosuid,nodev,noexec,size=16m,U,mode=700",
   ];
   if (process.env.SLK_CADDY_SECCOMP) confined.push("--security-opt", "seccomp=" + process.env.SLK_CADDY_SECCOMP);
-  for (const file of ["Caddyfile", "Caddyfile.staging", "Caddyfile.future", "Caddyfile.future-bootstrap"])
+  for (const file of [
+    "Caddyfile",
+    "Caddyfile.staging",
+    "Caddyfile.future",
+    "Caddyfile.future-bootstrap",
+    "Caddyfile.production",
+  ])
     podman(
       "run",
       "--rm",

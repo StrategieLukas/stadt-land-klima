@@ -10,6 +10,16 @@ export const TranslationNamespaceSchema = z
   .max(128)
   .regex(/^[a-zA-Z0-9:._-]+$/);
 export const TranslationTargetSchema = z.enum(["en-GB", "it-IT"]);
+export const TranslationTargetsSchema = z
+  .array(TranslationTargetSchema)
+  .min(1)
+  .max(2)
+  .refine((targets) => new Set(targets).size === targets.length, "Translation targets must be unique");
+export type TranslationTarget = z.infer<typeof TranslationTargetSchema>;
+export const TranslationBudgetSchema = z.object({
+  remaining: z.number().int().nonnegative(),
+  day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
 export const TranslationFormatSchema = z.enum(["text", "html", "markdown"]);
 export const TranslationStateSchema = z.enum(["pending", "inflight", "ready", "uncertain", "blocked"]);
 export const TranslationMemorySchema = z.object({
@@ -87,6 +97,8 @@ export const TranslationOperationSchema = z.discriminatedUnion("op", [
     })
     .strict(),
   z.object({ op: z.literal("enqueue"), namespace: TranslationNamespaceSchema.optional() }).strict(),
+  z.object({ op: z.literal("configure"), targets: TranslationTargetsSchema }).strict(),
+  z.object({ op: z.literal("clear") }).strict(),
   z
     .object({
       op: z.literal("retry"),
@@ -96,4 +108,9 @@ export const TranslationOperationSchema = z.discriminatedUnion("op", [
     .strict(),
 ]);
 export type TranslationOperation = z.infer<typeof TranslationOperationSchema>;
-export const TranslationLeaseSchema = z.object({ owner: z.uuid(), revision: z.number().int().nonnegative() });
+export const TranslationLeaseSchema = z.object({
+  owner: z.uuid(),
+  revision: z.number().int().nonnegative(),
+  targets: TranslationTargetsSchema,
+  budget: TranslationBudgetSchema,
+});

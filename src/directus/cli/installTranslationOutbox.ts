@@ -25,7 +25,7 @@ export async function installTranslationOutbox(client: Pick<pg.PoolClient, "quer
         INSERT INTO ${schema}.content_translation_jobs AS queue (id, revision, next_run, attempts)
           VALUES ('public-content', 1, clock_timestamp() + interval '30 seconds', 0)
           ON CONFLICT (id) DO UPDATE SET revision = queue.revision + 1,
-            next_run = clock_timestamp() + interval '30 seconds';
+            next_run = clock_timestamp() + interval '30 seconds', paused = false;
         IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
         RETURN NEW;
       END;
@@ -51,7 +51,7 @@ export async function installTranslationOutbox(client: Pick<pg.PoolClient, "quer
       installed++;
     }
     await client.query(
-      `INSERT INTO ${schema}.content_translation_jobs AS queue (id, revision, next_run, attempts) VALUES ('public-content', 1, CURRENT_TIMESTAMP + interval '30 seconds', 0) ON CONFLICT (id) DO UPDATE SET revision=queue.revision+1, next_run=EXCLUDED.next_run`,
+      `INSERT INTO ${schema}.content_translation_jobs AS queue (id, revision, next_run, attempts) VALUES ('public-content', 1, CURRENT_TIMESTAMP + interval '30 seconds', 0) ON CONFLICT (id) DO UPDATE SET revision=queue.revision+1, next_run=EXCLUDED.next_run, paused=false`,
     );
     await client.query("COMMIT");
     return installed;

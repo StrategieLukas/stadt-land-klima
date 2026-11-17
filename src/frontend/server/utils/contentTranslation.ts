@@ -7,6 +7,7 @@ import {
   type ContentTranslationPolicy,
 } from "../../shared/contentTranslation";
 import { BLOCK_DEFINITIONS, isBlockBundle, isRecord } from "../../shared/editorBlocks";
+import { prepareTranslationDocument } from "./contentTranslationFormat";
 
 export type TranslationSegment = { text: string; format: ContentFormat; context: string };
 export interface ContentTranslationProvider {
@@ -175,6 +176,9 @@ export function contentTranslationKey(namespace: string, locale: Locale, segment
     .update(JSON.stringify([namespace, CONTENT_SOURCE_LOCALE, locale, segment.format, segment.context, segment.text]))
     .digest("hex")}`;
 }
+export function contentTranslationUnitKey(namespace: string, locale: Locale, text: string): string {
+  return contentTranslationKey(namespace, locale, { text, format: "text", context: "unit.public-climate" });
+}
 
 type TranslationEntry = { segment: TranslationSegment; targets: SelectedSegment[] };
 function translationSelection<T>(original: T, policy: ContentTranslationPolicy, namespace: string, locale: Locale) {
@@ -286,24 +290,60 @@ export function createContentTranslator(
     policy: ContentTranslationPolicy,
   ): Promise<{ data: T; degraded: boolean; pending: boolean }> => {
     if (!reader.enabled || locale === CONTENT_SOURCE_LOCALE) return { data: original, degraded: false, pending: false };
+    const started = Date.now();
     try {
       return await withDeadline(async (signal) => {
         const { data, entries, commits } = translationSelection(original, policy, reader.namespace, locale);
         if (!entries.size) return { data: original, degraded: false, pending: false };
         const stored = await reader.getMany([...entries.keys()], signal);
         if (signal.aborted) throw new Error("Translation lookup expired");
+        const documents = new Map<string, ReturnType<typeof prepareTranslationDocument>>();
+        const unitKeys = new Set<string>();
+        for (const [key, { segment }] of entries) {
+          if (stored.has(key)) continue;
+          try {
+            const document = prepareTranslationDocument(segment);
+            documents.set(key, document);
+            for (const text of document.texts) unitKeys.add(contentTranslationUnitKey(reader.namespace, locale, text));
+          } catch {
+            // An unsupported field must not discard other ready translations.
+          }
+        }
+        let units: ReadonlyMap<string, string> = new Map();
+        let degraded = false;
+        const partialMs = Math.min(150, timeoutMs - (Date.now() - started) - 25);
+        if (unitKeys.size && partialMs > 0) {
+          try {
+            units = await reader.getMany([...unitKeys], AbortSignal.any([signal, AbortSignal.timeout(partialMs)]));
+          } catch {
+            degraded = true;
+          }
+        }
         let pending = false;
         for (const [key, entry] of entries) {
-          const translated = stored.get(key);
+          let translated = stored.get(key);
           if (translated === undefined) {
-            pending = true;
-            continue;
+            const document = documents.get(key);
+            if (!document) {
+              pending = true;
+              continue;
+            }
+            let available = 0;
+            for (const text of document.texts)
+              if (units.has(contentTranslationUnitKey(reader.namespace, locale, text))) available++;
+            pending ||= available < document.texts.length;
+            if (!available && document.texts.length) continue;
+            translated = document.render(
+              (text) => units.get(contentTranslationUnitKey(reader.namespace, locale, text)),
+              true,
+            );
+            if (translated === undefined) continue;
           }
           if (!validTranslation(translated)) throw new Error("Invalid stored translation");
           for (const target of entry.targets) target.set(translated);
         }
         for (const commit of commits) commit();
-        return { data, degraded: false, pending };
+        return { data, degraded, pending };
       }, timeoutMs);
     } catch {
       return { data: original, degraded: true, pending: false };
