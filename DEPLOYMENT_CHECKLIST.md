@@ -30,6 +30,11 @@ The release backup supports existing native-secret database containers as well a
 new mounted-environment containers. It uses their effective bootstrap identity and
 streams the archive directly to the private checkpoint. A failing environment
 loader aborts the backup; it never falls back to stale inherited values.
+The database name comes from the selected private Directus dotenv (`DB_DATABASE`),
+as with `slk database export`. A datastore's `POSTGRES_DB` is its initialization
+default and may refer to an obsolete database after a restored-database cutover.
+Before approving a checkpoint, restore it off-host and check representative current
+application data and paid translation memory, rather than schema presence alone.
 
 For the first native-secret-to-mounted-runtime transition, retain a clean checkout
 of the previous revision and its previous release CLI for rollback. Its compose
