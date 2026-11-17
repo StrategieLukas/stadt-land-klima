@@ -247,6 +247,11 @@ with the administrator; there is no unconfined/rootful fallback.
 
 ## Application release coordination
 
+For reproducible host service copies (backup/timer, boot unit, Caddy and AppArmor),
+use [`slk host plan/install/verify`](docs/HOST_REPRODUCIBILITY.md) from the approved
+revision. Application releases remain deployment-user operations; privileged host
+installation uses a separately reviewed root-owned checkout.
+
 The production-only `slk release` command accepts `backup`, `stage`,
 `stage-prebuilt`, `activate` and `rollback` with a private host config, next tag
 and previous tag. It retains the upstream release protocol internally in

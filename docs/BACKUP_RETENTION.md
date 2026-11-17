@@ -52,32 +52,21 @@ forget operation.
 
 ## Nightly host installation
 
-The existing cloud service continues to back up files directly. Install reviewed
-copies of the standalone TypeScript helpers as root-owned mode-0644 files under
-`/usr/local/lib/slk/`: `bin/cli/{cloud,release,image}-retention.ts`. Use a trusted,
-root-owned Node 24 binary at `/usr/local/lib/slk/node`; do not execute a
-deployment-user-writable runtime or checkout as root. Keep the service's existing
-root-only Restic config, backup lock, dump validation, integrity checks and metrics.
+Use the [reproducible host installer](HOST_REPRODUCIBILITY.md) after the approved
+application release. `slk host plan|install|verify` owns the complete installed
+backup implementation, timer, standalone retention helpers, pinned root-owned
+Node binary, application boot unit and production Caddy configuration. No manual
+editing of an installed backup script is required. The former unversioned Bash
+entrypoint is retired by installation; the service runs `bin/cli/host-backup.ts`'s
+reviewed, root-owned copy instead.
 
-Replace its old `restic forget` policy block with:
-
-```bash
-/usr/local/lib/slk/node /usr/local/lib/slk/cloud-retention.ts \
-  --host slk-prod --tag staedtechallenge --apply
-```
-
-After successful remote backup/retention and integrity checks, run the deployment
-user helpers using the service's existing `app()` function:
-
-```bash
-app /usr/local/lib/slk/node /usr/local/lib/slk/release-retention.ts --apply
-app /usr/local/lib/slk/node /usr/local/lib/slk/image-retention.ts \
-  --project "$PROJECT" --apply
-```
-
-These calls must not run after a failed cloud backup. Install helper updates from
-reviewed source when deploying maintenance changes. Production's existing unit is
-named `staedtechallenge-backup`, despite backing up the Stadt-Land-Klima project.
+The job keeps the existing private Restic configuration, exclusive backup lock,
+logical dump validation, Sunday integrity sampling and Prometheus metrics. A
+failed cloud backup, scoped retention or integrity check prevents local cleanup.
+An existing initialized Restic repository is required: a network/authentication
+failure must never trigger an attempted repository initialization. Upload files
+are read directly by Restic without a local full-upload archive. Production's
+existing unit remains named `staedtechallenge-backup` for monitoring continuity.
 
 ## Why the images accumulated
 

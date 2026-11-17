@@ -23,6 +23,36 @@ const parser = yargs(hideBin(process.argv))
   .help()
   .wrap(Math.min(110, process.stdout.columns || 110))
   .command(
+    "host <action>",
+    "Plan, install or verify reviewed production host service copies (root/Linux)",
+    (p) =>
+      p
+        .positional("action", { choices: ["plan", "install", "verify"] as const })
+        .option("config", { type: "string", demandOption: true, description: "Absolute root-only host dotenv file" })
+        .option("node-binary", {
+          type: "string",
+          description: "Verified Node binary to install; defaults to installed runtime",
+        }),
+    async (argv) => {
+      const args = [
+        "bin/cli/host-maintenance.ts",
+        argv.action!,
+        argv.config,
+        argv.nodeBinary ?? "/usr/local/lib/slk/node",
+      ];
+      if (argv.action === "install")
+        await run("flock", [
+          "--nonblock",
+          "--conflict-exit-code",
+          "75",
+          "/run/lock/staedtechallenge-backup.lock",
+          process.execPath,
+          ...args,
+        ]);
+      else await node(args[0]!, args.slice(1));
+    },
+  )
+  .command(
     "stack <action> [services..]",
     "Build, run and inspect the rootless Podman stack",
     (p) =>

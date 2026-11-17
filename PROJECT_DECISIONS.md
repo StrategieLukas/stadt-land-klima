@@ -495,6 +495,17 @@ regardless of copied generation switches. Prepared reads and explicit bounded sa
 commands remain available. Production deployment still requires explicit authorization;
 repository changes and read-only diagnosis do not authorize a live deployment.
 
+Production host maintenance is installed from a clean reviewed Git revision using
+`slk host plan/install/verify` and private dotenv references. Root-owned copies of
+the standalone TypeScript backup/retention code use a SHA-256 pinned Node binary,
+without executing deployment-user-writable code as root at backup time. The host
+installer also owns the retained-datastore boot unit, production Caddy entrypoint
+and AppArmor policy; hashes, owners and modes are verified against Git. Existing
+secret files, datastores, uploads and purchased translation cache/usage remain
+persistent state. Cloud failures prevent local retention. Installed source drift
+requires a reviewed Git fix and reinstallation, rather than an on-host hotfix.
+See [host reproducibility](docs/HOST_REPRODUCIBILITY.md).
+
 CMS catalogue reads share concurrent requests and a 30-second fresh metadata cache.
 The editor alone may use a successful result up to five minutes old during a
 transient upstream failure. Validation on save never uses stale-on-error metadata.
