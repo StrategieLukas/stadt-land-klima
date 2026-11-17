@@ -1,4 +1,19 @@
 /** Exact-source backports for Directus 11.17.4. See PROJECT_DECISIONS.md. */
+// Upstream 12.3.1 SharesService.updateMany (GHSA-7h45-q5jx-7r87), kept on 11.17.4.
+const shareUpdateGuard = `
+    if ('user_created' in data) throw new InvalidPayloadError({reason: 'Share creator cannot be changed manually'});
+    if (('item' in data || 'collection' in data) && this.accountability) {
+      let shares = [data];
+      if (!('item' in data) || !('collection' in data)) shares = await this.knex.select('collection', 'item').from('directus_shares').whereIn('id', keys);
+      const itemsByCollection = new Map();
+      for (const share of shares) {
+        const collection = 'collection' in data ? data.collection : share.collection;
+        const item = 'item' in data ? data.item : share.item;
+        itemsByCollection.set(collection, (itemsByCollection.get(collection) || new Set()).add(item));
+      }
+      for (const [collection, items] of itemsByCollection) await validateAccess({accountability: this.accountability, action: 'share', collection, primaryKeys: [...items]}, {schema: this.schema, knex: this.knex});
+    }
+`;
 export const authorizationPatches: { file: string; sha256: string; replacements: [string, string][] }[] = [
   {
     file: "dist/services/flows.js",
@@ -32,6 +47,11 @@ export const authorizationPatches: { file: string; sha256: string; replacements:
     file: "dist/services/shares.js",
     sha256: "719256eddbb3cc19c4ea4378129552221c615f3a174211e7569ef3bfe7ae7d5b",
     replacements: [
+      [
+        "import { ForbiddenError, InvalidCredentialsError }",
+        "import { ForbiddenError, InvalidCredentialsError, InvalidPayloadError }",
+      ],
+      ["\tasync updateMany(keys, data, opts) {", "\tasync updateMany(keys, data, opts) {" + shareUpdateGuard],
       [
         "\t\tawait clearCache();\n\t\treturn super.updateMany(keys, data, opts);",
         "\t\tconst result = await super.updateMany(keys, data, opts);\n\t\tawait clearCache();\n\t\treturn result;",

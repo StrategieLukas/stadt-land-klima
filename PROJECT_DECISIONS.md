@@ -445,6 +445,12 @@ Local workflow validation does not establish an actual hosted-runner execution.
 
 ## Service failure handling
 
+The pinned Directus runtime backports the upstream 12.3.1 share-update guard for
+GHSA-7h45-q5jx-7r87: share creators cannot be reassigned and changes to item/collection
+are checked against share permission before mutation. Full and partial target changes,
+denied side effects and ordinary edits have targeted rebuilt-image coverage. Directus
+remains on 11.17.4.
+
 CMS translation generation targets are an ordered, validated private job setting, initially
 English only. Language changes invalidate pending plans while preserving purchased field
 and sentence memory and lifetime usage. The private reader may read ready fields and units
