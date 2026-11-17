@@ -445,6 +445,15 @@ Local workflow validation does not establish an actual hosted-runner execution.
 
 ## Service failure handling
 
+CMS translation generation targets are an ordered, validated private job setting, initially
+English only. Language changes invalidate pending plans while preserving purchased field
+and sentence memory and lifetime usage. The private reader may read ready fields and units
+to reconstruct changed bodies with German fallback only for missing sentences; public
+requests never generate work. Operator-only configure/run/clear controls preserve budgets
+and ambiguous-request quarantine. Source mutations requeue the configured targets after
+30 seconds; idle reconciliation runs every six hours. Editorial/current content precedes
+progress notes and historical catalogues within each configured language.
+
 Translation persistence authorization errors (including bare proxy 401/403 responses)
 stop generation until private credentials are repaired and the process restarts.
 Prepared translation reads remain available. Do not replace worker credentials

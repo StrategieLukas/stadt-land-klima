@@ -71,7 +71,8 @@ function bodyFor(options: DeepLOptions, locale: Locale, texts: readonly string[]
     ...(glossary ? { glossary_id: glossary } : {}),
   };
 }
-export function deepLBatch(options: DeepLOptions, locale: Locale, texts: readonly string[]) {
+export function deepLBatch(options: DeepLOptions, locale: Locale, texts: readonly string[], allowance = 10_000) {
+  if (!Number.isSafeInteger(allowance) || allowance < 0) throw new DeepLTranslationError("invalid");
   const selected: string[] = [];
   let characters = 0;
   for (const text of texts) {
@@ -79,10 +80,13 @@ export function deepLBatch(options: DeepLOptions, locale: Locale, texts: readonl
     if (!text.trim() || count > 2000) throw new DeepLTranslationError("invalid");
     if (
       selected.length >= 50 ||
-      characters + count > 10_000 ||
+      characters + count > Math.min(10_000, allowance) ||
       Buffer.byteLength(JSON.stringify(bodyFor(options, locale, [...selected, text]))) > 120 * 1024
-    )
-      break;
+    ) {
+      // A large next unit must not strand a smaller remaining daily allowance.
+      if (selected.length >= 50) break;
+      continue;
+    }
     selected.push(text);
     characters += count;
   }

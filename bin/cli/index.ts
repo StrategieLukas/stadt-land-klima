@@ -234,6 +234,39 @@ const parser = yargs(hideBin(process.argv))
     },
   )
   .command(
+    "translations <action>",
+    "Configure translation targets, run now, clear pending work or inspect status; paid memory and budgets are preserved",
+    (p) =>
+      p
+        .positional("action", { choices: ["status", "configure", "run", "clear"] as const })
+        .option("targets", {
+          type: "string",
+          description: "Ordered comma-separated generation targets, e.g. en-GB or en-GB,it-IT",
+        })
+        .option("namespace", {
+          type: "string",
+          description: "Explicit semantic namespace when changing provider settings",
+        }),
+    async (argv) => {
+      if (argv.action === "configure" && !argv.targets) throw new Error("Configure requires --targets");
+      if (argv.targets && argv.action !== "configure") throw new Error("--targets is only valid for configure");
+      if (argv.namespace && argv.action !== "run") throw new Error("--namespace is only valid for run");
+      const { runtime } = await import("./stack.ts");
+      const rt = await runtime(argv.env);
+      await rt.compose([
+        "exec",
+        "-T",
+        "-e",
+        "DIRECTUS_URL=http://127.0.0.1:8055",
+        "directus",
+        "node",
+        "/directus/cli/contentTranslations.ts",
+        argv.action!,
+        ...(argv.targets ? [argv.targets] : argv.namespace ? [argv.namespace] : []),
+      ]);
+    },
+  )
+  .command(
     "images <action>",
     "Inspect or apply image retention while preserving active, previous and recovery images",
     (p) =>

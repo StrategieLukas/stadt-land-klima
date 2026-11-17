@@ -1,7 +1,7 @@
 import { contentTranslationPolicy } from "../../shared/contentTranslation";
 import { isRecord } from "../../shared/editorBlocks";
 
-export type PublicTranslationSnapshot = { path: string; data: unknown };
+export type PublicTranslationSnapshot = { path: string; data: unknown; priority?: number };
 export type TranslationSourceReader = {
   records: (
     collection: string,
@@ -23,14 +23,14 @@ export async function* collectPublicTranslationSnapshots(
   source: TranslationSourceReader,
 ): AsyncGenerator<PublicTranslationSnapshot> {
   const seen = new Set<string>();
-  async function* emit(path: string) {
+  async function* emit(path: string, priority = 0) {
     if (seen.has(path)) return;
     if (!contentTranslationPolicy(path)) throw new Error("Unregistered translation source route");
     if (seen.size >= 20_000) throw new Error("Translation source limit exceeded");
     seen.add(path);
     await source.progress?.();
     const data = await source.fetch(path);
-    if (data !== undefined) yield { path, data };
+    if (data !== undefined) yield { path, data, priority };
   }
   for (const path of [
     "/api/public/site-layout",
@@ -46,14 +46,6 @@ export async function* collectPublicTranslationSnapshots(
     "/api/public/tours?limit=100",
   ])
     yield* emit(path);
-  const elections = await source.fetch("/api/public/wahlcheck");
-  if (elections !== undefined) yield { path: "/api/public/wahlcheck", data: elections };
-  if (Array.isArray(elections))
-    for (const election of elections) {
-      if (!isRecord(election)) continue;
-      const slug = string(election.municipalitySlug);
-      if (slug) yield* emit(`/api/public/wahlcheck/${encoded(slug)}`);
-    }
   const entityRoutes = [
     ["pages", "/api/public/pages", true],
     ["articles", "/api/public/articles", true],
@@ -88,20 +80,32 @@ export async function* collectPublicTranslationSnapshots(
         `/api/public/blocks?${new URLSearchParams({ entityType: "success_project_tour_stops", entityUuid: id })}`,
       );
   }
-  const catalogs = await source.records("measure_catalog", ["id", "name", "hidden"], { hidden: { _eq: false } });
+  const elections = await source.fetch("/api/public/wahlcheck");
+  if (elections !== undefined) yield { path: "/api/public/wahlcheck", data: elections, priority: 2 };
+  if (Array.isArray(elections))
+    for (const election of elections) {
+      if (!isRecord(election)) continue;
+      const slug = string(election.municipalitySlug);
+      if (slug) yield* emit(`/api/public/wahlcheck/${encoded(slug)}`, 2);
+    }
+  const catalogs = await source.records("measure_catalog", ["id", "name", "hidden", "isCurrentFrontend"], {
+    hidden: { _eq: false },
+  });
   for (const catalog of catalogs) {
     const id = string(catalog.id);
     const name = string(catalog.name);
     if (!id || !name || catalog.hidden === true) continue;
+    const priority = catalog.isCurrentFrontend === true ? 1 : 4;
     const query = new URLSearchParams({ v: name });
-    yield* emit(`/api/public/measures?${query}`);
+    yield* emit(`/api/public/measures?${query}`, priority);
     const measures = await source.records("measures", ["slug", "status"], {
       status: { _eq: "published" },
       catalog_version: { _eq: id },
     });
     for (const measure of measures) {
       const slug = string(measure.slug);
-      if (slug && measure.status === "published") yield* emit(`/api/public/measures/${encoded(slug)}?${query}`);
+      if (slug && measure.status === "published")
+        yield* emit(`/api/public/measures/${encoded(slug)}?${query}`, priority);
     }
     const scores = await source.records("municipality_scores", ["municipality.slug", "published"], {
       published: { _eq: true },
@@ -110,7 +114,8 @@ export async function* collectPublicTranslationSnapshots(
     });
     for (const score of scores) {
       const slug = isRecord(score.municipality) ? string(score.municipality.slug) : undefined;
-      if (score.published === true && slug) yield* emit(`/api/public/municipalities/${encoded(slug)}?${query}`);
+      if (score.published === true && slug)
+        yield* emit(`/api/public/municipalities/${encoded(slug)}?${query}`, priority);
     }
   }
 }

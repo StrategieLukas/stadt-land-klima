@@ -8,6 +8,7 @@ import {
   TranslationKeySchema,
   TranslationNamespaceSchema,
   TranslationOperationSchema,
+  TranslationTargetsSchema,
   type TranslationOperation,
 } from "../../../../frontend/shared/contentTranslationProtocol.ts";
 import { RATE_LIMIT_CONFIG } from "../../../../frontend/server/utils/rateLimitConfig.ts";
@@ -48,6 +49,8 @@ type Job = {
   lease_until: Date | null;
   next_run: Date;
   attempts: number;
+  targets: unknown;
+  paused: boolean;
 };
 type Memory = {
   id: string;
@@ -98,6 +101,21 @@ export async function executeTranslationOperation(
     const now = await databaseTime(db);
     await ensureJob(db, now);
     const job = (await db(JOBS).where({ id: TRANSLATION_JOB_ID }).forUpdate().first()) as Job;
+    if (operation.op === "configure" || operation.op === "clear") {
+      await db(JOBS)
+        .where({ id: job.id })
+        .update({
+          revision: job.revision + 1,
+          paused: operation.op === "clear",
+          next_run: now,
+          attempts: 0,
+          last_error: null,
+          ...(operation.op === "configure" ? { targets: JSON.stringify(operation.targets) } : {}),
+        });
+      return operation.op === "clear"
+        ? { cleared: true, memoryPreserved: true }
+        : { configured: true, targets: operation.targets, queued: true };
+    }
     if (operation.op === "enqueue") {
       if (
         operation.namespace &&
@@ -111,7 +129,10 @@ export async function executeTranslationOperation(
         .where({ id: job.id })
         .update({
           revision: job.revision + 1,
-          next_run: new Date(now.getTime() + 30_000),
+          next_run: now,
+          paused: false,
+          attempts: 0,
+          last_error: null,
           ...(operation.namespace ? { namespace: operation.namespace } : {}),
         });
       return { queued: true };
@@ -128,7 +149,7 @@ export async function executeTranslationOperation(
       });
       await db(JOBS)
         .where({ id: job.id })
-        .update({ revision: job.revision + 1, next_run: new Date(now.getTime() + 30_000) });
+        .update({ revision: job.revision + 1, next_run: now, paused: false });
       return { retried: count };
     }
     if (operation.op === "claim") {
@@ -136,6 +157,7 @@ export async function executeTranslationOperation(
       if (job.lease_owner && job.lease_owner !== operation.owner && job.lease_until && job.lease_until > now)
         return { lease: null };
       if (job.lease_owner !== operation.owner && job.next_run > now) return { lease: null };
+      if (job.paused && job.lease_owner !== operation.owner) return { lease: null };
       // A crashed request may already have been billed. Never regenerate its units automatically.
       if (job.lease_owner !== operation.owner)
         await db(MEMORY).where({ state: "inflight" }).update({ state: "uncertain", updated_at: now });
@@ -146,17 +168,34 @@ export async function executeTranslationOperation(
           lease_owner: operation.owner,
           lease_until: new Date(now.getTime() + leaseMs),
         });
-      return { lease: { owner: operation.owner, revision: job.revision } };
+      const day = now.toISOString().slice(0, 10);
+      const total = await usageRow(db, "total");
+      const daily = await usageRow(db, `day:${day}`);
+      return {
+        lease: {
+          owner: operation.owner,
+          revision: job.revision,
+          targets: TranslationTargetsSchema.parse(job.targets),
+          budget: {
+            remaining: Math.max(
+              0,
+              Math.min(budgets.total - total.reserved_characters, budgets.daily - daily.reserved_characters),
+            ),
+            day,
+          },
+        },
+      };
     }
     owned(job, operation.owner, operation.namespace, now);
     if (operation.op === "finish") {
+      if (operation.revision > job.revision) refuse(409, "source_changed");
       const changed = job.revision !== operation.revision;
       const failed = !["none", "attention"].includes(operation.error);
       const backoff = Math.min(900_000, 30_000 * 2 ** Math.min(job.attempts, 5));
       const nextRun =
         operation.error === "budget"
           ? new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1))
-          : new Date(now.getTime() + (failed ? backoff : 900_000));
+          : new Date(now.getTime() + (failed ? backoff : 6 * 60 * 60_000));
       await db(JOBS)
         .where({ id: job.id })
         .update({
@@ -170,6 +209,8 @@ export async function executeTranslationOperation(
     }
     if (operation.op === "reserve") {
       if (job.revision !== operation.revision) refuse(409, "source_changed");
+      const targets = TranslationTargetsSchema.parse(job.targets);
+      if (job.paused || operation.units.some((unit) => !targets.includes(unit.locale))) refuse(409, "source_changed");
       if (new Set(operation.units.map((unit) => unit.key)).size !== operation.units.length)
         refuse(400, "duplicate_units");
       const existing = (await db(MEMORY)
@@ -391,7 +432,7 @@ export default (router: Router, context: Pick<ApiExtensionContext, "database" | 
       await controlRateLimit(database, _req.accountability!.user!, true);
       const job = await database(JOBS)
         .where({ id: TRANSLATION_JOB_ID })
-        .select("revision", "namespace", "lease_until", "next_run", "last_error", "attempts")
+        .select("revision", "namespace", "lease_until", "next_run", "last_error", "attempts", "targets", "paused")
         .first();
       const usage = await database(USAGE)
         .select("id", "reserved_characters", "billed_characters")
@@ -416,7 +457,8 @@ export default (router: Router, context: Pick<ApiExtensionContext, "database" | 
       if (Buffer.byteLength(JSON.stringify(req.body) ?? "") > 512_000) refuse(413, "translation_payload_limit");
       const parsed = TranslationOperationSchema.safeParse(req.body);
       if (!parsed.success) refuse(400, "invalid_operation");
-      if (["enqueue", "retry"].includes(parsed.data.op) && identity !== "admin") refuse(403, "operator_only");
+      if (["enqueue", "retry", "configure", "clear"].includes(parsed.data.op) && identity !== "admin")
+        refuse(403, "operator_only");
       res.json(await executeTranslationOperation(database, parsed.data, translationBudgets(env)));
     }),
   );

@@ -29,7 +29,10 @@ class TestPgClient extends PgDialect {
   }
 }
 const enabled = process.env.SLK_TRANSLATION_DATABASE_TEST === "1";
-const backendEnv = () => parseEnvFile(fileURLToPath(new URL("../../../src/directus/.env", import.meta.url)));
+const backendEnv = () =>
+  parseEnvFile(
+    process.env.SLK_TRANSLATION_DATABASE_ENV || fileURLToPath(new URL("../../../src/directus/.env", import.meta.url)),
+  );
 const frontendEnv = () => parseEnvFile(fileURLToPath(new URL("../../../src/frontend/.env", import.meta.url)));
 
 test(
@@ -274,6 +277,66 @@ test(
         assert.equal(requests.filter((result) => result.status === "fulfilled").length, 5);
         assert.equal(requests.filter((result) => result.status === "rejected").length, 5);
       });
+      await t.test(
+        "target changes and queue controls preserve paid memory, stop disabled languages and resume automatically after text changes",
+        async () => {
+          const count = Number((await db("content_translation_memory").count({ count: "id" }).first())!.count);
+          const spent = await usage();
+          await operation({ op: "configure", targets: ["en-GB"] });
+          assert.deepEqual((await job()).targets, ["en-GB"]);
+          assert.equal((await job()).paused, false);
+          await operation({ op: "finish", ...ownership!, revision: revision!, error: "none" });
+          const owner = { owner: randomUUID(), namespace };
+          const claimed = (await operation({ op: "claim", ...owner })) as {
+            lease: { revision: number; targets: string[]; budget: { remaining: number } };
+          };
+          assert.deepEqual(claimed.lease.targets, ["en-GB"]);
+          assert.equal(claimed.lease.budget.remaining, 0, "A manual wake cannot bypass the original budget");
+          await assert.rejects(
+            operation({
+              op: "reserve",
+              ...owner,
+              revision: claimed.lease.revision,
+              batch: randomUUID(),
+              units: [{ key: key("italian-disabled"), locale: "it-IT", characters: 1 }],
+            }),
+            (error: unknown) => error instanceof TranslationControlError && error.code === "source_changed",
+          );
+          await operation({ op: "clear" });
+          assert.equal((await job()).paused, true);
+          await operation({ op: "finish", ...owner, revision: claimed.lease.revision, error: "none" });
+          assert.deepEqual(await operation({ op: "claim", owner: randomUUID(), namespace }), { lease: null });
+          await db("pages").insert({
+            id: randomUUID(),
+            name: "A real source edit",
+            contents: "Automatically queued",
+            status: "published",
+          });
+          assert.equal((await job()).paused, false, "Actual text updates requeue using the saved targets");
+          assert.deepEqual((await job()).targets, ["en-GB"]);
+          assert.equal(await usage(), spent);
+          assert.equal(Number((await db("content_translation_memory").count({ count: "id" }).first())!.count), count);
+          await operation({ op: "enqueue" });
+          assert(
+            new Date((await job()).next_run).getTime() <= Date.now() + 1000,
+            "Manual trigger is immediate, not midnight",
+          );
+          const manual = { owner: randomUUID(), namespace };
+          const lease = (await operation({ op: "claim", ...manual })) as { lease: { revision: number } };
+          assert(lease.lease);
+          await operation({ op: "finish", ...manual, revision: lease.lease.revision, error: "none" });
+          assert(
+            new Date((await job()).next_run).getTime() > Date.now() + 5 * 60 * 60_000,
+            "Idle full scans are infrequent",
+          );
+          await operation({ op: "configure", targets: ["it-IT", "en-GB"] });
+          assert.deepEqual(
+            (await job()).targets,
+            ["it-IT", "en-GB"],
+            "Operator ordering is preserved without resetting memory",
+          );
+        },
+      );
     } finally {
       if (database) await database.destroy();
       await pool.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
@@ -303,6 +366,7 @@ test(
       contentTranslationKey(namespace, "en-GB", { text, format: "text", context: "fixture" });
     const fieldId = key("field");
     const unitId = key("unit");
+    const pendingId = key("pending");
     const marker = `PRIVATE-TRANSLATION-${randomUUID()}`;
     let editorId: string | undefined;
     try {
@@ -322,6 +386,7 @@ test(
       for (const [id, kind] of [
         [fieldId, "field"],
         [unitId, "unit"],
+        [pendingId, "unit"],
       ])
         await admin.createItem("content_translation_memory", {
           id,
@@ -329,7 +394,7 @@ test(
           kind,
           locale: "en-GB",
           format: "text",
-          state: "ready",
+          state: id === pendingId ? "pending" : "ready",
           translated_text: marker,
           reserved_characters: 0,
           billed_characters: 0,
@@ -349,33 +414,40 @@ test(
         assert(!(await response.text()).includes(marker));
       }
       const reader = createPersistedTranslationReader(base, front.DIRECTUS_FRONTEND_SERVER_TOKEN!, namespace, true);
-      const fields = await reader.getMany([fieldId, unitId], new AbortController().signal);
+      const fields = await reader.getMany([fieldId, unitId, pendingId], new AbortController().signal);
       assert.equal(fields.get(fieldId), marker);
-      assert.equal(fields.has(unitId), false, "Field-reader policy cannot read unit memory");
+      assert.equal(
+        fields.get(unitId),
+        marker,
+        "Private reader can reconstruct current published fields from ready units",
+      );
+      assert.equal(fields.has(pendingId), false, "Pending/uncertain provider work is never publicly readable");
       const rawFields = await fetch(
         `${base}/items/content_translation_memory?${new URLSearchParams({
           fields: "id,translated_text",
-          filter: JSON.stringify({ id: { _in: [fieldId, unitId] } }),
+          filter: JSON.stringify({ id: { _in: [fieldId, unitId, pendingId] } }),
         })}`,
         { headers: { Authorization: `Bearer ${front.DIRECTUS_FRONTEND_SERVER_TOKEN}` } },
       );
       assert.equal(rawFields.status, 200);
       assert.deepEqual(
-        ((await rawFields.json()) as { data: { id: string }[] }).data.map((row) => row.id),
-        [fieldId],
-        "Directus policy itself filters units even when the caller omits the kind filter",
+        ((await rawFields.json()) as { data: { id: string }[] }).data.map((row) => row.id).sort(),
+        [fieldId, unitId].sort(),
+        "The private reader may read immutable ready fields and units",
       );
       const workerHeaders = { Authorization: `Bearer ${front.CONTENT_TRANSLATION_WORKER_TOKEN}` };
       const query = new URLSearchParams({ namespace, keys: `${fieldId},${unitId}` });
       const workerRead = await fetch(`${base}/content-translations/memory?${query}`, { headers: workerHeaders });
       assert.equal(workerRead.status, 200);
       assert.equal(((await workerRead.json()) as { rows: unknown[] }).rows.length, 2);
-      const denied = await fetch(`${base}/content-translations`, {
-        method: "POST",
-        headers: { ...workerHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ op: "enqueue" }),
-      });
-      assert.equal(denied.status, 403, "Only operators may enqueue namespace changes or rebill uncertain work");
+      for (const operation of [{ op: "enqueue" }, { op: "configure", targets: ["en-GB"] }, { op: "clear" }]) {
+        const denied = await fetch(`${base}/content-translations`, {
+          method: "POST",
+          headers: { ...workerHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify(operation),
+        });
+        assert.equal(denied.status, 403, "Only operators may enqueue namespace changes or rebill uncertain work");
+      }
       const standardRead = await fetch(`${base}/items/pages?limit=1`, { headers: workerHeaders });
       assert.equal(standardRead.status, 403, "Worker cannot read raw source collections");
       for (const token of [
@@ -394,6 +466,7 @@ test(
       if (editorId) await admin.deleteUser(editorId).catch(() => {});
       await admin.deleteItem("content_translation_memory", fieldId).catch(() => {});
       await admin.deleteItem("content_translation_memory", unitId).catch(() => {});
+      await admin.deleteItem("content_translation_memory", pendingId).catch(() => {});
     }
   },
 );

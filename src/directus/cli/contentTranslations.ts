@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { TranslationTargetsSchema } from "../../frontend/shared/contentTranslationProtocol.ts";
 
 /** Operator-only control through the reviewed endpoint. No database edits and no provider key. */
 export async function contentTranslations(
@@ -10,16 +11,25 @@ export async function contentTranslations(
 ) {
   const [command = "status", value, confirmation] = args;
   let operation: unknown;
-  if (command === "enqueue" && args.length <= 2) {
+  if ((command === "enqueue" || command === "run") && args.length <= 2) {
     if (value && !/^[a-zA-Z0-9:._-]{1,128}$/.test(value)) throw new Error("Invalid translation namespace");
     operation = { op: "enqueue", ...(value ? { namespace: value } : {}) };
+  } else if (command === "configure" && value && args.length === 2) {
+    operation = {
+      op: "configure",
+      targets: TranslationTargetsSchema.parse(value.split(",").map((target) => target.trim())),
+    };
+  } else if (command === "clear" && args.length === 1) {
+    operation = { op: "clear" };
   } else if (command === "retry" && value && confirmation === "--allow-rebill" && args.length === 3) {
     const keys = value.split(",");
     if (keys.length > 50 || keys.some((key) => !/^content-translation:v1:[a-f0-9]{64}$/.test(key)))
       throw new Error("Invalid translation keys");
     operation = { op: "retry", keys, allowRebill: true };
   } else if (command !== "status" || args.length > 1) {
-    throw new Error("Usage: contentTranslations.ts status | enqueue [namespace] | retry key[,key] --allow-rebill");
+    throw new Error(
+      "Usage: contentTranslations.ts status | configure en-GB[,it-IT] | run [namespace] | clear | retry key[,key] --allow-rebill",
+    );
   }
   const url = new URL(baseUrl);
   if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash || !token)
