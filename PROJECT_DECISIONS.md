@@ -506,6 +506,13 @@ persistent state. Cloud failures prevent local retention. Installed source drift
 requires a reviewed Git fix and reinstallation, rather than an on-host hotfix.
 See [host reproducibility](docs/HOST_REPRODUCIBILITY.md).
 
+Release checkpoints and the database CLI share private CMS database settings.
+`DB_DATABASE` selects the live application database after a restore/cutover;
+`POSTGRES_DB` remains the datastore initialization default. Dump execution still
+loads the bootstrap identity from native or mounted datastore settings, without
+placing its password in arguments. Approving a checkpoint requires restored live
+data validation, including purchased translation memory, beyond schema checks.
+
 CMS catalogue reads share concurrent requests and a 30-second fresh metadata cache.
 The editor alone may use a successful result up to five minutes old during a
 transient upstream failure. Validation on save never uses stale-on-error metadata.
