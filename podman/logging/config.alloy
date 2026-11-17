@@ -1,0 +1,120 @@
+// Installed through slk host plan/install/verify. No secret values belong here.
+logging {
+	level  = "info"
+	format = "json"
+}
+
+// Read MESSAGE only: do not export the full journal envelope (command lines,
+// process environment, executable paths and other unnecessary host metadata).
+loki.source.journal "host" {
+	max_age       = "24h"
+	relabel_rules = loki.relabel.journal.rules
+	forward_to    = [loki.process.records.receiver]
+	labels        = {
+		project      = "stadt-land-klima",
+		environment  = "__SLK_LOG_ENVIRONMENT__",
+		host         = "__SLK_LOG_HOST__",
+		service_name = "host",
+	}
+}
+
+loki.relabel "journal" {
+	forward_to = []
+
+	// Strip template instances and never index transient container scopes/IDs.
+	rule {
+		source_labels = ["__journal__systemd_unit"]
+		regex         = "([^@]+)(@.*)?\\.service"
+		target_label  = "service_name"
+		replacement   = "$1"
+	}
+
+	rule {
+		source_labels = ["__journal__systemd_user_unit"]
+		regex         = "([^@]+)(@.*)?\\.service"
+		target_label  = "service_name"
+		replacement   = "$1"
+	}
+
+	rule {
+		source_labels = ["__journal_container_name"]
+		regex         = "__SLK_PROJECT__[_-](.+)[_-][0-9]+"
+		target_label  = "service_name"
+		replacement   = "$1"
+	}
+
+	rule {
+		source_labels = ["service_name"]
+		regex         = "frontend"
+		target_label  = "service_name"
+		replacement   = "nuxt"
+	}
+
+	rule {
+		source_labels = ["service_name"]
+		regex         = "db"
+		target_label  = "service_name"
+		replacement   = "postgresql"
+	}
+
+	rule {
+		source_labels = ["service_name"]
+		regex         = "cache"
+		target_label  = "service_name"
+		replacement   = "redis"
+	}
+
+	rule {
+		source_labels = ["__journal_priority_keyword"]
+		target_label  = "level"
+	}
+}
+
+loki.process "records" {
+	forward_to = [loki.write.monitoring.receiver]
+
+	// Plain host/third-party messages pass through. JSON is parsed for severity,
+	// while the original message and journal timestamp are preserved.
+	stage.json {
+		expressions = {severity = "severity", log_level = "level"}
+	}
+
+	stage.template {
+		source   = "severity"
+		template = "{{ if .Value }}{{ .Value }}{{ else if eq (printf \"%v\" .log_level) \"60\" }}fatal{{ else if eq (printf \"%v\" .log_level) \"50\" }}error{{ else if eq (printf \"%v\" .log_level) \"40\" }}warn{{ else if eq (printf \"%v\" .log_level) \"30\" }}info{{ else if eq (printf \"%v\" .log_level) \"20\" }}debug{{ else if eq (printf \"%v\" .log_level) \"10\" }}trace{{ else if .log_level }}{{ .log_level }}{{ end }}"
+	}
+
+	stage.labels {
+		values = {level = "severity"}
+	}
+	// Only bounded severities become indexed labels, even for malformed JSON.
+	stage.match {
+		selector = "{level!~\"trace|debug|info|notice|warn|warning|error|crit|fatal|alert|emerg\"}"
+
+		stage.static_labels {
+			values = {level = "unknown"}
+		}
+	}
+}
+
+loki.write "monitoring" {
+	endpoint {
+		url                 = "__SLK_LOG_ENDPOINT__"
+		follow_redirects    = false
+		batch_size          = "256KiB"
+		batch_wait          = "1s"
+		remote_timeout      = "15s"
+		min_backoff_period  = "1s"
+		max_backoff_period  = "1m"
+		max_backoff_retries = 0
+
+		basic_auth {
+			username      = "__SLK_LOG_USERNAME__"
+			password_file = sys.env("CREDENTIALS_DIRECTORY") + "/loki-password"
+		}
+
+		tls_config {
+			min_version = "TLS12"
+		}
+	}
+}

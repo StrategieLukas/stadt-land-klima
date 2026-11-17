@@ -7,6 +7,8 @@ ConditionPathExists=%h/stadt-land-klima/podman-compose.yaml
 
 [Service]
 Type=oneshot
+StandardOutput=journal
+StandardError=journal
 RemainAfterExit=yes
 # The CLI manages shutdown; preserve container monitors and port forwarders.
 KillMode=process

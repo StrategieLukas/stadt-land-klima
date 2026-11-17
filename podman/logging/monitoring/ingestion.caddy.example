@@ -1,0 +1,38 @@
+# Add this site to the monitoring server's existing Caddy configuration.
+# Replace the hash in the installed copy; preserve existing Grafana sites.
+logs.stadt-land-klima.de {
+	log {
+		output stdout
+		format filter {
+			wrap json
+			fields {
+				request>uri delete
+				request>headers delete
+				request>remote_ip delete
+				request>remote_port delete
+				request>client_ip delete
+				resp_headers delete
+			}
+		}
+	}
+
+	@push {
+		method POST
+		path /loki/api/v1/push
+	}
+	handle @push {
+		basic_auth {
+			slk-production REPLACE_WITH_CADDY_PASSWORD_HASH
+		}
+		request_body {
+			max_size 2MB
+		}
+		reverse_proxy 127.0.0.1:3100 {
+			header_up -Authorization
+			header_up -Cookie
+		}
+	}
+	handle {
+		respond 404
+	}
+}

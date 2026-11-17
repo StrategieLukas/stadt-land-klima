@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { chromiumCertificateArguments } from "./lib/browser.js";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -38,7 +38,7 @@ try {
       "-subj",
       "/CN=www.stadt-land-klima.de",
       "-addext",
-      "subjectAltName=DNS:www.stadt-land-klima.de,DNS:stadt-land-klima.de,DNS:staging.stadt-land-klima.de,DNS:future.stadt-land-klima.de,DNS:directus.stadt-land-klima.de",
+      "subjectAltName=DNS:www.stadt-land-klima.de,DNS:stadt-land-klima.de,DNS:staging.stadt-land-klima.de,DNS:future.stadt-land-klima.de,DNS:directus.stadt-land-klima.de,DNS:logs.stadt-land-klima.de",
       "-days",
       "1",
       "-keyout",
@@ -201,7 +201,7 @@ try {
       if (body && body.length > 64 * 1024) {
         // Let the proxy reject Content-Length before flooding a closed socket.
         req.setHeader("Expect", "100-continue");
-        req.on("continue", () => req.end(body));
+        req.once("continue", () => req.end(body));
         req.flushHeaders();
       } else req.end(body);
     });
@@ -502,8 +502,68 @@ try {
   );
   const isolatedLogs = podman("logs", name);
   assert.doesNotMatch(isolatedLogs, /private-(?:query|cookie|auth|body)-canary/);
+  const ingestPassword = "non-secret-ingestion-fixture";
+  const ingestHash = podman(
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    ...confined,
+    image,
+    "hash-password",
+    "--plaintext",
+    ingestPassword,
+  );
+  const ingestConfig = readFileSync(join(root, "podman/logging/monitoring/ingestion.caddy.example"), "utf8")
+    .replace(
+      "logs.stadt-land-klima.de {",
+      "https://logs.stadt-land-klima.de {\n tls /fixture/cert.pem /fixture/key.pem",
+    )
+    .replace("REPLACE_WITH_CADDY_PASSWORD_HASH", ingestHash)
+    .replace("127.0.0.1:3100", "127.0.0.1:9001");
+  writeFileSync(join(directory, "ingestion.Caddyfile"), "import /etc/caddy/global.future.caddy\n" + ingestConfig);
+  podman(
+    "exec",
+    name,
+    "/usr/bin/caddy",
+    "reload",
+    "--address",
+    "unix//run/caddy/admin.sock",
+    "--config",
+    "/fixture/ingestion.Caddyfile",
+    "--adapter",
+    "caddyfile",
+  );
+  const ingest = (path: string, headers: Record<string, string> = {}, body?: Buffer) =>
+    fetch(path, headers, body, "logs.stadt-land-klima.de");
+  const credential = "Basic " + Buffer.from("slk-production:" + ingestPassword).toString("base64");
+  assert.equal((await ingest("/loki/api/v1/push", {}, Buffer.from("{}"))).status, 401);
+  assert.equal((await ingest("/loki/api/v1/push", { Authorization: "Basic wrong" }, Buffer.from("{}"))).status, 401);
+  const ingested = await ingest(
+    "/loki/api/v1/push",
+    {
+      Authorization: credential,
+      Cookie: "private-cookie-canary",
+      "Content-Type": "application/json",
+    },
+    Buffer.from("{}"),
+  );
+  assert.equal(ingested.status, 200);
+  const upstreamIngest = JSON.parse(ingested.body) as Record<string, unknown>;
+  assert.equal(upstreamIngest.path, "/loki/api/v1/push");
+  assert.equal(upstreamIngest.authorization, undefined);
+  assert.equal(upstreamIngest.cookie, undefined);
+  assert.equal((await ingest("/loki/api/v1/push", { Authorization: credential })).status, 404);
+  assert.equal((await ingest("/loki/api/v1/labels", { Authorization: credential })).status, 404);
+  assert.equal((await ingest("/config", { Authorization: credential })).status, 404);
+  assert.equal(
+    (await ingest("/loki/api/v1/push", { Authorization: credential }, Buffer.alloc(2 * 1024 * 1024 + 1))).status,
+    413,
+  );
+  const ingestionLogs = podman("logs", name);
+  assert.doesNotMatch(ingestionLogs, new RegExp(ingestPassword + "|" + credential.split(" ")[1]));
   process.stdout.write(
-    "Caddy: production/staging validation, TLS redirects, proxy guards/headers, nonce CSP, private logs/referrers, body limits, maintenance, independent rate budgets and isolated CMS redirects/origin/CSRF/anonymous-asset boundaries passed.\n",
+    "Caddy: production/staging validation, TLS redirects, proxy guards/headers, nonce CSP, private logs/referrers, body limits, maintenance, independent rate budgets, isolated CMS boundaries and authenticated write-only log ingestion passed.\n",
   );
 } finally {
   if (process.env.TEST_KEEP_CADDY_FIXTURE === "1")

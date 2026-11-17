@@ -1,0 +1,50 @@
+[Unit]
+Description=Stadt-Land-Klima host journal forwarding
+Documentation=https://grafana.com/docs/alloy/
+After=network-online.target systemd-journald.service
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=alloy
+Group=alloy
+SupplementaryGroups=systemd-journal
+LoadCredential=loki-password:__SLK_LOG_PASSWORD_FILE__
+ExecStart=/usr/bin/alloy run --disable-reporting --server.http.enable-pprof=false --server.http.disable-support-bundle --server.http.listen-addr=127.0.0.1:12345 --storage.path=/var/lib/slk-alloy /etc/slk/alloy/config.alloy
+Restart=on-failure
+RestartSec=10s
+TimeoutStopSec=60s
+StateDirectory=slk-alloy
+StateDirectoryMode=0700
+UMask=0077
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+ReadWritePaths=/var/lib/slk-alloy
+MemoryHigh=256M
+MemoryMax=512M
+TasksMax=128
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

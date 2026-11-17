@@ -1,0 +1,11 @@
+# Merge this entry into existing provisioning; keep VictoriaMetrics configured.
+apiVersion: 1
+datasources:
+  - name: Stadt-Land-Klima Logs
+    uid: slk-loki
+    type: loki
+    access: proxy
+    url: http://127.0.0.1:3100
+    editable: false
+    jsonData:
+      maxLines: 1000

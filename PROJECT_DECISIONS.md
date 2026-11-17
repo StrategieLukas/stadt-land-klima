@@ -253,6 +253,23 @@ purge it or infrastructure history. Collector/alert routing and retention remain
 operator configuration. Rebuild changed extension bundles and the CMS image
 together; regenerate logging manifests and inspect controlled deployed canaries.
 
+Optional host journal collection is maintained in `podman/logging/` and installed
+and drift-checked by `slk host plan/install/verify` when the root-only host dotenv
+references `SLK_HOST_LOGGING_CONFIG`. Alloy runs as a dedicated unprivileged
+journal reader, uses a systemd-loaded per-host credential and sends HTTPS to a
+separate ingestion gateway. It never receives an engine socket or application
+dotenv. The prepared monitoring backend is single-process Loki with private
+query/listener access, 30-day retention and persistent WAL; VictoriaMetrics stays
+the metrics backend. Host journal defaults are bounded to 512 MiB/three days.
+Stable Alloy has no durable outbound log spool here; its experimental WAL stays
+disabled. Persistent cursors/retries do not establish lossless delivery. Source
+privacy, alerting, actual host installation, outages and recovery require operator
+acceptance. See `docs/CENTRAL_LOGGING.md` and `docs/LOGGING_ALTERNATIVES.md` before
+activation; no remote installation is implied by the checked configuration. The
+initial Alloy/Loki vendor binary scans have unresolved findings recorded in
+`docs/LOGGING_SECURITY_REVIEW.md`; activation requires patched/reviewed artifacts.
+Host maintenance rejects Alloy builds affected by GO-2026-6859.
+
 ## Editorial and publication invariants
 
 - Municipality publication and preview use independent `published` and

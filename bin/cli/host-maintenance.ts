@@ -18,7 +18,20 @@ import {
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { hostPath, loadHostSettings, privateHostEnvironment, type HostSettings } from "./host-configuration.ts";
+import {
+  hostPath,
+  loadHostSettings,
+  privateHostEnvironment,
+  privateHostFile,
+  type HostSettings,
+} from "./host-configuration.ts";
+import {
+  HOST_LOGGING_PATHS,
+  assertAlloyBuild,
+  hostLoggingArtifacts,
+  loggingSettings,
+  type LoggingSettings,
+} from "./host-logging.ts";
 
 export const HOST_NODE = {
   version: "24.22.3",
@@ -48,7 +61,13 @@ function run(tool: string, args: string[], input?: string) {
   return result.stdout;
 }
 
-export function hostArtifacts(root: string, settings: HostSettings, config: string, caddyGid: number) {
+export function hostArtifacts(
+  root: string,
+  settings: HostSettings,
+  config: string,
+  caddyGid: number,
+  logging?: { settings: LoggingSettings; gid: number },
+) {
   hostPath(config);
   const files: HostArtifact[] = [];
   const text = (path: string, value: string, mode = 0o644, uid = 0, gid = 0) =>
@@ -68,7 +87,7 @@ export function hostArtifacts(root: string, settings: HostSettings, config: stri
   text("/etc/systemd/system/caddy.service", source("caddy/caddy.service.example"));
   text(
     "/etc/systemd/system/staedtechallenge-backup.service",
-    `[Unit]\nDescription=Encrypted Stadt-Land-Klima cloud backup\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nExecStart=${library}/node ${library}/host-backup.ts ${config}\nNice=10\nIOSchedulingClass=best-effort\nUMask=0077\n`,
+    `[Unit]\nDescription=Encrypted Stadt-Land-Klima cloud backup\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nExecStart=${library}/node ${library}/host-backup.ts ${config}\nNice=10\nIOSchedulingClass=best-effort\nUMask=0077\nStandardOutput=journal\nStandardError=journal\n`,
   );
   text("/etc/systemd/system/staedtechallenge-backup.timer", source("podman/host-backup.timer"));
   const applicationUnit = source("podman/slk-application-only.service.example")
@@ -78,6 +97,7 @@ export function hostArtifacts(root: string, settings: HostSettings, config: stri
     .replaceAll("http://127.0.0.1:9000/", `http://127.0.0.1:${settings.webPort}/`)
     .replace("EnvironmentFile=", `Environment=PATH=${library}:/usr/local/bin:/usr/bin:/bin\nEnvironmentFile=`);
   text(`${settings.home}/.config/systemd/user/slk.service`, applicationUnit, 0o600, settings.uid, settings.gid);
+  if (logging) files.push(...hostLoggingArtifacts(root, settings.project, logging.settings, logging.gid));
   return files;
 }
 
@@ -151,7 +171,34 @@ export function performHostMaintenance(action: "plan" | "install" | "verify", co
   const group = run("getent", ["group", "caddy"]).trim().split(":");
   const caddyGid = Number(group[2]);
   if (!Number.isInteger(caddyGid) || caddyGid <= 0) throw new Error("The existing caddy group is required");
-  const files = hostArtifacts(root, settings, config, caddyGid);
+  let logging: { settings: LoggingSettings; gid: number } | undefined;
+  if (settings.loggingConfig) {
+    const logSettings = loggingSettings(privateHostEnvironment(settings.loggingConfig, 0));
+    const credential = privateHostFile(logSettings.passwordFile, 0).toString("utf8");
+    if (!/^[\x21-\x7e]{32,256}\n?$/.test(credential))
+      throw new Error("Logging password must contain 32–256 printable ASCII characters");
+    const alloy = run("getent", ["passwd", "alloy"]).trim().split(":");
+    const gid = Number(run("getent", ["group", "alloy"]).trim().split(":")[2]);
+    if (
+      !Number.isInteger(Number(alloy[2])) ||
+      Number(alloy[2]) <= 0 ||
+      !Number.isInteger(gid) ||
+      gid <= 0 ||
+      Number(alloy[3]) !== gid
+    )
+      throw new Error("Install Alloy with its dedicated unprivileged account and group first");
+    const binary = lstatSync("/usr/bin/alloy");
+    if (!binary.isFile() || binary.uid !== 0 || (binary.mode & 0o022) !== 0)
+      throw new Error("Alloy must be a root-owned, non-writable packaged executable");
+    assertAlloyBuild(run("/usr/bin/alloy", ["--version"]));
+    logging = { settings: logSettings, gid };
+  }
+  const files = hostArtifacts(root, settings, config, caddyGid, logging);
+  const disabledLoggingArtifacts = logging ? [] : HOST_LOGGING_PATHS.filter((path) => existsSync(path));
+  if (action === "install" && disabledLoggingArtifacts.length)
+    throw new Error(
+      "Logging was disabled in configuration but installed collector files remain; explicitly retire them first",
+    );
   privateHostEnvironment(settings.backupConfig, 0);
   const binaryPath = nodeBinary ?? `${library}/node`;
   const binary = readFileSync(binaryPath);
@@ -184,6 +231,7 @@ export function performHostMaintenance(action: "plan" | "install" | "verify", co
       unlinkSync(retired);
     }
     run("systemctl", ["daemon-reload"]);
+    if (logging) run("systemctl", ["enable", "slk-alloy.service"]);
     run("runuser", [
       "-u",
       settings.user,
@@ -219,7 +267,11 @@ export function performHostMaintenance(action: "plan" | "install" | "verify", co
   const unexpected = existsSync(library)
     ? readdirSync(library).filter((name) => !["node", ...helpers].includes(name))
     : [];
-  const ok = results.every((result) => result.matches) && !existsSync(retired) && unexpected.length === 0;
+  const ok =
+    results.every((result) => result.matches) &&
+    !existsSync(retired) &&
+    unexpected.length === 0 &&
+    disabledLoggingArtifacts.length === 0;
   console.log(
     JSON.stringify(
       {
@@ -229,9 +281,13 @@ export function performHostMaintenance(action: "plan" | "install" | "verify", co
         files: results,
         retiredEntrypointPresent: existsSync(retired),
         unexpectedLibraryFiles: unexpected,
+        disabledLoggingArtifacts,
         pending: [
           "Validate/reload Caddy and AppArmor explicitly during the approved deployment",
           "Restart/verify application only after the approved Git release",
+          ...(logging
+            ? ["Validate Alloy; activate persistent journaling and slk-alloy explicitly after monitoring is ready"]
+            : []),
         ],
       },
       null,

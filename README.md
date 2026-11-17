@@ -5,6 +5,7 @@ Deployment uses **rootless Podman and Caddy**. Directus stays **11.17.4**.
 
 - [Project decisions](PROJECT_DECISIONS.md): architecture, roles, security and current owner decisions.
 - [Podman operations](PODMAN.md): host requirements, private runtime mounts, build/start/restart, storage and recovery.
+- [Central logging](docs/CENTRAL_LOGGING.md): opt-in host journal forwarding, monitoring-server setup and [component alternatives](docs/LOGGING_ALTERNATIVES.md).
 - [Deployment acceptance](DEPLOYMENT_CHECKLIST.md) and [Caddy gateway](caddy/README.md).
 - [Feature/test inventory](FEATURES.md), [cleanup decisions and search differences](docs/REPOSITORY_CLEANUP.md).
 - [Agent instructions](AGENTS.md), [CMS translations](DYNAMIC_CONTENT_TRANSLATION.md), [CLI](src/directus/cli/README.md), [test suite](bin/test_suite/README.md).
