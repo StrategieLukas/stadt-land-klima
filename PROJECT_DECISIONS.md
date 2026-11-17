@@ -388,7 +388,7 @@ workflows; `bin/cli/checks.test.ts` checks workflow coverage. The runner keeps
 complete private logs and incremental/final JSON reports under `.reports/checks/`,
 with bounded diagnostic tails for agents. Exit codes, signals, timeouts and
 prerequisites determine outcomes; diagnostic text is never parsed to infer a pass.
-Selected runs do not replace complete verification. Native matrix and deployed
+Selected runs do not replace complete verification. After investigating current upstream fixes, an authorized push may proceed with documented, currently unresolvable dependency advisories as its only remaining failures; audit exit statuses and findings stay unchanged. Exception eligibility is manually reviewed and never converts the check report or CI to a pass. Native matrix and deployed
 revision acceptance remain explicit separate environments. See [check runner
 reference](docs/CHECKS.md). Curl localhost:8080 after frontend changes.
 Explicit full HTTPS/editor/image/proxy/storage tests use disposable environments;
