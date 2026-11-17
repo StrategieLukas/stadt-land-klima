@@ -445,6 +445,15 @@ test("failed Podman imports leave maintenance active and never prepare or restar
   assert.doesNotMatch(calls, /stop maintenance|frontend-build|--force-recreate frontend/);
 });
 
+test("production CMS restarts recreate the env mounts while data services retain their containers", (t) => {
+  const fixture = wrapperFixture(t);
+  const result = fixture.invoke(["restart", "directus", "cache"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(fixture.calls(), /restart cache/);
+  assert.match(fixture.calls(), /up -d --no-build --no-deps --force-recreate directus/);
+  assert.doesNotMatch(fixture.calls(), /--force-recreate (?:cache|db|meilisearch|frontend)/);
+});
+
 test("Podman prepare refuses to mutate an active frontend release", (t) => {
   const fixture = wrapperFixture(t);
   const result = fixture.invoke(["prepare"], "yes");
@@ -463,7 +472,8 @@ test("runtime mounts contain paths only and the builder receives no private moun
   const plan = podmanEnvironmentPlan(paths, true);
   assert.equal(plan.services["frontend-build"], undefined);
   assert.ok(plan.services.frontend!.volumes.includes("/private/web.env:/frontend/.env:ro,z"));
-  assert.ok(plan.services.directus!.volumes.includes("/private/cms.env:/directus/.env:ro,z"));
+  assert.ok(plan.services.directus!.volumes.includes("/private/cms.env:/run/slk-env/directus.env:ro,z"));
+  assert.ok(plan.services.directus!.volumes.every((mount) => !mount.includes(":/directus/.env:")));
   assert.equal(
     plan.services.frontend!.environment.SLK_ENV_FILES,
     "/run/slk-env/frontend.env:/run/slk-env/meilisearch.env",

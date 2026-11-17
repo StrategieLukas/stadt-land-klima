@@ -445,6 +445,13 @@ Local workflow validation does not establish an actual hosted-runner execution.
 
 ## Service failure handling
 
+Directus must not mount an autoloaded `/directus/.env`. Its library loader can override
+protected process values from that file, re-enabling response caching and serving stale
+translation results after direct database commits. The launcher supplies private values
+through `/run/slk-env`; production CMS restarts recreate its mounts. Runtime/image audits
+check the effective library flags for cache, TUS, WebSockets and MCP, and reject a second
+autoloaded dotenv. Data-service containers remain intact during these application updates.
+
 An interrupted CMS settings PATCH is verified through bounded authenticated reads of
 every intended value. The importer continues only when all values match, and never
 replays the ambiguous write. Missing, masked or different values and authorization

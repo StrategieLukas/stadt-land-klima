@@ -1,5 +1,6 @@
 import { IMAGE_ADVISORY_REVIEW, IMAGE_REVIEW_EXPIRES } from "./lib/imageAdvisoryReview.js";
 import { assertReleasePolicy } from "./lib/releasePolicy.js";
+import { directusRuntimeConfigProbe } from "../../lib/podman-environment.js";
 import { readFileSync } from "node:fs";
 /** Audit actual image package copies, rather than treating extension lockfiles as the host. */
 import { execFileSync } from "node:child_process";
@@ -68,6 +69,23 @@ if (reviewed) {
       "/opt/slk-directus-runtime-security/test-runtime.ts",
     ],
     { stdio: "inherit", timeout: 120_000 },
+  );
+  execFileSync(
+    "podman",
+    [
+      "run",
+      "--rm",
+      "--network=none",
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges",
+      ...["CACHE_ENABLED", "TUS_ENABLED", "WEBSOCKETS_ENABLED", "MCP_ENABLED"].flatMap((key) => ["-e", `${key}=false`]),
+      "--entrypoint=node",
+      image,
+      "--input-type=module",
+      "-e",
+      directusRuntimeConfigProbe(),
+    ],
+    { stdio: "inherit", timeout: 60_000 },
   );
   const unknown = findings.filter(
     (finding) =>
