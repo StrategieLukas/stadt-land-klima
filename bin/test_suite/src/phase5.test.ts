@@ -13,6 +13,10 @@ import { attachVisualizationData, cloneVisualization } from "../../../src/fronte
 import { requestErrorData, requestErrorMessage, captchaEventData } from "../../../src/frontend/shared/requestError.js";
 import { resolveBlokkliInternalLink, getBlokkliBlockId } from "../../../src/frontend/utils/blokkliLinks.js";
 import { BETTERPLACE_PROJECT_URL, getBetterplaceWidgetUrl } from "../../../src/frontend/shared/donation.js";
+import { legacyImageButton } from "../../../src/frontend/utils/legacyImageButtons.js";
+import { legacyCmsHtml } from "../../../src/frontend/utils/legacyCmsHtml.js";
+import { sanitizeHtml } from "../../../src/frontend/utils/sanitizeHtml.js";
+import { parse as parseYaml } from "yaml";
 
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 // The harness executes the actual SFC script/template with Vue, without a browser/server per assertion.
@@ -489,4 +493,90 @@ test("translation legal note is a small non-German footer component with no cont
     readFileSync(new URL("../../../src/frontend/layouts/default.vue", import.meta.url), "utf8"),
     /translation.machine_notice|showMachineTranslationNotice/,
   );
+});
+
+function legacyButtonDependencies() {
+  return {
+    htmlparser2: frontend("htmlparser2"),
+    "~/components/CanonicalButton.vue": load(
+      "CanonicalButton.vue",
+      {},
+      { "@iconify/vue": { Icon: vue.defineComponent({ render: () => vue.h("svg", { "aria-hidden": "true" }) }) } },
+    ),
+    "~/utils/legacyImageButtons": { legacyImageButton },
+    "~/utils/sanitizeHtml": { sanitizeHtml },
+  };
+}
+
+test("legacy image buttons render actual canonical buttons with DE/EN/IT labels and preserve their destinations", async () => {
+  const source =
+    '<table><tr><td><a id="join" href="/mitmachen" aria-label="German artwork" style="background-color: red"><img src="https://www.stadt-land-klima.de/backend/assets/6e20397d-50b3-46fe-be6e-4fa425c65eb5?width=270" alt="German artwork"></a></td></tr></table>';
+  const expected = {
+    "de-DE": "Klimachecker:in werden",
+    "en-GB": "Become a climate checker",
+    "it-IT": "Diventa un controllore del clima",
+  };
+  for (const [locale, label] of Object.entries(expected)) {
+    const t = (key: string) => {
+      const entry = parseYaml(
+        readFileSync(
+          new URL(`../../../src/directus/translations/${locale}/${key}.${locale}.yaml`, import.meta.url),
+          "utf8",
+        ),
+      ) as { value: string };
+      return entry.value;
+    };
+    const html = await render(
+      "CmsHtml.vue",
+      { html: legacyCmsHtml(source, "https://cms.example.org") },
+      { useNuxtApp: () => ({ $t: t }) },
+      legacyButtonDependencies(),
+    );
+    assert.ok(html.includes(label));
+    assert.match(html, /canonical-button/);
+    assert.match(html, /whitespace-normal/);
+    assert.match(html, /href="\/mitmachen"/);
+    assert.match(html, /id="join"/);
+    assert.match(html, /<table><tbody><tr>/);
+    assert.doesNotMatch(html, /German artwork|6e20397d|background-color: ?red/);
+    assert.equal((html.match(/<a\b/g) ?? []).length, 1);
+  }
+});
+
+test("legacy image replacement is limited to known local image-only links and retains HTML sanitization", async () => {
+  const known = "6e20397d-50b3-46fe-be6e-4fa425c65eb5";
+  const ordinary =
+    '<a href="/photo"><img src="https://cms.example.org/assets/11111111-1111-1111-1111-111111111111" alt="Photo"></a>';
+  const foreign = `<a href="/foreign"><img src="https://foreign.example.org/assets/${known}" alt="Foreign image"></a>`;
+  const withCaption = `<a href="/caption"><img src="https://cms.example.org/assets/${known}" alt="Authored">Keep this caption</a>`;
+  const html = await render(
+    "CmsHtml.vue",
+    {
+      html:
+        ordinary +
+        foreign +
+        withCaption +
+        '<script>privateCanary()</script><img src="javascript:evil()" onerror="privateCanary()">',
+    },
+    {},
+    legacyButtonDependencies(),
+  );
+  assert.doesNotMatch(html, /canonical-button|privateCanary|javascript:|onerror/);
+  for (const text of ["Photo", "Foreign image", "Keep this caption"]) assert.ok(html.includes(text));
+});
+
+test("localized legacy contact buttons retain authored external links and safe new-tab behavior", async () => {
+  const html = await render(
+    "CmsHtml.vue",
+    {
+      html: '<a href="https://forms.example.org/custom" target="_blank"><img src="https://cms.example.org/assets/5c615caa-8411-463b-8181-49e114025b50" alt="Old contact artwork"></a><p>Keep <strong>authored prose</strong> &amp; links.</p>',
+    },
+    { useNuxtApp: () => ({ $t: () => "Contact form" }) },
+    legacyButtonDependencies(),
+  );
+  assert.match(html, /canonical-button/);
+  assert.match(html, /href="https:\/\/forms.example.org\/custom"/);
+  assert.match(html, /target="_blank"/);
+  assert.match(html, /rel="noopener noreferrer"/);
+  assert.match(html, /Keep <strong>authored prose<\/strong> &amp; links\./);
 });

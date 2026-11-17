@@ -4,7 +4,8 @@
     class="blokkli-block-text prose max-w-none"
     :class="[sizeClass, alignClass, colorClass]"
   >
-    <div v-blokkli-editable:content v-html="sanitizeHtml(sanitizedContent)" />
+    <div v-if="isEditing" v-blokkli-editable:content v-html="sanitizeHtml(sanitizedContent)" />
+    <CmsHtml v-else :html="sanitizedContent" />
   </div>
 </template>
 
@@ -12,6 +13,7 @@
 import { BRAND_COLOR_CLASSES } from "~/utils/blokkliColors";
 import { getBlokkliBlockId } from "~/utils/blokkliLinks";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
+const isEditing = import.meta.blokkliEditing;
 
 const { options, uuid } = defineBlokkli({
   bundle: "text",

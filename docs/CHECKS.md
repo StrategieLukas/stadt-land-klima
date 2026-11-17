@@ -127,3 +127,20 @@ Fix check failures without weakening the gate, suppressing advisories, extending
 image-review expiry without reassessment or raising the Directus 11.17.4 cap.
 Report passed, failed, blocked and unavailable native/deployed verification
 accurately. These commands do not grant deployment or push authorization.
+
+## Unresolvable dependency findings and authorized pushes
+
+Always run and inspect the complete readiness plan before pushing. An authorized
+push may proceed if its only remaining failures are investigated dependency
+advisories with no currently supported fix or mitigation within project constraints.
+Check current upstream advisories and releases, and document package/advisory IDs,
+the reason the finding remains unresolvable, and the report location in the PR
+description and final response. A documented exception can be reused after
+confirming the finding is unchanged and still has no supported resolution.
+
+This is a decision about proceeding with an authorized push, not a passing check:
+audits keep their nonzero statuses and complete findings, and CI may remain red.
+The exception does not permit suppressing advisories, weakening checks, raising
+the Directus cap, introducing avoidable vulnerable dependencies, or overlooking
+registry/network errors or functional failures. Native/deployed verification still
+needs its own environment, and this policy does not authorize deployment.
