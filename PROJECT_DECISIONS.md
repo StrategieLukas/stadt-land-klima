@@ -445,6 +445,12 @@ Local workflow validation does not establish an actual hosted-runner execution.
 
 ## Service failure handling
 
+An interrupted CMS settings PATCH is verified through bounded authenticated reads of
+every intended value. The importer continues only when all values match, and never
+replays the ambiguous write. Missing, masked or different values and authorization
+failures stop deployment. Errors omit private setting values. A real dropped-socket
+regression covers the single-write recovery path.
+
 The pinned Directus runtime backports the upstream 12.3.1 share-update guard for
 GHSA-7h45-q5jx-7r87: share creators cannot be reassigned and changes to item/collection
 are checked against share permission before mutation. Full and partial target changes,
