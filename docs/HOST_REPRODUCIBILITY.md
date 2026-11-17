@@ -96,9 +96,9 @@ are expected host state, rather than manually maintained application code.
 ## Optional central logging
 
 Set `SLK_HOST_LOGGING_CONFIG` in the private root-only host dotenv to opt in to
-reviewed Alloy journal forwarding. The installer then checks the packaged Alloy
-version/account and private settings/credential permissions, installs the Alloy
-configuration, hardened service and bounded persistent-journal drop-in, and
+reviewed Vector journal forwarding. The installer then checks the exact Vector binary hash,
+version/account and private settings/credential permissions, installs the Vector
+configuration/VRL transform, hardened service and bounded persistent-journal drop-in, and
 includes them in the usual content/owner/mode verification. It enables the
 collector for boot without starting it or restarting journald. Existing hosts
 without this option keep their current manifest. Removing the option does not

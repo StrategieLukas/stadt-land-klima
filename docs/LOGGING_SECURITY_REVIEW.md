@@ -1,59 +1,126 @@
-# Logging binary review — 2026-11-17
+# Vector / VictoriaLogs release review — 2026-11-17
 
-**Activation is pending patched/reviewed binaries.** Repository configuration is
-prepared, but the currently published Linux x64 archives below are not a clean
-security baseline. Do not bypass the installer guard or interpret successful
-syntax/pipeline tests as vulnerability clearance. No binaries are committed or
-installed by this change.
+The selected stack replaces the earlier Alloy/Loki prototype. Its vendor pins and
+checks below are independent of the earlier binaries. No service has been installed
+or activated by preparing this change. No dependency advisories are suppressed.
 
-`govulncheck` v1.9.0 in binary mode returned vulnerability findings (tool status 3)
-for the official release artifacts:
+## Reviewed artifacts
 
-| Artifact                              | Archive SHA-256                                                    | Build runtime | Findings                                               |
-| ------------------------------------- | ------------------------------------------------------------------ | ------------- | ------------------------------------------------------ |
-| Alloy 1.22.0, `alloy-linux-amd64.zip` | `62d177feb18c9b6ffd636c8273aa82a6afc75a507d096ff951749df23c3176f9` | Go 1.27.3     | GO-2026-6859; GO-2026-5932; GO-2022-0646; GO-2022-0635 |
-| Loki 3.7.10, `loki-linux-amd64.zip`   | `200e74f7e631969bd0f2a066a2e1d33cdea9b3c0801aaaa7d78947c4ac29bddb` | Go 1.26.10    | GO-2026-6859; GO-2022-0646; GO-2022-0635               |
+| Artifact                                | Archive SHA-256                                                    | Extracted binary SHA-256                                           |
+| --------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Vector 0.62.0 Linux x64 GNU             | `e9d9cb3ee12288544c813453d0548524ab2bcc8f7e81b601f5e9d378fa6ac2f6` | `af2fe313d74e539914d1497898c1a4e338c3adcaa24605b7eee4116e983c3899` |
+| VictoriaLogs 1.54.0 Linux x64 community | `739e78c82294520b6079bc8a6ae32a1f9fb95a543092929a53a2fe9ab7383016` | `46aaf57c79c30c81dd047f150fcedff065f182369fb9e65a0de4032f91d40005` |
 
-Checksums authenticate matching the published archive, not its security.
-Raw scan output stays in private `.reports/logging-tools/` and is not committed.
-Reproduce against the actual intended installed binary, not just its version tag:
+Both archives were matched to their upstream release checksums before executing
+local fixtures. `slk host` requires the exact Vector binary hash and product
+version; a future update needs a reviewed pin change in Git, not a silent package
+upgrade. The native monitoring installation guide verifies both VictoriaLogs hashes.
+
+## VictoriaLogs
+
+The selected binary reports Go **1.27.4**. `govulncheck` **v1.9.0**, binary mode,
+completed successfully with **no vulnerabilities found** against the current Go
+vulnerability database. This is a dated scanner result, not a guarantee of no
+vulnerabilities or proof of future security. The earlier Go HTTP advisory affecting
+Alloy/Loki prototype binaries does not apply to this checked build runtime.
 
 ```bash
-go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /path/to/alloy
-go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /path/to/loki
+go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /path/to/victoria-logs-prod
 ```
 
-## Interpretation
+## Vector
 
-- [GO-2026-6859](https://pkg.go.dev/vuln/GO-2026-6859) concerns an HTTP/1 server
-  crash through a MaxBytesReader header race. The listed release builds predate
-  the fixes in Go 1.26.11/1.27.4. The host installer rejects affected/unknown Alloy
-  build runtimes. This is separate from checking the product version.
-- [GO-2026-5932](https://pkg.go.dev/vuln/GO-2026-5932) identifies legacy unsafe
-  OpenPGP code included in Alloy's broad distribution. No OpenPGP integration is
-  configured here, but no source-level reachability proof is claimed.
-- [GO-2022-0646](https://pkg.go.dev/vuln/GO-2022-0646) and
-  [GO-2022-0635](https://pkg.go.dev/vuln/GO-2022-0635) concern AWS S3 client-side
-  crypto code. This setup uses local filesystem Loki storage and no AWS collector,
-  reducing the configured paths into that code. That is a configuration assessment,
-  not a clean scan or a demonstrated absence from the linked binary.
+The selected release **0.62.0** contains the configuration-substitution security
+change described in its [release notes](https://vector.dev/releases/0.62.0/).
+The prepared config uses native directory secrets, keeps environment interpolation
+disabled, disables the administrative API, uses authenticated HTTPS, and configures
+only journal input, a remap, HTTP output and private internal metrics. There is no
+Podman socket, QUIC input, SQL source, OpenPGP integration or external exec-secret
+helper. `journalctl` is the explicit fixed-path journal reader subprocess.
 
-Binary symbol scanning is conservative and does not establish an exploitable
-path through the configured components. Equally, an unused configured feature,
-a loopback listener or gateway authentication does not remove a binary finding.
-Keep raw findings visible; do not suppress advisories to obtain a pass.
+The release GNU binary dynamically links the host's libc and **libz**. Native OS
+security maintenance remains necessary; this repository does not bundle or audit
+the target host's shared libraries.
 
-## Before activation
+The upstream tag's complete Cargo.lock was queried against OSV's crates.io
+records. This includes optional, build-time and platform-specific dependencies;
+it is **not** a feature-resolved SBOM or proof that every match is linked into or
+reachable from this binary. Equally, disabling an integration does not prove a
+vulnerable crate absent. The source-lock review is not clean:
 
-Prefer a patched supported vendor package/release, updating the version pin,
-checksums and tests in Git together. Alternatively review a reproducible build of
-the pinned source with a fixed supported Go runtime, and assess the remaining
-module findings against that exact artifact/source graph. The installer runtime
-guard only addresses the known Go advisory; it is not a complete binary scanner.
-Repeat vulnerability, syntax, pipeline and isolated gateway checks, then perform
-the authorized host/monitoring acceptance in [the runbook](CENTRAL_LOGGING.md).
+**1233 registry package entries; 17 affected package entries, 31 advisory IDs.**
 
-The alternative collector/backend comparison remains relevant: a narrower
-distribution and stable disk buffering may justify choosing Vector/Fluent Bit and/or
-VictoriaLogs. Their actual release artifacts need their own review; the comparison
-does not certify them free of vulnerabilities.
+| Package in upstream lock  | Advisory IDs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Recorded subject                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `arrow-data 58.3.0`       | [RUSTSEC-2026-0442](https://osv.dev/vulnerability/RUSTSEC-2026-0442)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Apache Arrow Rust: Improper validation of RunEndEncoded arrays allows out of bounds reads                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `chrono 0.4.45`           | [RUSTSEC-2026-0543](https://osv.dev/vulnerability/RUSTSEC-2026-0543)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | chrono is unmaintained                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `chrono-tz 0.10.4`        | [RUSTSEC-2026-0555](https://osv.dev/vulnerability/RUSTSEC-2026-0555)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | chrono-tz is unmaintained                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `crypto-bigint 0.5.5`     | [RUSTSEC-2026-0387](https://osv.dev/vulnerability/RUSTSEC-2026-0387)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Multiple timing variability issues in operations intended to be constant-time                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `derivative 2.2.0`        | [RUSTSEC-2024-0388](https://osv.dev/vulnerability/RUSTSEC-2024-0388)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `derivative` is unmaintained; consider using an alternative                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `humantime 2.4.0`         | [RUSTSEC-2026-0542](https://osv.dev/vulnerability/RUSTSEC-2026-0542)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | humantime is unmaintained                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `libsqlite3-sys 0.30.1`   | [RUSTSEC-2026-0459](https://osv.dev/vulnerability/RUSTSEC-2026-0459)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `libsqlite3-sys` via C SQLite CVE-2026-119375                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `libz-sys 1.1.31`         | [RUSTSEC-2026-0544](https://osv.dev/vulnerability/RUSTSEC-2026-0544)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | libs-sys: heap buffer overflow                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `pin-utils 0.1.0`         | [RUSTSEC-2026-0441](https://osv.dev/vulnerability/RUSTSEC-2026-0441)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `pin-utils` is unmaintained                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `proc-macro-error2 2.0.1` | [RUSTSEC-2026-0173](https://osv.dev/vulnerability/RUSTSEC-2026-0173)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | proc-macro-error2 is unmaintained                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `quinn-proto 0.11.16`     | [RUSTSEC-2026-0338](https://osv.dev/vulnerability/RUSTSEC-2026-0338), [RUSTSEC-2026-0339](https://osv.dev/vulnerability/RUSTSEC-2026-0339), [RUSTSEC-2026-0340](https://osv.dev/vulnerability/RUSTSEC-2026-0340), [RUSTSEC-2026-0341](https://osv.dev/vulnerability/RUSTSEC-2026-0341), [RUSTSEC-2026-0342](https://osv.dev/vulnerability/RUSTSEC-2026-0342), [RUSTSEC-2026-0523](https://osv.dev/vulnerability/RUSTSEC-2026-0523), [RUSTSEC-2026-0524](https://osv.dev/vulnerability/RUSTSEC-2026-0524)                                                                                                                                             | Remote peer can panic quinn-proto with zero-length STREAM frames during unordered reads; Unbounded growth of pending connection ID retirements in quinn-proto; Peer minimum ACK delay can panic quinn-proto when ACK_FREQUENCY transmission is enabled; Stream reassembly memory-exhaustion guard in quinn-proto can be bypassed; Zero-length DATAGRAM frames bypass the receive buffer limit in quinn-proto; MAX_STREAM_DATA frame can open streams beyond the stream limit; Long Retry token can panic or exhaust memory in a QUIC client                                                                     |
+| `quinn-udp 0.5.12`        | [RUSTSEC-2026-0538](https://osv.dev/vulnerability/RUSTSEC-2026-0538)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Receive loop can spin after a truncated datagram                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `rkyv 0.7.46`             | [RUSTSEC-2026-0235](https://osv.dev/vulnerability/RUSTSEC-2026-0235)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Insufficient archive validation can cause out-of-bounds reads in archives containing Rc/Arc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `rsa 0.9.10`              | [RUSTSEC-2023-0071](https://osv.dev/vulnerability/RUSTSEC-2023-0071)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Marvin Attack: potential key recovery through timing sidechannels                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `unsafe-libyaml 0.2.11`   | [RUSTSEC-2024-0449](https://osv.dev/vulnerability/RUSTSEC-2024-0449)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | unsafe-libyaml is unmaintained                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `zstd 0.13.2`             | [RUSTSEC-2026-0391](https://osv.dev/vulnerability/RUSTSEC-2026-0391)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Data from an abandoned stream leaks into the next stream on a reused context                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `zstd-safe 7.2.1`         | [RUSTSEC-2026-0395](https://osv.dev/vulnerability/RUSTSEC-2026-0395), [RUSTSEC-2026-0397](https://osv.dev/vulnerability/RUSTSEC-2026-0397), [RUSTSEC-2026-0399](https://osv.dev/vulnerability/RUSTSEC-2026-0399), [RUSTSEC-2026-0400](https://osv.dev/vulnerability/RUSTSEC-2026-0400), [RUSTSEC-2026-0401](https://osv.dev/vulnerability/RUSTSEC-2026-0401), [RUSTSEC-2026-0402](https://osv.dev/vulnerability/RUSTSEC-2026-0402), [RUSTSEC-2026-0403](https://osv.dev/vulnerability/RUSTSEC-2026-0403), [RUSTSEC-2026-0404](https://osv.dev/vulnerability/RUSTSEC-2026-0404), [RUSTSEC-2026-0406](https://osv.dev/vulnerability/RUSTSEC-2026-0406) | Use-after-free with `CParameter::StableInBuffer`; `OutBuffer::around_pos` exposes uninitialized memory; Use-after-free through `init_using_cdict` and `init_using_ddict`; Use-after-free of a dictionary after a one-shot call on a context with an open stream; Out-of-bounds read in `train_from_buffer` when sample sizes overflow; Heap buffer overflow in `CCtx::try_clone` on a multithreaded context; Uninitialized memory exposed when streaming decompression of a legacy frame fails; Double free in `DCtx::try_clone`; Use-after-free when changing a multithreaded context with an unfinished frame |
+
+### Scope and outstanding work
+
+- Unmaintained-package notices are maintenance signals, not automatically proof of
+  an exploitable bug. They remain recorded rather than hidden from the result.
+- QUIC/Arrow/SQL/archive and zstd-specific facilities are not configured by this
+  journal → JSON/gzip → HTTPS pipeline. The runtime attack path is narrower than
+  the full source lock, but a feature-resolved source/binary reachability review
+  has **not** been completed.
+- The zlib finding needs assessment against the actual dynamically linked OS
+  library and encoder path. The lockfile version alone cannot certify that runtime
+  library or establish an exploitable call path. TLS/crypto findings similarly
+  need exact feature/provider assessment, not an assumption based on language.
+- Before live activation, review the residual findings against the intended
+  artifact/host. Prefer vendor-fixed builds where available and update hashes,
+  tests and this record together. No patched custom Vector binary is claimed or
+  generated here. Preparing a service is not clearance to deploy unreviewed code.
+
+The raw Cargo.lock, OSV responses and binary scan outputs remain private local
+artifacts under `.reports/logging-vector/`. Reproduce the lockfile query against
+`https://raw.githubusercontent.com/vectordotdev/vector/v0.62.0/Cargo.lock` with
+[OSV's querybatch API](https://google.github.io/osv.dev/post-v1-querybatch/), using
+package name, crates.io ecosystem and exact version. No application data or secrets
+were submitted to that service. Future advisory databases can return new results.
+
+## Security behavior verified locally
+
+The real-binary fixture checks authenticated TLS with certificate/hostname
+verification, native secret-file resolution (including quote/dollar characters),
+metadata exclusion, stable service/severity fields, disk-buffer recovery after
+SIGKILL during an outage, and querying the real VictoriaLogs backend. The shared
+Caddy fixture checks authentication, POST/path/query boundaries, request size/rate,
+fixed parser/tenant headers and removed upstream credentials. Unit validation
+checks HTTPS-only destinations, rejected endpoint templates and binary version pins.
+
+These tests are complementary to dependency review. Privileged systemd credential
+mounts, actual journal permissions, deployed TLS/plugin compatibility, disk failure
+and power-loss durability require host acceptance in [the runbook](CENTRAL_LOGGING.md).
+
+## Repository readiness audit result
+
+The full local `slk check ready` run also checks the existing application dependency
+and pinned Directus image trees. Their audit gates failed on
+[GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf), the picomatch
+repeated-extglob ReDoS advisory updated/reviewed on 2026-11-17. The image contains
+three newly unaccounted version instances (2.3.2, 4.0.4, 4.0.7); existing image
+behavior regressions passed. The advisory lists no patched release at review time.
+
+This logging conversion does not change application package manifests/lockfiles,
+raise the Directus cap, or add a waiver/disposition to obtain a pass. Remediation
+of that existing dependency issue remains necessary before claiming a clean full
+readiness result or making an authorized push. The logging pipeline's targeted
+real-binary and gateway tests are separate evidence, not a replacement for these
+audit gates. Read the actual final report under private `.reports/checks/` for all
+remaining outcomes, including builds/live regressions and native/deployed limits.

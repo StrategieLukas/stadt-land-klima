@@ -27,7 +27,9 @@ import {
 } from "./host-configuration.ts";
 import {
   HOST_LOGGING_PATHS,
-  assertAlloyBuild,
+  assertVectorBuild,
+  HOST_VECTOR_SHA256,
+  RETIRED_LOGGING_PATHS,
   hostLoggingArtifacts,
   loggingSettings,
   type LoggingSettings,
@@ -177,28 +179,30 @@ export function performHostMaintenance(action: "plan" | "install" | "verify", co
     const credential = privateHostFile(logSettings.passwordFile, 0).toString("utf8");
     if (!/^[\x21-\x7e]{32,256}\n?$/.test(credential))
       throw new Error("Logging password must contain 32–256 printable ASCII characters");
-    const alloy = run("getent", ["passwd", "alloy"]).trim().split(":");
-    const gid = Number(run("getent", ["group", "alloy"]).trim().split(":")[2]);
+    const vector = run("getent", ["passwd", "slk-vector"]).trim().split(":");
+    const gid = Number(run("getent", ["group", "slk-vector"]).trim().split(":")[2]);
     if (
-      !Number.isInteger(Number(alloy[2])) ||
-      Number(alloy[2]) <= 0 ||
+      !Number.isInteger(Number(vector[2])) ||
+      Number(vector[2]) <= 0 ||
       !Number.isInteger(gid) ||
       gid <= 0 ||
-      Number(alloy[3]) !== gid
+      Number(vector[3]) !== gid
     )
-      throw new Error("Install Alloy with its dedicated unprivileged account and group first");
-    const binary = lstatSync("/usr/bin/alloy");
+      throw new Error("Create the dedicated slk-vector account and group first");
+    const binary = lstatSync("/usr/local/bin/vector");
     if (!binary.isFile() || binary.uid !== 0 || (binary.mode & 0o022) !== 0)
-      throw new Error("Alloy must be a root-owned, non-writable packaged executable");
-    assertAlloyBuild(run("/usr/bin/alloy", ["--version"]));
+      throw new Error("Vector must be a root-owned, non-writable executable");
+    if (hash(readFileSync("/usr/local/bin/vector")) !== HOST_VECTOR_SHA256)
+      throw new Error("Vector differs from the reviewed Linux x64 release binary");
+    assertVectorBuild(run("/usr/local/bin/vector", ["--version"]));
     logging = { settings: logSettings, gid };
   }
   const files = hostArtifacts(root, settings, config, caddyGid, logging);
-  const disabledLoggingArtifacts = logging ? [] : HOST_LOGGING_PATHS.filter((path) => existsSync(path));
+  const disabledLoggingArtifacts = (
+    logging ? RETIRED_LOGGING_PATHS : [...HOST_LOGGING_PATHS, ...RETIRED_LOGGING_PATHS]
+  ).filter((path) => existsSync(path));
   if (action === "install" && disabledLoggingArtifacts.length)
-    throw new Error(
-      "Logging was disabled in configuration but installed collector files remain; explicitly retire them first",
-    );
+    throw new Error("Inactive or retired SLK logging files remain; explicitly retire them before installing");
   privateHostEnvironment(settings.backupConfig, 0);
   const binaryPath = nodeBinary ?? `${library}/node`;
   const binary = readFileSync(binaryPath);
@@ -231,7 +235,7 @@ export function performHostMaintenance(action: "plan" | "install" | "verify", co
       unlinkSync(retired);
     }
     run("systemctl", ["daemon-reload"]);
-    if (logging) run("systemctl", ["enable", "slk-alloy.service"]);
+    if (logging) run("systemctl", ["enable", "slk-vector.service"]);
     run("runuser", [
       "-u",
       settings.user,
@@ -286,7 +290,7 @@ export function performHostMaintenance(action: "plan" | "install" | "verify", co
           "Validate/reload Caddy and AppArmor explicitly during the approved deployment",
           "Restart/verify application only after the approved Git release",
           ...(logging
-            ? ["Validate Alloy; activate persistent journaling and slk-alloy explicitly after monitoring is ready"]
+            ? ["Validate Vector; activate persistent journaling and slk-vector explicitly after monitoring is ready"]
             : []),
         ],
       },

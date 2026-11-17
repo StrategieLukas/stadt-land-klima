@@ -1,19 +1,23 @@
 [Unit]
 Description=Stadt-Land-Klima central log storage
+Documentation=https://docs.victoriametrics.com/victorialogs/
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=loki
-Group=loki
-ExecStart=/usr/local/bin/loki -config.file=/etc/loki/loki.yaml
+User=victorialogs
+Group=victorialogs
+EnvironmentFile=/etc/victorialogs/limits.env
+ExecStart=/usr/local/bin/victoria-logs -httpListenAddr=127.0.0.1:9428 -storageDataPath=/var/lib/victorialogs -retentionPeriod=${SLK_LOG_RETENTION} -retention.maxDiskSpaceUsageBytes=${SLK_LOG_DISK_LIMIT} -memory.allowedBytes=512MiB -search.maxConcurrentRequests=4 -loggerFormat=json
 Restart=on-failure
 RestartSec=10s
 TimeoutStopSec=120s
-StateDirectory=loki
+StateDirectory=victorialogs
 StateDirectoryMode=0700
 UMask=0077
+StandardOutput=journal
+StandardError=journal
 NoNewPrivileges=true
 CapabilityBoundingSet=
 AmbientCapabilities=
@@ -32,7 +36,7 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 LockPersonality=true
 SystemCallArchitectures=native
-ReadWritePaths=/var/lib/loki
+ReadWritePaths=/var/lib/victorialogs
 MemoryHigh=768M
 MemoryMax=1G
 TasksMax=256

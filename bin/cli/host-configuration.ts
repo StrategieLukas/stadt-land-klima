@@ -61,6 +61,15 @@ export function hostSettings(
 
 export type HostSettings = ReturnType<typeof hostSettings>;
 
+/** Include only the opted-in private logging configuration and credential in encrypted backups. */
+export function hostLoggingBackupPaths(settings: Pick<HostSettings, "loggingConfig">, owner = 0): string[] {
+  if (!settings.loggingConfig) return [];
+  const fields = privateHostEnvironment(settings.loggingConfig, owner);
+  const password = hostPath(fields.SLK_LOG_PASSWORD_FILE ?? "");
+  privateHostFile(password, owner);
+  return [settings.loggingConfig, password];
+}
+
 export function loadHostSettings(path: string): HostSettings {
   if (process.platform !== "linux" || process.getuid?.() !== 0)
     throw new Error("Host maintenance requires root on Linux");

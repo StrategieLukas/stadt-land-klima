@@ -255,20 +255,21 @@ together; regenerate logging manifests and inspect controlled deployed canaries.
 
 Optional host journal collection is maintained in `podman/logging/` and installed
 and drift-checked by `slk host plan/install/verify` when the root-only host dotenv
-references `SLK_HOST_LOGGING_CONFIG`. Alloy runs as a dedicated unprivileged
-journal reader, uses a systemd-loaded per-host credential and sends HTTPS to a
-separate ingestion gateway. It never receives an engine socket or application
-dotenv. The prepared monitoring backend is single-process Loki with private
-query/listener access, 30-day retention and persistent WAL; VictoriaMetrics stays
-the metrics backend. Host journal defaults are bounded to 512 MiB/three days.
-Stable Alloy has no durable outbound log spool here; its experimental WAL stays
-disabled. Persistent cursors/retries do not establish lossless delivery. Source
-privacy, alerting, actual host installation, outages and recovery require operator
-acceptance. See `docs/CENTRAL_LOGGING.md` and `docs/LOGGING_ALTERNATIVES.md` before
-activation; no remote installation is implied by the checked configuration. The
-initial Alloy/Loki vendor binary scans have unresolved findings recorded in
-`docs/LOGGING_SECURITY_REVIEW.md`; activation requires patched/reviewed artifacts.
-Host maintenance rejects Alloy builds affected by GO-2026-6859.
+references `SLK_HOST_LOGGING_CONFIG`. The selected stack is **Vector + VictoriaLogs**.
+Vector runs as a dedicated unprivileged journal reader, uses a systemd-loaded
+per-host credential and sends filtered JSON lines over authenticated HTTPS. Its
+1 GiB disk buffer blocks when full; acknowledgments and persistent cursors support
+restart recovery across boots. It receives no engine socket or application dotenv.
+Native secret-file lookup keeps environment interpolation disabled. The admin API
+is disabled; metrics bind only to loopback. Exact release binary hashes are pinned.
+The prepared monitoring backend is single-node VictoriaLogs with private query
+access, 30-day retention and a configurable disk cap. Existing VictoriaMetrics
+stays the metrics backend. Host journals are bounded to 512 MiB/three days.
+Disk limits and retries do not establish exactly-once/power-loss durability.
+See `docs/CENTRAL_LOGGING.md`, `docs/LOGGING_ALTERNATIVES.md` and the dated release
+findings in `docs/LOGGING_SECURITY_REVIEW.md` before activation. The VictoriaLogs
+binary Go scan passed; Vector source-lock advisory matches still need an exact
+artifact/host review. No remote installation is implied by these checked files.
 
 ## Editorial and publication invariants
 

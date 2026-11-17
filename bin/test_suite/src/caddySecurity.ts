@@ -520,7 +520,7 @@ try {
       "https://logs.stadt-land-klima.de {\n tls /fixture/cert.pem /fixture/key.pem",
     )
     .replace("REPLACE_WITH_CADDY_PASSWORD_HASH", ingestHash)
-    .replace("127.0.0.1:3100", "127.0.0.1:9001");
+    .replace("127.0.0.1:9428", "127.0.0.1:9001");
   writeFileSync(join(directory, "ingestion.Caddyfile"), "import /etc/caddy/global.future.caddy\n" + ingestConfig);
   podman(
     "exec",
@@ -537,30 +537,49 @@ try {
   const ingest = (path: string, headers: Record<string, string> = {}, body?: Buffer) =>
     fetch(path, headers, body, "logs.stadt-land-klima.de");
   const credential = "Basic " + Buffer.from("slk-production:" + ingestPassword).toString("base64");
-  assert.equal((await ingest("/loki/api/v1/push", {}, Buffer.from("{}"))).status, 401);
-  assert.equal((await ingest("/loki/api/v1/push", { Authorization: "Basic wrong" }, Buffer.from("{}"))).status, 401);
+  assert.equal((await ingest("/insert/jsonline", {}, Buffer.from("{}"))).status, 401);
+  assert.equal((await ingest("/insert/jsonline", { Authorization: "Basic wrong" }, Buffer.from("{}"))).status, 401);
   const ingested = await ingest(
-    "/loki/api/v1/push",
+    "/insert/jsonline",
     {
       Authorization: credential,
       Cookie: "private-cookie-canary",
+      "VL-Stream-Fields": "private-forged-stream",
+      "VL-Ignore-Fields": "*",
+      AccountID: "99",
+      ProjectID: "99",
       "Content-Type": "application/json",
     },
     Buffer.from("{}"),
   );
   assert.equal(ingested.status, 200);
   const upstreamIngest = JSON.parse(ingested.body) as Record<string, unknown>;
-  assert.equal(upstreamIngest.path, "/loki/api/v1/push");
+  assert.equal(upstreamIngest.path, "/insert/jsonline");
   assert.equal(upstreamIngest.authorization, undefined);
   assert.equal(upstreamIngest.cookie, undefined);
-  assert.equal((await ingest("/loki/api/v1/push", { Authorization: credential })).status, 404);
-  assert.equal((await ingest("/loki/api/v1/labels", { Authorization: credential })).status, 404);
+  assert.equal(upstreamIngest.logStreamFields, "project,environment,host,service_name");
+  assert.equal(upstreamIngest.logIgnoreFields, undefined);
+  assert.equal(upstreamIngest.accountId, "0");
+  assert.equal(upstreamIngest.projectId, "0");
+  assert.equal(
+    (await ingest("/insert/jsonline?debug=1", { Authorization: credential }, Buffer.from("{}"))).status,
+    404,
+  );
+  assert.equal((await ingest("/insert/jsonline", { Authorization: credential })).status, 404);
+  assert.equal((await ingest("/select/logsql/query", { Authorization: credential })).status, 404);
   assert.equal((await ingest("/config", { Authorization: credential })).status, 404);
   assert.equal(
-    (await ingest("/loki/api/v1/push", { Authorization: credential }, Buffer.alloc(2 * 1024 * 1024 + 1))).status,
+    (await ingest("/insert/jsonline", { Authorization: credential }, Buffer.alloc(2 * 1024 * 1024 + 1))).status,
     413,
   );
   const ingestionLogs = podman("logs", name);
+  const ingestionBurst = await Promise.all(
+    Array.from({ length: 30 }, () => ingest("/insert/jsonline", { Authorization: credential }, Buffer.from("{}"))),
+  );
+  assert.ok(
+    ingestionBurst.some((result) => result.status === 429),
+    "Log ingestion remains rate limited before authentication",
+  );
   assert.doesNotMatch(ingestionLogs, new RegExp(ingestPassword + "|" + credential.split(" ")[1]));
   process.stdout.write(
     "Caddy: production/staging validation, TLS redirects, proxy guards/headers, nonce CSP, private logs/referrers, body limits, maintenance, independent rate budgets, isolated CMS boundaries and authenticated write-only log ingestion passed.\n",

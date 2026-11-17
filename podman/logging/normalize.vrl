@@ -1,0 +1,61 @@
+# Rebuild a small envelope. Raw journal fields (cmdline, executable, UID, etc.)
+# must not survive this transform; application MESSAGE redaction is preserved.
+raw_message = .message
+if raw_message == null { raw_message = .MESSAGE }
+message = to_string(raw_message) ?? ""
+record_time = .timestamp
+if record_time == null { record_time = now() }
+parsed = object(parse_json(message) ?? {}) ?? {}
+service = "host"
+raw_unit = ._SYSTEMD_USER_UNIT
+if raw_unit == null { raw_unit = ._SYSTEMD_UNIT }
+unit = to_string(raw_unit) ?? ""
+unit_parts = parse_regex(unit, r'^(?P<service>[^@]+)(@.*)?\.service$') ?? {}
+if unit_parts.service != null { service = to_string!(unit_parts.service) }
+container = to_string(.CONTAINER_NAME) ?? ""
+if container != "" {
+  parts = parse_regex(container, r'^__SLK_PROJECT__[_-](?P<service>.+)[_-][0-9]+$') ?? {}
+  service = "container"
+  if parts.service != null { service = to_string!(parts.service) }
+}
+aliases = {"frontend": "nuxt", "db": "postgresql", "cache": "redis"}
+alias = get(aliases, [service]) ?? null
+if alias != null { service = to_string!(alias) }
+
+raw_level = parsed.severity
+if raw_level == null { raw_level = parsed.level }
+candidate = downcase(to_string(raw_level) ?? "")
+levels = {"10": "trace", "20": "debug", "30": "info", "40": "warn", "50": "error", "60": "fatal"}
+mapped = get(levels, [candidate]) ?? null
+if mapped != null { candidate = to_string!(mapped) }
+priority = to_string(.PRIORITY) ?? ""
+priorities = {"0": "emerg", "1": "alert", "2": "crit", "3": "error", "4": "warning", "5": "notice", "6": "info", "7": "debug"}
+level = to_string(get(priorities, [priority]) ?? null) ?? "unknown"
+if level == "" { level = "unknown" }
+level_source = "journal"
+if candidate != "" {
+  level = "unknown"
+  level_source = "unknown"
+  if includes(["trace", "debug", "info", "notice", "warn", "warning", "error", "crit", "fatal", "alert", "emerg"], candidate) {
+    level = candidate
+    level_source = "application"
+  }
+}
+
+details = {}
+for_each(["event", "severity", "userId", "actorType", "requestId", "route", "method", "status", "durationMs", "outcome", "failureKind"]) -> |_index, key| {
+  value = get(parsed, [key]) ?? null
+  if is_string(value) || is_integer(value) || is_float(value) || is_boolean(value) {
+    details = set!(details, [key], value)
+  }
+}
+. = merge(details, {
+  "timestamp": record_time,
+  "message": message,
+  "project": "stadt-land-klima",
+  "environment": "__SLK_LOG_ENVIRONMENT__",
+  "host": "__SLK_LOG_HOST__",
+  "service_name": service,
+  "level": level,
+  "level_source": level_source,
+})

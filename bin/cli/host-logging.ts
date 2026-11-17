@@ -1,25 +1,23 @@
 /** Optional host journal shipping; credentials are loaded by systemd, never embedded. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { isIP } from "node:net";
 import { hostPath } from "./host-configuration.ts";
 import type { HostArtifact } from "./host-maintenance.ts";
 
-export const HOST_ALLOY_VERSION = "1.22.0";
+export const HOST_VECTOR_VERSION = "0.62.0";
+export const HOST_VECTOR_SHA256 = "af2fe313d74e539914d1497898c1a4e338c3adcaa24605b7eee4116e983c3899";
 export const HOST_LOGGING_PATHS = [
-  "/etc/slk/alloy/config.alloy",
-  "/etc/systemd/system/slk-alloy.service",
+  "/etc/slk/vector/vector.yaml",
+  "/etc/slk/vector/normalize.vrl",
+  "/etc/systemd/system/slk-vector.service",
   "/etc/systemd/journald.conf.d/60-slk-logging.conf",
 ] as const;
+export const RETIRED_LOGGING_PATHS = ["/etc/slk/alloy/config.alloy", "/etc/systemd/system/slk-alloy.service"];
 
-/** Version pins alone are insufficient when vendor binaries use an affected Go runtime. */
-export function assertAlloyBuild(version: string): void {
-  if (!new RegExp(`version v?${HOST_ALLOY_VERSION.replaceAll(".", "\\.")}(?:\\s|,|$)`).test(version))
-    throw new Error(`Install the reviewed Alloy ${HOST_ALLOY_VERSION} package before host maintenance`);
-  const go = /go version:\s+go1\.(\d+)\.(\d+)(?:\s|$)/.exec(version);
-  const minor = Number(go?.[1]);
-  const patch = Number(go?.[2]);
-  if (!go || !(minor > 27 || (minor === 27 && patch >= 4) || (minor === 26 && patch >= 11)))
-    throw new Error("Alloy uses an unverified/affected Go build (GO-2026-6859); see docs/LOGGING_SECURITY_REVIEW.md");
+export function assertVectorBuild(version: string): void {
+  if (!new RegExp(`^vector ${HOST_VECTOR_VERSION.replaceAll(".", "\\.")}(?:\\s|$)`).test(version))
+    throw new Error(`Install the reviewed Vector ${HOST_VECTOR_VERSION} binary before host maintenance`);
 }
 
 export function loggingSettings(fields: Record<string, string | undefined>) {
@@ -28,7 +26,7 @@ export function loggingSettings(fields: Record<string, string | undefined>) {
   try {
     url = new URL(endpoint);
   } catch {
-    throw new Error("An absolute HTTPS Loki ingestion endpoint is required");
+    throw new Error("An absolute HTTPS VictoriaLogs ingestion endpoint is required");
   }
   if (
     url.protocol !== "https:" ||
@@ -36,10 +34,13 @@ export function loggingSettings(fields: Record<string, string | undefined>) {
     url.password ||
     url.search ||
     url.hash ||
-    !["/loki/api/v1/push", "/insert/loki/api/v1/push"].includes(url.pathname) ||
+    url.pathname !== "/insert/jsonline" ||
+    (!/^[a-zA-Z0-9.-]+$/.test(url.hostname) && !isIP(url.hostname.replace(/^\[|\]$/g, ""))) ||
     url.href !== endpoint
   )
-    throw new Error("Use a canonical HTTPS Loki ingestion URL without credentials, queries or fragments");
+    throw new Error(
+      "Use a canonical HTTPS VictoriaLogs ingestion URL without credentials, queries, fragments or templates",
+    );
   const label = (key: string) => {
     const value = fields[key] ?? "";
     if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$/.test(value)) throw new Error(`Invalid logging setting: ${key}`);
@@ -63,10 +64,10 @@ export function hostLoggingArtifacts(
   root: string,
   project: string,
   settings: LoggingSettings,
-  alloyGid: number,
+  vectorGid: number,
 ): HostArtifact[] {
-  if (!/^[a-z][a-z0-9-]{1,62}$/.test(project) || !Number.isInteger(alloyGid) || alloyGid <= 0)
-    throw new Error("An explicit Podman project and unprivileged Alloy group are required");
+  if (!/^[a-z][a-z0-9-]{1,62}$/.test(project) || !Number.isInteger(vectorGid) || vectorGid <= 0)
+    throw new Error("An explicit Podman project and unprivileged Vector group are required");
   const replacements: Record<string, string> = {
     __SLK_PROJECT__: project,
     __SLK_LOG_HOST__: settings.host,
@@ -74,8 +75,11 @@ export function hostLoggingArtifacts(
     __SLK_LOG_ENDPOINT__: settings.endpoint,
     __SLK_LOG_USERNAME__: settings.username,
   };
-  let configuration = readFileSync(join(root, "podman/logging/config.alloy"), "utf8");
-  for (const [key, value] of Object.entries(replacements)) configuration = configuration.replaceAll(key, value);
+  const render = (path: string) => {
+    let value = readFileSync(join(root, path), "utf8");
+    for (const [key, replacement] of Object.entries(replacements)) value = value.replaceAll(key, replacement);
+    return value;
+  };
   const artifact = (path: string, text: string, mode = 0o644, gid = 0): HostArtifact => ({
     path,
     bytes: Buffer.from(text),
@@ -84,14 +88,15 @@ export function hostLoggingArtifacts(
     gid,
   });
   return [
-    artifact(HOST_LOGGING_PATHS[0], configuration, 0o640, alloyGid),
+    artifact(HOST_LOGGING_PATHS[0], render("podman/logging/vector.yaml"), 0o640, vectorGid),
+    artifact(HOST_LOGGING_PATHS[1], render("podman/logging/normalize.vrl"), 0o640, vectorGid),
     artifact(
-      HOST_LOGGING_PATHS[1],
-      readFileSync(join(root, "podman/logging/slk-alloy.service"), "utf8").replaceAll(
+      HOST_LOGGING_PATHS[2],
+      readFileSync(join(root, "podman/logging/slk-vector.service"), "utf8").replaceAll(
         "__SLK_LOG_PASSWORD_FILE__",
         settings.passwordFile,
       ),
     ),
-    artifact(HOST_LOGGING_PATHS[2], readFileSync(join(root, "podman/logging/journald.conf"), "utf8")),
+    artifact(HOST_LOGGING_PATHS[3], readFileSync(join(root, "podman/logging/journald.conf"), "utf8")),
   ];
 }
