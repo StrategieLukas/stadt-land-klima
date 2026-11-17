@@ -519,3 +519,5 @@ transient upstream failure. Validation on save never uses stale-on-error metadat
 Authentication failures and invalid metadata are not hidden by this fallback.
 Climate lookup diagnostics retain status/category, never raw upstream payloads,
 URLs or credentials; uncertain lookups continue to leave existing values alone.
+
+Legacy CMS image-button artwork is presentation data, not translatable prose. The checked asset-ID allowlist in `legacyImageButtons.ts` replaces only known image-only links from trusted CMS/legacy origins with `CanonicalButton` instances using manual DE/EN/IT keys. Destinations stay authored; photos, foreign assets and editor source HTML are preserved. `CmsHtml` sanitizes before either HTML or Vue-node rendering, and normalizes implicit table bodies for hydration. This avoids OCR, SVG text rewriting and additional provider billing.

@@ -14,10 +14,10 @@
           <BlokkliField name="content" :list="pageBlocks" />
 
           <!-- Fallback: render legacy HTML when no blocks and not editing -->
-          <div
+          <CmsHtml
             v-if="!isEditing && pageBlocks.length === 0 && page.contents"
             class="prose"
-            v-html="sanitizeHtml(sanitizedContents)"
+            :html="sanitizedContents"
           />
         </article>
       </template>
@@ -32,7 +32,6 @@ import { clientFailure } from "~/shared/securityLog";
 
 import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
-import { sanitizeHtml } from "~/utils/sanitizeHtml";
 const fetchContent = useContentFetch();
 const renderCmsHtml = useCmsHtml();
 

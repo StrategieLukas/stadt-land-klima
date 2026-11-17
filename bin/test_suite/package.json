@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:legacy-buttons": "tsx src/legacyImageButtonsSmoke.ts",
     "test": "npm run test:unit && tsx src/run.ts",
     "test:blokkli": "tsx --test src/blokkliPersistence.test.ts",
     "test:blokkli:adapter": "tsx --test src/blokkliAdapter.test.ts",
