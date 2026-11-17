@@ -262,8 +262,11 @@ per-host credential and sends filtered JSON lines over authenticated HTTPS. Its
 restart recovery across boots. It receives no engine socket or application dotenv.
 Native secret-file lookup keeps environment interpolation disabled. The admin API
 is disabled; metrics bind only to loopback. Exact release binary hashes are pinned.
-The prepared monitoring backend is single-node VictoriaLogs with private query
-access, 30-day retention and a configurable disk cap. Existing VictoriaMetrics
+The monitoring backend uses Podman Quadlets: single-node VictoriaLogs on a
+dedicated internal network and named volume, with additive Grafana/proxy network
+drop-ins and no published backend port by default. Query access uses private
+container DNS; a native proxy can opt in to loopback-only publishing. Retention
+is 30 days with a disk cap. Existing VictoriaMetrics
 stays the metrics backend. Host journals are bounded to 512 MiB/three days.
 Disk limits and retries do not establish exactly-once/power-loss durability.
 See `docs/CENTRAL_LOGGING.md`, `docs/LOGGING_ALTERNATIVES.md` and the dated release

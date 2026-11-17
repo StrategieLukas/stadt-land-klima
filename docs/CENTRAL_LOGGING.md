@@ -3,7 +3,8 @@
 The selected setup is **Vector 0.62.0 on each application host**, an authenticated
 HTTPS ingestion route on the monitoring server, **VictoriaLogs 1.54.0**, and the
 VictoriaLogs Grafana plugin. Existing VictoriaMetrics metrics remain configured.
-The files in `podman/logging/` are integrated with `slk host plan/install/verify`.
+Application-host artifacts use `slk host plan/install/verify`; monitoring uses the
+existing Podman Quadlet manager and separate additive drop-ins.
 Nothing is installed or deployed by preparing this branch.
 
 ```text
@@ -18,136 +19,70 @@ It records archive/binary hashes, the VictoriaLogs Go scan, and Vector source-lo
 advisory findings and limitations. A checksum or passing configuration test is not
 a complete dependency security attestation.
 
-## 1. Prepare the monitoring server
+## 1. Prepare the monitoring Quadlets
 
-These commands assume **Linux x64, systemd, native Caddy and native Grafana** on
-the monitoring machine. If either runs in a container, use an explicit private
-network connection: container loopback is not host loopback. Keep the raw
-VictoriaLogs port private. Preserve the existing Grafana/VictoriaMetrics stack.
+Monitoring already uses Podman Quadlets. Follow the concrete
+[monitoring Quadlet guide](MONITORING_QUADLETS.md) using the same Podman owner and
+systemd manager as the existing Grafana. It includes discovery commands for the
+current unit filenames, network scope, proxy placement and plugin storage.
+Preserve the existing Grafana/VictoriaMetrics services, data and networks.
 
-Use an administrator-owned reviewed checkout, represented below by
-`/path/to/stadt-land-klima`. This guide does not authorize a production deployment.
-Use `deploy` for ordinary application release operations and the existing
-administrator workflow for host services. Do not edit tracked files on a server.
+## 2. Install VictoriaLogs as a Quadlet
 
-Reserve persistent disk space for `/var/lib/victorialogs`. The supplied limits are
-30 days and 20 GiB; **the earlier limit wins**. The disk limit is periodically
-checked and is not a hard filesystem quota. Reserve additional free space and
-alert before exhaustion. Adjust the private installed `limits.env` to the actual
-machine, expected traffic and retention needs.
+Install the supplied `slk-logs.network`, `slk-victorialogs.volume` and
+`slk-victorialogs.container`. The digest-pinned, non-root/read-only backend uses a
+persistent named volume and an internal network, with no published host port by
+default. Regenerate/start through systemd; generated services are not manually
+enabled. The guide covers rootless startup/linger and existing rootful scope.
 
-## 2. Install VictoriaLogs on the monitoring server
+Defaults remain 30 days/20 GiB retention, a 512 MiB cache budget and a 1 GiB
+systemd memory limit. Disk limits are periodically enforced, not filesystem quotas.
+Keep free space and test backup/restore of the named volume. The earlier native
+monitoring service has been replaced; do not install both backends.
 
-After reviewing the selected release, download and verify the Linux x64 archive.
-Prerequisites: `curl`, `tar`, `sha256sum`, systemd and the normal account tools.
+## 3. Connect HTTPS ingestion
 
-```bash
-set -euo pipefail
-umask 077
-mkdir -p /root/slk-monitoring-install
-cd /root/slk-monitoring-install
-curl --fail --location --proto '=https' --tlsv1.2 --output victoria-logs.tar.gz https://github.com/VictoriaMetrics/VictoriaLogs/releases/download/v1.54.0/victoria-logs-linux-amd64-v1.54.0.tar.gz
-printf '%s  %s\n' '739e78c82294520b6079bc8a6ae32a1f9fb95a543092929a53a2fe9ab7383016' victoria-logs.tar.gz | sha256sum --check -
-tar -xzf victoria-logs.tar.gz
-printf '%s  %s\n' '46aaf57c79c30c81dd047f150fcedff065f182369fb9e65a0de4032f91d40005' victoria-logs-prod | sha256sum --check -
-install -o root -g root -m 0755 victoria-logs-prod /usr/local/bin/victoria-logs
-/usr/local/bin/victoria-logs --version
-```
+Attach the existing Caddy Quadlet to `slk-logs` with the additive network drop-in.
+Its private upstream is **`slk-victorialogs:9428`**. Keep its current networks and
+reviewed `http.handlers.rate_limit` module. If Caddy is native on the host, the
+Quadlet guide provides a separate **loopback-only** publish drop-in and upstream.
 
-Create the dedicated account if absent. Inspect any existing account/service
-before reusing it; the `useradd` command is for a new installation.
+Create DNS for `logs.stadt-land-klima.de`, retain TLS/ACME reachability, and add
+`ingestion.caddy.example` to the existing Caddy config. Generate distinct per-host
+passwords and hashes through the existing proxy's operator workflow. Preserve the
+Grafana site and private Caddy administration/configuration. The supplied route:
 
-```bash
-useradd --system --user-group --home-dir /var/lib/victorialogs --no-create-home --shell /usr/sbin/nologin victorialogs
-install -d -o root -g victorialogs -m 0750 /etc/victorialogs
-install -d -o victorialogs -g victorialogs -m 0700 /var/lib/victorialogs
-install -o root -g victorialogs -m 0640 /path/to/stadt-land-klima/podman/logging/monitoring/limits.env.example /etc/victorialogs/limits.env
-install -o root -g root -m 0644 /path/to/stadt-land-klima/podman/logging/monitoring/victorialogs.service /etc/systemd/system/victorialogs.service
-systemd-analyze verify /etc/systemd/system/victorialogs.service
-systemctl daemon-reload
-systemctl enable --now victorialogs.service
-curl --fail http://127.0.0.1:9428/health
-```
+- accepts authenticated POST to `/insert/jsonline`, without query parameters;
+- limits each source IP to 20 requests/second before authentication, with a 2 MB
+  compressed-body limit (not a decompressed-data limit);
+- strips credentials/cookies and fixes parser fields plus tenant 0/0 upstream;
+- denies other public paths, including query/admin APIs.
 
-The service binds only to loopback. Its cache budget is 512 MiB, with a 1 GiB
-systemd process limit and four concurrent queries. Cache limits are not estimates
-of total RAM usage. Monitor actual use and tune before increasing traffic.
-Keep `/var/lib/victorialogs` outside the checkout and include it in a consistent,
-tested backup/recovery plan. One local disk is not a highly available backend.
-
-## 3. Connect HTTPS ingestion through the existing Caddy
-
-Create DNS for **`logs.stadt-land-klima.de`** pointing to the monitoring server.
-Allow HTTPS to its existing Caddy and preserve its certificate issuance setup.
-Do not expose 9428, the query APIs, or the collector metrics port publicly.
-
-Create a separate random password of 32–256 printable ASCII characters per host
-in the password manager. Use `caddy hash-password` interactively to produce its
-hash. Do not put plaintext passwords in process arguments, shell history or Git.
-
-Merge [ingestion.caddy.example](../podman/logging/monitoring/ingestion.caddy.example)
-into the monitoring server's installed Caddy configuration. Replace the hash
-placeholder and add the username/hash for each application host. The supplied
-host example uses username `slk-production`. Preserve the existing Grafana site,
-Caddy administration socket, TLS policy and runtime log filtering.
-
-Use the project-reviewed Caddy build with `http.handlers.rate_limit`, as described
-in [the Caddy guide](../caddy/README.md). Check `caddy list-modules`; a stock binary
-without this module must fail validation. Preserve the limiter when installing a
-compatible reviewed binary. Validate with the server's normal Caddy configuration/
-environment and reload its existing service. The prepared route:
-
-- accepts only authenticated POST requests to `/insert/jsonline`, without queries;
-- limits each source IP to 20 requests/second before authentication and bounds
-  compressed request bodies to 2 MB;
-- removes authorization, cookies and client-controlled `VL-*` headers upstream;
-- fixes the tenant to `AccountID=0`, `ProjectID=0` and fixes parser/stream fields;
-- forwards to private `127.0.0.1:9428`, denying other public paths.
-
-The original message remains searchable. Only project, environment, host and
-service identify streams; request IDs, user IDs and dynamic unit instances do not.
-Trusted hosts share one tenant; labels are not authorization between untrusted
-teams. Use source-IP firewall restrictions when hosts have stable egress IPs.
-The body limit does not bound decompressed data; keep credentials restricted and
-monitor backend resources. This setup uses gzip from a trusted local agent.
-
-Check the unauthenticated/public boundaries:
+Check from the application host:
 
 ```bash
 curl --silent --output /dev/null --write-out '%{http_code}\n' --request POST https://logs.stadt-land-klima.de/insert/jsonline
 curl --silent --output /dev/null --write-out '%{http_code}\n' https://logs.stadt-land-klima.de/select/logsql/query
 ```
 
-Expect **401**, then **404**. The later collector canary verifies authenticated
-insertion, not just availability of the web server.
+Expect **401**, then **404**. Labels are not authorization between untrusted teams;
+this is one trusted SLK tenant. Use source-IP firewall restrictions when practical.
 
-## 4. Connect the existing Grafana
+## 4. Connect Grafana on the private network
 
-Install the signed **VictoriaLogs data-source plugin**, ID
-`victoriametrics-logs-datasource` (reviewed current version **0.33.1**), using your
-Grafana instance's supported plugin installation workflow. Review its compatibility
-with the installed Grafana version; the current plugin requires Grafana 10.4+.
-Follow [the official installation instructions](https://grafana.com/grafana/plugins/victoriametrics-logs-datasource/installation/).
-For a standard native Grafana package with the current CLI, installation is:
+Use the additive network drop-in for Grafana's actual `.container` source file,
+and install the signed VictoriaLogs plugin 0.33.1 through its existing declarative
+plugin mechanism/persistent storage, preserving all current plugins and data.
+Provision the supplied datasource file using the optional read-only file drop-in,
+or add the source through Grafana UI. The private datasource URL is:
 
-```bash
-grafana cli plugins install victoriametrics-logs-datasource 0.33.1
-systemctl restart grafana-server
+```text
+http://slk-victorialogs:9428
 ```
 
-Use the equivalent existing management workflow if your CLI/service names differ.
-Restart/reload Grafana as required, preserving its configuration.
-
-Add a VictoriaLogs data source named **Stadt-Land-Klima Logs** with URL
-**`http://127.0.0.1:9428`**, then use Save & test. This is the Grafana server's
-connection, not a browser URL. For containerized Grafana, adapt the private
-network connection instead of publishing VictoriaLogs.
-
-Alternatively merge/install the supplied
-[grafana-datasource.yaml](../podman/logging/monitoring/grafana-datasource.yaml)
-into Grafana's existing provisioning directory after checking UID/name collisions.
-Its UID is `slk-victorialogs`. Keep VictoriaMetrics and its default data-source
-status. Restrict access to these logs to authorized operators.
+`localhost` inside Grafana is its own container. Keep the existing VictoriaMetrics
+metrics source/default. The [Quadlet guide](MONITORING_QUADLETS.md) provides the
+commands, plugin version checks, discovery paths and native-proxy alternative.
 
 ## 5. Install the Vector binary on each application host
 
@@ -273,7 +208,7 @@ Build panels for service/environment, request status, duration and recent logs.
 
 Configure your existing VictoriaMetrics collection to scrape Vector's private
 `127.0.0.1:9598/metrics` **from that application host**, and VictoriaLogs' private
-`127.0.0.1:9428/metrics` from the monitoring host. A remote scraper cannot reach
+`http://slk-victorialogs:9428/metrics` from a monitoring container on `slk-logs`. A remote scraper cannot reach
 another host's loopback without an explicitly secured connection. Reuse the
 existing local metrics agent where available; do not publish these ports.
 Watch `component_errors_total`, `component_discarded_events_total`, buffer size,
@@ -323,6 +258,8 @@ rejects abandoned SLK logging artifacts after the option is removed.
 
 ```bash
 node --test bin/cli/host-logging.test.ts bin/cli/host-maintenance.test.ts
+node --test bin/cli/monitoring-quadlet.test.ts
+SLK_TEST_LOGGING_QUADLET=1 node --test bin/cli/monitoring-quadlet.test.ts
 SLK_TEST_VECTOR_BINARY=/absolute/path/to/vector SLK_TEST_VICTORIALOGS_BINARY=/absolute/path/to/victoria-logs node --test bin/cli/host-logging.integration.test.ts
 ./bin/slk check ready
 ```

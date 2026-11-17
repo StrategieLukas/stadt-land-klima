@@ -14,7 +14,8 @@ or activated by preparing this change. No dependency advisories are suppressed.
 Both archives were matched to their upstream release checksums before executing
 local fixtures. `slk host` requires the exact Vector binary hash and product
 version; a future update needs a reviewed pin change in Git, not a silent package
-upgrade. The native monitoring installation guide verifies both VictoriaLogs hashes.
+upgrade. The native VictoriaLogs binary is an isolated test fixture. Monitoring deployment
+now pins a separate OCI image digest and its exact extracted binary, below.
 
 ## VictoriaLogs
 
@@ -27,6 +28,23 @@ Alloy/Loki prototype binaries does not apply to this checked build runtime.
 ```bash
 go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /path/to/victoria-logs-prod
 ```
+
+## VictoriaLogs Quadlet image
+
+The monitoring Quadlet pins
+`docker.io/victoriametrics/victoria-logs:v1.54.0@sha256:cfe25bbded16c3ad6c5d15685abab5c3342f4b5602fba72fe6ec202015bf63e3`.
+The pulled Linux x64 image's `/victoria-logs-prod` SHA-256 is
+`549f0fc0c999150c3ac7633e13e2576febdd310479eb71e6788ac06e6a1fe0b1`.
+It differs from the native release archive: that earlier scan was not assumed to
+cover it. The extracted container binary reports Go 1.27.4 and separately passed
+`govulncheck` v1.9.0 binary mode with no findings on this review date.
+
+The image uses Debian 13 Distroless without a shell. It is forced to run as
+1000:1000, read-only/capless with no-new-privileges, on an internal network and
+Podman-owned data volume. The default Quadlet publishes no host port. The image
+base OS packages have **not** received a complete independent CVE scan here;
+a clean Go binary scan does not establish that the entire image is vulnerability-free.
+Other architectures need their own artifact/runtime validation.
 
 ## Vector
 

@@ -5,7 +5,7 @@ datasources:
     uid: slk-victorialogs
     type: victoriametrics-logs-datasource
     access: proxy
-    url: http://127.0.0.1:9428
+    url: http://slk-victorialogs:9428
     editable: false
     jsonData:
       maxLines: 1000

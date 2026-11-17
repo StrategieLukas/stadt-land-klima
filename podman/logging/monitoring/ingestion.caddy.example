@@ -39,7 +39,7 @@ logs.stadt-land-klima.de {
 				max_size 2MB
 			}
 			request_header -VL-*
-			reverse_proxy 127.0.0.1:9428 {
+			reverse_proxy slk-victorialogs:9428 {
 				header_up -Authorization
 				header_up -Cookie
 				header_up AccountID 0

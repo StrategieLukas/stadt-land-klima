@@ -520,7 +520,7 @@ try {
       "https://logs.stadt-land-klima.de {\n tls /fixture/cert.pem /fixture/key.pem",
     )
     .replace("REPLACE_WITH_CADDY_PASSWORD_HASH", ingestHash)
-    .replace("127.0.0.1:9428", "127.0.0.1:9001");
+    .replace("slk-victorialogs:9428", "127.0.0.1:9001");
   writeFileSync(join(directory, "ingestion.Caddyfile"), "import /etc/caddy/global.future.caddy\n" + ingestConfig);
   podman(
     "exec",
