@@ -253,6 +253,37 @@ purge it or infrastructure history. Collector/alert routing and retention remain
 operator configuration. Rebuild changed extension bundles and the CMS image
 together; regenerate logging manifests and inspect controlled deployed canaries.
 
+Optional host journal collection is maintained in `podman/logging/` and installed
+and drift-checked by `slk host plan/install/verify` when the root-only host dotenv
+references `SLK_HOST_LOGGING_CONFIG`. The selected stack is **Vector + VictoriaLogs**.
+Vector runs as a dedicated unprivileged journal reader, uses a systemd-loaded
+per-host credential and sends filtered JSON lines over authenticated HTTPS. Its
+1 GiB disk buffer blocks when full; acknowledgments and persistent cursors support
+restart recovery across boots. It receives no engine socket or application dotenv.
+Native secret-file lookup keeps environment interpolation disabled. The admin API
+is disabled; metrics bind only to loopback. Exact release binary hashes are pinned.
+The monitoring backend uses Podman Quadlets: single-node VictoriaLogs on a
+dedicated internal network and named volume, with additive Grafana/proxy network
+drop-ins and no published backend port by default. Query access uses private
+container DNS; a native proxy can opt in to loopback-only publishing. Retention
+is 30 days with a disk cap. Existing VictoriaMetrics
+stays the metrics backend. Host journals are bounded to 512 MiB/three days.
+`slk monitoring plan/install/verify` automates the same-owner monitoring setup with
+private JSON settings, discovered running Quadlets, preserved INI/environment
+plugin lists, generated file credentials, merged Caddy routing and private
+rollback snapshots. It validates before activation, verifies authenticated HTTPS
+delivery with a harmless canary and restores previous files/services on caught
+failure, retaining data volumes. A missing Caddy rate-limit module can trigger a
+reviewed binary overlay onto the current image only if existing module names
+remain available; custom modules need integration before activation. No remote
+deployment, DNS changes, unsigned-plugin bypass or application-host restart is
+implied. Native/deployed acceptance and exact-artifact security review still apply.
+Disk limits and retries do not establish exactly-once/power-loss durability.
+See `docs/CENTRAL_LOGGING.md`, `docs/LOGGING_ALTERNATIVES.md` and the dated release
+findings in `docs/LOGGING_SECURITY_REVIEW.md` before activation. The VictoriaLogs
+binary Go scan passed; Vector source-lock advisory matches still need an exact
+artifact/host review. No remote installation is implied by these checked files.
+
 ## Editorial and publication invariants
 
 - Municipality publication and preview use independent `published` and

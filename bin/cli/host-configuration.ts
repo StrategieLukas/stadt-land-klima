@@ -10,12 +10,16 @@ export function hostPath(value: string): string {
   return value;
 }
 
-export function privateHostEnvironment(path: string, owner: number): Record<string, string | undefined> {
+export function privateHostFile(path: string, owner: number): Buffer {
   hostPath(path);
   const stat = lstatSync(path);
   if (!stat.isFile() || stat.isSymbolicLink() || stat.uid !== owner || (stat.mode & 0o077) !== 0)
     throw new Error("Host configuration must be an owner-only regular file belonging to its expected user");
-  return parseEnv(readFileSync(path, "utf8"));
+  return readFileSync(path);
+}
+
+export function privateHostEnvironment(path: string, owner: number): Record<string, string | undefined> {
+  return parseEnv(privateHostFile(path, owner).toString("utf8"));
 }
 
 export function hostSettings(
@@ -48,6 +52,7 @@ export function hostSettings(
     backupConfig: hostPath(fields.SLK_HOST_BACKUP_CONFIG ?? ""),
     backupHost: scope(fields.SLK_HOST_BACKUP_HOST),
     backupTag: scope(fields.SLK_HOST_BACKUP_TAG),
+    loggingConfig: fields.SLK_HOST_LOGGING_CONFIG ? hostPath(fields.SLK_HOST_LOGGING_CONFIG) : null,
     project,
     cmsPort: port(app.SLK_PODMAN_CMS_PORT, 9001),
     webPort: port(app.SLK_PODMAN_WEB_PORT, 9000),
@@ -55,6 +60,15 @@ export function hostSettings(
 }
 
 export type HostSettings = ReturnType<typeof hostSettings>;
+
+/** Include only the opted-in private logging configuration and credential in encrypted backups. */
+export function hostLoggingBackupPaths(settings: Pick<HostSettings, "loggingConfig">, owner = 0): string[] {
+  if (!settings.loggingConfig) return [];
+  const fields = privateHostEnvironment(settings.loggingConfig, owner);
+  const password = hostPath(fields.SLK_LOG_PASSWORD_FILE ?? "");
+  privateHostFile(password, owner);
+  return [settings.loggingConfig, password];
+}
 
 export function loadHostSettings(path: string): HostSettings {
   if (process.platform !== "linux" || process.getuid?.() !== 0)

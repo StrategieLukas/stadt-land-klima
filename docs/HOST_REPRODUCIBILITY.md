@@ -93,6 +93,22 @@ mounts/commands. Preserve unrelated pre-existing monitoring units and operating
 system files. Generated systemd enablement links, logs and release/backup records
 are expected host state, rather than manually maintained application code.
 
+## Optional central logging
+
+Set `SLK_HOST_LOGGING_CONFIG` in the private root-only host dotenv to opt in to
+reviewed Vector journal forwarding. The installer then checks the exact Vector binary hash,
+version/account and private settings/credential permissions, installs the Vector
+configuration/VRL transform, hardened service and bounded persistent-journal drop-in, and
+includes them in the usual content/owner/mode verification. It enables the
+collector for boot without starting it or restarting journald. Existing hosts
+without this option keep their current manifest. Removing the option does not
+silently retire installed collection; explicit retirement is required.
+
+Follow [central logging](CENTRAL_LOGGING.md) for monitoring-server configuration,
+private credential provisioning, activation and canary/outage acceptance. Compare
+[component alternatives](LOGGING_ALTERNATIVES.md) before choosing durability
+requirements. Existing application/data/backup installation behavior is preserved.
+
 ## Regression coverage
 
 `bin/cli/host-maintenance.test.ts` covers rejected unsafe settings, private dotenv

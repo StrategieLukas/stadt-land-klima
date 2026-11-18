@@ -14,7 +14,12 @@ import {
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadHostSettings, privateHostEnvironment, type HostSettings } from "./host-configuration.ts";
+import {
+  loadHostSettings,
+  privateHostEnvironment,
+  hostLoggingBackupPaths,
+  type HostSettings,
+} from "./host-configuration.ts";
 
 type CommandOptions = { input?: string; output?: string; quiet?: boolean; environment?: NodeJS.ProcessEnv };
 export type BackupCommand = (command: string, args: string[], options?: CommandOptions) => string;
@@ -171,6 +176,7 @@ export function runHostBackup(settings: HostSettings) {
         `${settings.repository}/src/directus/.env`,
         `${settings.repository}/src/frontend/.env`,
         "/etc/caddy",
+        ...hostLoggingBackupPaths(settings),
       ],
       command,
       new Date().getDay() === 0,

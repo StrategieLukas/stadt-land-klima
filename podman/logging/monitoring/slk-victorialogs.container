@@ -1,0 +1,36 @@
+[Unit]
+Description=Stadt-Land-Klima central log storage
+Documentation=https://docs.victoriametrics.com/victorialogs/
+
+[Container]
+Image=docker.io/victoriametrics/victoria-logs:v1.54.0@sha256:cfe25bbded16c3ad6c5d15685abab5c3342f4b5602fba72fe6ec202015bf63e3
+ContainerName=slk-victorialogs
+Network=slk-logs.network
+NetworkAlias=slk-victorialogs
+Volume=slk-victorialogs.volume:/victoria-logs-data:U,nosuid,nodev,noexec
+User=1000:1000
+ReadOnly=true
+NoNewPrivileges=true
+DropCapability=ALL
+LogDriver=journald
+PidsLimit=256
+Tmpfs=/tmp:rw,nosuid,nodev,noexec,size=64m
+Exec=-httpListenAddr=0.0.0.0:9428 -storageDataPath=/victoria-logs-data -retentionPeriod=30d -retention.maxDiskSpaceUsageBytes=20GiB -memory.allowedBytes=512MiB -search.maxConcurrentRequests=4 -loggerFormat=json
+HealthCmd=["/victoria-logs-prod","-healthcheck","-httpListenAddr=127.0.0.1:9428"]
+HealthInterval=15s
+HealthTimeout=5s
+HealthRetries=3
+HealthStartPeriod=15s
+HealthOnFailure=kill
+StopTimeout=60
+
+[Service]
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=300
+TimeoutStopSec=90
+MemoryHigh=768M
+MemoryMax=1G
+
+[Install]
+WantedBy=default.target
