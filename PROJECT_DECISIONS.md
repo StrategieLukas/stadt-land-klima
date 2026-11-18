@@ -419,7 +419,7 @@ workflows; `bin/cli/checks.test.ts` checks workflow coverage. The runner keeps
 complete private logs and incremental/final JSON reports under `.reports/checks/`,
 with bounded diagnostic tails for agents. Exit codes, signals, timeouts and
 prerequisites determine outcomes; diagnostic text is never parsed to infer a pass.
-Selected runs do not replace complete verification. Native matrix and deployed
+Selected runs do not replace complete verification. After investigating current upstream fixes, an authorized push may proceed with documented, currently unresolvable dependency advisories as its only remaining failures; audit exit statuses and findings stay unchanged. Exception eligibility is manually reviewed and never converts the check report or CI to a pass. Native matrix and deployed
 revision acceptance remain explicit separate environments. See [check runner
 reference](docs/CHECKS.md). Curl localhost:8080 after frontend changes.
 Explicit full HTTPS/editor/image/proxy/storage tests use disposable environments;
@@ -537,9 +537,18 @@ persistent state. Cloud failures prevent local retention. Installed source drift
 requires a reviewed Git fix and reinstallation, rather than an on-host hotfix.
 See [host reproducibility](docs/HOST_REPRODUCIBILITY.md).
 
+Release checkpoints and the database CLI share private CMS database settings.
+`DB_DATABASE` selects the live application database after a restore/cutover;
+`POSTGRES_DB` remains the datastore initialization default. Dump execution still
+loads the bootstrap identity from native or mounted datastore settings, without
+placing its password in arguments. Approving a checkpoint requires restored live
+data validation, including purchased translation memory, beyond schema checks.
+
 CMS catalogue reads share concurrent requests and a 30-second fresh metadata cache.
 The editor alone may use a successful result up to five minutes old during a
 transient upstream failure. Validation on save never uses stale-on-error metadata.
 Authentication failures and invalid metadata are not hidden by this fallback.
 Climate lookup diagnostics retain status/category, never raw upstream payloads,
 URLs or credentials; uncertain lookups continue to leave existing values alone.
+
+Legacy CMS image-button artwork is presentation data, not translatable prose. The checked asset-ID allowlist in `legacyImageButtons.ts` replaces only known image-only links from trusted CMS/legacy origins with `CanonicalButton` instances using manual DE/EN/IT keys. Destinations stay authored; photos, foreign assets and editor source HTML are preserved. `CmsHtml` sanitizes before either HTML or Vue-node rendering, and normalizes implicit table bodies for hydration. This avoids OCR, SVG text rewriting and additional provider billing.

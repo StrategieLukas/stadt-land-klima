@@ -13,14 +13,13 @@
     />
 
     <!-- View mode: render markdown as HTML -->
-    <div v-else class="prose max-w-none" :class="[sizeClass, alignClass]" v-html="sanitizeHtml(renderedContent)" />
+    <CmsHtml v-else class="prose max-w-none" :class="[sizeClass, alignClass]" :html="renderedContent" />
   </div>
 </template>
 
 <script setup lang="ts">
 import MarkdownIt from "markdown-it";
 import { getBlokkliBlockId } from "~/utils/blokkliLinks";
-import { sanitizeHtml } from "~/utils/sanitizeHtml";
 
 const md = new MarkdownIt({
   html: false,

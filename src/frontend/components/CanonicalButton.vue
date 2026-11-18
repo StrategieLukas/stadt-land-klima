@@ -2,13 +2,18 @@
   <component
     :is="href ? 'a' : 'button'"
     v-bind="linkAttrs"
-    class="canonical-button inline-flex items-stretch overflow-hidden rounded-md text-sm font-bold whitespace-nowrap no-underline shadow-xs ring-1 ring-white/20 ring-inset"
-    :class="[textClass, { 'canonical-button--auto-text': !textColor || textColor === 'auto' }]"
+    class="canonical-button inline-flex items-stretch overflow-hidden rounded-md text-sm font-bold no-underline shadow-xs ring-1 ring-white/20 ring-inset"
+    :class="[
+      textClass,
+      wrapLabel ? 'whitespace-normal' : 'whitespace-nowrap',
+      { 'canonical-button--auto-text': !textColor || textColor === 'auto' },
+    ]"
     :style="{ '--btn-color': colorHex }"
   >
     <!-- Local SVG icon -->
     <span
       v-if="currentIconSvg"
+      aria-hidden="true"
       class="canonical-button__icon"
       :class="
         iconSize === 'lg'
@@ -30,6 +35,7 @@
     <!-- Iconify icon (e.g. mdi:arrow-right) -->
     <span
       v-else-if="iconifySlug"
+      aria-hidden="true"
       class="canonical-button__icon"
       :class="
         iconSize === 'lg'
@@ -65,6 +71,7 @@ const props = defineProps<{
   textColor?: "auto" | "white" | "black" | undefined;
   iconSize?: "sm" | "lg" | undefined;
   external?: boolean | undefined;
+  wrapLabel?: boolean | undefined;
 }>();
 
 const attrs = useAttrs();
