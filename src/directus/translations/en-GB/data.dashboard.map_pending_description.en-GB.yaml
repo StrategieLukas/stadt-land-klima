@@ -1,0 +1,3 @@
+language: en-GB
+key: data.dashboard.map_pending_description
+value: "The overview map for this data product is not available yet. You can already explore its data on municipality pages."

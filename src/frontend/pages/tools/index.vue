@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+  <div class="w-full py-8">
     <header class="mb-8">
       <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t("tools.title") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("tools.description") }}</p>
@@ -75,8 +75,10 @@
       <div v-else class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         <article
           v-for="tool in filteredTools"
+          :id="`tool-${tool.id}`"
           :key="tool.id"
-          class="card overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xs transition-shadow hover:shadow-md"
+          tabindex="-1"
+          class="card scroll-mt-32 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xs transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--slk-text-strong)"
         >
           <a
             :href="tool.link"
@@ -117,7 +119,7 @@
                 </svg>
               </div>
               <span
-                class="absolute top-3 left-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-stats-dark shadow-xs"
+                class="slk-badge slk-badge--info absolute top-3 left-3 rounded-full px-2.5 py-1 text-xs font-bold shadow-xs"
               >
                 {{ categoryLabel(tool) }}
               </span>
@@ -140,16 +142,15 @@
 
             <p class="text-sm leading-relaxed text-gray-600">{{ tool.description }}</p>
 
-            <div class="mt-auto flex items-center justify-between gap-3 pt-2">
+            <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-2">
               <span class="min-w-0 truncate text-xs text-mid-gray">{{ linkHost(tool.link) }}</span>
-              <a
+              <CanonicalButton
                 :href="tool.link"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn rounded-full border-stats-dark bg-stats-dark px-4 text-white btn-sm hover:border-light-blue hover:bg-light-blue"
-              >
-                {{ $t("tools.open_tool") }}
-              </a>
+                :label="$t('tools.open_tool')"
+                color="dark"
+                icon-slug="mdi:open-in-new"
+                external
+              />
             </div>
           </div>
         </article>
@@ -196,6 +197,25 @@ const categoryOptions = computed(() => {
 const filteredTools = computed(() => {
   if (selectedCategory.value === null) return sortedTools.value;
   return sortedTools.value.filter((tool) => categoryLabel(tool) === selectedCategory.value);
+});
+
+const route = useRoute();
+async function revealTool(hash: string) {
+  if (!import.meta.client || !hash.startsWith("#tool-")) return;
+  const tool = sortedTools.value.find((tool) => `#tool-${tool.id}` === hash);
+  if (!tool) return;
+  if (selectedCategory.value !== null && categoryLabel(tool) !== selectedCategory.value) selectedCategory.value = null;
+  await nextTick();
+  if (route.hash !== hash) return;
+  const card = document.getElementById(`tool-${tool.id}`);
+  card?.focus({ preventScroll: true });
+  card?.scrollIntoView({ block: "start" });
+}
+onMounted(() => {
+  void revealTool(route.hash);
+});
+watch([() => route.hash, sortedTools], ([hash]) => {
+  void revealTool(hash);
 });
 
 function categoryLabel(tool: ClimateTool): string {

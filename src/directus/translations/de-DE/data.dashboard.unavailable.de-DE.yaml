@@ -1,0 +1,3 @@
+language: de-DE
+key: data.dashboard.unavailable
+value: "Der Vergleich ist gerade nicht verfügbar. Du kannst weiterhin die Daten einer Gemeinde aufrufen."

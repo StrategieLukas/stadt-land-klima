@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-4xl px-4 py-8">
+  <div class="mx-auto w-full max-w-4xl py-8">
     <h1 class="mb-4 font-heading text-4xl font-black text-ranking-dark">{{ $t("municipality.updates.title") }}</h1>
     <p class="mb-8 text-lg">{{ $t("municipality.updates.description") }}</p>
     <p v-if="error || loadError" role="alert" class="mb-6 alert">{{ $t("municipality.updates.error") }}</p>

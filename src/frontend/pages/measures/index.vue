@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-5xl min-w-0 overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+  <div class="w-full min-w-0 overflow-hidden py-8">
     <header class="mb-8">
       <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("measures.heading") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("measures.description") }}</p>
@@ -329,22 +329,20 @@
 
     <!-- Link to the measure catalog -->
     <div class="mt-12 flex justify-center">
-      <NuxtLink
+      <CanonicalButton
         v-if="currentCatalogVersion.name === 'v1.0'"
-        :to="measureCatalogDownloadUrl('ac1df0cd-8a57-4082-bdd3-432f43e4a374.xslx')"
-      >
-        <button class="flex h-10 items-center justify-end bg-gray p-4 text-white">
-          {{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})
-        </button>
-      </NuxtLink>
-      <NuxtLink
+        :href="measureCatalogDownloadUrl('ac1df0cd-8a57-4082-bdd3-432f43e4a374.xslx')"
+        :label="`${$t('measure_catalog.download')} (${currentCatalogVersion.name})`"
+        color="gray"
+        icon-slug="mdi:download"
+      />
+      <CanonicalButton
         v-if="currentCatalogVersion.name === 'beta'"
-        :to="measureCatalogDownloadUrl('9c270dd0-52dc-449b-9c2e-bbd5d5b829.xslx')"
-      >
-        <button class="flex h-10 items-center justify-end bg-gray p-4 text-white">
-          {{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})
-        </button>
-      </NuxtLink>
+        :href="measureCatalogDownloadUrl('9c270dd0-52dc-449b-9c2e-bbd5d5b829.xslx')"
+        :label="`${$t('measure_catalog.download')} (${currentCatalogVersion.name})`"
+        color="gray"
+        icon-slug="mdi:download"
+      />
     </div>
   </div>
 </template>

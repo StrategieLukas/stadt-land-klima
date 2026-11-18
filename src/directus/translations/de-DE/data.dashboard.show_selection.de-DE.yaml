@@ -1,0 +1,3 @@
+language: de-DE
+key: data.dashboard.show_selection
+value: ":count ausgewählte Gemeinden anzeigen"

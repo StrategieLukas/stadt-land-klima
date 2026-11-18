@@ -303,8 +303,10 @@ TypeScript. Hard security flags remain enforced by Compose; mutable settings suc
 as provider credentials and CORS are read from the mounted files.
 
 The frontend translates legacy names into Nuxt runtime aliases using
-`shared/runtimeEnvironment.ts`; explicit `NUXT_*` overrides win. Nuxt's runtime
-configuration has secret-free build defaults. Only explicit public fields enter
+`shared/runtimeEnvironment.mts`; explicit `NUXT_*` overrides win.
+The helper's `.mts` extension declares its ESM format for direct Node runtime
+and operations imports.
+Nuxt's runtime configuration has secret-free build defaults. Only explicit public fields enter
 browser payloads. The configured public CMS asset origin also updates CSP image/media
 allowlists at process start; credentials and malformed URLs are rejected. Source/runtime/output fingerprints still reject altered or stale
 artifacts, but changing dotenv values does not invalidate output. `compose exec`
@@ -330,6 +332,44 @@ effective LSM support. Production preflight still requires effective AppArmor or
 SELinux and rejects this host. Never present development acceptance as production
 confinement certification. Selected dotenv files mask canonical library paths
 read-only; maintenance metadata lives in the private XDG runtime directory.
+
+**Owner-authorized development exception, 2026-11-17:** `stack` commands accept
+`--unsafe-skip-podman-version-check` only for `--env development`. This per-command
+opt-in prints a warning and skips only the engine version check; it makes no
+compatibility or security-patch claim for older engines. CLI, runtime and direct
+host-helper entrypoints reject the override outside development. Other host,
+private-file and container checks remain mandatory; production retains its normal
+Podman minimum and confinement requirements.
+
+Image-build preflight validates the host without reading runtime dotenv files or
+applying runtime/storage mount overlays. Runtime operations, including `doctor`,
+retain private-file checks. Legacy Docker database/search dotenv files require an
+explicit private copy into the Podman paths; never silently generate replacement
+credentials or fall back to legacy configuration.
+
+Normal startup must verify the application schema before custom Directus
+migrations run. Fresh/partial schemas require the explicit `start --import`
+workflow. The unpublished core-only helper overrides file configuration and
+binds to container loopback; only an empty core database with zero users may
+recover its first administrator from configured credentials through the pinned
+Directus 11.17.4 bootstrap service. Existing accounts and databases with application
+tables must never be repaired by resetting credentials or skipping migrations.
+Only initial administrator creation may use the configured CLI token when no
+explicit `ADMIN_TOKEN` exists. Refuse weak/example initial tokens; never apply
+this fallback to an existing user.
+Development mail uses a local sendmail logger, pinned through the mounted-env launcher
+and a private empty Directus file configuration; production mail transport and
+stored SMTP credentials are preserved. Private setup readiness checks the
+database-backed API; the normal service retains its complete health check.
+Development frontend startup/restart must provision/reuse the restricted website
+service identities and synchronize private Nuxt credentials before recreation.
+Use the existing service-user provisioner; never substitute public-role access or
+rotate existing tokens to fix a configuration mismatch. Check CMS-backed layout
+and catalogue APIs before reporting readiness; an HTML shell alone is insufficient.
+Production service-user setup remains an explicit operator action.
+Required asset folders are code-first YAML imported before data migrations.
+Preserve existing folders by name and refuse ID collisions instead of renaming a
+private folder or moving its assets into the public namespace.
 
 Keep capless non-root services, read-only production roots, private networks,
 rootless mappings, seccomp and runtime confinement audits. Keep JIT/thread/PDF
@@ -381,6 +421,12 @@ run strict `tsc`/`vue-tsc` before bundling; dynamic host callback typing is narr
 than frontend unsafe-type enforcement. CLI implementation is TypeScript with a
 minimal executable bootstrap and fail-fast imports; multi-request imports are
 not universally transactional. ESLint rejects warnings; formatting is separate.
+
+Nuxt's shared modules remain external during Vite SSR bundling and are bundled by
+Nitro afterwards. Keep `vite.build.rolldownOptions.makeAbsoluteExternalsRelative`
+false so nested SSR chunks preserve absolute shared source identities for that
+second pass. Do not replace this with generated-path aliases or copy shared source
+files into build output. The production build gate verifies this integration.
 
 Run `./bin/slk check ready` and wait for completion. The TypeScript plan in
 `bin/cli/check-plan.ts` supplies both local gates and all four GitHub Actions
@@ -473,3 +519,111 @@ transient upstream failure. Validation on save never uses stale-on-error metadat
 Authentication failures and invalid metadata are not hidden by this fallback.
 Climate lookup diagnostics retain status/category, never raw upstream payloads,
 URLs or credentials; uncertain lookups continue to leave existing values alone.
+
+## Data dashboard SSR and publication-aware reuse
+
+The `/data` explorer opts into the full-width layout using typed
+`PageMeta.contentWidth`, with its hero constrained to the standard centered page
+width and gutters; other routes retain the standard container. Product matrices
+use container queries and the same remaining-cell calculation. From 1024px, the
+chooser and histogram form the left column; compact filters/search, the map and
+legend form the right column. Both columns have equal width in an unboxed
+desktop grid. Chooser, filters, map, histogram and information panels
+use consistent themed borders, corner radii and internal padding. Column edges
+and top panels align; picker focus-ring padding is offset within its panel so
+card edges align with its heading without clipping the selection/focus outline.
+Full product information occupies a separate row below both columns, centered at
+the same standard page width and gutters as the hero. The chooser grows to show all cards
+without an internal scrollbar or automatic card scrolling; selected cards retain a 4px
+theme-aware ring with a surface offset and separate keyboard-focus indicator.
+Portrait layouts order the collapsible chooser, controls, map, product information
+and histogram. Product
+links from the explorer open `/data/{canonicalMunicipalitySlug}#{collectionId}`;
+the municipality resolver retains ARS-disambiguated slug identity. Fragment-only
+navigation does not remount the municipality page or start a route-loading state.
+
+Overview, full selected-product metadata, regions and interactive histogram feeds
+use keyed Nuxt async data and reuse SSR payloads at hydration. The checked collection
+endpoint's existing `metadata_only=true` response loads alongside the overview;
+obsolete requests cancel and collection identity is checked before display.
+The product information row renders complete product, ordered narrative-step,
+overview-visual and active-metric descriptions. Whitespace-normalized exact duplicate
+paragraphs and headings are removed; distinct explanations remain. Metadata failure
+retains available overview information with a localized retry, never a previous
+product's metadata. Single-metric selectors, repeated standalone scope/unit captions
+and duplicate attribution are omitted; map attribution remains available even if
+WebGL fails. Municipality product catalogues/anchors and the
+first product's metadata/render/summary arrive through SSR; other sections load
+near the viewport or when targeted by a fragment. Standalone product URLs keep
+working with parallel SSR product reads. Collection charts render sanitized SVG
+previews for both themes during SSR and replace them atomically with an interactive
+client canvas in the reserved frame. MapLibre remains client-rendered. The overview map placeholder uses the same bordered
+frame and explicit full-width sizing as the rendered map, including the portrait
+aspect ratio and height cap. The page reserves that frame outside `ClientOnly`
+so the asynchronous map component cannot collapse it while mounting. A gray pulse
+covers map initialization until its first load; dashboard and shared chart
+placeholders use the existing `bg-gray-200`
+theme mapping with reduced-motion support. Histogram loading retains the chart's
+height rather than inserting an extra visible loading row. Full HTML is not
+shared-cached because the layout contains locale/session-specific content;
+draft/preview no-store rules remain.
+
+Data-product score colors use project-defined thresholds when available, with
+relative quintiles only as fallback. KPI targets remain explicitly defined. The
+backend read representation groups `score_segments` from exact persisted snapshot
+memberships and fixed labels; it retains original quintile segments for older
+consumers and fallback. Render specs select the appropriate dataset and color
+field. The frontend checks palette labels and per-bin count conservation before
+binding it. Tile score labels coalesce the fixed score with the persisted relative
+class; a versioned cache key excludes old representations. The authorized API-only
+slk-data2 change is recorded in `docs/patches/threshold-first-overview-colors.patch`;
+it changes neither publication pointers nor pipeline/controller state.
+
+Data products without a published overview keep a reserved map frame with a
+localized static pending message. Only explicit backend missing-projection/config
+codes are treated as pending; transport and other API failures retain an error
+state. An unavailable overview never leaves an endless loading pulse or empty
+filter panel, and product information plus municipality search stay available.
+
+Collection chart theme changes update a palette signal in the existing Vega view;
+they do not refetch data, recompile charts, reset zoom or create a second live view.
+SSR renders the two SVG palettes from one interpreter-backed headless view, without
+a native Canvas dependency. Only same-origin collection scalar feeds
+(`timeseries`, `histogram`, `summary`) can be loaded by the SSR renderer, through
+the checked proxy. SVG permits sanitized geometry/text and local paint references,
+with isolated IDs. A request-scoped feed cache deduplicates those reads (24 feeds,
+1 MiB each and 4 MiB total, with a shared three-second I/O budget);
+preview generation is capped at eight charts per
+request and 256 KiB per SVG. Hydration reuses the loaded feed bodies only while
+the input specification matches; it does not download them again. The two previews
+and their data are kept in that page’s Nuxt payload, without a shared HTML or
+cross-session observation cache. Unsupported/oversized/failed previews retain the
+browser renderer. Browser-only lazy sections hydrate normally; changing theme
+reuses their loaded chart as well. The existing locked Vega interpreter is declared
+as a direct dependency for the server renderer. Backend cache/withdrawal rules,
+API access and Directus versions remain unchanged.
+
+Data summaries permit null attribution, license and effective-date metadata fields
+without rejecting otherwise valid observations. Shared attribution resolution uses
+non-empty summary sources, collection sources, then aggregate metadata, accepting
+the existing snake_case/camelCase aliases. Whitespace-normalized identical rows
+are deduplicated; distinct source/license statements remain. The same resolved
+credits feed the visible attribution blocks and chart exports. The index renders
+collection source/license metadata in its centered information row and retains
+plain overview attribution when structured metadata is unavailable. Map credits
+remain independent. Labels use existing DE/EN/IT translation keys; valid effective
+dates use the selected locale and Europe/Berlin timezone, and invalid dates are
+omitted. Source/license links allow only HTTP(S) URLs without credentials; their
+text is rendered through escaped Vue interpolation. Dark map boundaries use
+`#344454` consistently at creation and on theme changes, with light outlines and
+selection emphasis preserved. No backend endpoints or caching rules change.
+
+The SLZ proxy optionally retains checked public JSON bodies only when upstream
+supplies positive public cache permission and validators. Entries are bounded
+(128 / 8 MiB, maximum 1 MiB each and 60 seconds), keyed by upstream/query,
+representation and a hash of the private service identity. Every reuse requires
+upstream conditional revalidation; errors invalidate the entry without stale
+fallback. No-store/private, Set-Cookie, unsupported Vary, member/search responses
+and errors are excluded. Tile bytes and upstream cache restrictions are preserved.
+Publication/withdrawal/snapshot checks before 304 are required in the backend
+handoff. No dependencies or private credentials were added to browser state.

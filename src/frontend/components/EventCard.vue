@@ -129,17 +129,17 @@ const cardClasses = computed(() => {
 });
 
 const badgeClasses = computed(() => {
-  const base = "text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full mb-2 inline-block";
+  const base = "slk-badge text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full mb-2 inline-block";
 
   if (props.variant === "current") {
-    return `${base} bg-orange-100 text-orange-700`;
+    return `${base} slk-badge--warning`;
   }
 
   if (props.variant === "past") {
-    return `${base} bg-gray-100 text-gray-500`;
+    return base;
   }
 
-  return `${base} bg-solid-light-green-10 text-olive-green`;
+  return `${base} slk-badge--success`;
 });
 
 const titleClasses = computed(() =>

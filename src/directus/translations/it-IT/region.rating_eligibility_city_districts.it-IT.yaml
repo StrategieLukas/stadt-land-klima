@@ -1,0 +1,4 @@
+language: it-IT
+key: region.rating_eligibility_city_districts
+value: >-
+  Le città extracircondariali in cui circondario (ADE 4), associazione di comuni (ADE 5) e comune (ADE 6) coprono lo stesso territorio e hanno gli stessi confini.

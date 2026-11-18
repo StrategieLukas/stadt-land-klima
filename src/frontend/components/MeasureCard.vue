@@ -21,7 +21,7 @@
       <!-- Sector badge top-left -->
       <div
         v-if="sector"
-        class="absolute top-2 left-2 flex items-center gap-1 rounded-sm bg-white/80 px-2 py-0.5 text-xs font-bold text-gray backdrop-blur-xs"
+        class="slk-badge absolute top-2 left-2 flex items-center gap-1 rounded-sm px-2 py-0.5 text-xs font-bold backdrop-blur-xs"
       >
         <img :src="sectorImages[sector]" class="h-4 w-4 opacity-60" alt="" />
         {{ $t(`measure_sectors.${sector}.title`) }}
@@ -37,7 +37,7 @@
 
     <div class="p-4">
       <div class="mb-2 flex flex-wrap items-center gap-2">
-        <span class="shrink-0 rounded-sm bg-gray px-2 py-0.5 font-mono text-xs text-white">{{ measure_id }}</span>
+        <span class="slk-badge shrink-0 rounded-sm px-2 py-0.5 font-mono text-xs">{{ measure_id }}</span>
       </div>
       <h2 class="mb-2 font-heading text-sm leading-snug font-bold text-gray">{{ name }}</h2>
       <p v-if="description" class="line-clamp-3 text-xs text-gray-500">{{ description }}</p>

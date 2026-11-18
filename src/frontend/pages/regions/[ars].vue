@@ -1,288 +1,316 @@
 <template>
-  <main class="mx-auto w-full max-w-4xl min-w-0 px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
-    <div class="mx-0 my-4 flex justify-center rounded-lg border border-blue-600 bg-blue-100 p-3 drop-shadow-md sm:p-4">
-      <AdministrativeAreaSearchBar base-path="/stats" />
-    </div>
-
-    <!-- Main Info Container -->
-    <div class="mt-6 max-w-full min-w-0 overflow-hidden rounded-lg bg-white shadow-lg">
-      <!-- Breadcrumbs -->
-      <div
-        v-if="area?.contained_by?.length"
-        class="breadcrumbs overflow-x-auto bg-gray-50 px-3 py-3 text-sm text-gray-600 sm:px-4 lg:px-6"
+  <main class="mx-auto w-full max-w-4xl min-w-0 py-4 text-(--slk-text) sm:py-8" :aria-busy="areaLoading || listLoading">
+    <p v-if="areaLoading || listLoading" class="sr-only" role="status">{{ $t("generic.loading") }}</p>
+    <div class="rounded-lg border border-(--slk-border) bg-(--slk-surface) shadow-lg">
+      <nav
+        v-if="ancestors.length"
+        class="breadcrumbs ms-0 overflow-x-auto rounded-t-lg bg-(--slk-surface) px-4 py-3 text-sm"
       >
-        <ul class="flex min-w-0 flex-row flex-nowrap items-center">
-          <li v-for="containedArea in area.contained_by" :key="containedArea.ars" class="shrink-0">
-            <NuxtLink
-              :to="`/regions/${containedArea.ars}`"
-              class="text-xs whitespace-nowrap hover:underline sm:text-sm"
-            >
-              {{ containedArea.prefix }} {{ containedArea.name }}
+        <ul>
+          <li v-for="ancestor in ancestors" :key="ancestor.ars">
+            <NuxtLink :to="`/regions/${ancestor.ars}`" class="whitespace-nowrap hover:underline">
+              {{ ancestor.prefix }} {{ ancestor.name }}
             </NuxtLink>
           </li>
         </ul>
-      </div>
-
-      <!-- Header Section -->
+      </nav>
       <div
-        class="flex w-full flex-col justify-between gap-4 overflow-hidden bg-linear-to-r from-green-50 to-teal-50 px-3 py-4 sm:px-4 sm:py-6 lg:flex-row lg:gap-0 lg:px-6 lg:py-8"
+        v-else-if="areaLoading"
+        class="flex h-11 items-center rounded-t-lg bg-(--slk-surface) px-4"
+        aria-hidden="true"
       >
-        <div class="max-w-full min-w-0 flex-1">
-          <p class="text-sm font-semibold tracking-wide text-gray-600 uppercase">
-            {{ area?.prefix || $t("generic.loading") }}
-          </p>
-          <h1 class="mb-2 text-2xl font-bold wrap-break-word text-gray-900 sm:text-3xl">
-            {{ area?.name || $t("generic.loading") }}
-          </h1>
-          <p class="text-base text-gray-600 lg:text-lg">{{ area?.state || "" }}</p>
-        </div>
-        <div class="flex shrink-0 flex-col space-y-3 lg:text-right">
-          <div class="lg:text-right">
-            <p class="text-xs font-semibold text-gray-500">{{ t("region.ars_label") }}</p>
-            <p class="font-mono text-sm text-gray-700">{{ area?.ars || "-" }}</p>
-          </div>
-          <div class="lg:text-right">
-            <p class="text-xs font-semibold text-gray-500">{{ t("region.municipalities_count") }}</p>
-            <p class="text-sm font-bold text-gray-700">{{ municipalities.length }}</p>
-          </div>
-        </div>
+        <div class="h-4 w-64 max-w-full skeleton animate-none" />
       </div>
-    </div>
-
-    <!-- Map Section -->
-    <div
-      v-if="area && (area.geo_center || area.geo_area)"
-      class="mt-6 max-w-full overflow-hidden bg-base-100 shadow-md"
-    >
-      <AdministrativeAreaMap
-        :geo-center="regionPoint"
-        :geo-area="parseGeoData(area.geo_area)"
-        :administrative-area-name="area.name"
-      />
-    </div>
-
-    <!-- Ranking Section -->
-    <div class="mt-6 overflow-hidden rounded-lg bg-white shadow-md">
-      <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4">
-        <h2 class="text-lg font-semibold text-gray-900">
-          {{ t("region.ranking_title") }}
-        </h2>
-        <div v-if="selectedCatalogVersion" class="font-mono text-xs text-gray-500">
-          {{ selectedCatalogVersion.name }}
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="loadingMunicipalities" class="flex items-center justify-center gap-2 py-12">
-        <SlkFlowerSpinner :size="32" />
-        <span class="text-gray-600">{{ $t("generic.loading") }}</span>
-      </div>
-
-      <!-- Ranked List -->
-      <div v-else-if="rankedMunicipalities.length > 0" class="divide-y divide-gray-100">
-        <div
-          v-for="(muni, index) in rankedMunicipalities"
-          :key="muni.ars"
-          class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50"
-        >
-          <!-- Rank -->
-          <div class="w-8 shrink-0 text-center">
-            <span class="text-sm font-bold text-gray-400">#{{ index + 1 }}</span>
+      <header
+        class="flex flex-col justify-between gap-4 rounded-b-lg bg-(--slk-surface) p-4 sm:p-6 lg:flex-row"
+        :class="{ 'rounded-t-lg': !ancestors.length && !areaLoading }"
+      >
+        <template v-if="area">
+          <div class="min-w-0">
+            <h1 class="mb-4 font-heading text-4xl font-black wrap-break-word text-(--slk-text-strong) sm:text-6xl">
+              {{ area.name }}
+            </h1>
+            <p class="text-lg text-(--slk-text)">
+              {{ area.prefix }}<span v-if="stateName"> · {{ stateName }}</span>
+            </p>
           </div>
-
-          <!-- Name & prefix -->
+          <dl class="shrink-0 space-y-3 text-sm lg:text-right">
+            <div>
+              <dt class="text-(--slk-text-muted)">{{ $t("region.ars_label") }}</dt>
+              <dd class="font-mono">{{ area.ars }}</dd>
+            </div>
+            <div>
+              <dt class="text-(--slk-text-muted)"><RegionMunicipalityCountLabel /></dt>
+              <dd class="font-bold">
+                <span
+                  v-if="regionLoading"
+                  class="inline-block h-5 w-10 skeleton animate-none"
+                  aria-hidden="true"
+                /><template v-else>{{ regionData && !regionError ? municipalities.length : "—" }}</template>
+              </dd>
+            </div>
+          </dl>
+        </template>
+        <template v-else>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold text-gray-900">{{ muni.name }}</p>
-            <p class="text-xs text-gray-500">{{ muni.prefix }}</p>
+            <h1 class="sr-only">{{ $t("generic.loading") }}</h1>
+            <div class="mb-4 h-10 w-72 max-w-full skeleton animate-none sm:h-15" aria-hidden="true" />
+            <div class="h-7 w-56 max-w-full skeleton animate-none" aria-hidden="true" />
           </div>
-
-          <!-- Score badge -->
-          <div class="flex shrink-0 items-center gap-2">
-            <div v-if="muni.score !== null" class="text-right">
-              <span class="text-sm font-bold text-green-700">{{ muni.score.toFixed(1) }}</span>
-              <span class="ml-0.5 text-xs text-gray-400">{{ t("stats.points_abbrev") }}</span>
+          <dl class="shrink-0 space-y-3 text-sm lg:text-right">
+            <div>
+              <dt class="text-(--slk-text-muted)">{{ $t("region.ars_label") }}</dt>
+              <dd class="font-mono">{{ ars }}</dd>
             </div>
-            <NuxtLink
-              v-if="muni.slug"
-              :to="`/municipalities/${muni.slug}`"
-              class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-green-700 transition-colors hover:bg-green-200"
-            >
-              {{ t("region.view_rating") }}
-              <svg class="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </NuxtLink>
-            <NuxtLink
-              v-else
-              :to="`/data/${muni.ars}`"
-              class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-blue-700 transition-colors hover:bg-blue-200"
-            >
-              {{ t("stats.view_stats") }}
-              <svg class="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-
-      <!-- Unrated municipalities (no score) -->
-      <div v-if="unratedMunicipalities.length > 0" class="border-t border-gray-200">
-        <button
-          class="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-gray-500 hover:bg-gray-50"
-          @click="showUnrated = !showUnrated"
-        >
-          <span>{{ unratedMunicipalities.length }} {{ t("region.unrated_municipalities") }}</span>
-          <svg
-            class="h-4 w-4 transition-transform"
-            :class="showUnrated ? 'rotate-180' : ''"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        <div v-if="showUnrated" class="divide-y divide-gray-100">
-          <div
-            v-for="muni in unratedMunicipalities"
-            :key="muni.ars"
-            class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50"
-          >
-            <div class="w-8 shrink-0">
-              <span class="text-xs text-gray-300">-</span>
+            <div>
+              <dt class="text-(--slk-text-muted)"><RegionMunicipalityCountLabel /></dt>
+              <dd><span class="inline-block h-5 w-10 skeleton animate-none" aria-hidden="true" /></dd>
             </div>
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-sm text-gray-600">{{ muni.name }}</p>
-              <p class="text-xs text-gray-400">{{ muni.prefix }}</p>
-            </div>
-            <NuxtLink
-              :to="`/data/${muni.ars}`"
-              class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-gray-600 transition-colors hover:bg-gray-200"
-            >
-              {{ t("stats.view_stats") }}
-              <svg class="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else-if="!loadingMunicipalities && municipalities.length === 0" class="py-12 text-center text-gray-500">
-        <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.016-5.707-2.572"
-          />
-        </svg>
-        <p class="mt-2 text-sm">{{ t("region.no_municipalities") }}</p>
-      </div>
+          </dl>
+        </template>
+      </header>
     </div>
+
+    <section class="mt-6" :aria-label="$t('data.dashboard.map')">
+      <ClientOnly v-if="regionData && metric && selection && !regionError">
+        <MunicipalityOverviewMap
+          :key="regionData.context.snapshot_id"
+          :context="regionData.context"
+          :metric="metric"
+          :color-mode="metric.default_color_mode"
+          :selected-bin="null"
+          :ars-prefix="selection.prefix"
+          :bounds="regionData.bounds"
+          compact
+          boundaries-only
+          @stale="refreshRegion()"
+        />
+        <template #fallback><div class="h-80 skeleton animate-none rounded-lg sm:h-96" aria-hidden="true" /></template>
+      </ClientOnly>
+      <div v-else-if="regionLoading" class="h-80 skeleton animate-none rounded-lg sm:h-96" aria-hidden="true" />
+    </section>
+
+    <section class="mt-6 overflow-hidden rounded-lg border border-(--slk-border) bg-(--slk-surface) shadow-md">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-(--slk-border) p-4">
+        <h2 class="font-heading text-2xl font-bold text-(--slk-text-strong)">{{ $t("region.ranking_title") }}</h2>
+        <span v-if="selectedCatalogVersion" class="font-mono text-xs text-(--slk-text-muted)">{{
+          selectedCatalogVersion.name
+        }}</span>
+        <span v-else-if="rankingLoading" class="h-4 w-12 skeleton animate-none" aria-hidden="true" />
+        <label class="input w-full bg-(--slk-surface-subdued)">
+          <Icon icon="mdi:magnify" class="h-5 w-5 shrink-0" />
+          <input
+            v-model="query"
+            type="search"
+            :placeholder="$t('region.search_municipalities')"
+            :aria-label="$t('region.search_municipalities')"
+            :disabled="listLoading"
+          />
+        </label>
+        <p class="w-full text-sm text-(--slk-text-muted)">{{ $t("region.eligible_municipalities") }}</p>
+      </div>
+
+      <div v-if="listLoading" class="divide-y divide-(--slk-border)" aria-hidden="true">
+        <div v-for="row in 6" :key="row" class="flex min-h-24 items-center gap-3 p-4 sm:min-h-18">
+          <div class="h-5 w-8 shrink-0 skeleton animate-none" />
+          <div class="min-w-0 flex-1 space-y-2">
+            <div class="h-5 w-48 max-w-full skeleton animate-none" />
+            <div class="h-3 w-28 max-w-full skeleton animate-none" />
+          </div>
+          <div class="hidden h-6 w-32 skeleton animate-none sm:block" />
+        </div>
+      </div>
+      <div v-else-if="regionError" class="p-6 text-center" role="alert">
+        <p>{{ $t("region.loading_error") }}</p>
+        <button type="button" class="btn mt-3 btn-sm" @click="refreshRegion()">{{ $t("data.dashboard.retry") }}</button>
+      </div>
+      <template v-else>
+        <div v-if="rankingError" class="border-b border-(--slk-border) p-4" role="alert">
+          <p>{{ $t("region.ranking_error") }}</p>
+          <button type="button" class="btn mt-2 btn-sm" @click="refreshRanking()">
+            {{ $t("data.dashboard.retry") }}
+          </button>
+        </div>
+        <ol v-if="filteredMunicipalities.length" class="divide-y divide-(--slk-border)">
+          <li
+            v-for="municipality in visibleMunicipalities"
+            :key="municipality.ars"
+            class="grid grid-cols-[2rem_minmax(0,1fr)] items-center gap-3 p-4 hover:bg-(--slk-surface-subdued) sm:flex"
+          >
+            <span class="w-8 shrink-0 text-center text-sm text-(--slk-text-muted)">{{
+              municipality.rank ? `#${municipality.rank}` : "—"
+            }}</span>
+            <div class="min-w-0 flex-1">
+              <NuxtLink
+                :to="municipalityProductRoute('stadtlandklima', municipality)"
+                class="font-semibold wrap-break-word hover:underline"
+                >{{ municipality.name }}</NuxtLink
+              >
+              <p class="text-xs text-(--slk-text-muted)">{{ municipality.prefix }}</p>
+            </div>
+            <span v-if="municipality.score !== null" class="col-start-2 text-sm font-bold text-(--slk-success-text)"
+              >{{ municipality.score.toLocaleString($locale, { maximumFractionDigits: 1 }) }}
+              <span class="font-normal">{{ $t("stats.points_abbrev") }}</span></span
+            >
+            <div class="col-start-2 flex flex-wrap gap-2">
+              <NuxtLink
+                v-if="municipality.ratingSlug"
+                :to="{ path: `/municipalities/${municipality.ratingSlug}`, query: { v: selectedCatalogVersion?.name } }"
+                class="slk-badge slk-badge--success slk-badge-action px-2.5 py-1 text-xs"
+                >{{ $t("region.view_rating") }}</NuxtLink
+              >
+              <NuxtLink
+                :to="municipalityProductRoute('stadtlandklima', municipality)"
+                class="slk-badge slk-badge--info slk-badge-action px-2.5 py-1 text-xs"
+                >{{ $t("stats.view_stats") }}</NuxtLink
+              >
+            </div>
+          </li>
+        </ol>
+        <p v-else class="p-12 text-center text-(--slk-text-muted)">{{ $t("region.no_municipalities") }}</p>
+        <div
+          v-if="visibleMunicipalities.length < filteredMunicipalities.length"
+          class="border-t border-(--slk-border) p-4 text-center"
+        >
+          <button type="button" class="btn btn-sm" @click="visibleCount += 50">
+            {{ $t("data.dashboard.load_more") }}
+          </button>
+        </div>
+      </template>
+    </section>
   </main>
 </template>
 
 <script setup lang="ts">
-import { clientFailure } from "~/shared/securityLog";
-
-import { useRoute } from "vue-router";
-import { parseGeoCenter, parseGeoData } from "~/shared/contracts/geometry";
-import { ref, computed, onMounted } from "vue";
-import { getCatalogVersion } from "~/composables/getCatalogVersion";
-
+import { Icon } from "@iconify/vue";
+import { AreaSchema, type Area } from "~/shared/contracts/search";
+import { RegionMunicipalitiesResponseSchema } from "~/shared/contracts/regionMunicipalities";
+import type { Statistics } from "~/shared/contracts/municipality";
 import { singleRouteValue } from "~/shared/routeValues";
-import type { Area } from "~/shared/contracts/search";
+import { municipalityProductRoute } from "~/utils/municipalityOverview";
+import { regionSelection } from "~/utils/regionMunicipalities";
+
+definePageMeta({ key: (route) => `${route.path}:${singleRouteValue(route.query.v) ?? ""}` });
 const route = useRoute();
 const ars = singleRouteValue(route.params.ars);
 if (!ars || !/^\d{2,12}$/.test(ars)) throw createError({ statusCode: 404, statusMessage: "Region not found" });
-const { $t, $translateDynamic, $stadtlandzahlAPI } = useNuxtApp();
-
-const selectedCatalogVersion = ref(await getCatalogVersion(route));
-
-const area = ref<Area | null>(null);
-const municipalities = ref<Area[]>([]);
-const regionPoint = computed(() => {
-  const point = parseGeoCenter(area.value?.geo_center);
-  return point ? { type: "Point" as const, coordinates: [point.lon, point.lat] } : null;
+const { $t, $locale } = useNuxtApp();
+const fetchContent = useContentFetch();
+const requestFetch = useRequestFetch();
+const catalogueRoute = { query: { ...route.query } };
+const requestedCatalog = singleRouteValue(route.query.v) ?? "current";
+const [
+  { data: area, error: areaError },
+  { data: rankings, error: rankingError, refresh: refreshRanking },
+  { data: regionData, error: regionError, refresh: refreshRegion },
+] = await Promise.all([
+  useLazyAsyncData(`region-area:${ars}`, async (_app, { signal }) => {
+    let result: Area | null;
+    try {
+      const response = await requestFetch("/api/area-by-slug", {
+        query: { slug: ars },
+        signal,
+        timeout: 10000,
+        retry: 0,
+      });
+      result = AreaSchema.nullable().parse(response ?? null);
+    } catch {
+      throw createError({ statusCode: 502, statusMessage: "Region unavailable" });
+    }
+    if (!result) throw createError({ statusCode: 404, statusMessage: "Region not found" });
+    return result;
+  }),
+  useLazyAsyncData(`region-ranking-data:${requestedCatalog}:${$locale}`, async (_app, { signal }) => {
+    const catalog = await getCatalogVersion(catalogueRoute);
+    const statistics = await fetchContent<Statistics>(`/api/public/stats/${encodeURIComponent(catalog.name)}`, {
+      signal,
+    });
+    return { catalog, statistics };
+  }),
+  useLazyAsyncData(`region-municipalities:${ars}:${$locale}`, async (_app, { signal }) =>
+    RegionMunicipalitiesResponseSchema.parse(
+      await requestFetch(`/api/public/regions/${ars}`, {
+        query: { lang: $locale === "en-GB" ? "en-US" : $locale },
+        signal,
+        timeout: 40000,
+        retry: 0,
+      }),
+    ),
+  ),
+]);
+watch(
+  areaError,
+  (error) => {
+    if (error) showError(error);
+  },
+  { immediate: true },
+);
+const nuxtApp = useNuxtApp();
+watch(
+  area,
+  (value) => {
+    if (value && (value.is_reasonable_for_municipal_rating || (value.level ?? 0) > 4))
+      void nuxtApp.runWithContext(() => navigateTo(`/data/${ars}`, { replace: true }));
+  },
+  { immediate: true },
+);
+const areaLoading = computed(() => !area.value && !areaError.value);
+const regionLoading = computed(() => !regionData.value && !regionError.value);
+const rankingLoading = computed(() => !rankings.value && !rankingError.value);
+const listReady = ref(false);
+watch(
+  [regionData, rankings, rankingError],
+  () => {
+    if (regionData.value && (rankings.value || rankingError.value)) listReady.value = true;
+  },
+  { immediate: true },
+);
+const listLoading = computed(() => !regionError.value && (regionLoading.value || !listReady.value));
+const selectedCatalogVersion = computed(() => rankings.value?.catalog);
+const selection = computed(() => {
+  const level = area.value?.level;
+  return area.value && level != null && level >= 1 && level <= 4 ? regionSelection(area.value.ars, level) : null;
 });
-const loadingMunicipalities = ref(false);
-const showUnrated = ref(false);
-const municipalityNameCollator = new Intl.Collator("de-DE", {
-  numeric: true,
-  sensitivity: "base",
-});
-
-function compareByScoreThenName(a: { score: number | null; name: string }, b: { score: number | null; name: string }) {
-  const scoreDifference = (b.score ?? 0) - (a.score ?? 0);
-  if (scoreDifference !== 0) return scoreDifference;
-  return municipalityNameCollator.compare(a.name ?? "", b.name ?? "");
-}
-
-const t = (key: string, fallback = key) => {
-  const translation = $translateDynamic(key);
-  return translation === key ? fallback : translation;
-};
-
-// Municipalities sorted by score for the current catalog version
+const ancestors = computed(() => [...(area.value?.contained_by ?? [])].sort((a, b) => a.level - b.level));
+const stateName = computed(() => ancestors.value.find((ancestor) => ancestor.level === 2)?.name);
+const metric = computed(() =>
+  regionData.value?.context.metrics.find((metric) => metric.id === regionData.value?.context.metric_id),
+);
+const municipalities = computed(() => regionData.value?.municipalities ?? []);
+const collator = new Intl.Collator($locale, { numeric: true, sensitivity: "base" });
 const rankedMunicipalities = computed(() => {
-  const catalogName = selectedCatalogVersion.value?.name;
+  const scores = new Map(
+    (rankings.value?.statistics.scores ?? [])
+      .filter((score) => score.published === true && Number(score.percentage_rated) >= 98 && score.score_total !== null)
+      .map((score) => [score.municipality.ars, score]),
+  );
   return municipalities.value
-    .map((m) => {
-      const entry = catalogName
-        ? m.stadtlandklimaDataAll?.find((d) => d.measureCatalogName === catalogName && Number(d.percentageRated) >= 98)
-        : null;
+    .map((municipality) => {
+      const rating = scores.get(municipality.ars);
+      const slug = rating?.municipality.slug;
       return {
-        ars: m.ars,
-        name: m.name,
-        prefix: m.prefix,
-        population: m.population,
-        slug: entry?.slug ?? null,
-        score: entry?.scoreTotal == null ? null : Number(entry.scoreTotal),
+        ...municipality,
+        score: rating?.score_total ?? null,
+        ratingSlug: slug && /^[a-z0-9_-]+$/.test(slug) ? slug : null,
       };
     })
-    .filter((m) => m.score !== null)
-    .sort(compareByScoreThenName);
+    .sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity) || collator.compare(a.name, b.name))
+    .map((municipality, index) => ({ ...municipality, rank: municipality.score === null ? null : index + 1 }));
 });
-
-const unratedMunicipalities = computed(() => {
-  const ratedArs = new Set(rankedMunicipalities.value.map((m) => m.ars));
-  return municipalities.value
-    .filter((m) => !ratedArs.has(m.ars))
-    .map((m) => ({ ars: m.ars, name: m.name, prefix: m.prefix }));
+const query = ref("");
+const visibleCount = ref(50);
+watch(query, () => {
+  visibleCount.value = 50;
 });
-
-const pageTitle = computed(() => {
-  if (area.value?.name) {
-    return area.value.prefix ? `${area.value.prefix} ${area.value.name}` : area.value.name;
-  }
-  return t("region.title_fallback");
-});
-
-usePageSeo({ title: pageTitle });
-
-onMounted(async () => {
-  loadingMunicipalities.value = true;
-  try {
-    // Fetch area data first so we know the level before building the ARS prefix.
-    const areaData = await $stadtlandzahlAPI.fetchStatsByARS(ars!);
-
-    if (areaData) {
-      // If someone navigates here directly with a level 4+ ARS, redirect to /data/
-      if ((areaData.level ?? 0) >= 4) {
-        await navigateTo(`/data/${ars}`, { replace: true });
-        return;
-      }
-      area.value = areaData;
-    }
-
-    municipalities.value = await $stadtlandzahlAPI.fetchMunicipalitiesInRegion(ars!, areaData?.level ?? 2);
-  } catch (e) {
-    clientFailure("app.pages.regions._ars_.failed", e);
-  } finally {
-    loadingMunicipalities.value = false;
-  }
+const filteredMunicipalities = computed(() =>
+  rankedMunicipalities.value.filter((municipality) =>
+    `${municipality.name} ${municipality.prefix}`
+      .toLocaleLowerCase($locale)
+      .includes(query.value.trim().toLocaleLowerCase($locale)),
+  ),
+);
+const visibleMunicipalities = computed(() => filteredMunicipalities.value.slice(0, visibleCount.value));
+usePageSeo({
+  title: computed(() => (area.value ? `${area.value.prefix} ${area.value.name}` : $t("region.title_fallback"))),
 });
 </script>

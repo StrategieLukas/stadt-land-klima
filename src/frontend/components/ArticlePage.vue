@@ -61,26 +61,15 @@
           img-class="object-cover w-full h-full"
         />
         <div
-          v-if="organisation && organisation.logo"
-          class="clip-triangle absolute top-0 right-0 flex h-32 w-32 items-center justify-center bg-white"
+          v-if="organisation && (organisation.logo || organisation.logo_dark)"
+          class="clip-triangle absolute top-0 right-0 flex h-32 w-32 items-center justify-center bg-(--slk-surface)"
         >
-          <SmartImg
-            :asset-id="getAssetId(organisation.logo)"
-            :is-raster="
-              typeof organisation.logo === 'object' && organisation.logo?.type ? isRaster(organisation.logo.type) : true
-            "
+          <OrganisationLogo
+            :logo="organisation.logo"
+            :dark-logo="organisation.logo_dark"
             :alt="organisation.name ?? ''"
-            :height="56"
-            :width="56"
-            fit="cover"
-            :img-class="organisationLogoImgClass(organisation.logo)"
-          />
-          <img
-            v-if="hasDarkOrganisationLogo(organisation.logo)"
-            class="absolute top-2 right-2 hidden h-14 w-14 object-cover dark:block"
-            :src="getDarkOrganisationLogoUrl(organisation.logo)"
-            :alt="organisation.name ?? ''"
-            loading="lazy"
+            :size="56"
+            class="absolute top-2 right-2"
           />
         </div>
         <p v-if="image_credits" class="mt-1 text-center text-xs text-gray-500 italic">{{ image_credits }}</p>
@@ -141,24 +130,15 @@
     <NuxtLink :to="backHref" class="text-sm text-blue-500">← {{ backLabel }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div
-      v-if="organisation && organisation.logo"
-      class="clip-triangle absolute top-0 right-0 flex h-32 w-32 items-center justify-center bg-white"
+      v-if="organisation && (organisation.logo || organisation.logo_dark)"
+      class="clip-triangle absolute top-0 right-0 flex h-32 w-32 items-center justify-center bg-(--slk-surface)"
     >
-      <SmartImg
-        :asset-id="getAssetId(organisation.logo)"
-        :is-raster="typeof organisation.logo === 'object' ? isRaster(organisation.logo?.type) : true"
+      <OrganisationLogo
+        :logo="organisation.logo"
+        :dark-logo="organisation.logo_dark"
         :alt="organisation.name ?? ''"
-        :height="56"
-        :width="56"
-        fit="cover"
-        :img-class="organisationLogoImgClass(organisation.logo)"
-      />
-      <img
-        v-if="hasDarkOrganisationLogo(organisation.logo)"
-        class="absolute top-2 right-2 hidden h-14 w-14 object-cover dark:block"
-        :src="getDarkOrganisationLogoUrl(organisation.logo)"
-        :alt="organisation.name ?? ''"
-        loading="lazy"
+        :size="56"
+        class="absolute top-2 right-2"
       />
     </div>
 
@@ -294,23 +274,21 @@
 </template>
 
 <script setup lang="ts">
-import type { Asset, Organisation } from "~/types/components/content";
+import type { Organisation } from "~/types/components/content";
 
 import type { PropType } from "vue";
 import type { Measure } from "~/types/components/municipality";
 
 import { ref } from "vue";
-import { buildLocationString, isRaster } from "~/shared/utils";
+import { buildLocationString } from "~/shared/utils";
 import { formatProjectDate } from "~/shared/projectDate";
 import MarkdownIt from "markdown-it";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import { useReferrer } from "~/composables/useReferrer";
-import localZeroLogoDark from "~/assets/images/LocalZero-logo-small-dark.png";
 
 const md = new MarkdownIt();
 const { $t, $locale } = useNuxtApp();
 const { backHref, backLabel } = useReferrer("/projects", $t("navigation.return_to_overview"));
-const localZeroLogoId = "85624177-21f4-43c7-9b13-b53087ba2401";
 
 const props = defineProps({
   title: { type: String as PropType<string | undefined> },
@@ -353,22 +331,6 @@ const byline = computed(() =>
     ? $t("article.author_date", { ":author": props.author, ":date": formattedDate.value })
     : [props.author, formattedDate.value].filter(Boolean).join(", "),
 );
-
-function getAssetId(assetId: Asset | undefined) {
-  return typeof assetId === "string" ? assetId : assetId?.id;
-}
-
-function hasDarkOrganisationLogo(assetId: Asset | undefined) {
-  return getAssetId(assetId) === localZeroLogoId;
-}
-
-function getDarkOrganisationLogoUrl(assetId: Asset | undefined) {
-  return hasDarkOrganisationLogo(assetId) ? localZeroLogoDark : "";
-}
-
-function organisationLogoImgClass(assetId: Asset | undefined) {
-  return `absolute top-2 right-2 w-14 h-14 ${hasDarkOrganisationLogo(assetId) ? "dark:hidden" : ""}`;
-}
 </script>
 
 <style>

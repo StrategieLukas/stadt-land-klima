@@ -2,7 +2,7 @@
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import { resolveSiteOrigin } from "./shared/serviceUrl";
-import { frontendRuntimeEnvironment } from "./shared/runtimeEnvironment";
+import { frontendRuntimeEnvironment } from "./shared/runtimeEnvironment.mts";
 
 import { staticIconStyleHashes } from "./scripts/securityStyles.mts";
 
@@ -10,6 +10,7 @@ if (process.env.NODE_ENV !== "production") Object.assign(process.env, frontendRu
 
 export default defineNuxtConfig({
   telemetry: false,
+  plugins: ["~/plugins/collection-chart-preview.server"],
   typescript: {
     strict: true,
     typeCheck: "build",
@@ -260,6 +261,13 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    build: {
+      rolldownOptions: {
+        // Nitro bundles Nuxt's external shared modules in a second pass. Keep
+        // their absolute source IDs valid when Vite emits nested SSR chunks.
+        makeAbsoluteExternalsRelative: false,
+      },
+    },
     resolve: {
       alias: [
         { find: /^zod$/, replacement: fileURLToPath(new URL("./shared/zod.ts", import.meta.url)) },

@@ -100,12 +100,11 @@ try {
         assert(!(await summary.locator("h3").innerText()).includes(city.name));
         assert((await summary.innerText()).includes(map.catalogVersion.name));
         const actions = page.getByTestId("municipality-sidebar-actions").filter({ visible: true });
-        const icons = actions.locator("img:visible");
-        assert.equal(await icons.count(), 3, "All sidebar cards share one themed icon each");
+        const icons = actions.locator(".canonical-button__icon svg:visible");
+        assert.equal(await icons.count(), 3, "All canonical sidebar actions share one themed icon each");
         for (const icon of await icons.all()) {
-          await icon.evaluate((image) => (image as HTMLImageElement).decode());
           const size = await icon.boundingBox();
-          assert(size && size.width === 24 && size.height === 24);
+          assert(size && size.width === 20 && size.height === 20);
         }
         console.log(
           `PASS ${width}px ${theme}: homepage content/photo, full-width timelines, 4.5:1 pill contrast, concise municipality header and matching icons`,

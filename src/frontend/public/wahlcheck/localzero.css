@@ -259,12 +259,12 @@ html .elections-flow[data-wahlcheck-theme="localzero"] .group:hover .group-hover
   color: #007a98 !important;
 }
 
-html .elections-flow[data-wahlcheck-theme="localzero"] :is(button, a, input, select, textarea):focus-visible,
+html .elections-flow[data-wahlcheck-theme="localzero"] :is(button, a, input, select, textarea):not(.canonical-button):focus-visible,
 html .elections-flow[data-wahlcheck-theme="localzero"] .option-btn:has(input:focus-visible) {
   outline: 2px solid #011633 !important;
 }
 
-html .elections-flow[data-wahlcheck-theme="localzero"] :is(button, a, input, select, textarea):focus-visible,
+html .elections-flow[data-wahlcheck-theme="localzero"] :is(button, a, input, select, textarea):not(.canonical-button):focus-visible,
 html .elections-flow[data-wahlcheck-theme="localzero"] .option-btn:has(input:focus-visible) {
   outline-offset: 3px !important;
 }

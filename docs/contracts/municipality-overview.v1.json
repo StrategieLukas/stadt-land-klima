@@ -1,0 +1,1517 @@
+{
+  "contract_version": 1,
+  "schemas": {
+    "overview": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "contract_version": {
+          "type": "number",
+          "const": 1
+        },
+        "collection": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["available", "no_data"]
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^[a-zA-Z0-9_.:-]+$"
+        },
+        "metric_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "metrics": {
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160,
+                "pattern": "^[a-zA-Z0-9_-]+$"
+              },
+              "title": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "description": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "unit": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "precision": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10
+              },
+              "percentage_representation": {
+                "type": "string",
+                "enum": ["none", "fraction", "percent"]
+              },
+              "normalization": {
+                "type": "object",
+                "properties": {
+                  "basis": {
+                    "type": "string",
+                    "enum": ["none", "population"]
+                  },
+                  "per": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": ["basis", "per"]
+              },
+              "default_color_mode": {
+                "type": "string",
+                "enum": ["score", "continuous"]
+              },
+              "color_modes": {
+                "minItems": 1,
+                "maxItems": 2,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["score", "continuous"]
+                }
+              },
+              "score_scale": {
+                "type": "object",
+                "properties": {
+                  "classes": {
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160,
+                          "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "label": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "color": {
+                          "type": "string",
+                          "pattern": "^#[a-fA-F0-9]{6}$"
+                        }
+                      },
+                      "required": ["id", "label", "color"]
+                    }
+                  }
+                },
+                "required": ["classes"]
+              },
+              "continuous_scale": {
+                "type": "object",
+                "properties": {
+                  "stops": {
+                    "minItems": 2,
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number"
+                        },
+                        "color": {
+                          "type": "string",
+                          "pattern": "^#[a-fA-F0-9]{6}$"
+                        }
+                      },
+                      "required": ["value", "color"]
+                    }
+                  }
+                },
+                "required": ["stops"]
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "unit",
+              "precision",
+              "percentage_representation",
+              "normalization",
+              "default_color_mode",
+              "color_modes"
+            ]
+          }
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "ars": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "DE"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^\\d{2,12}$"
+                }
+              ]
+            },
+            "name": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "state_ars": {
+              "type": ["string", "null"]
+            }
+          },
+          "required": ["ars", "name", "state_ars"]
+        },
+        "cohort": {
+          "type": "object",
+          "properties": {
+            "eligible_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "included_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "missing_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "excluded_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": ["eligible_count", "included_count", "missing_count", "excluded_count"]
+        },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "median": {
+              "type": ["number", "null"]
+            }
+          },
+          "required": ["median"]
+        },
+        "map": {
+          "type": "object",
+          "properties": {
+            "tile_url": {
+              "type": "string",
+              "maxLength": 4096
+            },
+            "bounds": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                }
+              ],
+              "items": false,
+              "minItems": 4,
+              "maxItems": 4
+            },
+            "minzoom": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 22
+            },
+            "maxzoom": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 22
+            },
+            "no_data_color": {
+              "type": "string",
+              "pattern": "^#[a-fA-F0-9]{6}$"
+            }
+          },
+          "required": ["tile_url", "bounds", "minzoom", "maxzoom", "no_data_color"]
+        },
+        "histogram": {
+          "type": "object",
+          "properties": {
+            "plot_id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "map",
+                "kpi",
+                "histogram",
+                "bar_chart",
+                "pie_chart",
+                "time_series",
+                "image",
+                "table",
+                "graph",
+                "altair"
+              ]
+            },
+            "step": {
+              "type": "number"
+            },
+            "title": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "description": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "vegalite_spec": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maplibre_spec": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "renderer": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "style": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "sources": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "layers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "tooltip_fields": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "label": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "title": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "tooltipFields": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "label": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "title": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "additionalProperties": {}
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maplibreSpec": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "renderer": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "style": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "sources": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "layers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "tooltip_fields": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "label": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "title": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "tooltipFields": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "label": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "title": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "propertyNames": {
+                                      "type": "string"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "additionalProperties": {}
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "field": {
+              "type": "string"
+            },
+            "unit": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "label": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "population_normalized": {
+              "type": "boolean"
+            },
+            "is_percentage": {
+              "type": "boolean"
+            },
+            "thresholds": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "number"
+              }
+            },
+            "src_url": {
+              "type": "string"
+            },
+            "image_field": {
+              "type": "string"
+            },
+            "data_url": {
+              "type": "string"
+            },
+            "interactions": {
+              "type": "object",
+              "properties": {
+                "reveal_municipalities": {
+                  "type": "object",
+                  "properties": {
+                    "metric_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "selection": {
+                      "type": "string",
+                      "const": "whole_bin"
+                    }
+                  },
+                  "required": ["metric_id", "selection"]
+                }
+              }
+            }
+          },
+          "required": ["plot_id", "type"],
+          "additionalProperties": {}
+        },
+        "links": {
+          "type": "object",
+          "properties": {
+            "municipalities": {
+              "type": "string",
+              "maxLength": 4096
+            },
+            "regions": {
+              "type": "string",
+              "maxLength": 4096
+            }
+          },
+          "required": ["municipalities", "regions"]
+        },
+        "attribution": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "update_info": {
+          "type": "object",
+          "properties": {
+            "last_updated_at": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "verification_status": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "quality_label": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["last_updated_at", "verification_status"]
+        }
+      },
+      "required": [
+        "contract_version",
+        "collection",
+        "status",
+        "snapshot_id",
+        "metric_id",
+        "metrics",
+        "scope",
+        "cohort",
+        "stats",
+        "map",
+        "histogram",
+        "links",
+        "attribution",
+        "update_info"
+      ]
+    },
+    "histogram": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "metric": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[a-zA-Z0-9_-]+$"
+            },
+            "title": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "description": {
+              "default": {},
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "unit": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "precision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "percentage_representation": {
+              "type": "string",
+              "enum": ["none", "fraction", "percent"]
+            },
+            "normalization": {
+              "type": "object",
+              "properties": {
+                "basis": {
+                  "type": "string",
+                  "enum": ["none", "population"]
+                },
+                "per": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": ["basis", "per"]
+            },
+            "default_color_mode": {
+              "type": "string",
+              "enum": ["score", "continuous"]
+            },
+            "color_modes": {
+              "minItems": 1,
+              "maxItems": 2,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["score", "continuous"]
+              }
+            },
+            "score_scale": {
+              "type": "object",
+              "properties": {
+                "classes": {
+                  "minItems": 1,
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160,
+                        "pattern": "^[a-zA-Z0-9_-]+$"
+                      },
+                      "label": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "color": {
+                        "type": "string",
+                        "pattern": "^#[a-fA-F0-9]{6}$"
+                      }
+                    },
+                    "required": ["id", "label", "color"]
+                  }
+                }
+              },
+              "required": ["classes"]
+            },
+            "continuous_scale": {
+              "type": "object",
+              "properties": {
+                "stops": {
+                  "minItems": 2,
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "number"
+                      },
+                      "color": {
+                        "type": "string",
+                        "pattern": "^#[a-fA-F0-9]{6}$"
+                      }
+                    },
+                    "required": ["value", "color"]
+                  }
+                }
+              },
+              "required": ["stops"]
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "unit",
+            "precision",
+            "percentage_representation",
+            "normalization",
+            "default_color_mode",
+            "color_modes"
+          ]
+        },
+        "bins": {
+          "maxItems": 1000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "bin_index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "lower": {
+                "type": ["number", "null"]
+              },
+              "upper": {
+                "type": ["number", "null"]
+              },
+              "display_label": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "kind": {
+                "type": "string",
+                "maxLength": 80
+              }
+            },
+            "required": ["bin_index", "lower", "upper", "display_label", "count"],
+            "additionalProperties": {}
+          }
+        },
+        "segments": {
+          "default": [],
+          "maxItems": 5000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "bin_index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "segment_count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "display_lower": {
+                "type": "number"
+              },
+              "display_upper": {
+                "type": "number"
+              },
+              "quintile_color": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160,
+                "pattern": "^[a-zA-Z0-9_-]+$"
+              }
+            },
+            "required": ["bin_index", "segment_count", "display_lower", "display_upper", "quintile_color"],
+            "additionalProperties": {}
+          }
+        },
+        "score_segments": {
+          "maxItems": 5000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "bin_index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "segment_count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "display_lower": {
+                "type": "number"
+              },
+              "display_upper": {
+                "type": "number"
+              },
+              "score_color": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160,
+                "pattern": "^[a-zA-Z0-9_-]+$"
+              }
+            },
+            "required": ["bin_index", "segment_count", "display_lower", "display_upper", "score_color"],
+            "additionalProperties": {}
+          }
+        },
+        "interaction_context": {
+          "type": "object",
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "pattern": "^[a-zA-Z0-9_.:-]+$"
+            },
+            "metric_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[a-zA-Z0-9_-]+$"
+            },
+            "members_url": {
+              "type": "string",
+              "maxLength": 4096
+            }
+          },
+          "required": ["snapshot_id", "metric_id", "members_url"]
+        }
+      },
+      "required": ["bins"],
+      "additionalProperties": {}
+    },
+    "municipalities": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^[a-zA-Z0-9_.:-]+$"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "results": {
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ars": {
+                "type": "string",
+                "pattern": "^\\d{2,12}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "prefix": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "slug": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240,
+                "pattern": "^[a-z0-9_-]+$"
+              },
+              "state_name": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "district_name": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "value": {
+                "type": ["number", "null"]
+              },
+              "data_status": {
+                "type": "string",
+                "enum": ["available", "no_data", "excluded"]
+              }
+            },
+            "required": ["ars", "name", "prefix", "slug", "state_name", "district_name", "value", "data_status"]
+          }
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["snapshot_id", "count", "results", "next_cursor"]
+    },
+    "regions": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^[a-zA-Z0-9_.:-]+$"
+        },
+        "results": {
+          "maxItems": 1000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ars": {
+                "type": "string",
+                "pattern": "^\\d{2,12}$"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "level": {
+                "type": "string",
+                "enum": ["state", "district"]
+              },
+              "parent_ars": {
+                "type": ["string", "null"]
+              },
+              "bounds": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  },
+                  {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                  }
+                ],
+                "items": false,
+                "minItems": 4,
+                "maxItems": 4
+              }
+            },
+            "required": ["ars", "name", "level", "parent_ars", "bounds"]
+          }
+        }
+      },
+      "required": ["snapshot_id", "results"]
+    }
+  },
+  "examples": {
+    "overview": {
+      "contract_version": 1,
+      "collection": "wind-turbines",
+      "status": "available",
+      "snapshot_id": "fixture-edition-1",
+      "metric_id": "power",
+      "metrics": [
+        {
+          "id": "power",
+          "title": {
+            "de-DE": "Leistung",
+            "en-US": "Power",
+            "it-IT": "Potenza"
+          },
+          "description": {},
+          "unit": {
+            "de-DE": "kW je 1.000 Einw.",
+            "en-US": "kW per 1,000 residents"
+          },
+          "precision": 1,
+          "percentage_representation": "none",
+          "normalization": {
+            "basis": "population",
+            "per": 1000
+          },
+          "default_color_mode": "score",
+          "color_modes": ["score", "continuous"],
+          "score_scale": {
+            "classes": [
+              {
+                "id": "red",
+                "label": {
+                  "de-DE": "Gering"
+                },
+                "color": "#E30613"
+              },
+              {
+                "id": "darkgreen",
+                "label": {
+                  "de-DE": "Hoch"
+                },
+                "color": "#1EA64A"
+              }
+            ]
+          },
+          "continuous_scale": {
+            "stops": [
+              {
+                "value": 0,
+                "color": "#d6f5ff"
+              },
+              {
+                "value": 100,
+                "color": "#006e94"
+              }
+            ]
+          }
+        },
+        {
+          "id": "second-metric",
+          "title": {
+            "de-DE": "Zweiter Kennwert"
+          },
+          "description": {},
+          "unit": {
+            "de-DE": "kW je 1.000 Einw.",
+            "en-US": "kW per 1,000 residents"
+          },
+          "precision": 1,
+          "percentage_representation": "none",
+          "normalization": {
+            "basis": "population",
+            "per": 1000
+          },
+          "default_color_mode": "continuous",
+          "color_modes": ["score", "continuous"],
+          "score_scale": {
+            "classes": [
+              {
+                "id": "red",
+                "label": {
+                  "de-DE": "Gering"
+                },
+                "color": "#E30613"
+              },
+              {
+                "id": "darkgreen",
+                "label": {
+                  "de-DE": "Hoch"
+                },
+                "color": "#1EA64A"
+              }
+            ]
+          },
+          "continuous_scale": {
+            "stops": [
+              {
+                "value": 0,
+                "color": "#d6f5ff"
+              },
+              {
+                "value": 100,
+                "color": "#006e94"
+              }
+            ]
+          }
+        }
+      ],
+      "scope": {
+        "ars": "DE",
+        "name": "Deutschland",
+        "state_ars": null
+      },
+      "cohort": {
+        "eligible_count": 3,
+        "included_count": 2,
+        "missing_count": 1,
+        "excluded_count": 0
+      },
+      "stats": {
+        "median": 5
+      },
+      "map": {
+        "tile_url": "/api/stadtlandzahl/api/collections/wind-turbines/overview/tiles/{z}/{x}/{y}.pbf?snapshot=fixture-edition-1",
+        "bounds": [5.5, 47, 15.5, 55.5],
+        "minzoom": 0,
+        "maxzoom": 12,
+        "no_data_color": "#9D9D9C"
+      },
+      "histogram": {
+        "type": "histogram",
+        "plot_id": "histogram-power",
+        "data_url": "/api/stadtlandzahl/api/collections/wind-turbines/histogram/?metric=power&snapshot=fixture-edition-1",
+        "interactions": {
+          "reveal_municipalities": {
+            "metric_id": "power",
+            "selection": "whole_bin"
+          }
+        },
+        "vegalite_spec": {
+          "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+          "width": "container",
+          "height": 200,
+          "layer": [
+            {
+              "name": "municipality-histogram-bars",
+              "data": {
+                "url": "/api/stadtlandzahl/api/collections/wind-turbines/histogram/?metric=power&snapshot=fixture-edition-1",
+                "format": {
+                  "type": "json",
+                  "property": "segments"
+                }
+              },
+              "mark": "bar",
+              "encoding": {
+                "x": {
+                  "field": "display_lower",
+                  "type": "quantitative",
+                  "bin": "binned",
+                  "title": "kW"
+                },
+                "x2": {
+                  "field": "display_upper"
+                },
+                "y": {
+                  "field": "segment_count",
+                  "type": "quantitative",
+                  "stack": "zero"
+                },
+                "color": {
+                  "field": "quintile_color",
+                  "type": "nominal",
+                  "legend": null
+                }
+              }
+            }
+          ]
+        }
+      },
+      "links": {
+        "municipalities": "/api/stadtlandzahl/api/collections/wind-turbines/overview/municipalities/?snapshot=fixture-edition-1",
+        "regions": "/api/stadtlandzahl/api/collections/wind-turbines/overview/regions/?snapshot=fixture-edition-1"
+      },
+      "attribution": {
+        "de-DE": "Testdaten",
+        "en-US": "Fixture data"
+      },
+      "update_info": {
+        "last_updated_at": "2026-11-01T12:00:00Z",
+        "verification_status": "verified"
+      }
+    },
+    "histogram": {
+      "metric": {
+        "id": "power",
+        "title": {
+          "de-DE": "Leistung",
+          "en-US": "Power",
+          "it-IT": "Potenza"
+        },
+        "description": {},
+        "unit": {
+          "de-DE": "kW je 1.000 Einw.",
+          "en-US": "kW per 1,000 residents"
+        },
+        "precision": 1,
+        "percentage_representation": "none",
+        "normalization": {
+          "basis": "population",
+          "per": 1000
+        },
+        "default_color_mode": "score",
+        "color_modes": ["score", "continuous"],
+        "score_scale": {
+          "classes": [
+            {
+              "id": "red",
+              "label": {
+                "de-DE": "Gering"
+              },
+              "color": "#E30613"
+            },
+            {
+              "id": "darkgreen",
+              "label": {
+                "de-DE": "Hoch"
+              },
+              "color": "#1EA64A"
+            }
+          ]
+        },
+        "continuous_scale": {
+          "stops": [
+            {
+              "value": 0,
+              "color": "#d6f5ff"
+            },
+            {
+              "value": 100,
+              "color": "#006e94"
+            }
+          ]
+        }
+      },
+      "bins": [
+        {
+          "bin_index": 0,
+          "lower": 0,
+          "upper": 10,
+          "display_label": "0–10",
+          "count": 2
+        },
+        {
+          "bin_index": 1,
+          "lower": 10,
+          "upper": 20,
+          "display_label": "10–20",
+          "count": 0
+        }
+      ],
+      "segments": [
+        {
+          "bin_index": 0,
+          "display_lower": 0,
+          "display_upper": 10,
+          "count": 2,
+          "segment_count": 1,
+          "quintile_color": "red"
+        },
+        {
+          "bin_index": 0,
+          "display_lower": 0,
+          "display_upper": 10,
+          "count": 2,
+          "segment_count": 1,
+          "quintile_color": "darkgreen"
+        }
+      ],
+      "interaction_context": {
+        "snapshot_id": "fixture-edition-1",
+        "metric_id": "power",
+        "members_url": "/api/stadtlandzahl/api/collections/wind-turbines/overview/municipalities/?snapshot=fixture-edition-1"
+      }
+    }
+  }
+}

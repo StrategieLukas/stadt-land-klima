@@ -1,0 +1,73 @@
+--- a/src/apps/api/overview_views.py
++++ b/src/apps/api/overview_views.py
+@@ -259,6 +259,32 @@
+         for item in feed["bins"]:
+             item["area_value"] = value
+             item["display_area_value"] = _display_position_for_value(value, feed["bins"]) if value is not None else None
++    # Threshold colors are exact persisted row memberships, not bin-midpoint guesses.
++    # Keep the original quintile segments available as the fallback representation.
++    plot = frozen_histogram_plot(ctx)
++    feed["color_basis"] = "thresholds" if plot.thresholds else "quintiles"
++    if plot.thresholds:
++        from django.db.models.fields.json import KeyTextTransform, KeyTransform
++
++        groups = ctx.memberships.values(
++            "bin_index",
++            score_color=KeyTextTransform("score_class", KeyTransform(ctx.metric_id, "row__metrics")),
++        ).annotate(segment_count=models.Count("pk"))
++        bins = {item["bin_index"]: item for item in feed["bins"]}
++        totals = {index: 0 for index in bins}
++        classes = {item["id"] for item in metric["score_scale"]["classes"]}
++        segments = []
++        for group in groups:
++            index, color = group["bin_index"], group["score_color"]
++            if index not in bins or color not in classes:
++                raise OverviewError(409, "snapshot_unavailable", "Pinned score membership unavailable")
++            count = group["segment_count"]
++            totals[index] += count
++            segments.append({**bins[index], "score_color": color, "segment_count": count})
++        if any(totals[index] != item["count"] for index, item in bins.items()):
++            raise OverviewError(409, "snapshot_unavailable", "Pinned score counts differ from histogram")
++        order = {item["id"]: index for index, item in enumerate(metric["score_scale"]["classes"])}
++        feed["score_segments"] = sorted(segments, key=lambda item: (item["bin_index"], order[item["score_color"]]))
+     feed["metric"] = metric
+     feed["interaction_context"] = {
+         "snapshot_id": ctx.identity,
+@@ -280,12 +306,18 @@
+         area=area,
+         lang=language(request),
+     )
++    spec = plot.to_vegalite_spec(url, language(request))
++    if plot.thresholds:
++        for layer in spec.get("layer", []):
++            if layer.get("name") == "municipality-histogram-bars":
++                layer["data"]["format"]["property"] = "score_segments"
++                layer["encoding"]["color"]["field"] = "score_color"
+     return {
+         "type": "histogram",
+         "plot_id": plot.plot_id,
+         "data_url": url,
+         "interactions": {"reveal_municipalities": {"metric_id": ctx.metric_id, "selection": "whole_bin"}},
+-        "vegalite_spec": plot.to_vegalite_spec(url, language(request)),
++        "vegalite_spec": spec,
+     }
+ 
+ 
+@@ -495,7 +527,7 @@
+     z = integer(z, 0, 14)
+     x, y = integer(x, 0, 2**z - 1), integer(y, 0, 2**z - 1)
+     ctx = resolve(request, config)
+-    key = f"municipality-mvt-v1:{ctx.identity}:{z}:{x}:{y}"
++    key = f"municipality-mvt-threshold-first-v2:{ctx.identity}:{z}:{x}:{y}"
+     payload = cache.get(key)
+     if payload is None:
+         scope_sql, params = "", [z, x, y, ctx.metric_id, ctx.pk, ctx.edition_id]
+@@ -511,7 +543,7 @@
+                 SELECT r.ars, r.name, r.properties->>'prefix' AS prefix, r.properties->>'slug' AS slug,
+                   r.properties->>'state_name' AS state_name, r.properties->>'district_name' AS district_name,
+                   v.metric->>'data_status' AS data_status, (v.metric->>'value')::double precision AS value,
+-                  v.metric->>'score_class' AS score_class, m.bin_index,
++                  COALESCE(v.metric->>'score_class', v.metric->>'quintile_color') AS score_class, m.bin_index,
+                   ST_AsMVTGeom(ST_SimplifyPreserveTopology(r.geometry,
+                     (ST_XMax(e.geom)-ST_XMin(e.geom))/8192),e.geom,4096,64,true) AS geom
+                 FROM data_sources_municipalityoverviewrow r CROSS JOIN envelope e

@@ -6,6 +6,12 @@ Nuxt 4 frontend + Directus CMS backend, running in rootless Podman with Caddy.
 Code language and variables always favour english language.
 ---
 
+## Design memory
+
+Read [Design guidelines](docs/DESIGN_GUIDELINES.md) before changing page heroes or typography. It records the shared hero heading scale, introduction styling, section hierarchy, and compact avatar layout conventions.
+
+Preserve already displayed content while its replacement loads. For tour station changes, keep the previous decoded postcards visible in their current position until the active station's replacement set is ready, then swap it atomically without a blank interval or loading animation. Late downloads for an earlier station must never replace the current station's postcards. See the loading-stability rules in the design guidelines.
+
 ## Directus schema & permissions workflow
 
 All Directus configuration is **code-first**: the source of truth lives in YAML files under `src/directus/`. Changes are applied by running `import-all.sh` inside the Directus container. **Never make manual DB edits to replace what a YAML + import can do.**

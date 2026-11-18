@@ -408,6 +408,7 @@ permissions:
   - short_description
   - link
   - logo
+  - logo_dark
   - id
   - social_media_segment
   - linkedin

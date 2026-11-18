@@ -1,0 +1,4 @@
+language: en-GB
+key: region.rating_eligibility_city_districts
+value: >-
+  Independent cities/urban districts where the district (ADE 4), municipal association (ADE 5) and municipality (ADE 6) all cover the same area and share the same boundaries.

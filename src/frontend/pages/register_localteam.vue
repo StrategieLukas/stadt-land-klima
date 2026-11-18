@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-3xl px-2 py-8 xs:px-4">
+  <div class="mx-auto w-full max-w-3xl py-8">
     <NuxtLink to="/municipalities" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipalities.back_to_overview") }}
     </NuxtLink>

@@ -10,9 +10,11 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: null
+  note: >-
+    Optional: HTTP(S)-URL, mailto-Adresse oder interner Pfad ab /. Ohne Link öffnet
+    die Website das vorausgefüllte Kontaktformular.
   options:
-    placeholder: https://...
+    placeholder: https://… / mailto:… / /contact
     trim: true
   readonly: false
   required: false
@@ -27,8 +29,8 @@ meta:
       - application_url:
           _null: true
       - application_url:
-          _regex: ^https?:\/\/.+$
-  validation_message: Bitte eine vollständige URL mit http:// oder https:// eingeben.
+          _regex: '^(https?://[^\s\\]+|mailto:[^\s\\]+|/(?![/\\])[^\s\\]*)$'
+  validation_message: Bitte eine HTTP(S)-URL, eine mailto-Adresse oder einen internen Pfad ab / eingeben.
   width: full
 schema:
   name: application_url

@@ -1,0 +1,4 @@
+language: en-GB
+key: region.rating_eligibility_associations
+value: >-
+  Municipal associations (ADE 5; groups of municipalities administered together) with at least 5,000 residents.

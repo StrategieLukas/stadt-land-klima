@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-2 py-6 sm:px-4 sm:py-8">
+  <div class="w-full py-6 sm:py-8">
     <header class="mb-10 flex flex-wrap items-start justify-between gap-4">
       <div>
         <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t("news.title") }}</h1>
@@ -40,7 +40,7 @@
     >
       <div
         ref="mobilePillStrip"
-        class="flex w-full gap-2 overflow-x-auto py-2"
+        class="slk-timeline-links flex gap-1.5 overflow-x-auto py-1.5"
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
         <a
@@ -119,7 +119,8 @@
                   fit="cover"
                   img-class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <span class="absolute top-2 left-2 rounded-full bg-[#1da64a] px-2 py-0.5 text-xs font-bold text-white"
+                <span
+                  class="slk-badge slk-badge--success absolute top-2 left-2 rounded-full px-2 py-0.5 text-xs font-bold"
                   >Veranstaltung</span
                 >
                 <!-- Image credits overlay on hover -->
@@ -141,7 +142,7 @@
                 <div class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span
                     v-if="ev.event_type"
-                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold text-[#1da64a] dark:bg-(--slk-green) dark:text-(--slk-text-strong)"
+                    class="slk-badge slk-badge--success rounded-full px-2 py-0.5 text-xs font-semibold"
                   >
                     {{
                       { conference: "Konferenz", workshop: "Workshop", webinar: "Webinar", other: "Sonstiges" }[
@@ -309,9 +310,9 @@
                   v-if="item.status && item.status !== 'published'"
                   :class="[
                     'absolute top-2 right-2 rounded-full px-2 py-0.5 text-xs font-bold',
-                    item.status === 'draft' ? 'bg-[#fbbf24] text-[#78350f]' : 'bg-[#9ca3af] text-white',
+                    item.status === 'draft' ? 'slk-badge slk-badge--warning' : 'slk-badge',
                   ]"
-                  >{{ item.status === "draft" ? "Entwurf" : "Archiviert" }}</span
+                  >{{ $t(item.status === "draft" ? "status.draft" : "status.archived") }}</span
                 >
               </div>
               <!-- Card body -->
@@ -335,7 +336,7 @@
                 <div v-if="item.type === 'event'" class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span
                     v-if="item.eventType"
-                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold text-[#1da64a] dark:bg-(--slk-green) dark:text-(--slk-text-strong)"
+                    class="slk-badge slk-badge--success rounded-full px-2 py-0.5 text-xs font-semibold"
                   >
                     {{
                       { conference: "Konferenz", workshop: "Workshop", webinar: "Webinar", other: "Sonstiges" }[
@@ -641,11 +642,11 @@ function typeLabel(type: string) {
 function typeBadgeClass(type: string) {
   return (
     {
-      news: "bg-teal-600 text-white",
-      project: "bg-[#006e94] text-white",
-      event: "bg-[#1da64a] text-white",
-      catalog: "bg-[#6b7280] text-white",
-    }[type as "news" | "project" | "event" | "catalog"] ?? "bg-gray-200 text-gray-700"
+      news: "slk-badge slk-badge--news",
+      project: "slk-badge slk-badge--info",
+      event: "slk-badge slk-badge--success",
+      catalog: "slk-badge",
+    }[type as "news" | "project" | "event" | "catalog"] ?? "slk-badge"
   );
 }
 

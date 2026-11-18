@@ -1,0 +1,3 @@
+language: de-DE
+key: data.dashboard.product_info_unavailable
+value: "Die vollständigen Produktinformationen konnten nicht geladen werden."

@@ -1,0 +1,4 @@
+language: it-IT
+key: region.rating_eligibility_municipalities
+value: >-
+  I comuni (ADE 6) con almeno 5.000 abitanti che rappresentano meno della metà della popolazione della propria associazione di comuni (ADE 5). In assenza di un’associazione, il confronto avviene con la popolazione del circondario (ADE 4).

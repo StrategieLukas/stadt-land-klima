@@ -7,7 +7,7 @@ import { assertPrivatePodmanFile } from "../lib/podman-security.ts";
 import {
   frontendRuntimeEnvironment,
   translationDeploymentTarget,
-} from "../../src/frontend/shared/runtimeEnvironment.ts";
+} from "../../src/frontend/shared/runtimeEnvironment.mts";
 import { root } from "./process.ts";
 import type { Runtime } from "./stack.ts";
 

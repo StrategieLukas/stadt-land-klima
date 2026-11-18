@@ -5,6 +5,7 @@ import { requiredId } from "../shared/models.ts";
 import importCollectionItems from "./importCollectionItems.ts";
 import importDashboards from "./importDashboards.ts";
 import importFlows from "./importFlows.ts";
+import importFolders from "./importFolders.ts";
 import importPolicies from "./importPolicies.ts";
 import importPresets from "./importPresets.ts";
 import importRoles from "./importRoles.ts";
@@ -56,6 +57,14 @@ function registerFolderImportCommand(
 
 function importTasks(yargs: CliArguments) {
   const importCommands = [
+    {
+      command: "import:folders [src]",
+      description: "creates missing required asset folders from YAML, preserving existing folders and files",
+      defaultSrc: "contents/directus_folders.yaml",
+      importer: importFolders,
+      label: "asset folders",
+      srcDescription: "source YAML file",
+    },
     {
       command: "import:schema [src]",
       description: 'imports the schema from the folder specified by "src". By default it will import from "schema"',
@@ -131,7 +140,7 @@ function importTasks(yargs: CliArguments) {
 
     .command(
       "import:all [src]",
-      "imports schema, policies, roles, flows, presets, translations, settings, and dashboards consecutively.",
+      "imports required folders, schema, policies, roles, flows, presets, translations, settings, and dashboards consecutively.",
       (yargs) => {
         return yargs.positional("src", {
           describe: "base folder for all imports (default: current directory)",
@@ -147,6 +156,9 @@ function importTasks(yargs: CliArguments) {
         // Clear cache once at the beginning
         console.info("Clearing cache...");
         await clearDirectusCache();
+
+        console.info("Importing required asset folders...");
+        await importFolders(path.join(src, "contents", "directus_folders.yaml"));
 
         // Import schema
         console.info("Importing schema...");

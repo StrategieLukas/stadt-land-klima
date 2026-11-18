@@ -1,0 +1,3 @@
+language: de-DE
+key: region.loading_error
+value: Die Kommunen dieser Region konnten nicht geladen werden.

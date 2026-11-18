@@ -7,7 +7,7 @@
 //   Header border-b                                         =   1px
 //   Total                                                   = 146px
 
-// Spacer height — only updated when scrollY < 10.
+// Spacer height — only updated at scrollY === 0.
 // The layout spacer (below the fixed header) uses this value instead of `height`.
 // Keeping it frozen while scrolled prevents the scroll-anchoring loop:
 //   nav strip collapses → spacer shrinks → browser adjusts scrollY → delta triggers

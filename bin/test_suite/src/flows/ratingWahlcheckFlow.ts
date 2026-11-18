@@ -613,7 +613,7 @@ async function completePublicWahlcheck(
     await weightCheckbox.waitFor({ state: "visible", timeout: 30_000 });
     await assertWahlcheckLogoLayout(page, "Summary step", customLogoId);
     await weightCheckbox.check({ force: true });
-    await page.locator("button.btn-primary").last().click();
+    await page.getByTestId("wahlcheck-summary-next").click();
 
     for (const name of candidateNames) {
       await page.getByText(name).first().waitFor({ state: "visible", timeout: 30_000 });
@@ -895,8 +895,8 @@ async function completePublicWahlcheck(
       { timeoutMs: 10_000, intervalMs: 500 },
     );
 
-    await page.locator("button.btn-secondary").last().click();
-    await page.locator("button.btn-primary").last().click();
+    await page.getByTestId("wahlcheck-results-prev").click();
+    await page.getByTestId("wahlcheck-summary-next").click();
     await page.waitForTimeout(1_000);
 
     const electionAfterRecalculation = await readElection(fixture, electionId);
@@ -943,7 +943,7 @@ async function completeWahlcheckForCounterRegression(
     },
     { timeout: 30_000 },
   );
-  await page.locator("button.btn-primary").last().click();
+  await page.getByTestId("wahlcheck-summary-next").click();
 
   const completionResponse = await completionResponsePromise;
   assert(

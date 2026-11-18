@@ -1,3 +1,4 @@
 language: en-GB
 key: region.municipalities_count
-value: Municipalities
+value: >-
+  Rateable municipalities

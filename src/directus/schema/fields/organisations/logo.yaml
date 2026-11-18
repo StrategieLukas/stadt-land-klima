@@ -10,7 +10,7 @@ meta:
   group: null
   hidden: false
   interface: unsplash-image
-  note: null
+  note: Standardlogo für das helle Design. Ohne dunkle Variante wird es im dunklen Design auf weißem Hintergrund angezeigt.
   options:
     folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
     letterbox: true
@@ -22,10 +22,14 @@ meta:
     - file
   translations:
     - language: de-DE
-      translation: Logo
+      translation: Logo (helles Design)
+    - language: en-GB
+      translation: Logo (light theme)
+    - language: it-IT
+      translation: Logo (tema chiaro)
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: logo
   table: organisations

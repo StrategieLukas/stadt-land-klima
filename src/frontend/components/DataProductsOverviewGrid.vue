@@ -11,7 +11,7 @@
       <p class="text-xs text-gray-500">{{ collections.length }} Produkte</p>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
+    <DataProductMatrix :count="collections.length">
       <DataProductsOverviewGridCard
         v-for="collection in collections"
         :key="collection.id"
@@ -22,7 +22,7 @@
         @select="$emit('select', collection.id)"
       />
       <DataProductsComingSoonTile :collection-count="collections.length" :area-name="areaName" />
-    </div>
+    </DataProductMatrix>
   </section>
 </template>
 

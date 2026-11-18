@@ -90,18 +90,20 @@ function verifyInheritedAppArmor(): boolean {
   }
   throw new PodmanSecurityError("The inherited AppArmor policy did not deny its writable canary");
 }
-export function assertPodmanHost(value: unknown, inheritedAppArmor = false): string {
+export function assertPodmanHost(value: unknown, inheritedAppArmor = false, unsafeSkipVersionCheck = false): string {
   const info = record(value);
   const host = record(info.host);
   const security = record(host.security);
-  const version = record(info.version).Version;
-  const parsedVersion = typeof version === "string" ? /^(\d+)\.(\d+)\./.exec(version) : null;
-  if (
-    !parsedVersion ||
-    Number(parsedVersion[1]) < 5 ||
-    (Number(parsedVersion[1]) === 5 && Number(parsedVersion[2]) < 4)
-  )
-    throw new PodmanSecurityError("Podman 5.4 or newer is required; install a supported security-patched release");
+  if (!unsafeSkipVersionCheck) {
+    const version = record(info.version).Version;
+    const parsedVersion = typeof version === "string" ? /^(\d+)\.(\d+)\./.exec(version) : null;
+    if (
+      !parsedVersion ||
+      Number(parsedVersion[1]) < 5 ||
+      (Number(parsedVersion[1]) === 5 && Number(parsedVersion[2]) < 4)
+    )
+      throw new PodmanSecurityError("Podman 5.4 or newer is required; install a supported security-patched release");
+  }
   if (host.arch !== "amd64") throw new PodmanSecurityError("The existing Typst image build supports Linux x86_64 only");
   if (security.rootless !== true) throw new PodmanSecurityError("Rootless Podman is required; do not use sudo");
   if (security.seccompEnabled !== true) throw new PodmanSecurityError("Podman must have seccomp enabled");
@@ -244,11 +246,19 @@ export function assertPodmanContainer(value: unknown, service: PodmanService, ex
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     if (process.argv[2] === "host") {
+      const unsafeSkipVersionCheck = process.argv[4] === "--unsafe-skip-podman-version-check";
+      if (unsafeSkipVersionCheck && process.argv[3] !== "development")
+        throw new PodmanSecurityError("--unsafe-skip-podman-version-check is only allowed with --env development");
+      if (unsafeSkipVersionCheck)
+        process.stderr.write(
+          "UNSAFE development: skipping the Podman version check; compatibility and security patches are not verified.\n",
+        );
       if (process.getuid?.() === 0) throw new PodmanSecurityError("Run Podman as the deployment user, without sudo");
       const info: unknown = JSON.parse(
         execFileSync("podman", ["--remote=false", "info", "--format", "json"], {
           encoding: "utf8",
           maxBuffer: 4 * 1024 * 1024,
+          stdio: ["ignore", "pipe", "ignore"],
         }),
       );
       const inherited = verifyInheritedAppArmor();
@@ -256,7 +266,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
         process.argv[3] === "development" &&
         existsSync("/sys/module/apparmor/parameters/enabled") &&
         readFileSync("/sys/module/apparmor/parameters/enabled", "utf8").trim() === "Y";
-      const profile = assertPodmanHost(info, inherited || developmentAppArmorHost);
+      const profile = assertPodmanHost(info, inherited || developmentAppArmorHost, unsafeSkipVersionCheck);
       const security = record(record(record(info).host).security);
       if (
         developmentAppArmorHost &&
@@ -300,13 +310,19 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     } else if (process.argv[2] === "environment") {
       const uid = process.getuid?.();
       if (uid === undefined) throw new PodmanSecurityError("Linux filesystem ownership is required");
-      for (const path of [
-        process.env.SLK_PODMAN_DB_ENV_FILE || "podman/database/.env",
-        process.env.SLK_PODMAN_MEILI_ENV_FILE || "podman/meilisearch/.env",
-        process.env.SLK_PODMAN_DIRECTUS_ENV_FILE || "src/directus/.env",
-        process.env.SLK_PODMAN_FRONTEND_ENV_FILE || "src/frontend/.env",
-      ])
-        assertPrivatePodmanFile(lstatSync(path), uid);
+      for (const [service, path] of [
+        ["Database", process.env.SLK_PODMAN_DB_ENV_FILE || "podman/database/.env"],
+        ["Meilisearch", process.env.SLK_PODMAN_MEILI_ENV_FILE || "podman/meilisearch/.env"],
+        ["Directus", process.env.SLK_PODMAN_DIRECTUS_ENV_FILE || "src/directus/.env"],
+        ["Frontend", process.env.SLK_PODMAN_FRONTEND_ENV_FILE || "src/frontend/.env"],
+      ] as const) {
+        try {
+          assertPrivatePodmanFile(lstatSync(path), uid);
+        } catch (error) {
+          const reason = error instanceof PodmanSecurityError ? error.message : "missing or unreadable; see PODMAN.md";
+          throw new PodmanSecurityError(`${service} environment file: ${reason}`);
+        }
+      }
     } else if (process.argv[2] === "container") {
       const service = podmanServices.find((item) => item === process.argv[3]);
       if (!service) throw new PodmanSecurityError("Unknown Podman service");

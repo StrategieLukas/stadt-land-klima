@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="mx-auto w-full max-w-5xl min-w-0 px-4 py-4 sm:px-6 sm:py-8 lg:px-8"
-    :style="`--section-scroll-mt: ${headerHeight + 16}px`"
-  >
+  <div class="mx-auto w-full max-w-5xl min-w-0 py-4 sm:py-8" :style="`--section-scroll-mt: ${headerHeight + 16}px`">
     <!-- Back link with chevron + sibling navigation -->
     <div class="flex flex-wrap items-center gap-2">
       <NuxtLink :to="measureIndexLocation" class="inline-flex items-center gap-1 font-heading text-h4 text-light-blue">
@@ -63,7 +60,7 @@
     <!-- Mobile section pills – sticky bar matching events/news page design -->
     <nav
       v-if="measure && navItems.length"
-      class="sticky z-10 -mx-4 mt-4 mb-4 border-b border-gray-100 bg-white/90 px-4 backdrop-blur-xs xl:hidden"
+      class="sticky z-10 mt-4 mb-4 border-b border-gray-100 bg-white/90 backdrop-blur-xs xl:hidden"
       :style="`top: ${pillTop}px`"
     >
       <div
@@ -176,12 +173,12 @@
             <div>
               <h2 class="mb-4 font-heading text-h3 font-bold text-gray">{{ $t("measure.feedback.title") }}</h2>
               <p class="mb-3 text-sm text-gray-500">{{ $t("measure.feedback.description") }}</p>
-              <NuxtLink
-                :to="feedbackLocation"
-                class="inline-flex items-center gap-2 rounded-sm bg-light-blue px-4 py-2 text-sm font-bold text-white transition hover:brightness-110"
-              >
-                {{ $t("feedback.give_external") }}
-              </NuxtLink>
+              <CanonicalButton
+                :href="router.resolve(feedbackLocation).href"
+                :label="$t('feedback.give_external')"
+                color="blue"
+                icon-slug="mdi:message-text-outline"
+              />
             </div>
           </div>
         </div>

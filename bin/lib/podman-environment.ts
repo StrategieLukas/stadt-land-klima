@@ -1,7 +1,7 @@
 /** Read-only runtime mounts: provider arguments contain paths, never dotenv values. */
 import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import dotenv from "dotenv";
-import { translationDeploymentTarget } from "../../src/frontend/shared/runtimeEnvironment.ts";
+import { translationDeploymentTarget } from "../../src/frontend/shared/runtimeEnvironment.mts";
 import { randomUUID } from "node:crypto";
 import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,6 +31,12 @@ export const managedPodmanProductionEnvironment = {
   directus: ["SLK_ENV", "SLK_STARTUP_SECURITY_CHECKS", "WEBSOCKETS_ENABLED", "MCP_ENABLED", "IMPORT_IP_DENY_LIST"],
   frontend: ["SLK_ENV", "NODE_ENV", "TRUST_PROXY"],
 };
+export const managedPodmanDevelopmentEnvironment = {
+  db: [],
+  meilisearch: [],
+  directus: ["SLK_ENV", "CONFIG_PATH", "EMAIL_TRANSPORT", "EMAIL_SENDMAIL_PATH"],
+  frontend: ["SLK_ENV"],
+};
 
 export function podmanEnvironmentPlan(
   paths: Record<"db" | "meilisearch" | "directus" | "frontend", string>,
@@ -43,11 +49,7 @@ export function podmanEnvironmentPlan(
     const files = inputs.map((input) => `/run/slk-env/${input}.env`);
     const locked = [
       ...managedPodmanEnvironment[service],
-      ...(production
-        ? managedPodmanProductionEnvironment[service]
-        : service === "directus" || service === "frontend"
-          ? ["SLK_ENV"]
-          : []),
+      ...(production ? managedPodmanProductionEnvironment[service] : managedPodmanDevelopmentEnvironment[service]),
     ];
     services[service] = {
       volumes: [

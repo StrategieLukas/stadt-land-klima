@@ -22,7 +22,7 @@ export function useDataRouteFeedback() {
   if (import.meta.client && !installed.value) {
     installed.value = true;
     router.beforeEach((to, from) => {
-      if (to.fullPath !== from.fullPath && to.path.startsWith("/data")) {
+      if (to.path !== from.path && to.path.startsWith("/data")) {
         isLoading.value = true;
         label.value = $t("data.route_loading");
       }

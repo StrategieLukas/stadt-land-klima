@@ -1,27 +1,27 @@
 <template>
-  <div class="elections-flow min-h-screen bg-mild-white px-4 py-12 sm:px-6 lg:px-8">
+  <div class="elections-flow min-h-screen bg-(--slk-page) py-8 text-(--slk-text)">
     <div class="mx-auto max-w-3xl">
       <!-- Header -->
-      <div v-if="!submitted" class="mb-12 text-center">
+      <header v-if="!submitted" class="mb-8">
         <ElectionsWahlCheckLogo
           v-if="candidate?.election?.custom_logo"
           :logo="candidate.election.custom_logo"
           fallback="none"
           :alt="$t('logo.alt')"
-          logo-class="mx-auto mb-6 h-20 max-w-full object-contain"
+          logo-class="mb-6 h-20 max-w-full object-contain"
         />
-        <h1 class="mb-4 text-h1 font-bold text-black">
+        <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">
           {{ $t("elections.theses.title") }}
         </h1>
-        <p v-if="localteam" class="mb-2 text-lg text-mid-gray">
+        <p v-if="localteam" class="mb-2 max-w-3xl text-lg leading-relaxed text-gray">
           {{ $t("localteam.singular") }}: <span class="font-semibold text-stats-dark">{{ localteam.name }}</span>
         </p>
-        <p v-if="candidate" class="flex items-center justify-center gap-2 text-lg text-mid-gray">
+        <p v-if="candidate" class="flex flex-wrap items-center gap-2 text-lg leading-relaxed text-gray">
           {{ $t(isPartyElection ? "elections.party" : "elections.candidate") }}:
           <span v-if="!isPartyElection" class="font-semibold text-stats-dark">{{ candidate.name }}</span>
           <CandidatePartyLabel :party="candidate.party" :state="candidateState" />
         </p>
-      </div>
+      </header>
 
       <!-- Loading State -->
       <div v-if="pending" class="flex items-center justify-center py-20">
@@ -31,7 +31,7 @@
       <!-- Error State -->
       <div
         v-else-if="error || !localteam || !candidate"
-        class="rounded-lg border border-red bg-solid-red-10 p-6 text-center text-red"
+        class="border border-red bg-solid-red-10 p-6 text-center text-red"
       >
         <p class="mb-2 text-xl font-bold">{{ $t("generic.loading_error") }}</p>
         <p>{{ $t("elections.theses.loading_error.description") }}</p>
@@ -40,7 +40,7 @@
       <!-- Success State -->
       <div
         v-else-if="submitted"
-        class="my-12 rounded-2xl border border-rating-4 bg-rating-4-very-light p-10 text-center text-rating-4 shadow-lg"
+        class="my-12 border border-rating-4 bg-rating-4-very-light p-6 text-center text-rating-4 sm:p-8"
       >
         <ElectionsWahlCheckLogo
           v-if="candidate?.election?.custom_logo"
@@ -73,7 +73,7 @@
       <div v-else-if="questions && questions.length > 0" class="space-y-8">
         <div
           v-if="isPastCutoff"
-          class="mb-8 rounded-lg border border-orange bg-solid-orange-10 p-6 text-center font-bold text-orange-700"
+          class="mb-8 border border-orange bg-solid-orange-10 p-6 text-center font-bold text-orange-700"
         >
           {{
             $t("elections.theses.cutoff_reached", {
@@ -85,7 +85,7 @@
         <div
           v-for="(question, index) in questions"
           :key="question.id"
-          class="rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list"
+          class="border border-(--slk-border) bg-(--slk-surface) p-4 sm:p-6"
         >
           <div class="mb-6 flex items-start">
             <span
@@ -93,9 +93,9 @@
             >
               {{ Number(index) + 1 }}
             </span>
-            <h3 class="pt-1 text-h3 leading-tight font-semibold text-black">
+            <h2 class="min-w-0 pt-1 text-xl leading-snug font-bold break-words text-(--slk-text-strong)">
               {{ question.title || question.thesis }}
-            </h3>
+            </h2>
           </div>
 
           <ElectionsQuestionBackgroundInfo
@@ -106,7 +106,7 @@
 
           <div
             v-if="question.title && question.thesis"
-            class="mb-6 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4 text-lg text-gray sm:ml-12"
+            class="mb-6 border-t border-(--slk-border) pt-4 text-lg text-gray sm:ml-12"
           >
             {{ question.thesis }}
           </div>
@@ -167,20 +167,20 @@
         <div v-if="!isPastCutoff" class="flex flex-col items-center pt-8">
           <button
             :disabled="!isFormComplete || submitting"
-            class="btn rounded-full px-12 font-bold text-white shadow-lg transition-all btn-lg btn-primary hover:scale-105 disabled:opacity-50"
+            class="btn rounded-full px-12 font-bold text-white btn-lg btn-primary disabled:opacity-50"
             @click="submitAnswers"
           >
             <span v-if="submitting" class="loading loading-spinner"></span>
             {{ $t("generic.confirm") }}
           </button>
-          <p v-if="!isFormComplete" class="mt-4 animate-pulse font-medium text-orange">
+          <p v-if="!isFormComplete" class="mt-4 font-medium text-orange">
             {{ $t("elections.theses.answer_all", { ":count": questions.length }) }}
           </p>
         </div>
       </div>
 
       <!-- No Questions State -->
-      <div v-else class="rounded-2xl bg-white p-12 text-center shadow-list">
+      <div v-else class="border border-(--slk-border) bg-(--slk-surface) p-6 text-center sm:p-8">
         <p class="text-xl text-mid-gray">{{ $t("elections.theses.no_published") }}</p>
       </div>
     </div>

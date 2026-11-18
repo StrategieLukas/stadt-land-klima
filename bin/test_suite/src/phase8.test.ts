@@ -174,6 +174,8 @@ test("StadtLandZahl proxy forwards Node request bytes while replacing credential
   });
   const module = { exports: {} as { default: (event: unknown) => Promise<Response> } };
   const requests: { url: string; init: RequestInit }[] = [];
+  const limitKeys: string[] = [];
+  let denyOverview = false;
   runInNewContext(compiled.outputText, {
     module,
     exports: module.exports,
@@ -186,7 +188,12 @@ test("StadtLandZahl proxy forwards Node request bytes while replacing credential
       const logging = loggingModule(id);
       if (logging) return logging;
       assert.equal(id, "../../utils/rateLimit");
-      return { rateLimit: async () => true };
+      return {
+        rateLimit: async (_event: unknown, key: string) => {
+          limitKeys.push(key);
+          return !denyOverview || key === "stadtlandzahl";
+        },
+      };
     },
     createError: (options: object) => Object.assign(new Error("Rejected proxy request"), options),
     defineEventHandler: (handler: unknown) => handler,
@@ -197,6 +204,10 @@ test("StadtLandZahl proxy forwards Node request bytes while replacing credential
     rewriteStadtlandzahlPayload: (value: unknown) => value,
     fetch: async (url: URL, init: RequestInit) => {
       requests.push({ url: String(url), init });
+      if (url.pathname.endsWith(".pbf"))
+        return new Response(new Uint8Array([0, 255, 1]), {
+          headers: { "content-type": "application/vnd.mapbox-vector-tile" },
+        });
       return new Response(JSON.stringify({ results: [{ id: "ok" }] }), {
         headers: {
           "content-type": "application/json",
@@ -236,4 +247,37 @@ test("StadtLandZahl proxy forwards Node request bytes while replacing credential
   assert.equal(response.headers.get("set-cookie"), null);
   assert.equal(response.headers.get("location"), "/api/stadtlandzahl/next");
   assert.deepEqual(await response.json(), { results: [{ id: "ok" }] });
+  for (const [path, key] of [
+    ["overview", "municipality-overview"],
+    ["overview/regions/", "municipality-overview-regions"],
+    ["overview/municipalities", "municipality-overview-members"],
+    ["%6fverview/municipalities/?q=Berlin", "municipality-overview-search"],
+  ]) {
+    limitKeys.length = 0;
+    await module.exports.default({
+      method: "GET",
+      node: { req: { headers: {} } },
+      path: `/api/stadtlandzahl/api/collections/wind-turbines/${path}`,
+    });
+    assert.deepEqual(limitKeys, ["stadtlandzahl", key]);
+  }
+  limitKeys.length = 0;
+  const tile = await module.exports.default({
+    method: "GET",
+    node: { req: { headers: {} } },
+    path: "/api/stadtlandzahl/api/collections/wind-turbines/overview/tiles/3/4/2.pbf?snapshot=fixture",
+  });
+  assert.deepEqual(limitKeys, ["stadtlandzahl"]);
+  assert.deepEqual([...new Uint8Array(await tile.arrayBuffer())], [0, 255, 1]);
+  denyOverview = true;
+  const beforeDenied = requests.length;
+  await assert.rejects(
+    module.exports.default({
+      method: "GET",
+      node: { req: { headers: {} } },
+      path: "/api/stadtlandzahl/api/collections/wind-turbines/%6fverview",
+    }),
+    { statusCode: 429 },
+  );
+  assert.equal(requests.length, beforeDenied);
 });

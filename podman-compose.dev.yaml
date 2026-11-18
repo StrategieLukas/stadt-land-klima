@@ -5,6 +5,17 @@ services:
     ports: ["127.0.0.1:${SLK_PODMAN_CMS_PORT:-8081}:8055"]
     environment:
       SLK_ENV: development
+      EMAIL_TRANSPORT: sendmail
+      EMAIL_SENDMAIL_PATH: /directus/cli/logEmail.ts
+      CONFIG_PATH: /directus/.tmp/development.env
+    # slk-env already loads the canonical private file. Keep Directus from
+    # reparsing it over the development-only mail transport override.
+    entrypoint:
+      - /usr/local/bin/slk-env
+      - /bin/sh
+      - -ec
+      - 'umask 077; : > "$$CONFIG_PATH"; exec "$$@"'
+      - slk-development
   frontend:
     ports: ["127.0.0.1:${SLK_PODMAN_WEB_PORT:-8080}:3000", "127.0.0.1:${SLK_PODMAN_HMR_PORT:-24678}:24678"]
     command: [/bin/sh, /start_dev.sh]

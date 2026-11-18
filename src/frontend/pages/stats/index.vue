@@ -1,5 +1,5 @@
 <template>
-  <main class="stats-page container mx-auto px-4 py-8">
+  <main class="stats-page w-full py-8">
     <header class="mb-10">
       <h1 class="mb-4 font-heading text-4xl font-black text-orange sm:text-6xl">{{ $t("stats.title") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("stats.hero.description") }}</p>
@@ -651,6 +651,7 @@
                     class="ml-2"
                     :label="$t('stats.analysis.start')"
                     color="orange"
+                    icon-slug="mdi:chart-scatter-plot"
                     @click="computeClusteringAndRender"
                   />
                 </div>
@@ -732,7 +733,12 @@
               <span v-html="sanitizeHtml($t('stats.dominance.description_2'))"></span>
             </p>
             <p class="mb-3 text-xs text-gray-400">{{ $t("stats.dominance.filter_note") }}</p>
-            <CanonicalButton :label="$t('stats.analysis.start')" color="orange" @click="computeDominanceAndRender" />
+            <CanonicalButton
+              :label="$t('stats.analysis.start')"
+              color="orange"
+              icon-slug="mdi:chart-bar"
+              @click="computeDominanceAndRender"
+            />
           </div>
 
           <!-- Win rate ranking chart -->

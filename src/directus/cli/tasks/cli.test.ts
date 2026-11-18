@@ -122,6 +122,37 @@ function reset(handler: typeof handle) {
   handle = handler;
 }
 
+test("required folder import creates the YAML folder and preserves an existing folder with the same name", async () => {
+  const expected = { id: "93b050e4-c731-44f9-8b5e-8b7d8e3faea6", name: "public" };
+  const file = yaml("folders.yaml", [expected]);
+  let existing: Record<string, unknown>[] = [];
+  reset((call) => {
+    if (call.path === "/folders" && call.method === "GET") return { data: existing };
+    if (call.path === "/folders" && call.method === "POST") {
+      existing.push(call.body);
+      return { data: call.body };
+    }
+    return { status: 500 };
+  });
+  assert.equal((await command("import:folders", file)).code, 0);
+  assert.deepEqual(existing, [expected]);
+  assert.equal((await command("import:folders", file)).code, 0);
+  assert.equal(requests.filter((call) => call.path === "/folders" && call.method === "POST").length, 1);
+  existing = [{ id: "existing-public-folder", name: "public" }];
+  assert.equal((await command("import:folders", file)).code, 0);
+  assert.equal(requests.filter((call) => call.path === "/folders" && call.method === "POST").length, 1);
+  assert.ok(requests.every((call) => !["PATCH", "DELETE"].includes(call.method)));
+});
+
+test("required folder import refuses to rename an existing private folder with a conflicting ID", async () => {
+  const id = "93b050e4-c731-44f9-8b5e-8b7d8e3faea6";
+  reset((call) => ({ data: call.path === "/folders" ? [{ id, name: "private" }] : [] }));
+  const result = await command("import:folders", yaml("conflicting-folders.yaml", [{ id, name: "public" }]));
+  assert.notEqual(result.code, 0);
+  assert.match(result.output, /refusing to rename/);
+  assert.ok(requests.every((call) => call.method !== "POST" || call.path === "/utils/cache/clear"));
+});
+
 test("homepage migration preserves legacy HTML, existing blocks and editor drafts and is idempotent", async () => {
   let hasBlock = false;
   let drafts: Record<string, unknown>[] = [];
@@ -555,9 +586,11 @@ test("policy creation precedes permission writes and import-all stops on a polic
     "translations",
     "settings",
     "dashboards",
+    "contents",
   ])
     mkdirSync(join(source, name), { recursive: true });
   writeFileSync(join(source, "schema/header.yaml"), stringify({ version: 1, directus: "11.17.4", vendor: "postgres" }));
+  writeFileSync(join(source, "contents/directus_folders.yaml"), "[]\n");
   writeFileSync(
     join(source, "policies/editor.yaml"),
     stringify({

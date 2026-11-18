@@ -1,9 +1,11 @@
+import { isSearchSourceType, readSearchSourceDocs, buildElectionDoc } from "./searchSources";
+import { resolveSearchElection } from "./wahlcheckRoute";
 import { readItems, readUsers } from "@directus/sdk";
 import type { createDirectusServerClient } from "./directusServerClient";
 import { cmsRows } from "./cmsValue";
 import { STATIC_PAGES } from "./extractContent";
 
-type Hit = { id: string | number; type: string; url: string };
+type Hit = { id: string | number; type: string; url: string; requiresPublishedReport?: boolean | undefined };
 
 /** Search is a cache, never an authority for publication or team-member visibility. */
 export async function publicSearchHits<T extends Hit>(
@@ -15,7 +17,23 @@ export async function publicSearchHits<T extends Hit>(
   const rows = async (collection: string, filter: Record<string, unknown>, fields: string[]) =>
     cmsRows(await client.request(readItems(collection, { filter, fields, limit: -1 })));
   await Promise.all(
-    ["page", "event", "article", "news_item", "measure", "member", "block", "static_page"].map(async (type) => {
+    [
+      "page",
+      "event",
+      "article",
+      "news_item",
+      "measure",
+      "member",
+      "block",
+      "static_page",
+      "job",
+      "climate_tool",
+      "event_series",
+      "tour",
+      "tour_stop",
+      "election",
+      "team",
+    ].map(async (type) => {
       const group = hits.filter((hit) => hit.type === type);
       if (!group.length) return;
       if (type === "static_page") {
@@ -25,6 +43,32 @@ export async function publicSearchHits<T extends Hit>(
       }
       const ids = group.map((hit) => String(hit.id).slice(`${type}_`.length));
       if (group.some((hit) => !String(hit.id).startsWith(`${type}_`))) throw new Error("Invalid search identity");
+      if (isSearchSourceType(type)) {
+        const current = await readSearchSourceDocs(client, type, ids);
+        for (const hit of group) {
+          const doc = current.find((doc) => doc.id === hit.id && doc.url === hit.url);
+          if (!doc) continue;
+          if (
+            type === "tour_stop" &&
+            (typeof hit.requiresPublishedReport !== "boolean" ||
+              (hit.requiresPublishedReport && !doc.requiresPublishedReport))
+          )
+            continue;
+          allowed.add(key(hit));
+        }
+        return;
+      }
+      if (type === "election") {
+        for (const hit of group) {
+          const match = /^\/elections\/wahlcheck\/([a-z0-9-]{1,160})$/.exec(hit.url);
+          if (!match?.[1]) continue;
+          const selection = await resolveSearchElection(client, match[1]);
+          if (!selection) continue;
+          const doc = buildElectionDoc(selection);
+          if (doc.id === hit.id && doc.url === hit.url) allowed.add(key(hit));
+        }
+        return;
+      }
       if (type === "member") {
         const members = cmsRows(
           await client.request(
@@ -94,6 +138,7 @@ export async function publicSearchHits<T extends Hit>(
         article: "articles",
         news_item: "news_items",
         measure: "measures",
+        job: "job_offers",
       }[type];
       if (!collection) return;
       const filter =
@@ -104,16 +149,22 @@ export async function publicSearchHits<T extends Hit>(
             }
           : { status: { _eq: "published" } };
       const published = await rows(collection, { ...filter, slug: { _in: ids } }, ["slug", "status"]);
-      const prefix = { page: "", event: "/events", article: "/projects", news_item: "/news", measure: "/measures" }[
-        type
-      ];
+      const prefix = {
+        page: "",
+        event: "/events",
+        article: "/projects",
+        news_item: "/news",
+        measure: "/measures",
+        job: "/jobs",
+      }[type];
       for (const hit of group)
         if (
           published.some(
             (row) =>
               row.status === "published" &&
               `${type}_${String(row.slug)}` === hit.id &&
-              new URL(hit.url, "https://search.invalid").pathname === `${prefix}/${String(row.slug)}`,
+              new URL(hit.url, "https://search.invalid").pathname ===
+                `${prefix}/${type === "job" ? encodeURIComponent(String(row.slug)) : String(row.slug)}`,
           )
         )
           allowed.add(key(hit));

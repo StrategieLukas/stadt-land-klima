@@ -13,7 +13,7 @@
 
     <template v-else>
       <!-- Row 1: KPI + Histogram -->
-      <div v-if="kpiElement || histogramElements.length" class="mb-6 grid grid-cols-2 gap-4">
+      <div v-if="kpiElement || histogramElements.length" class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <!-- KPI card -->
         <div v-if="kpiElement" class="flex flex-col justify-center rounded-xl bg-gray-50 p-4">
           <div class="text-4xl leading-none font-black tabular-nums" :style="{ color: kpiColor }">
@@ -32,28 +32,28 @@
         <template v-if="histogramElements.length">
           <div v-for="hist in histogramElements" :key="hist.plot_id" class="min-h-[180px]">
             <h4 class="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">Verteilung (alle Kommunen)</h4>
-            <ClientOnly>
-              <VegaChart
-                :spec="hist.vegalite_spec"
-                :height="180"
-                :export-area-name="municipalityName"
-                :export-ars="ars"
-                :export-title="localizedStr(hist.title) || 'Verteilung'"
-                :export-subtitle="localizedStr(hist.description) || collectionDescription"
-                :export-collection-name="collectionTitle"
-                :export-updated-at="exportUpdatedAt"
-                :export-attribution="exportAttribution"
-              />
-            </ClientOnly>
+            <CollectionVegaChart
+              :ars="ars"
+              :element="hist"
+              :collection-id="collection.id"
+              :spec="hist.vegalite_spec"
+              :height="180"
+              :export-area-name="municipalityName"
+              :export-ars="ars"
+              :export-title="localizedStr(hist.title) || 'Verteilung'"
+              :export-subtitle="localizedStr(hist.description) || collectionDescription"
+              :export-collection-name="collectionTitle"
+              :export-updated-at="exportUpdatedAt"
+              :export-attribution="exportAttribution"
+            />
           </div>
         </template>
       </div>
 
       <!-- Row 2: Maps -->
       <div v-if="primaryMapLibreElement || combinedMapSpec" class="mb-6 w-full" style="height: 420px">
-        <ClientOnly>
-          <MapLibreRenderElement
-            v-if="primaryMapLibreElement"
+        <ClientOnly v-if="primaryMapLibreElement"
+          ><MapLibreRenderElement
             :element="primaryMapLibreElement"
             :ars="ars"
             :export-area-name="municipalityName"
@@ -63,36 +63,39 @@
             :export-collection-name="collectionTitle"
             :export-updated-at="exportUpdatedAt"
             :export-attribution="exportAttribution"
-          />
-          <VegaChart
-            v-else-if="combinedMapSpec"
-            :spec="combinedMapSpec"
-            :export-area-name="municipalityName"
-            :export-ars="ars"
-            :export-title="localizedStr(vegaMapElements[0]?.title) || collectionTitle"
-            :export-subtitle="localizedStr(vegaMapElements[0]?.description) || collectionDescription"
-            :export-collection-name="collectionTitle"
-            :export-updated-at="exportUpdatedAt"
-            :export-attribution="exportAttribution"
-          />
-        </ClientOnly>
+        /></ClientOnly>
+        <CollectionVegaChart
+          v-else-if="combinedMapSpec"
+          :ars="ars"
+          :element="vegaMapElements[0]"
+          :collection-id="collection.id"
+          :spec="combinedMapSpec"
+          :export-area-name="municipalityName"
+          :export-ars="ars"
+          :export-title="localizedStr(vegaMapElements[0]?.title) || collectionTitle"
+          :export-subtitle="localizedStr(vegaMapElements[0]?.description) || collectionDescription"
+          :export-collection-name="collectionTitle"
+          :export-updated-at="exportUpdatedAt"
+          :export-attribution="exportAttribution"
+        />
       </div>
 
       <!-- Row 3: Time series -->
       <template v-if="timeSeriesElements.length">
         <div v-for="ts in timeSeriesElements" :key="ts.field" class="mb-4 w-full" style="height: 250px">
-          <ClientOnly>
-            <VegaChart
-              :spec="ts.vegalite_spec"
-              :export-area-name="municipalityName"
-              :export-ars="ars"
-              :export-title="localizedStr(ts.title) || collectionTitle"
-              :export-subtitle="localizedStr(ts.description) || collectionDescription"
-              :export-collection-name="collectionTitle"
-              :export-updated-at="exportUpdatedAt"
-              :export-attribution="exportAttribution"
-            />
-          </ClientOnly>
+          <CollectionVegaChart
+            :ars="ars"
+            :element="ts"
+            :collection-id="collection.id"
+            :spec="ts.vegalite_spec"
+            :export-area-name="municipalityName"
+            :export-ars="ars"
+            :export-title="localizedStr(ts.title) || collectionTitle"
+            :export-subtitle="localizedStr(ts.description) || collectionDescription"
+            :export-collection-name="collectionTitle"
+            :export-updated-at="exportUpdatedAt"
+            :export-attribution="exportAttribution"
+          />
         </div>
       </template>
 
@@ -150,11 +153,11 @@ import type { z } from "zod";
 import { SummarySchema, PipelineSchema } from "~/shared/contracts/slz";
 import { cloneVisualization, asRecord } from "~/shared/visualization";
 import type { PropType } from "vue";
-import type { Collection } from "~/types/slz-api";
+import type { Collection, CollectionSummary } from "~/types/slz-api";
 import type { GeoJsonObject } from "geojson";
 import type { Area } from "~/shared/contracts/search";
 
-import { ref, computed, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
 const props = defineProps({
@@ -186,6 +189,7 @@ const props = defineProps({
     type: String as PropType<string | undefined>,
     default: "",
   },
+  initialSummary: { type: Object as PropType<CollectionSummary | null | undefined>, default: undefined },
   // Legacy props kept for compatibility with existing call sites
   areaBoundary: { type: Object as PropType<GeoJsonObject | null | undefined>, default: null },
   nearbyAreas: { type: Array as PropType<Area[] | undefined>, default: () => [] },
@@ -324,6 +328,10 @@ const kpiColor = computed(() => {
 
 // Fetch
 async function loadData() {
+  if (props.initialSummary !== undefined) {
+    summary.value = props.initialSummary ? SummarySchema.parse(props.initialSummary) : null;
+    return;
+  }
   if (!props.collection?.id || !props.ars) return;
   loading.value = true;
   error.value = false;
@@ -365,6 +373,17 @@ watch(
   () => props.ars,
   () => loadData(),
 );
+
+onMounted(async () => {
+  if (props.initialSummary === undefined) return;
+  try {
+    pipeline.value = PipelineSchema.parse(
+      await $fetch(`${props.baseUrl}/api/collections/${props.collection.id}/pipeline/`, { timeout: 8000, retry: 0 }),
+    );
+  } catch {
+    // Optional pipeline details do not block the product view.
+  }
+});
 
 // Formatting
 function formatDate(iso: string | undefined) {

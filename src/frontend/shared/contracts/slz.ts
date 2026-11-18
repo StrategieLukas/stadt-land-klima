@@ -55,6 +55,17 @@ export const RenderElementSchema = z
     thresholds: z.record(z.string(), z.number()).optional(),
     src_url: z.string().optional(),
     image_field: z.string().optional(),
+    data_url: z.string().optional(),
+    interactions: z
+      .object({
+        reveal_municipalities: z
+          .object({
+            metric_id: z.string().min(1).max(160),
+            selection: z.literal("whole_bin"),
+          })
+          .optional(),
+      })
+      .optional(),
   })
   .loose();
 export const NarrativeStepSchema = z.object({
@@ -102,6 +113,12 @@ export const CollectionSchema = z
     title: labels,
     description: labels,
     sector: z.string().nullable().default(null),
+    municipality_overview: z
+      .object({
+        contract_version: z.literal(1),
+        default_metric_id: z.string().min(1).max(160),
+      })
+      .nullish(),
     render_elements: z.array(RenderElementSchema).optional(),
     narrative_steps: z.array(NarrativeStepSchema).optional(),
     narrativeSteps: z.array(NarrativeStepSchema).optional(),
@@ -161,11 +178,11 @@ export const SummarySchema = z
         value: z.number().optional(),
         metadata: z
           .object({
-            attribution: z.string().optional(),
-            attribution_url: z.string().optional(),
-            license_name: z.string().optional(),
-            license_url: z.string().optional(),
-            effective_date: z.string().optional(),
+            attribution: z.string().nullable().optional(),
+            attribution_url: z.string().nullable().optional(),
+            license_name: z.string().nullable().optional(),
+            license_url: z.string().nullable().optional(),
+            effective_date: z.string().nullable().optional(),
           })
           .optional(),
       })

@@ -142,6 +142,11 @@ defineExpose({ open, close });
 </script>
 <style scoped>
 .tour-media-viewer {
+  position: fixed;
+  inset: 0;
+  /* The root reserves a scrollbar gutter; center against the full visible viewport. */
+  inset-inline-start: calc(100vw - 100%);
+  margin: auto;
   width: min(70rem, 96vw);
   height: min(52rem, 94svh);
   max-height: 94svh;

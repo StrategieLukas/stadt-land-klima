@@ -1,0 +1,3 @@
+language: en-GB
+key: data.dashboard.snapshot_updated
+value: "The data has changed. The view was refreshed and the selection cleared."

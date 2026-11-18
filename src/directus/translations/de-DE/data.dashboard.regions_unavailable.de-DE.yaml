@@ -1,0 +1,3 @@
+language: de-DE
+key: data.dashboard.regions_unavailable
+value: "Die Gebietsfilter konnten nicht geladen werden."

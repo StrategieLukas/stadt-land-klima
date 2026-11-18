@@ -1,4 +1,5 @@
-import { cmsRecord, cmsString, cmsRows } from "~/server/utils/cmsValue";
+import { resolvePublicWahlcheckRoute, type PublicWahlcheckElection } from "../../../utils/wahlcheckRoute";
+import { cmsString, cmsRows } from "~/server/utils/cmsValue";
 
 import { WahlcheckSchema } from "~/shared/contracts/elections";
 import { parseCms } from "~/server/utils/parseCms";
@@ -19,29 +20,8 @@ const answerPublicFields = ["response", "explanation"];
 async function buildWahlcheckResponse(
   client: ReturnType<typeof createDirectusServerClient>,
   municipality: { slug: string; name: string },
-  localteamId: string,
+  election: PublicWahlcheckElection,
 ) {
-  // Find most recent public election for this localteam
-  const elections = await client
-    .request(
-      readItems("elections", {
-        filter: {
-          localteam: { _eq: localteamId },
-          is_public: { _eq: true },
-        },
-        fields: ["id", "is_party_election", "simple_answer_mode", "descriptor", "custom_logo", "response_cutoff_date"],
-        sort: ["-date_created"],
-        limit: 1,
-      }),
-    )
-    .then(cmsRows);
-
-  if (!elections || elections.length === 0) {
-    throw createError({ statusCode: 404, statusMessage: "No public election found" });
-  }
-
-  const election = elections[0]!;
-
   // Load questions
   const questions = await client
     .request(
@@ -134,57 +114,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Not found" });
   }
 
-  let localteamId: string | undefined;
-
-  // Find municipality by slug
-  const municipalities = await client
-    .request(
-      readItems("municipalities", {
-        filter: { slug: { _eq: municipalitySlug } },
-        fields: ["id", "name", "slug", "localteam_id.id"],
-        limit: 1,
-      }),
-    )
-    .then(cmsRows);
-
-  // If no municipality found, try to find by localteam slug
-  if (!municipalities || municipalities.length === 0) {
-    const localteams = await client
-      .request(
-        readItems("localteams", {
-          filter: { slug: { _eq: municipalitySlug } },
-          fields: ["id", "name", "municipality_name"],
-          limit: 1,
-        }),
-      )
-      .then(cmsRows);
-
-    if (localteams && localteams.length > 0) {
-      localteamId = cmsString(localteams[0]!.id);
-      // Return a synthetic municipality object for the response
-      const m = localteams[0]!;
-      const municipality = { slug: municipalitySlug, name: m.municipality_name || m.name };
-      return await buildWahlcheckResponse(
-        client,
-        { slug: cmsString(municipality.slug), name: cmsString(municipality.name) },
-        localteamId,
-      );
-    } else {
-      throw createError({ statusCode: 404, statusMessage: "Not found" });
-    }
-  }
-
-  const municipality = municipalities[0]!;
-  const teamId = cmsRecord(municipality.localteam_id ?? {}).id;
-  localteamId = teamId === undefined ? undefined : cmsString(teamId);
-
-  if (!localteamId) {
-    throw createError({ statusCode: 404, statusMessage: "No local team found" });
-  }
-
-  return await buildWahlcheckResponse(
-    client,
-    { slug: cmsString(municipality.slug), name: cmsString(municipality.name) },
-    localteamId,
-  );
+  const { municipality, election } = await resolvePublicWahlcheckRoute(client, municipalitySlug);
+  return await buildWahlcheckResponse(client, municipality, election);
 });

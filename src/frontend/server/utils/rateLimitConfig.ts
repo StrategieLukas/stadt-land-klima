@@ -70,6 +70,11 @@ export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
   "content-search": { max: 120, windowSeconds: 60 },
   /** Stadt-Land-Zahl proxy (upstream API call) */
   stadtlandzahl: { max: 300, windowSeconds: 60 },
+  "municipality-overview": { max: 10, windowSeconds: 60 },
+  "region-municipalities": { max: 10, windowSeconds: 60 },
+  "municipality-overview-regions": { max: 10, windowSeconds: 60 },
+  "municipality-overview-members": { max: 10, windowSeconds: 60 },
+  "municipality-overview-search": { max: 10, windowSeconds: 60 },
   /** ALTCHA CAPTCHA challenge generation */
   "math-challenge": { max: 60, windowSeconds: 60 },
   "csp-report": { max: 60, windowSeconds: 60 },

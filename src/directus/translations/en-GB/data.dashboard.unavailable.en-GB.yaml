@@ -1,0 +1,3 @@
+language: en-GB
+key: data.dashboard.unavailable
+value: "The comparison is currently unavailable. You can still open a municipality’s data."

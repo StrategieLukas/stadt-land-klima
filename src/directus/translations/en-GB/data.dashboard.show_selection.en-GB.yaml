@@ -1,0 +1,3 @@
+language: en-GB
+key: data.dashboard.show_selection
+value: "Show :count selected municipalities"

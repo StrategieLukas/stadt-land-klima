@@ -1,0 +1,3 @@
+language: it-IT
+key: data.dashboard.search_placeholder
+value: "Inserisci il nome di un comune…"

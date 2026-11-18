@@ -1,4 +1,5 @@
 import type { RouteLocationRaw } from "vue-router";
+import type { SearchAreaKind } from "~/shared/areaSearchPresentation";
 import type { AreaCta } from "~/shared/contracts/search";
 export interface NavigationItem {
   id: string | number;
@@ -6,6 +7,7 @@ export interface NavigationItem {
   name?: string | null | undefined;
   title?: string | null | undefined;
   description?: string | null | undefined;
+  dropdown_layout?: "preview" | "cards" | "list" | undefined;
   translation_key?: string | null | undefined;
   link_type?: "page" | "external" | "none" | undefined;
   page_slug?: string | null | undefined;
@@ -34,6 +36,7 @@ export interface AreaResult {
   population?: number | string | null | undefined;
   stateLabel?: string | null | undefined;
   typeLabel?: string | null | undefined;
+  areaKind?: SearchAreaKind | undefined;
   ctaType?: AreaCta | undefined;
   scoreDisplay?: string | null | undefined;
   scoreTotalColorClass?: string | null | undefined;

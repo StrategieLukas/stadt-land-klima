@@ -2,10 +2,14 @@
   <button
     ref="cardRef"
     type="button"
-    class="group flex h-[250px] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-left shadow-xs transition-all hover:border-stats-dark hover:shadow-list focus:outline-hidden focus-visible:ring-2 focus-visible:ring-stats-dark xl:h-[260px]"
-    :aria-expanded="showKpi ? undefined : expanded"
-    :aria-controls="!showKpi && expanded ? 'data-collection-detail' : undefined"
-    :class="{ 'ring-2 ring-stats-dark': expanded }"
+    class="group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-left shadow-xs transition-all hover:border-stats-dark hover:shadow-list focus:outline-hidden focus-visible:ring-2 focus-visible:ring-stats-dark"
+    :aria-pressed="compact ? expanded : undefined"
+    :aria-expanded="showKpi || compact ? undefined : expanded"
+    :aria-controls="compact ? 'data-explorer' : !showKpi && expanded ? 'data-collection-detail' : undefined"
+    :class="[
+      { 'ring-2 ring-stats-dark': expanded && !compact, 'data-product-picker-selected': expanded && compact },
+      compact ? 'h-[104px]' : 'h-[250px] xl:h-[260px]',
+    ]"
     @click="$emit('select')"
   >
     <div class="relative min-h-0 flex-1 overflow-hidden bg-gray-100">
@@ -103,8 +107,9 @@ const props = withDefaults(
     population?: number | null | undefined;
     showKpi?: boolean | undefined;
     expanded?: boolean | undefined;
+    compact?: boolean | undefined;
   }>(),
-  { showKpi: true, expanded: false },
+  { showKpi: true, expanded: false, compact: false },
 );
 
 defineEmits<{
@@ -238,3 +243,16 @@ onMounted(() => {
 
 onBeforeUnmount(() => observer?.disconnect());
 </script>
+
+<style scoped>
+.data-product-picker-selected {
+  border-color: var(--slk-blue);
+  box-shadow:
+    0 0 0 2px var(--slk-surface),
+    0 0 0 6px var(--slk-blue);
+}
+.data-product-picker-selected:focus-visible {
+  outline: 2px solid var(--slk-text);
+  outline-offset: 8px;
+}
+</style>

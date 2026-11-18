@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Introduction -->
-    <div class="rounded-xl border border-solid-gray-10 bg-white p-4 text-center shadow-list sm:p-8">
+    <div class="mb-8 text-center">
       <div class="mb-6">
         <ElectionsWahlCheckLogo
           :logo="election?.custom_logo"
@@ -11,10 +11,10 @@
           fallback-class="mx-auto h-auto w-full max-w-lg object-contain"
         />
       </div>
-      <h2 class="mb-4 text-xl font-bold text-stats-dark sm:text-2xl">
+      <h2 class="mb-4 font-heading text-2xl font-bold text-stats-dark">
         {{ $t("elections.wahlcheck.questions.title") }}
       </h2>
-      <p class="mx-auto max-w-2xl text-sm text-mid-gray sm:text-base">
+      <p class="mx-auto max-w-3xl text-base leading-relaxed text-(--slk-text-muted)">
         {{
           $t(
             isPartyElection
@@ -26,7 +26,7 @@
       <p v-if="localteam" class="mt-4 text-sm text-mid-gray">
         <strong>{{ $t("localteam.singular") }}:</strong> {{ localteam.municipality_name || localteam.name }}
       </p>
-      <p class="mt-2 text-xs text-solid-gray-50">
+      <p class="mt-2 text-xs text-(--slk-text-muted)">
         {{ $t("elections.wahlcheck.questions.skip_hint") }}
       </p>
     </div>
@@ -37,7 +37,7 @@
         <Transition :name="transitionDirection">
           <div
             :key="currentQuestion.id"
-            class="h-fit w-full self-start rounded-xl border-2 border-ff-green bg-white p-4 shadow-list transition-all sm:p-6"
+            class="h-fit w-full self-start border border-(--slk-border) bg-(--slk-surface) p-4 sm:p-6"
           >
             <div class="mb-4 flex items-start gap-3 sm:gap-4">
               <span
@@ -56,7 +56,7 @@
                 />
                 <p
                   v-if="currentQuestion.thesis"
-                  class="mt-4 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-3 text-base wrap-break-word hyphens-auto text-gray sm:p-4 sm:text-lg"
+                  class="mt-4 border-t border-(--slk-border) pt-4 text-base wrap-break-word hyphens-auto text-gray sm:text-lg"
                 >
                   {{ currentQuestion.thesis }}
                 </p>
@@ -71,7 +71,7 @@
               >
                 <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
                   <label
-                    class="option-btn relative flex cursor-pointer items-center justify-center rounded-full p-1 transition-transform focus-within:outline-hidden"
+                    class="option-btn relative flex cursor-pointer items-center justify-center rounded-full p-1 transition-transform"
                     :class="{ 'sparkle-active': sparklingOption === option.value }"
                     :style="{ '--sparkle-rgb': option.sparkleRgb }"
                   >
@@ -79,6 +79,7 @@
                       type="radio"
                       :name="'question-' + currentQuestion.id"
                       :value="option.value"
+                      :aria-label="option.label"
                       :checked="userAnswers[currentQuestion.id] === option.value"
                       class="absolute inset-0 z-10 h-8 w-8 cursor-pointer opacity-0 sm:h-10 sm:w-10"
                       @click="selectOption(currentQuestion.id, option.value)"
@@ -97,10 +98,14 @@
                 </div>
               </div>
               <div
-                class="grid gap-1 text-center text-[9px] font-medium tracking-wider text-mid-gray uppercase xs:text-[10px] sm:text-xs"
+                class="grid gap-1 text-center text-[10px] font-medium text-mid-gray sm:text-xs"
                 :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
               >
-                <div v-for="option in ratingOptions" :key="option.value" class="leading-tight">
+                <div
+                  v-for="option in ratingOptions"
+                  :key="option.value"
+                  class="min-w-0 leading-tight wrap-anywhere hyphens-auto"
+                >
                   {{ option.label }}
                 </div>
               </div>
@@ -135,27 +140,32 @@
           }}
         </div>
         <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
-          <button
-            type="button"
+          <CanonicalButton
+            data-testid="wahlcheck-questions-prev"
             :disabled="currentQuestionIndex === 0"
-            class="btn flex-1 rounded-full btn-outline px-4 py-2 font-semibold btn-secondary sm:flex-initial sm:px-6"
-            :class="{ 'cursor-not-allowed opacity-50': currentQuestionIndex === 0 }"
+            class="flex-1 sm:flex-initial"
+            :label="$t('generic.back')"
+            icon-slug="mdi:arrow-left"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             @click="handlePrevQuestion"
-          >
-            {{ $t("generic.back") }}
-          </button>
-          <button
-            type="button"
+          />
+          <CanonicalButton
+            data-testid="wahlcheck-questions-next"
             :disabled="!canProceedToNext"
-            class="btn flex-1 rounded-full px-4 py-2 font-semibold whitespace-nowrap text-white btn-primary sm:flex-initial sm:px-8"
-            :class="{ 'cursor-not-allowed opacity-50': !canProceedToNext }"
+            class="flex-1 sm:flex-initial"
+            :label="
+              $t(
+                currentQuestionIndex === props.questions.length - 1
+                  ? 'elections.wahlcheck.questions.to_weighting'
+                  : 'elections.wahlcheck.questions.next',
+              )
+            "
+            icon-slug="mdi:arrow-right"
+            :color="isLocalzero ? 'yellow' : 'bright-green'"
+            text-color="black"
             @click="handleNextQuestion"
-          >
-            <span v-if="currentQuestionIndex === props.questions.length - 1">{{
-              $t("elections.wahlcheck.questions.to_weighting")
-            }}</span>
-            <span v-else>{{ $t("elections.wahlcheck.questions.next") }}</span>
-          </button>
+          />
         </div>
       </div>
 
@@ -215,6 +225,7 @@ const props = defineProps({
 const emit = defineEmits<{ next: [answers: UserAnswers]; prev: [] }>();
 
 const { $t } = useNuxtApp();
+const { isLocalzero } = useWahlcheckTheme();
 
 const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(props.election));
 const isPartyElection = computed(() => props.election?.is_party_election === true);
@@ -469,6 +480,11 @@ defineExpose({
 <style scoped>
 .option-btn {
   border-radius: 9999px;
+}
+
+.option-btn:has(input:focus-visible) {
+  outline: 2px solid var(--slk-text-strong);
+  outline-offset: 2px;
 }
 
 .sparkle-active {

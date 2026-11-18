@@ -5,9 +5,11 @@ import { hideBin } from "yargs/helpers";
 import { hostEnvironment } from "./host-environment.ts";
 import { createBundle, verifyBundle } from "../lib/portable-backup.ts";
 import { run, root, CommandError, type Environment } from "./process.ts";
+import { cliVersion, printHelp } from "./presentation.ts";
 
 process.umask(0o077);
 const passthrough = (args: unknown): string[] => (Array.isArray(args) ? args.map(String) : []);
+let failureHelpShown = false;
 const parser = yargs(hideBin(process.argv))
   .scriptName("slk")
   .usage("$0 <group> <action> [options] [-- tool arguments]")
@@ -16,10 +18,12 @@ const parser = yargs(hideBin(process.argv))
     choices: ["development", "production"] as const,
     default: "development" as Environment,
     description: "Target deployment",
+    requiresArg: true,
   })
   .parserConfiguration({ "populate--": true, "boolean-negation": false })
   .strict()
   .demandCommand(1)
+  .version("version", "Show repository version", cliVersion())
   .help()
   .wrap(Math.min(110, process.stdout.columns || 110))
   .command(
@@ -45,7 +49,18 @@ const parser = yargs(hideBin(process.argv))
         .option("import", { type: "boolean", default: false, description: "Import YAML after CMS readiness" })
         .option("prepare-only", { type: "boolean", default: false })
         .option("no-directus-build", { type: "boolean", default: false })
-        .option("no-frontend-build", { type: "boolean", default: false }),
+        .option("no-frontend-build", { type: "boolean", default: false })
+        .option("unsafe-skip-podman-version-check", {
+          type: "boolean",
+          default: false,
+          description: "Development only: skip the Podman version check; retain all other checks",
+        })
+        .check(
+          (argv) =>
+            !argv.unsafeSkipPodmanVersionCheck ||
+            argv.env === "development" ||
+            "--unsafe-skip-podman-version-check is only allowed with --env development",
+        ),
     async (argv) => {
       const { performStack } = await import("./stack.ts");
       const args = [...(argv.services ?? []), ...passthrough(argv["--"])];
@@ -54,6 +69,7 @@ const parser = yargs(hideBin(process.argv))
         prepareOnly: argv.prepareOnly,
         noDirectusBuild: argv.noDirectusBuild,
         noFrontendBuild: argv.noFrontendBuild,
+        unsafeSkipPodmanVersionCheck: argv.unsafeSkipPodmanVersionCheck,
       });
     },
   )
@@ -64,7 +80,15 @@ const parser = yargs(hideBin(process.argv))
       p
         .positional("action", { choices: ["export", "import", "sql", "sanitize", "check", "upgrade", "role"] as const })
         .option("apply", { type: "boolean", default: false, description: "Apply a core upgrade after verification" })
-        .option("logical", { type: "boolean", default: false, description: "Restore into new named volumes" }),
+        .option("logical", { type: "boolean", default: false, description: "Restore into new named volumes" })
+        .check((argv) => {
+          if (argv.action !== "role") return true;
+          const [action, plan, role] = passthrough(argv["--"]);
+          return (
+            Boolean(plan && ((action === "plan" && role) || action === "apply")) ||
+            "Use database role -- plan /absolute/private/plan.json new_role, or -- apply /absolute/private/plan.json"
+          );
+        }),
     async (argv) => {
       const { runtime } = await import("./stack.ts");
       const { databaseTransfer, sanitize, databaseRole } = await import("./operations.ts");
@@ -157,7 +181,14 @@ const parser = yargs(hideBin(process.argv))
         .option("target", {
           choices: ["staging", "production"] as const,
           description: "Explicit deployed origin for the read-only release profile",
-        }),
+        })
+        .requiresArg(["only", "output", "tail", "timeout-seconds", "target"])
+        .check(
+          (argv) =>
+            argv.profile !== "release" ||
+            Boolean(argv.target) ||
+            "The read-only release profile requires --target staging or --target production.",
+        ),
     async (argv) => {
       await checkCommand({
         profile: argv.profile,
@@ -203,7 +234,14 @@ const parser = yargs(hideBin(process.argv))
         .option("project", { type: "string" })
         .option("output", { type: "string" })
         .option("config", { type: "string", array: true, default: [] })
-        .option("writers-stopped", { type: "boolean", default: false }),
+        .option("writers-stopped", { type: "boolean", default: false })
+        .requiresArg(["project", "output", "config"])
+        .check((argv) => {
+          if (argv.action === "verify") return Boolean(argv.directory) || "Provide a backup directory to verify";
+          if (!(argv.project || process.env.SLK_PODMAN_PROJECT) || !argv.output)
+            return "Provide --project and --output for the stopped source stack";
+          return argv.writersStopped || "Stop external writers and deployment automation, then pass --writers-stopped";
+        }),
     async (argv) => {
       if (argv.action === "verify") {
         if (!argv.directory) throw new Error("Provide a backup directory to verify");
@@ -232,7 +270,8 @@ const parser = yargs(hideBin(process.argv))
         .positional("action", { choices: ["backup", "stage", "stage-prebuilt", "activate", "rollback"] as const })
         .positional("config", { type: "string" })
         .positional("tag", { type: "string" })
-        .positional("previous", { type: "string" }),
+        .positional("previous", { type: "string" })
+        .check((argv) => argv.env === "production" || "Release operations require explicit --env production"),
     async (argv) => {
       if (argv.env !== "production") throw new Error("Release operations require explicit --env production");
       await run("bash", [root + "podman/release/run.sh", argv.config!, argv.action!, argv.tag!, argv.previous!], {
@@ -248,7 +287,8 @@ const parser = yargs(hideBin(process.argv))
         .positional("action", { choices: ["prepare", "restore"] as const })
         .positional("config", { type: "string" })
         .positional("state", { type: "string" })
-        .positional("origin", { type: "string" }),
+        .positional("origin", { type: "string" })
+        .check((argv) => argv.action !== "prepare" || Boolean(argv.origin) || "Provide the HTTPS CMS origin"),
     async (argv) => {
       try {
         const { prepareCmsOrigin, restoreCmsOrigin } = await import("../lib/cms-origin.ts");
@@ -298,13 +338,21 @@ const parser = yargs(hideBin(process.argv))
   .example("$0 check ready", "Run local readiness gates with concise results")
   .example("$0 check quality --only static --output json", "Run only static CI gates with a JSON report")
   .example("$0 test dev", "Run the required development regression suite")
-  .showHelpOnFail(false)
-  .fail((message, error) => {
-    throw error ?? new Error(message);
+  .showHelpOnFail(true)
+  .fail((message, error, usage) => {
+    if (message && !failureHelpShown) {
+      failureHelpShown = true;
+      usage.showHelp((text) => printHelp(text, process.stderr));
+    }
+    throw error instanceof Error ? error : new Error(message);
   })
   .exitProcess(false);
 try {
-  await parser.parseAsync();
+  await parser.parseAsync(hideBin(process.argv), {}, (_error, argv, output) => {
+    if (!output) return;
+    if (argv.help) printHelp(output, process.stdout);
+    else console.log(output);
+  });
 } catch (error) {
   console.error(error instanceof Error ? error.message : "Command failed");
   process.exitCode = error instanceof CommandError ? error.code : 1;

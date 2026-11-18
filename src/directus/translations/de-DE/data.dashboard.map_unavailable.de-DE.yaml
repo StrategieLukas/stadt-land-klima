@@ -1,0 +1,3 @@
+language: de-DE
+key: data.dashboard.map_unavailable
+value: "Die Karte ist gerade nicht verfügbar. Du kannst Gemeinden über die Suche oder die Verteilung auswählen."

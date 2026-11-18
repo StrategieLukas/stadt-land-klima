@@ -6,15 +6,14 @@
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
     <div
-      class="mx-auto grid w-full max-w-(--breakpoint-xl) grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 transition-[padding] duration-300 ease-in-out md:px-8 lg:px-4 xl:gap-6 xl:px-6 2xl:px-0"
-      :class="scrolled ? 'sm:py-1.5' : 'sm:py-3'"
+      class="mx-auto grid w-full max-w-(--breakpoint-xl) grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 sm:py-3 md:px-8 lg:px-4 xl:gap-6 xl:px-6 2xl:px-0"
     >
       <!-- Logo -->
       <!-- On sm: breakpoint mirrors isDesktop so the pre-hydration desktop header
            looks identical to TheHeaderMobile (h-12 / py-2), preventing layout shift. -->
       <NuxtLink
         to="/"
-        class="h-12 shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out"
+        class="header-logo flex h-12 shrink-0 items-center overflow-hidden transition-[height] duration-300 ease-in-out sm:w-20 lg:w-[228px]"
         :class="scrolled ? 'sm:h-14' : 'sm:h-20'"
       >
         <!-- SVG logotype: shown on mobile (<sm, matches TheHeaderMobile) and large desktop (≥lg) -->
@@ -45,14 +44,14 @@
       <div class="w-full min-w-0 justify-self-center 2xl:max-w-160">
         <div
           ref="searchBarRef"
-          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150 dark:bg-(--slk-surface-subdued)"
+          data-search-header
+          class="flex h-11 w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150 dark:bg-(--slk-surface-subdued)"
           :class="[
-            scrolled ? 'h-10' : 'h-11',
             searchFocused
               ? 'border-olive-green dark:border-(--slk-olive-green)'
               : 'border-gray-200 hover:border-gray-300 dark:border-(--slk-border) dark:hover:border-(--slk-border-strong)',
           ]"
-          @click="searchInputRef?.focus()"
+          @click="focusSearchInput"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -74,11 +73,14 @@
             v-model="query"
             class="min-w-0 flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-hidden dark:text-(--slk-text) dark:placeholder-(--slk-text-subtle)"
             :placeholder="$t('search.header.placeholder')"
+            :aria-label="$t('generic.search')"
+            aria-haspopup="dialog"
+            aria-controls="search-palette-panel"
+            :aria-expanded="isVisible"
             @focus="onSearchFocus"
-            @keydown.up.prevent="moveFocusEmbedded(-1)"
-            @keydown.down.prevent="moveFocusEmbedded(1)"
-            @keydown.enter.prevent="navigateFocusedEmbedded"
-            @keydown.escape="onSearchEscape"
+            @blur="searchFocused = false"
+            @input="openEmbedded"
+            @keydown="onSearchKeydown"
           />
           <button
             v-if="query"
@@ -141,22 +143,19 @@
       </div>
     </div>
 
-    <!-- Row 2: Navigation strip — collapses when scrolling down, reappears on scroll up.
-         The clip wrapper handles max-height; the inner div handles opacity so both animate together.
-         overflow switches to visible only after the expand transition ends (transitionend) so
-         dropdowns are not clipped once the strip is fully open.
-         navStripHeight is measured via ResizeObserver on the inner div so the animation
-         handles any number of wrapped rows automatically. -->
+    <!-- Measured height supports wrapped rows. Dropdowns teleport outside this clip. -->
     <!-- Nav strip: hidden below sm so pre-hydration mobile view matches TheHeaderMobile -->
     <div
-      ref="navStripClipRef"
-      class="hidden overflow-hidden transition-[max-height] duration-300 ease-in-out sm:block"
-      :style="scrollNavVisible ? `max-height: ${navStripHeight}px` : 'max-height: 0'"
+      class="header-nav-reveal hidden overflow-hidden sm:block"
+      :style="{ height: scrollNavVisible ? `${navStripHeight}px` : '0px' }"
+      :data-navigation-visible="scrollNavVisible"
+      :inert="!scrollNavVisible"
+      :aria-hidden="!scrollNavVisible"
     >
       <div
         ref="navStripInnerRef"
-        class="transition-opacity duration-300 ease-in-out"
-        :style="scrollNavVisible ? 'opacity: 1' : 'opacity: 0'"
+        class="header-nav-content"
+        :class="{ 'header-nav-content-hidden': !scrollNavVisible }"
       >
         <TheNavigationStripDesktop :items="navItems" />
       </div>
@@ -174,9 +173,11 @@ import { useSearchPalette } from "~/composables/useSearchPalette";
 import { useEmbeddedSearchBridge } from "~/composables/useEmbeddedSearchBridge";
 import { useHeaderHeight, useHeaderSpacerHeight, useNavInputRect } from "~/composables/useHeaderHeight";
 import { DONATION_PAGE_PATH } from "~/shared/donation";
+import { createHeaderScrollTracker } from "~/utils/headerScroll";
 
 const { $t } = useNuxtApp();
-const { isOpen, query, embeddedInput, close, open: _open } = useSearchPalette();
+const { isOpen, isVisible, query, embeddedInput, navigationDropdownOpen, openEmbedded, close, clearQuery } =
+  useSearchPalette();
 
 defineProps({
   municipalities: { type: Array as PropType<Municipality[] | undefined>, default: () => [] },
@@ -189,7 +190,6 @@ const searchFocused = ref(false);
 const searchInputRef = ref<HTMLInputElement | null>(null);
 const searchBarRef = ref<HTMLElement | null>(null);
 const headerEl = ref<HTMLElement | null>(null);
-const navStripClipRef = ref<HTMLElement | null>(null);
 const navStripInnerRef = ref<HTMLElement | null>(null);
 // 41 = border-t (1px) + min-h-10 items (40px) — matches actual strip height on SSR
 // so the clip wrapper never clips content before ResizeObserver fires.
@@ -202,42 +202,69 @@ const scrollNavVisible = ref(true);
 const { moveFocusEmbedded, navigateFocusedEmbedded } = useEmbeddedSearchBridge();
 const bridge = useEmbeddedSearchBridge();
 
-// Register the focus callback so Ctrl+K anywhere can focus this input
+let unregisterFocus: (() => void) | undefined;
 onMounted(() => {
-  bridge.registerFocusInput(() => searchInputRef.value?.focus());
+  unregisterFocus = bridge.registerFocusInput(focusSearchInput);
 });
+
+function focusSearchInput() {
+  if (!searchInputRef.value?.isConnected) return false;
+  openEmbedded();
+  searchInputRef.value.focus();
+  return true;
+}
 
 function onSearchFocus() {
   searchFocused.value = true;
-  // Open palette in embedded mode; preserve any existing query on re-focus
-  embeddedInput.value = true;
-  isOpen.value = true;
+  openEmbedded();
 }
 
-function onSearchEscape() {
-  close();
-  searchFocused.value = false;
-  searchInputRef.value?.blur();
+function onSearchKeydown(event: KeyboardEvent) {
+  if (event.isComposing) return;
+  if (event.key === "Escape") {
+    event.stopPropagation();
+    if (navigationDropdownOpen.value) navigationDropdownOpen.value = false;
+    else {
+      close();
+      searchInputRef.value?.blur();
+    }
+  } else if (["ArrowUp", "ArrowDown", "Enter"].includes(event.key)) {
+    event.preventDefault();
+    if (event.key === "Enter") void navigateFocusedEmbedded();
+    else moveFocusEmbedded(event.key === "ArrowDown" ? 1 : -1);
+  }
 }
 
 function onClearSearch() {
-  query.value = "";
-  void nextTick(() => searchInputRef.value?.focus());
+  clearQuery();
+  void nextTick(focusSearchInput);
 }
 
-// Sync focus indicator when palette is closed externally (backdrop click)
-watch(isOpen, (val) => {
-  if (!val) searchFocused.value = false;
+watch([isOpen, embeddedInput], ([open, embedded]) => {
+  if (open && embedded) void nextTick(measureSearchInput);
 });
+
+function measureSearchInput() {
+  if (!searchBarRef.value) return;
+  const { left, width, bottom } = searchBarRef.value.getBoundingClientRect();
+  const previous = navInputRect.value;
+  if (previous.left !== left || previous.width !== width || previous.bottom !== bottom)
+    navInputRect.value = { left, width, bottom };
+}
 
 let removeScrollListener: (() => void) | null = null;
 let removeResizeListener: (() => void) | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let navStripObserver: ResizeObserver | null = null;
-let lastScrollY = 0;
+let scrollFrame = 0;
+
+watch(scrollNavVisible, (visible) => {
+  if (!visible) navigationDropdownOpen.value = false;
+});
 
 onMounted(() => {
-  lastScrollY = window.scrollY;
+  const trackScroll = createHeaderScrollTracker(window.scrollY);
+  scrolled.value = window.scrollY > 16;
 
   // Measure inner nav strip height so the clip animation works for any number of wrapped rows.
   // The inner div is not constrained by overflow/max-height, so ResizeObserver always sees
@@ -255,41 +282,15 @@ onMounted(() => {
     navStripHeight.value = navStripInnerRef.value.offsetHeight || 40;
   }
 
-  // After the expand transition ends, switch overflow to visible so dropdowns aren't clipped.
-  // On collapse start, switch back to hidden immediately so the closing animation clips correctly.
-  const onTransitionEnd = (e: TransitionEvent) => {
-    if (e.propertyName === "max-height" && navStripClipRef.value) {
-      navStripClipRef.value.style.overflow = scrollNavVisible.value ? "visible" : "hidden";
-    }
+  const updateScroll = () => {
+    scrollFrame = 0;
+    const y = window.scrollY;
+    scrollNavVisible.value = trackScroll(y);
+    if (y > 16) scrolled.value = true;
+    else if (y <= 8) scrolled.value = false;
   };
-  // Watch scroll direction to reset overflow to hidden before collapse begins
-  watch(scrollNavVisible, (visible) => {
-    if (!visible && navStripClipRef.value) {
-      navStripClipRef.value.style.overflow = "hidden";
-    }
-  });
-
-  void nextTick(() => {
-    navStripClipRef.value?.addEventListener("transitionend", onTransitionEnd);
-    // On fresh load the strip is already visible but no transition has run,
-    // so transitionend never fires — set overflow explicitly here.
-    if (navStripClipRef.value) {
-      navStripClipRef.value.style.overflow = "visible";
-    }
-  });
-
   const onScroll = () => {
-    const delta = window.scrollY - lastScrollY;
-    if (delta > 4) scrollNavVisible.value = false;
-    if (delta < -4) scrollNavVisible.value = true;
-    const wasScrolled = lastScrollY >= 10;
-    lastScrollY = window.scrollY;
-    scrolled.value = window.scrollY > 8;
-    // When the user scrolls back to the very top, sync the spacer to the current
-    // (expanded) header height. This can't loop because scrollY is now < 10.
-    if (wasScrolled && window.scrollY < 10 && headerEl.value) {
-      headerSpacerHeight.value = headerEl.value.offsetHeight;
-    }
+    if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
   };
   window.addEventListener("scroll", onScroll, { passive: true });
   removeScrollListener = () => {
@@ -297,37 +298,61 @@ onMounted(() => {
   };
 
   if (headerEl.value) {
-    const update = () => {
-      const h = headerEl.value?.offsetHeight ?? 146;
+    const update = (entries?: ResizeObserverEntry[]) => {
+      const h = entries?.[0]?.borderBoxSize[0]?.blockSize ?? headerEl.value?.getBoundingClientRect().height ?? 146;
       // headerHeight tracks the live header height so that sticky children
       // (pill nav, sidebar tops) follow it precisely as the nav strip animates.
       headerHeight.value = h;
-      // headerSpacerHeight is only updated at the top of the page.
-      // The layout spacer uses this value; keeping it frozen while scrolled
-      // prevents the scroll-anchoring loop (spacer shrinks → browser adjusts
-      // scrollY → delta triggers nav strip toggle → loop).
-      if (window.scrollY < 10) {
+      // Only sync at exactly zero: changing the spacer near the top can make
+      // browser scroll anchoring reverse the detected scroll direction.
+      if (window.scrollY === 0) {
         headerSpacerHeight.value = h;
       }
-      if (searchBarRef.value) {
-        const r = searchBarRef.value.getBoundingClientRect();
-        navInputRect.value = { left: r.left, width: r.width, bottom: r.bottom };
-      }
+      if (isOpen.value && embeddedInput.value) measureSearchInput();
     };
     update();
+    measureSearchInput();
     resizeObserver = new ResizeObserver(update);
     resizeObserver.observe(headerEl.value);
-    window.addEventListener("resize", update, { passive: true });
+    const onResize = () => {
+      update();
+      measureSearchInput();
+    };
+    window.addEventListener("resize", onResize, { passive: true });
     removeResizeListener = () => {
-      window.removeEventListener("resize", update);
+      window.removeEventListener("resize", onResize);
     };
   }
 });
 
 onUnmounted(() => {
+  unregisterFocus?.();
+  if (scrollFrame) cancelAnimationFrame(scrollFrame);
   if (removeScrollListener) removeScrollListener();
   if (removeResizeListener) removeResizeListener();
   if (resizeObserver) resizeObserver.disconnect();
   if (navStripObserver) navStripObserver.disconnect();
 });
 </script>
+
+<style scoped>
+.header-nav-reveal {
+  transition: height 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.header-nav-content {
+  transition:
+    opacity 180ms ease,
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.header-nav-content-hidden {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-logo,
+  .header-nav-reveal,
+  .header-nav-content {
+    transition: none !important;
+  }
+}
+</style>

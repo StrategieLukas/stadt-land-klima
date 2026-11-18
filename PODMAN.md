@@ -25,15 +25,68 @@ it does not escalate privileges, disable confinement, expose an engine socket or
 modify host ownership. Runtime containers are capless, non-root and read-only;
 production code is read-only and cannot be edited by the runtime account.
 
-## Private runtime configuration
+Image builds require the host preflight but do not read private runtime dotenv
+files or runtime/storage mount overlays. `start`, `doctor` and other runtime
+operations still validate all four private files. To diagnose a runtime that stops
+before service output, run
+`./bin/slk stack doctor --env development` from the repository root. Preflight
+failures name the failing stage and print a sanitized reason, including an
+unsupported Podman version, missing environment file or invalid file permissions. Check
+`podman --version` against the requirements above and prepare the private files
+below before starting services.
 
-From the repository root, create and privately configure:
+### Unsafe development version override
+
+For local development with an older Podman, pass
+`--unsafe-skip-podman-version-check` on each `stack` command:
 
 ```bash
-cp podman/database/.env.example podman/database/.env
-cp podman/meilisearch/.env.example podman/meilisearch/.env
-cp src/directus/.env.example src/directus/.env
-cp src/frontend/.env.example src/frontend/.env
+./bin/slk stack doctor --env development --unsafe-skip-podman-version-check
+./bin/slk stack build --env development --unsafe-skip-podman-version-check
+./bin/slk stack start --env development --unsafe-skip-podman-version-check --import
+```
+
+The option skips only the Podman version check and prints an unsafe-development
+warning to stderr. It does not verify compatibility or security patches in the
+installed engine. Rootless mode, architecture, seccomp, LSM checks, cgroup-v2
+delegation, Netavark, private environment files and runtime audits still apply.
+An old engine without the required capabilities will still fail. The option is
+rejected outside `--env development` and is not stored in configuration or
+inherited through an environment variable. Omit it to restore the normal check.
+Use `stack compose` for CMS/frontend commands on this development stack, placing
+the option before the forwarding separator:
+
+```bash
+./bin/slk stack compose --env development --unsafe-skip-podman-version-check -- exec directus /directus/cli/import-all.sh
+```
+
+## Private runtime configuration
+
+Existing checkouts may still have their database and search configuration under
+`docker/db/.env` and `docker/meilisearch/.env`. Copy those existing values into
+`podman/database/.env` and `podman/meilisearch/.env` with mode 0600 before starting
+the stack. Preserve existing destination files and database credentials; changing
+a bootstrap password does not change a password in an existing database. Keep any
+retained legacy dotenv files mode 0600 too. No automatic fallback reads legacy files.
+
+For a checkout with both legacy files present:
+
+```bash
+umask 077
+cp -n docker/db/.env podman/database/.env
+cp -n docker/meilisearch/.env podman/meilisearch/.env
+chmod 600 docker/db/.env docker/meilisearch/.env podman/database/.env podman/meilisearch/.env
+```
+
+For a new setup, create and privately configure the following files from the
+repository root. Preserve any files that are already configured:
+
+```bash
+umask 077
+cp -n podman/database/.env.example podman/database/.env
+cp -n podman/meilisearch/.env.example podman/meilisearch/.env
+cp -n src/directus/.env.example src/directus/.env
+cp -n src/frontend/.env.example src/frontend/.env
 chmod 600 podman/database/.env podman/meilisearch/.env src/directus/.env src/frontend/.env
 npm ci --prefix bin
 npm ci --prefix src/directus/cli
@@ -71,7 +124,7 @@ account and its consumers together.
 Legacy frontend names such as `PUBLIC_URL`, `DIRECTUS_FRONTEND_SERVER_TOKEN` and
 `DEEPL_API_KEY` are mapped to their Nuxt runtime names on every start. Explicit
 `NUXT_*` values take precedence. The mapping is in
-`src/frontend/shared/runtimeEnvironment.ts`; only declared public aliases enter
+`src/frontend/shared/runtimeEnvironment.mts`; only declared public aliases enter
 browser payloads. Required pinned CMS protections stay locked even if a dotenv
 file contains conflicting values. Mutable CORS/provider configuration is reloaded.
 
@@ -105,8 +158,45 @@ requires a fresh build; changing runtime settings does not.
 YAML before application hooks/custom migrations require those tables. It uses
 a valid CLI token or a temporary administrator JWT; it never rotates existing
 credentials. The normal service then runs migrations and all startup checks.
-Fresh content prerequisites (including the public asset folder and real
-catalogue/legal content) still need provisioning or a consistent restored backup.
+Normal `start` checks the required application tables before running Directus and
+requests `--import` if the schema is missing or incomplete. An earlier failed
+bootstrap can leave system tables without any users. The private helper can
+recover the first administrator from the configured `ADMIN_EMAIL`/`ADMIN_PASSWORD`
+only when there are zero users and no application tables; it refuses account
+recovery in a database with application data. Its temporary file configuration
+keeps custom extensions/migrations disabled and binds its API to container loopback.
+The private helper checks the database-backed API and authentication independently
+of external SMTP; the normal CMS still requires the complete health check.
+For this first account only, `ADMIN_TOKEN` takes precedence; otherwise a valid
+configured `CLI_DIRECTUS_STATIC_TOKEN` initializes its administrative token.
+Existing user tokens are never assigned or replaced during setup.
+Development uses a local sendmail adapter, so emails are written as escaped JSON
+events to private container logs rather than delivered (16 MiB maximum per email).
+The development entrypoint creates a private empty Directus config file after the
+mounted-env launcher loads the canonical settings. Locked development values
+therefore survive copied SMTP settings; stored SMTP credentials and production
+transport remain intact.
+The YAML import also creates a missing `public` asset folder from
+`src/directus/contents/directus_folders.yaml` before the image backfill runs.
+Existing folder IDs and files are preserved; a conflicting ID is never renamed.
+Development start/restart automatically runs the checked website service-user
+provisioner after CMS readiness. It reuses valid existing tokens, creates missing
+restricted identities, and atomically updates the selected private frontend dotenv
+(including stale Nuxt overrides and the CLI-backed administrator credential).
+Provisioning failure blocks frontend startup. Readiness checks the CMS-backed
+layout and catalogue endpoints because an HTML shell can return 200 with broken data.
+Production identity setup remains explicit in the deployment checklist.
+Real catalogue/legal content still needs provisioning or a consistent restored backup.
+For a local staging-data restore, preserve the existing volumes and private
+configuration, restore the database/uploads into new named volumes, and select
+them through the ignored `podman/core-storage/development.compose.json` overlay.
+Keep local integration settings and generate separate local signing/operator
+credentials; invalidate copied sessions/static login tokens only in the local
+copy through supported Directus services. Apply maintained YAML before acceptance.
+Verify every database-referenced upload and normalize ownership for the destination
+rootless user mapping: an imported volume can have a correctly owned root while
+its files retain the source container UID. Preserve a rollback snapshot and verify
+both CMS health and the website data endpoints before reporting success.
 
 `start --import --prepare-only` starts the data services/CMS and imports checked
 YAML while leaving frontend stopped and maintenance active. Use it on a prepared
@@ -117,7 +207,8 @@ before accepting production startup checks. Do not weaken those checks to expose
 an unprepared installation.
 
 Development uses `./bin/slk stack build --env development` followed by
-`./bin/slk stack start --env development`. Frontend source hot-reloads; dependencies and
+`./bin/slk stack start --env development --import` for the first start. Once the
+schema is imported, subsequent starts may omit `--import`. Frontend source hot-reloads; dependencies and
 Nuxt cache use separate private volumes. Private tmpfs and named volumes use
 Podman `:U` to initialize service ownership; host source binds never use it.
 Maintenance metadata contains only public analytics settings and is generated in

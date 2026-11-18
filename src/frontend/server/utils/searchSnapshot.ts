@@ -1,3 +1,5 @@
+import { SEARCH_SOURCES, isSearchSourceType, readSearchSourceDocs, buildElectionDoc } from "./searchSources";
+import { collectSearchElections } from "./wahlcheckRoute";
 import { z } from "zod";
 import { parseCms } from "./parseCms";
 import { cmsRows } from "./cmsValue";
@@ -6,6 +8,7 @@ import {
   buildBlockDoc,
   buildPageDoc,
   buildEventDoc,
+  buildJobDoc,
   buildArticleDoc,
   buildMeasureDoc,
   buildNewsItemDoc,
@@ -156,6 +159,31 @@ export async function collectSearchSnapshot(directus: ReturnType<typeof createSe
   docs.push(...articleDocs);
   counts.articles = articleDocs.length;
 
+  // --- Published jobs ---
+  const jobs = await directus
+    .request(
+      readItems("job_offers", {
+        filter: { status: { _eq: "published" } },
+        fields: ["slug", "role_title", "status", "tasks", "qualifications", "benefits", "organisation.name"],
+        limit: -1,
+      }),
+    )
+    .then(cmsRows);
+  const jobDocs = jobs.map(buildJobDoc).filter((doc): doc is SiteContentDoc => doc !== null);
+  docs.push(...jobDocs);
+  counts.job_offers = jobDocs.length;
+
+  // New public sources use the same checked projections for snapshots and live visibility.
+  for (const type of Object.keys(SEARCH_SOURCES)) {
+    if (!isSearchSourceType(type)) continue;
+    const sourceDocs = await readSearchSourceDocs(directus, type);
+    docs.push(...sourceDocs);
+    counts[type] = sourceDocs.length;
+  }
+  const electionDocs = (await collectSearchElections(directus)).map(buildElectionDoc);
+  docs.push(...electionDocs);
+  counts.elections = electionDocs.length;
+
   // --- Measures ---
   // Fetch only from the isCurrentFrontend catalog so URLs always resolve correctly.
   const catalogVersions = await directus
@@ -199,7 +227,7 @@ export async function collectSearchSnapshot(directus: ReturnType<typeof createSe
   docs.push(...measureDocs);
   counts.measures = measureDocs.length;
 
-  // --- Static Nuxt pages (incl. organisation page + team entries) ---
+  // --- Static Nuxt landing pages ---
   const staticDocs = buildStaticPageDocs();
   docs.push(...staticDocs);
   counts.static_pages = staticDocs.length;

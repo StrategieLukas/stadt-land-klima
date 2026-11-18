@@ -3,11 +3,9 @@ import {
   AreaListSchema,
   MunicipalitiesResponseSchema,
   ContentResponseSchema,
-  scoreCatalogName,
   type PublicMunicipality,
   type UnifiedArea,
   type ContentHit,
-  type AreaCta,
 } from "~/shared/contracts/search";
 /**
  * Unified search composable for the command palette.
@@ -32,10 +30,10 @@ import {
  * @param {import('vue').Ref<string|null> | string | null} options.catalogVersionName
  *   Optional catalog version name to prefer when resolving stadtlandklimaDataAll.
  */
-import { ref, computed, isRef } from "vue";
+import { ref, computed, isRef, getCurrentScope, onScopeDispose } from "vue";
 import lodash from "lodash";
-import { getScorePercentageColor, getStateFromArs } from "~/shared/utils";
-import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
+import { getStateFromArs } from "~/shared/utils";
+import { areaSearchPresentation } from "~/shared/areaSearchPresentation";
 const debounce = lodash.debounce.bind(lodash);
 
 export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersionName?: MaybeRef<string | null> } = {}) {
@@ -52,80 +50,13 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
   let searchGeneration = 0;
   let searchController: AbortController | undefined;
 
-  // --- Area enrichment (mirrors the logic in useAreaSearch) ---
-
   function enrichArea(area: UnifiedArea) {
-    const level = area.level ?? 4;
-    const isMunicipality = level >= 4 || area.isReasonableForMunicipalRating === true;
-
-    const stateLabel = isMunicipality ? (getStateFromArs(area.ars) ?? area.prefix) : null;
-    const typeLabel = area.prefix;
-
-    let ctaType: AreaCta = "area";
-    let scoreDisplay: string | null = null;
-    let scoreTotalColorClass: string | null = null;
-    let _slug: string | null = null;
-    let _oldCatalogName: string | null = null;
-
-    if (isMunicipality) {
-      const allData = area.stadtlandklimaDataAll;
-
-      if (catalogRef.value) {
-        // With catalog context: check current catalog first, then fall back to older published rating
-        const currentRating = allData.find((d) => d.measureCatalogName === catalogRef.value && d.slug);
-        const directusStatus = area.directusCatalogStatus;
-        const scores = directusStatus?.scores ?? [];
-        const completeScores = scores.filter(isMunicipalityScoreComplete);
-        const currentScore = completeScores.find((score) => scoreCatalogName(score) === catalogRef.value);
-        const oldScore = completeScores.find((score) => scoreCatalogName(score) !== catalogRef.value);
-
-        if (currentScore) {
-          ctaType = "complete";
-          _slug = directusStatus?.slug ?? currentRating?.slug ?? null;
-          const scoreTotal = currentScore.score_total ?? currentRating?.scoreTotal;
-          scoreDisplay = scoreTotal != null ? `${Math.round(Number(scoreTotal))}%` : null;
-          scoreTotalColorClass = scoreTotal != null ? getScorePercentageColor(Number(scoreTotal)) : null;
-        } else {
-          // Check for a published rating from any older catalog
-          const oldRating = allData.find(
-            (d) => d.measureCatalogName === (oldScore ? scoreCatalogName(oldScore) : undefined),
-          );
-          if (oldScore) {
-            ctaType = "outdated";
-            _slug = directusStatus?.slug ?? oldRating?.slug ?? null;
-            _oldCatalogName = scoreCatalogName(oldScore) ?? null;
-            const scoreTotal = oldScore.score_total ?? oldRating?.scoreTotal;
-            scoreDisplay = scoreTotal != null ? `${Math.round(Number(scoreTotal))}%` : null;
-            scoreTotalColorClass = scoreTotal != null ? getScorePercentageColor(Number(scoreTotal)) : null;
-          } else if (currentRating?.slug || area.hasLocalteam) {
-            ctaType = "in-progress";
-            _slug = directusStatus?.slug ?? currentRating?.slug ?? null;
-          } else if (area.isReasonableForMunicipalRating) {
-            ctaType = "none";
-          }
-        }
-      } else {
-        // Wait for the current catalog before claiming a rating is complete.
-        const ratingData = allData.find((d) => d.slug);
-        _slug = ratingData?.slug ?? null;
-        if (ratingData?.slug || area.hasLocalteam) {
-          ctaType = "in-progress";
-        } else if (area.isReasonableForMunicipalRating) {
-          ctaType = "none";
-        }
-      }
-    }
-
+    const presentation = areaSearchPresentation(area, catalogRef.value);
     return {
       ...area,
-      isMunicipality,
-      stateLabel,
-      typeLabel,
-      ctaType,
-      scoreDisplay,
-      scoreTotalColorClass,
-      _slug,
-      _oldCatalogName,
+      ...presentation,
+      stateLabel: presentation.isMunicipality ? (getStateFromArs(area.ars) ?? area.prefix) : null,
+      typeLabel: area.prefix,
     };
   }
 
@@ -139,37 +70,19 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
 
     const directusOnly = rawDirectusMunis.value
       .filter((m) => m.ars && !areaArsCodes.has(m.ars))
-      .map((m) => {
-        const scores = m.scores.filter(isMunicipalityScoreComplete);
-        const currentScore = catalogRef.value
-          ? scores.find((score) => scoreCatalogName(score) === catalogRef.value)
-          : null;
-        const oldScore = catalogRef.value ? scores.find((score) => scoreCatalogName(score) !== catalogRef.value) : null;
-        return {
-          ars: m.ars!,
-          name: m.name,
+      .map((municipality) =>
+        enrichArea({
+          ars: municipality.ars!,
+          name: municipality.name,
           prefix: "",
           level: 5,
           population: null,
           isReasonableForMunicipalRating: true,
           stadtlandklimaDataAll: [],
-          hasLocalteam: !!m.localteam_id,
-          isMunicipality: true,
-          stateLabel: getStateFromArs(m.ars) ?? null,
-          typeLabel: "",
-          ctaType: currentScore
-            ? ("complete" as const)
-            : oldScore
-              ? ("outdated" as const)
-              : m.localteam_id
-                ? ("in-progress" as const)
-                : ("none" as const),
-          scoreDisplay: null,
-          scoreTotalColorClass: null,
-          _slug: m.slug,
-          _oldCatalogName: (oldScore ? scoreCatalogName(oldScore) : undefined) ?? null,
-        };
-      });
+          hasLocalteam: !!municipality.localteam_id,
+          directusCatalogStatus: municipality,
+        }),
+      );
 
     return [...directusOnly, ...enrichedAreas];
   });
@@ -250,7 +163,7 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
       });
     const areaRequest = $fetch("/api/area-search", {
       ...options,
-      query: { term: term.trim(), mode: "normal" },
+      query: { term: term.trim(), mode: "all" },
     }).then((value) => AreaListSchema.parse(value));
 
     const enrichedAreaRequest = (async () => {
@@ -271,7 +184,7 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
         };
         updateAreas();
         const uncoveredArs = nodes
-          .filter((n) => (n.level ?? 4) >= 4 && n.ars && !municipalityByArs.has(n.ars))
+          .filter((n) => n.isReasonableForMunicipalRating && n.ars && !municipalityByArs.has(n.ars))
           .map((n) => n.ars);
         if (uncoveredArs.length) {
           try {
@@ -314,6 +227,8 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
     isLoading.value = false;
     _doSearch.cancel();
   }
+
+  if (getCurrentScope()) onScopeDispose(clear);
 
   return { groupsWithIndex, flatResults, isLoading, search, clear };
 }

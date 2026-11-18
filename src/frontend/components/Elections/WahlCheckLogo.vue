@@ -16,7 +16,7 @@
   />
   <img
     v-else-if="fallback === 'wahlcheck'"
-    src="~/assets/images/Klima-Wahlcheck-Logo.svg"
+    :src="isDark && !isLocalzero ? wahlcheckLogoDark : wahlcheckLogo"
     :alt="alt"
     :class="fallbackClass"
   />
@@ -24,6 +24,11 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import wahlcheckLogo from "~/assets/images/Klima-Wahlcheck-Logo.svg";
+import wahlcheckLogoDark from "~/assets/images/Klima-Wahlcheck-Logo-dark.svg";
+
+const { isDark } = useTheme();
+const { isLocalzero } = useWahlcheckTheme();
 
 const props = withDefaults(
   defineProps<{

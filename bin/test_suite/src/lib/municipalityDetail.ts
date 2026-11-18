@@ -6,13 +6,13 @@ export async function assertMunicipalityDetailLayout(page: Page): Promise<void> 
   assert.equal(await hero.locator("form, button, nav, a.canonical-button").count(), 0);
 
   const actions = page.getByTestId("municipality-sidebar-actions").filter({ visible: true });
-  const cards = actions.locator("a");
+  const cards = actions.locator("a.canonical-button");
   assert.equal(await cards.count(), 3);
   const styles = await cards.evaluateAll((links) =>
     links.map((link) => {
       const style = getComputedStyle(link);
-      const heading = link.querySelector("h3");
-      if (!heading) throw new Error("Every sidebar action needs the same heading layout");
+      const label = link.lastElementChild;
+      if (!label) throw new Error("Every canonical sidebar action needs a label");
       return {
         width: link.getBoundingClientRect().width,
         padding: style.padding,
@@ -20,7 +20,7 @@ export async function assertMunicipalityDetailLayout(page: Page): Promise<void> 
         shadow: style.boxShadow,
         display: style.display,
         gap: style.gap,
-        font: getComputedStyle(heading).font,
+        font: getComputedStyle(label).font,
       };
     }),
   );

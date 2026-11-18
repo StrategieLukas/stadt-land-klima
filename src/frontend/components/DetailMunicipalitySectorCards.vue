@@ -12,10 +12,10 @@
         alt=""
         class="slk-sector-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18"
       />
-      <img
-        :src="sectorImagesDark[sector]"
-        alt=""
-        class="slk-sector-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
+      <span
+        :style="{ '--sector-icon': `url(${sectorImagesDark[sector]})` }"
+        aria-hidden="true"
+        class="slk-sector-icon slk-sector-icon--themed slk-theme-icon--dark aspect-square w-12 shrink-0 text-green md:w-14 lg:w-18"
       />
       <div class="grow">
         <h2 class="mb-2 font-heading text-h2 leading-none text-green">

@@ -22,6 +22,12 @@ const contentTypes = [
   "news_item",
   "member",
   "team",
+  "job",
+  "climate_tool",
+  "event_series",
+  "tour",
+  "tour_stop",
+  "election",
 ] as const;
 const indexedHit = z.object({
   id: z.union([z.string(), z.number()]),
@@ -30,6 +36,7 @@ const indexedHit = z.object({
   url: z.string().regex(/^\/(?!\/)/),
   meta: z.string().nullable().optional(),
   text: z.string().optional(),
+  requiresPublishedReport: z.boolean().optional(),
   _formatted: z.object({ title: z.string().optional(), text: z.string().optional() }).optional(),
 });
 const highlight = (value: string) => sanitizeHtml(value, { allowedTags: ["mark"], allowedAttributes: {} });
@@ -62,7 +69,7 @@ export default defineEventHandler(async (event) => {
         attributesToHighlight: ["text", "title"],
         highlightPreTag: "<mark>",
         highlightPostTag: "</mark>",
-        attributesToRetrieve: ["id", "type", "title", "url", "meta", "text"],
+        attributesToRetrieve: ["id", "type", "title", "url", "meta", "text", "requiresPublishedReport"],
       });
     const hits = await publicSearchHits(createDirectusServerClient(), parseCms(z.array(indexedHit), result.hits));
     return ContentResponseSchema.parse({

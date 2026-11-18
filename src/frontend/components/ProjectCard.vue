@@ -19,16 +19,13 @@
         <!-- Mini-Logo, if article has associated organisation -->
         <div v-if="organisation" class="absolute top-0 right-0 h-28 w-28 overflow-hidden">
           <div
-            class="absolute top-0 right-0 h-0 w-0 border-t-[7rem] border-l-[7rem] border-t-white border-l-transparent"
+            class="absolute top-0 right-0 h-0 w-0 border-t-[7rem] border-l-[7rem] border-t-(--slk-surface) border-l-transparent"
           ></div>
-          <!-- Using raw image url (no width parameter) for easier request caching as organisation logos should be small -->
-          <img
-            class="absolute top-2 right-2"
-            height="48"
-            width="48"
+          <OrganisationLogo
+            :logo="organisation.logo"
+            :dark-logo="organisation.logo_dark"
             :alt="organisation.name ?? ''"
-            loading="lazy"
-            :src="getRawUrl(organisation.logo)"
+            class="absolute top-2 right-2"
           />
         </div>
 
@@ -81,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Asset, Organisation } from "~/types/components/content";
+import type { Organisation } from "~/types/components/content";
 
 import type { PropType } from "vue";
 import type { Measure } from "~/types/components/municipality";
@@ -107,7 +104,6 @@ const props = defineProps({
   measures: Array as PropType<Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null | undefined>, // can be null/empty
 });
 
-const config = useRuntimeConfig();
 const location = computed(() => buildLocationString(props.municipality_name, props.state));
 const formattedDate = computed(() => formatProjectDate(props.date, $locale));
 const byline = computed(() => [props.author, formattedDate.value].filter(Boolean).join(", "));
@@ -118,14 +114,4 @@ const truncatedAbstract = computed(() => {
   }
   return props.abstract;
 });
-
-function getRawUrl(assetId: Asset | undefined) {
-  return `${config.public.clientDirectusUrl}/assets/${typeof assetId === "object" ? (assetId?.id ?? "") : (assetId ?? "")}`;
-}
 </script>
-
-<style scoped>
-.card img {
-  object-fit: cover;
-}
-</style>

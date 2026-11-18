@@ -7,6 +7,7 @@ export const NavigationItemSchema: z.ZodType<NavigationItem> = z.object({
   name: z.string().nullish(),
   title: z.string().nullish(),
   description: z.string().nullish(),
+  dropdown_layout: z.enum(["preview", "cards", "list"]).optional(),
   translation_key: z.string().nullish(),
   link_type: z.enum(["page", "external", "none"]).optional(),
   page_slug: z.string().nullish(),

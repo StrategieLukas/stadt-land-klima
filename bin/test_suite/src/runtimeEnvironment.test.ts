@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import {
   FRONTEND_RUNTIME_ALIASES,
   frontendRuntimeEnvironment,
-} from "../../../src/frontend/shared/runtimeEnvironment.js";
+} from "../../../src/frontend/shared/runtimeEnvironment.mjs";
 
 test("every legacy runtime key maps without rebuilding and explicit Nuxt overrides win", () => {
   for (const [key, alias] of Object.entries(FRONTEND_RUNTIME_ALIASES)) {

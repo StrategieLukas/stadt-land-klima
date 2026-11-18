@@ -47,7 +47,6 @@ export const SECURITY_CLIENT_EVENTS = [
   "app.pages.news._slug_.failed",
   "app.pages.news.index.degraded",
   "app.pages.projects._slug_.invalid_link",
-  "app.pages.regions._ars_.failed",
   "app.pages.stats.index.computeClusteringAndRender.failed",
   "app.pages.stats.index.computeDominanceAndRender.failed",
   "app.pages.stats.index.renderSunburst.failed",

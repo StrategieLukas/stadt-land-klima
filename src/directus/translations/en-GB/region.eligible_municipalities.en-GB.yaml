@@ -1,0 +1,3 @@
+language: en-GB
+key: region.eligible_municipalities
+value: All administrative areas suitable for municipal ratings, including those without a published rating.

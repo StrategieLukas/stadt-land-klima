@@ -16,6 +16,7 @@ import { runMailWebhookSecurityFlow } from "./flows/mailWebhookSecurityFlow.js";
 import { runContactSpamSecurityFlow } from "./flows/contactSpamSecurityFlow.js";
 import { runMunicipalityDisclosureFlow } from "./flows/municipalityDisclosureFlow.js";
 import { runPublicNavigationFlow } from "./flows/publicNavigationFlow.js";
+import { runSearchInteractionFlow } from "./flows/searchInteractionFlow.js";
 import { runSharedStateFlow } from "./flows/sharedStateFlow.js";
 import { runJobsFlow } from "./flows/jobsFlow.js";
 import { runEditorSessionFlow } from "./flows/editorSessionFlow.js";
@@ -171,6 +172,15 @@ async function main(): Promise<void> {
     } catch (e) {
       runner.results.push({
         name: "Editor session flow",
+        status: "failed",
+        error: e instanceof Error ? e : new Error(String(e)),
+      });
+    }
+    try {
+      await runSearchInteractionFlow(runner, config.frontendUrl, browser);
+    } catch (e) {
+      runner.results.push({
+        name: "Search interaction flow",
         status: "failed",
         error: e instanceof Error ? e : new Error(String(e)),
       });

@@ -1,3 +1,4 @@
+import { readWithOrganisationDarkLogo } from "../../../src/frontend/server/utils/organisationLogos.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -35,6 +36,7 @@ function jobsRoute(detail: boolean, rows: unknown[], slug = "job") {
   const module = { exports: {} as { default: (event: object) => Promise<unknown> } };
   const queries: unknown[] = [];
   const dependencies: Record<string, unknown> = {
+    "~/server/utils/organisationLogos": { readWithOrganisationDarkLogo },
     "@directus/sdk": {
       readItems: (_collection: string, query: unknown) => {
         queries.push(query);

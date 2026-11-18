@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="w-full py-8">
     <header class="mb-10">
       <h1 class="mb-4 font-heading text-4xl font-black text-light-blue sm:text-6xl">
         {{ $t("tour.what_is_project") }}
@@ -201,7 +201,7 @@
       <div v-for="project in filteredProjects" :key="project.id" class="relative">
         <span
           v-if="project.profile_stage === 'preview'"
-          class="absolute top-3 right-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-bold text-stats-dark shadow-sm"
+          class="slk-badge slk-badge--info absolute top-3 right-3 z-10 rounded-full px-3 py-1 text-xs font-bold shadow-sm"
         >
           {{ $t("tour.preview") }}
         </span>

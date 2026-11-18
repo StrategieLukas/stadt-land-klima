@@ -1,5 +1,12 @@
 import type { H3Event } from "h3";
 import { rateLimit } from "../../utils/rateLimit";
+import {
+  stadtlandzahlCacheKey,
+  readStadtlandzahlResponse,
+  revalidatedStadtlandzahlResponse,
+  storeStadtlandzahlResponse,
+  forgetStadtlandzahlResponse,
+} from "../../utils/stadtlandzahlResponseCache";
 const REQUEST_HEADERS_TO_REMOVE = [
   "accept-encoding",
   "authorization",
@@ -99,6 +106,25 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: "Upstream route not allowed" });
   }
 
+  // Overview tiles are bounded cached reads; contexts and member queries are
+  // independently limited so map movement cannot consume their allowance.
+  let canonicalReadPath: string;
+  try {
+    canonicalReadPath = decodeURIComponent(upstreamPath).replace(/\/?$/, "/");
+  } catch {
+    throw createError({ statusCode: 400, statusMessage: "Invalid upstream path" });
+  }
+  if (/^\/api\/collections\/[^/]+\/overview\/(?:municipalities\/|regions\/)?$/.test(canonicalReadPath)) {
+    const key = canonicalReadPath.endsWith("/municipalities/")
+      ? requestUrl.searchParams.has("q")
+        ? "municipality-overview-search"
+        : "municipality-overview-members"
+      : canonicalReadPath.endsWith("/regions/")
+        ? "municipality-overview-regions"
+        : "municipality-overview";
+    if (!(await rateLimit(event, key))) throw createError({ statusCode: 429, statusMessage: "Too many requests" });
+  }
+
   if (method === "POST" && !/^\/api\/(?:render\/?|collections\/[^/]+\/render\/?)$/.test(upstreamPath)) {
     throw createError({ statusCode: 405, statusMessage: "Only read-only render POST requests are allowed" });
   }
@@ -117,17 +143,34 @@ export default defineEventHandler(async (event) => {
   const body = hasBody ? await readIncomingBody(event) : undefined;
 
   let upstreamResponse: Response | undefined;
+  let responseCacheKey: string | undefined;
   for (const baseUrl of getStadtlandzahlBaseUrls()) {
     const target = resolveStadtlandzahlUrl(`${upstreamPath}${requestUrl.search}`, undefined, baseUrl);
+    responseCacheKey = method === "GET" ? stadtlandzahlCacheKey(upstreamPath, target, requestHeaders) : undefined;
+    const cached = readStadtlandzahlResponse(responseCacheKey);
+    const upstreamHeaders = new Headers(requestHeaders);
+    if (cached) {
+      const headers = new Headers(cached.headers);
+      const etag = headers.get("etag");
+      const modified = headers.get("last-modified");
+      if (etag) upstreamHeaders.set("if-none-match", etag);
+      else if (modified) upstreamHeaders.set("if-modified-since", modified);
+    }
     try {
       upstreamResponse = await fetch(target, {
         method,
-        headers: requestHeaders,
+        headers: upstreamHeaders,
         ...(body ? { body: Uint8Array.from(body) } : {}),
         redirect: "manual",
       });
+      if (cached && upstreamResponse.status === 304) {
+        upstreamResponse = revalidatedStadtlandzahlResponse(upstreamResponse, cached);
+      } else if (upstreamResponse.status !== 200) {
+        forgetStadtlandzahlResponse(responseCacheKey);
+      }
       break;
     } catch {
+      forgetStadtlandzahlResponse(responseCacheKey);
       // Prefer the Docker-internal URL, but fall back to the public base URL
       // when the internal service is not reachable from this deployment.
     }
@@ -164,5 +207,10 @@ export default defineEventHandler(async (event) => {
     statusText: upstreamResponse.statusText,
     headers: responseHeaders,
   });
+  if (typeof responseBody === "string" && !upstreamResponse.headers.has("set-cookie")) {
+    storeStadtlandzahlResponse(responseCacheKey, upstreamPath, response, responseBody);
+  } else {
+    forgetStadtlandzahlResponse(responseCacheKey);
+  }
   return response;
 });

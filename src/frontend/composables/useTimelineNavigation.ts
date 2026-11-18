@@ -29,8 +29,15 @@ export function useTimelineNavigation() {
     if (navigation) {
       resizeObserver = new ResizeObserver(() => {
         navigationHeight.value = navigation.getBoundingClientRect().height;
+        // The root border box excludes DaisyUI's stable scrollbar gutter, even
+        // when clientWidth includes it (overlay-scrollbar Chromium).
+        navigation.style.setProperty(
+          "--slk-timeline-width",
+          `${document.documentElement.getBoundingClientRect().width}px`,
+        );
       });
       resizeObserver.observe(navigation);
+      resizeObserver.observe(document.documentElement);
     }
     sectionObserver = new IntersectionObserver(
       (entries) => {

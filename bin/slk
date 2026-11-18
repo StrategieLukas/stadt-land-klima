@@ -1,2 +1,17 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
+
+// Keep this bootstrap valid JavaScript so unsupported runtimes can explain how to upgrade.
+if (Number(process.versions.node.split(".")[0]) < 24 || !process.features.typescript) {
+  const version = readFileSync(new URL("../.node-version", import.meta.url), "utf8").trim();
+  console.error(
+    `slk requires Node 24 or newer with native TypeScript support; found ${process.version}.\n` +
+      `Use Node ${version} from .node-version. With nvm, run:\n` +
+      `  nvm install ${version}\n  nvm use ${version}\n` +
+      `Then run npm ci --prefix bin from the repository root and retry slk.\n` +
+      `Remove --no-experimental-strip-types from NODE_OPTIONS or Node arguments if set.`,
+  );
+  process.exit(1);
+}
+
 await import("./cli/index.ts");

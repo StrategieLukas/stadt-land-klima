@@ -490,3 +490,31 @@ test("translation legal note is a small non-German footer component with no cont
     /translation.machine_notice|showMachineTranslationNotice/,
   );
 });
+
+test("multiple municipality search fields have unique labels and dropdown ownership", async () => {
+  const component = load(
+    "AdministrativeAreaSearchBar.vue",
+    {},
+    {
+      "#components": { NuxtLink: vue.defineComponent({ render: () => vue.h("a") }) },
+      "vue-router": { useRoute: () => ({}), useRouter: () => ({ push: () => {} }) },
+      "~/composables/getCatalogVersion": { getCatalogVersion: async () => ({ id: "current", name: "current" }) },
+      "~/composables/useAreaSearch": {
+        useAreaSearch: () => ({
+          results: vue.ref([]),
+          isLoading: vue.ref(false),
+          search: () => {},
+          clear: () => {},
+        }),
+      },
+    },
+  );
+  const app = vue.createSSRApp({ render: () => vue.h("main", [vue.h(component), vue.h(component)]) });
+  app.config.globalProperties.$t = (key: string) => key;
+  const html = await ssr.renderToString(app);
+  const inputs = [...html.matchAll(/<input[^>]+id="([^"]+)"[^>]+aria-controls="([^"]+)"/g)];
+  assert.equal(inputs.length, 2);
+  assert.equal(new Set(inputs.flatMap((match) => [match[1], match[2]])).size, 4);
+  for (const match of inputs) assert(html.includes(`for="${match[1]}"`));
+  assert.equal((html.match(/class="slk-area-search-tab /g) ?? []).length, 4);
+});

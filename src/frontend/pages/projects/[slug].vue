@@ -1,5 +1,5 @@
 <template>
-  <section v-if="tourVisits.length || article?.profile_stage === 'preview'" class="container mx-auto px-4 pt-6">
+  <section v-if="tourVisits.length || article?.profile_stage === 'preview'" class="w-full pt-6">
     <div class="project-tour-banner p-5">
       <p v-if="article?.profile_stage === 'preview'" class="project-tour-banner__notice text-sm">
         {{ $t("tour.preview_hint") }}
@@ -69,7 +69,7 @@
     :organisation="article.organisation"
     :measures="articleMeasures"
   />
-  <div v-else class="container mx-auto px-4 py-8">
+  <div v-else class="w-full py-8">
     <div class="text-center">
       <div class="animate-pulse">{{ $t("generic.loading") }}</div>
     </div>

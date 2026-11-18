@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import type { RenderElement, CollectionSummary } from "~/types/slz-api";
 
@@ -48,6 +48,7 @@ const props = defineProps<{
   baseUrl: string;
   population?: number | null | undefined;
   flush?: boolean | undefined;
+  summary?: CollectionSummary | null | undefined;
 }>();
 
 const { t } = useSlzLocale();
@@ -112,7 +113,20 @@ const kpiColor = computed(() => {
   return "#E30613";
 });
 
+watch(
+  () => props.summary,
+  (data) => {
+    if (!data) return;
+    aggregate.value = data.aggregate as Record<string, unknown>;
+    const values = data.kpi_values ?? data.kpiValues ?? {};
+    const kpi = values[props.element.plot_id];
+    canonicalKpi.value = kpi ? { value: kpi.value, precision: kpi.precision ?? undefined } : null;
+  },
+  { immediate: true },
+);
+
 onMounted(async () => {
+  if (props.summary !== undefined) return;
   if (!props.ars || !props.collectionSlug) return;
   loading.value = true;
   try {

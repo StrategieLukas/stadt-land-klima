@@ -6,6 +6,7 @@ import { waitFor } from "../lib/wait.js";
 import { newContext, waitForHydration, collectPublicPageErrors } from "../lib/browser.js";
 import { assertNoCredentialFields } from "../lib/disclosure.js";
 import { assertMunicipalityDetailLayout } from "../lib/municipalityDetail.js";
+import { assertResponsivePageLayouts } from "../lib/pageLayout.js";
 import type { TestFixture } from "../lib/fixture.js";
 import type { TestRunner } from "../lib/runner.js";
 
@@ -318,6 +319,16 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       status: "published",
     });
 
+    await runner.step("Public layout: shared gutters, narrow content and full-width dashboards", async () => {
+      await assertResponsivePageLayouts(browser, config.frontendUrl, [
+        { path: `/events/series/${slug}-series`, headingMaxWidth: 1280 },
+        { path: `/events/${slug}-timeline`, headingMaxWidth: 768 },
+        { path: `/news/${slug}`, headingMaxWidth: 768 },
+        { path: `/measures/${slug}?v=${slug}` },
+        { path: `/${slug}` },
+      ]);
+    });
+
     await runner.step("Mobile dock: published CMS menu assignments and icons survive the public DTO", async () => {
       const mobile = await newContext(browser, { viewport: { width: 390, height: 844 } });
       try {
@@ -336,14 +347,10 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         for (const theme of ["staedteChallemgeTheme", "staedteChallengeDark"]) {
           const colors = await link.evaluate((button, selectedTheme) => {
             document.documentElement.dataset.theme = selectedTheme;
-            const surfaceProbe = document.createElement("span");
-            surfaceProbe.style.backgroundColor = "var(--slk-surface-muted)";
             const foregroundProbe = document.createElement("span");
             foregroundProbe.style.color = "var(--slk-text-strong)";
-            document.body.append(surfaceProbe, foregroundProbe);
-            const activeBackground = getComputedStyle(surfaceProbe).backgroundColor;
+            document.body.append(foregroundProbe);
             const foreground = getComputedStyle(foregroundProbe).color;
-            surfaceProbe.remove();
             foregroundProbe.remove();
             const label = button.querySelector(".slk-dock-label")!;
             const painted = button.querySelector("svg [fill]:not([fill='none'])") ?? button.querySelector("svg")!;
@@ -352,7 +359,6 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
               button: getComputedStyle(button).color,
               label: getComputedStyle(label).color,
               icon: getComputedStyle(painted).fill,
-              activeBackground,
               background: getComputedStyle(button).backgroundColor,
               inactive: getComputedStyle(document.querySelector("#page-drawer-toggle")!).color,
               foreground,
@@ -360,13 +366,36 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
           }, theme);
           assert(colors.current === "page", `${theme}: current dock page is exposed to assistive technology`);
           assert(
-            colors.button === colors.foreground &&
-              colors.label === colors.foreground &&
-              colors.icon === colors.foreground &&
-              colors.background === colors.activeBackground,
-            `${theme}: active button, CMS SVG and label use the neutral foreground on the selected surface`,
+            colors.button === "rgb(175, 202, 11)" &&
+              colors.label === colors.button &&
+              colors.icon === colors.button &&
+              colors.background === "rgba(0, 0, 0, 0)",
+            `${theme}: active button, CMS SVG and label use brand green without a background tint`,
           );
           assert(colors.inactive === colors.foreground, `${theme}: inactive menu uses the theme foreground`);
+          const menu = page.locator("#page-drawer-toggle");
+          await menu.click();
+          await waitFor("active drawer toggle", async () =>
+            (await menu.getAttribute("class"))?.includes("slk-dock-active"),
+          );
+          const menuColors = await menu.evaluate((button) => ({
+            button: getComputedStyle(button).color,
+            label: getComputedStyle(button.querySelector(".slk-dock-label")!).color,
+            icon: getComputedStyle(button.querySelector("svg")!).fill,
+            background: getComputedStyle(button).backgroundColor,
+          }));
+          assert(
+            menuColors.button === colors.button &&
+              menuColors.label === colors.button &&
+              menuColors.icon === colors.button &&
+              menuColors.background === "rgba(0, 0, 0, 0)",
+            `${theme}: open menu icon and label use brand green without a background tint`,
+          );
+          await menu.click();
+          await waitFor(
+            "inactive drawer toggle",
+            async () => !(await menu.getAttribute("class"))?.includes("slk-dock-active"),
+          );
         }
       } finally {
         await mobile.close();
@@ -882,6 +911,9 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
                 email: "public@example.org",
                 tasks: ["Public team regression task"],
                 color: "#505050",
+                head: { id: "public-leader", first_name: "Public", last_name: "Leader", avatar: null },
+                deputy: { id: "public-deputy", first_name: "Public", last_name: "Deputy", avatar: null },
+                contacts: [{ type: "phone", value: "+49 (30) 123-456", label: "Office" }],
               },
             ],
           }),
@@ -896,6 +928,19 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       await page.locator('.org-svg-wrapper circle[style*="pointer-events: all"]').first().click();
       await page.locator("#team-detail-panel").getByText(`Public team ${config.runId}`, { exact: true }).waitFor();
       await page.locator("#team-detail-panel").getByText("Public team regression task", { exact: true }).waitFor();
+      const leadership = page.locator("#team-detail-panel .org-leadership-row");
+      await leadership.getByRole("button", { name: "Public Leader" }).waitFor();
+      await leadership.getByRole("button", { name: "Public Deputy" }).waitFor();
+      assert(
+        (await page.locator('#team-detail-panel a[href="mailto:public@example.org"] svg').count()) === 1,
+        "Team email must have an icon",
+      );
+      assert(
+        (await page.locator('#team-detail-panel a[href="tel:+4930123456"] svg').count()) === 1,
+        "Custom telephone must have an icon and normalized dial link",
+      );
+      await leadership.getByRole("button", { name: "Public Leader" }).click();
+      await page.locator("#member-public-leader.member-highlight").waitFor();
       await page.route("**/api/area-search?*", (route) => route.fulfill({ json: [] }));
       await page.keyboard.press("Control+k");
       await page.keyboard.insertText(fixture.municipalityName);

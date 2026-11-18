@@ -1,0 +1,3 @@
+language: en-GB
+key: data.dashboard.map_gesture_windows
+value: "Hold Ctrl and scroll to zoom the map."

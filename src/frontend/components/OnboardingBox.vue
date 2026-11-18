@@ -22,13 +22,13 @@
         <p class="mt-0.5 line-clamp-2 text-xs text-gray-500">{{ $t("onboarding.book_appointment.long") }}</p>
       </div>
     </div>
-    <button
-      class="mt-2 inline-block w-full rounded-md px-3 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
-      style="background-color: #339737"
+    <CanonicalButton
+      class="mt-2 w-full"
+      :label="$t('onboarding.book_appointment.short')"
+      color="dark-green"
+      icon-slug="mdi:calendar-clock"
       @click="openCal"
-    >
-      {{ $t("onboarding.book_appointment.short") }} →
-    </button>
+    />
   </div>
   <!-- Teleport overlay -->
   <teleport to="body">

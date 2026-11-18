@@ -124,13 +124,15 @@ const chartOptions: ChartOptions<"polarArea"> = {
       type: "radialLinear",
       grid: {
         display: false,
+        // Keep the radial sector dividers visible over the opaque fills.
+        z: 1,
       },
       min: 0,
       max: 100,
       startAngle: 0,
       angleLines: {
         display: true,
-        color: cssColor("--slk-border-strong", "#b9c2b0"),
+        color: cssColor("--color-solid-gray-60", "#969696"),
         lineWidth: 1,
       },
 

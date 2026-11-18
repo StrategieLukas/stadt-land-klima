@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="w-full py-8">
     <header class="mb-10">
       <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("feedback.nav_label") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("contact.hero.description") }}</p>
