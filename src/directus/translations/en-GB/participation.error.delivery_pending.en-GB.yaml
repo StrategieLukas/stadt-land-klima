@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.error.delivery_pending
+value: Your account has been created, but its confirmation email could not be
+  sent yet. Try again; an existing appointment will not be booked twice.

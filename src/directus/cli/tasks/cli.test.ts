@@ -122,6 +122,30 @@ function reset(handler: typeof handle) {
   handle = handler;
 }
 
+test("participation area seeding initializes an empty chart once and preserves authored or deliberately removed teams", async () => {
+  let rows: Record<string, unknown>[] = [];
+  reset((call) => {
+    if (call.path === "/items/organisation_teams" && call.method === "GET") return { data: rows };
+    if (call.path === "/items/organisation_teams" && call.method === "POST") {
+      rows = call.rows;
+      return { data: rows };
+    }
+    return { status: 500 };
+  });
+  const first = await runCommand([], undefined, join(root, "seedParticipationAreas.ts"));
+  assert.equal(first.code, 0, first.output);
+  assert.equal(rows.length, 7);
+  assert.ok(rows.some((row) => row.team_key === "technik"));
+  rows[0]!.label = "Editor-owned label";
+  rows = rows.slice(0, 2);
+  requests = [];
+  const second = await runCommand([], undefined, join(root, "seedParticipationAreas.ts"));
+  assert.equal(second.code, 0, second.output);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0]!.label, "Editor-owned label");
+  assert.ok(requests.every((call) => call.method === "GET"));
+});
+
 test("homepage migration preserves legacy HTML, existing blocks and editor drafts and is idempotent", async () => {
   let hasBlock = false;
   let drafts: Record<string, unknown>[] = [];

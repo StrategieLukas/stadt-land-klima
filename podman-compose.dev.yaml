@@ -5,6 +5,9 @@ services:
     ports: ["127.0.0.1:${SLK_PODMAN_CMS_PORT:-8081}:8055"]
     environment:
       SLK_ENV: development
+    volumes:
+      - ./src/directus/extensions/consent-management/package.json:/directus/extensions/consent-management/package.json:ro,z
+      - ./src/directus/extensions/consent-management/dist:/directus/extensions/consent-management/dist:ro,z
   frontend:
     ports: ["127.0.0.1:${SLK_PODMAN_WEB_PORT:-8080}:3000", "127.0.0.1:${SLK_PODMAN_HMR_PORT:-24678}:24678"]
     command: [/bin/sh, /start_dev.sh]

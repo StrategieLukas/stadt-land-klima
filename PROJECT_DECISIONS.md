@@ -82,6 +82,17 @@ new account creation rolls back on send failure. Advisory locks prevent duplicat
 invites. Persistent rate limits are shared across both invitation interfaces.
 Local-team invitations remain a separate supported workflow.
 
+The public `/mitmachen` funnel uses the private Frontend-Server participation
+extension for transactional invited MinimalUser creation and transfer of the two
+current agreement acceptances into native `user_consent` records. IDs and content
+digests are checked and immutable text/version evidence is retained. Existing
+accounts are rejected unchanged; interests never grant editorial/local-team
+privileges. Account-only and personal onboarding share one identity/consent form.
+Cal.com and SMTP operations use persisted, claimed states and identical-request
+retries; uncertain provider outcomes stop for review. Only an allowlisted
+business code bypasses generic 5xx redaction through the registration route's
+explicit checked response. See [participation](docs/PARTICIPATION_FUNNEL.md).
+
 ## Public data boundaries
 
 - Browser components call checked same-origin Nuxt endpoints. CMS SDK clients and

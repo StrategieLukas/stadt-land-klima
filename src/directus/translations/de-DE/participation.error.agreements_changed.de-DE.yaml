@@ -1,0 +1,4 @@
+language: de-DE
+key: participation.error.agreements_changed
+value: Die AGB oder Datenschutzerklärung wurden aktualisiert. Bitte lies die
+  aktuelle Fassung und stimme erneut zu.

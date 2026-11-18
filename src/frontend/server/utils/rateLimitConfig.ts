@@ -17,6 +17,9 @@ export interface RateLimitPreset {
 }
 
 export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
+  "participation-register": { max: 5, windowSeconds: 60 },
+  "participation-options": { max: 10, windowSeconds: 60 },
+  "participation-slots": { max: 10, windowSeconds: 60 },
   "municipality-updates": { max: 10, windowSeconds: 60 },
   "municipality-social-image": { max: 10, windowSeconds: 60 },
   "role-invitation": { max: 5, windowSeconds: 60 },

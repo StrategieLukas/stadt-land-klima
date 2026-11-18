@@ -1,0 +1,27 @@
+{% layout "custom-base" %} {% block content %}
+{% if language == "en-GB" %}
+<h1>Your SLK account is ready</h1>
+<p>Hello {{ firstName | escape }},</p>
+<p>Thank you for joining Stadt.Land.Klima! Your account has been created with the terms and privacy statement you accepted.</p>
+<p>Confirm your email address and set your own password using the button below.</p>
+<p><a class="button" href="{{ url | escape }}" rel="noopener" target="_blank">Activate account and set password</a></p>
+{% if personal %}<p>Your onboarding appointment is booked. Cal.com sends the appointment confirmation, meeting link and options to reschedule or cancel to this same email address.</p>{% endif %}
+<p>If you did not request this account, ignore this email. Your account remains inactive until the invitation is accepted. Questions? info@stadt-land-klima.de</p>
+{% elsif language == "it-IT" %}
+<h1>Il tuo account SLK è pronto</h1>
+<p>Ciao {{ firstName | escape }},</p>
+<p>Grazie per partecipare a Stadt.Land.Klima! Il tuo account è stato creato con i termini e l’informativa sulla privacy che hai accettato.</p>
+<p>Conferma il tuo indirizzo e-mail e scegli la tua password con il pulsante qui sotto.</p>
+<p><a class="button" href="{{ url | escape }}" rel="noopener" target="_blank">Attiva l’account e scegli la password</a></p>
+{% if personal %}<p>Il tuo appuntamento introduttivo è prenotato. Cal.com invia la conferma, il link alla riunione e le opzioni per spostare o annullare l’appuntamento a questo stesso indirizzo e-mail.</p>{% endif %}
+<p>Se non hai richiesto questo account, ignora questa e-mail. L’account rimane inattivo finché non accetti l’invito. Domande? info@stadt-land-klima.de</p>
+{% else %}
+<h1>Dein SLK-Konto ist vorbereitet</h1>
+<p>Hallo {{ firstName | escape }},</p>
+<p>Danke, dass du bei Stadt.Land.Klima! mitmachst. Dein Konto wurde angelegt. Deine Zustimmung zu den angezeigten AGB und zur Datenschutzerklärung ist deinem Konto zugeordnet.</p>
+<p>Bestätige jetzt deine E-Mail-Adresse und lege dein eigenes Passwort fest.</p>
+<p><a class="button" href="{{ url | escape }}" rel="noopener" target="_blank">Konto aktivieren und Passwort festlegen</a></p>
+{% if personal %}<p>Dein persönliches Onboarding ist gebucht. Cal.com sendet dir die Terminbestätigung mit Meeting-Link sowie den Möglichkeiten zum Verschieben und Absagen an dieselbe E-Mail-Adresse.</p>{% endif %}
+<p>Falls du dieses Konto nicht angefragt hast, kannst du diese E-Mail ignorieren. Das Konto bleibt bis zur Annahme der Einladung inaktiv. Bei Fragen erreichst du uns unter info@stadt-land-klima.de.</p>
+{% endif %}
+{% endblock %}

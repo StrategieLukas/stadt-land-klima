@@ -1,0 +1,4 @@
+language: it-IT
+key: participation.calendar.empty
+value: Non ci sono appuntamenti disponibili in questo periodo. Prova il mese
+  successivo o crea un account senza appuntamento.

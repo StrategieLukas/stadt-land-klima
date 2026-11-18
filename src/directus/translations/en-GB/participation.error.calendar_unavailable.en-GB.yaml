@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.error.calendar_unavailable
+value: Appointments cannot be loaded right now. Try again or create an account
+  without an appointment.

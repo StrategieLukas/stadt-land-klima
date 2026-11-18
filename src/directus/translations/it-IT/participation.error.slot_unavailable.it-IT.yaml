@@ -1,0 +1,4 @@
+language: it-IT
+key: participation.error.slot_unavailable
+value: Non è stato possibile prenotare l’appuntamento. Nessun account è stato
+  creato. Scegli un altro orario.

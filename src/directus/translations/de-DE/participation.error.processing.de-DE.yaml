@@ -1,0 +1,4 @@
+language: de-DE
+key: participation.error.processing
+value: Deine Anfrage wird bereits verarbeitet. Warte kurz und versuche es
+  erneut. Falls die Meldung bleibt, kontaktiere uns bitte.

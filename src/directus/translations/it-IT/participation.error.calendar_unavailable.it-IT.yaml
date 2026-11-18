@@ -1,0 +1,4 @@
+language: it-IT
+key: participation.error.calendar_unavailable
+value: Al momento non è possibile caricare gli appuntamenti. Riprova o crea un
+  account senza appuntamento.

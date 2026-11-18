@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.calendar.empty
+value: No appointments are available in this period. Try the next month or
+  create an account without an appointment.

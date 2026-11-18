@@ -5,6 +5,24 @@ enforce_tfa: false
 admin_access: false
 app_access: false
 permissions:
+  - collection: agreement_versions
+    action: read
+    permissions:
+      _and:
+        - isCurrentVersion:
+            _eq: true
+        - type:
+            _in:
+              - terms_of_service
+              - data_protection
+    validation: null
+    presets: null
+    fields:
+      - id
+      - type
+      - version
+      - legal_text
+      - isCurrentVersion
   - collection: answers
     action: read
     permissions: null
@@ -682,6 +700,20 @@ permissions:
       - page_category
       - is_dynamic
       - icon_svg
+      - status
+  - collection: participation_projects
+    action: read
+    permissions:
+      status:
+        _eq: open
+    validation: null
+    presets: null
+    fields:
+      - id
+      - title
+      - description
+      - area
+      - sort
       - status
   - collection: questions
     action: read

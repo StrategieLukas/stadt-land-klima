@@ -21,7 +21,8 @@
   "license": "MIT",
   "dependencies": {
     "markdown-it": "^15.0.3",
-    "dompurify": "^3.4.17"
+    "dompurify": "^3.4.17",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@directus/extensions-sdk": "18.1.1",
@@ -51,6 +52,11 @@
       "api": "dist/api.js"
     },
     "entries": [
+      {
+        "type": "endpoint",
+        "name": "participation",
+        "source": "src/participation/endpoint.ts"
+      },
       {
         "type": "hook",
         "name": "hook-consent-check",

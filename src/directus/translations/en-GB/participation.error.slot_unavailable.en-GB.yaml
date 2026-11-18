@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.error.slot_unavailable
+value: The appointment could not be booked. No account was created. Choose
+  another time.

@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.error.duplicate_email
+value: An account already exists for this email address. Nothing was changed and
+  no appointment was booked. Please sign in or reset your password.

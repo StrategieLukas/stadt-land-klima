@@ -1,0 +1,4 @@
+language: de-DE
+key: participation.error.unavailable
+value: Der Abschluss konnte nicht bestätigt werden. Bitte versuche es mit
+  denselben Angaben erneut.

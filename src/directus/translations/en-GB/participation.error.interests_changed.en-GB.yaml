@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.error.interests_changed
+value: A selected area or project is no longer available. Please go back and
+  update your choices.

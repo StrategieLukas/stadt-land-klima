@@ -1,0 +1,4 @@
+language: de-DE
+key: participation.error.slot_unavailable
+value: Der Termin konnte nicht gebucht werden. Es wurde kein Konto angelegt.
+  Wähle einen anderen Termin.

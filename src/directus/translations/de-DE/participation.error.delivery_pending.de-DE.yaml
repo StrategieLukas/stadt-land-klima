@@ -1,0 +1,5 @@
+language: de-DE
+key: participation.error.delivery_pending
+value: Dein Konto ist angelegt, aber die Kontobestätigung konnte noch nicht
+  versendet werden. Versuche es erneut; ein bereits gebuchter Termin wird dabei
+  nicht noch einmal gebucht.

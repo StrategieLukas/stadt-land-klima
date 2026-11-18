@@ -22,6 +22,7 @@ npm --prefix "$SCRIPT_DIR" run typecheck
 # Seed content after the schema import so fresh and existing databases both work.
 "$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/seedTourOst2026.ts"
 "$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/seedHomepage.ts"
+"$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/seedParticipationAreas.ts"
 
 
 echo "All imports completed"

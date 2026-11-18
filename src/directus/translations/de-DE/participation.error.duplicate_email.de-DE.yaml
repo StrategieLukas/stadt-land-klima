@@ -1,0 +1,5 @@
+language: de-DE
+key: participation.error.duplicate_email
+value: Für diese E-Mail-Adresse existiert bereits ein Konto. Es wurde nichts
+  geändert und kein Termin gebucht. Bitte melde dich an oder nutze „Passwort
+  vergessen“.

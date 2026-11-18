@@ -1,0 +1,35 @@
+- id: 183fe62d-1888-42a7-a07b-a5d0e2e04901
+  team_key: lokalteams
+  label: Lokalteams / Netzwerk
+  sort: 1
+  color: "#9d9d9c"
+- id: 183fe62d-1888-42a7-a07b-a5d0e2e04902
+  team_key: technik
+  label: Technik & IT
+  sort: 2
+  color: "#9d9d9c"
+- id: 183fe62d-1888-42a7-a07b-a5d0e2e04903
+  team_key: steuerkreis
+  label: Steuerkreis
+  sort: 3
+  color: "#9d9d9c"
+- id: 183fe62d-1888-42a7-a07b-a5d0e2e04904
+  team_key: massnahmen
+  label: Maßnahmen
+  sort: 4
+  color: "#9d9d9c"
+- id: 183fe62d-1888-42a7-a07b-a5d0e2e04905
+  team_key: kommunikation
+  label: Kommunikation / Öffentlichkeits- und Pressearbeit
+  sort: 5
+  color: "#9d9d9c"
+- id: 183fe62d-1888-42a7-a07b-a5d0e2e04906
+  team_key: vorstand
+  label: Vorstand / Verwaltung
+  sort: 6
+  color: "#9d9d9c"
+- id: 183fe62d-1888-42a7-a07b-a5d0e2e04907
+  team_key: kassenwart
+  label: Kassenwart
+  sort: 7
+  color: "#9d9d9c"

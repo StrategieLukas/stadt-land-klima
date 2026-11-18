@@ -1,0 +1,4 @@
+language: it-IT
+key: participation.error.review_required
+value: Non è stato possibile confermare il completamento della prenotazione.
+  Contattaci per verificare l’appuntamento. Non prenotare nuovamente.

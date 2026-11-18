@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.error.review_required
+value: We could not confirm that the booking completed. Please contact us so we
+  can check the appointment. Do not book again.

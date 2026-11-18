@@ -1,0 +1,4 @@
+language: de-DE
+key: participation.error.calendar_unavailable
+value: Die Termine können gerade nicht geladen werden. Versuche es erneut oder
+  erstelle dein Konto ohne Termin.

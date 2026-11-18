@@ -1,0 +1,21 @@
+collection: participation_projects
+field: area
+related_collection: organisation_teams
+meta:
+  junction_field: null
+  many_collection: participation_projects
+  many_field: area
+  one_allowed_collections: null
+  one_collection: organisation_teams
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: null
+  sort_field: null
+schema:
+  table: participation_projects
+  column: area
+  foreign_key_table: organisation_teams
+  foreign_key_column: id
+  constraint_name: participation_projects_area_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL

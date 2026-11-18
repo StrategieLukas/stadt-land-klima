@@ -1,0 +1,4 @@
+language: de-DE
+key: participation.error.review_required
+value: Wir konnten den Abschluss der Buchung nicht sicher bestätigen. Bitte
+  kontaktiere uns, damit wir den Termin prüfen. Buche nicht noch einmal.

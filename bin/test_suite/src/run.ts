@@ -20,6 +20,7 @@ import { runSharedStateFlow } from "./flows/sharedStateFlow.js";
 import { runJobsFlow } from "./flows/jobsFlow.js";
 import { runEditorSessionFlow } from "./flows/editorSessionFlow.js";
 import { runAssetTransformFlow } from "./flows/assetTransformFlow.js";
+import { runParticipationFlow } from "./flows/participationFlow.js";
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -189,6 +190,15 @@ async function main(): Promise<void> {
     } catch (e) {
       runner.results.push({
         name: "Jobs flow",
+        status: "failed",
+        error: e instanceof Error ? e : new Error(String(e)),
+      });
+    }
+    try {
+      await runParticipationFlow(runner, config.frontendUrl, browser);
+    } catch (e) {
+      runner.results.push({
+        name: "Participation flow",
         status: "failed",
         error: e instanceof Error ? e : new Error(String(e)),
       });

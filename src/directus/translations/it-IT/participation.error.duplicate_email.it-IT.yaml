@@ -1,0 +1,5 @@
+language: it-IT
+key: participation.error.duplicate_email
+value: Esiste già un account con questo indirizzo e-mail. Non è stato modificato
+  nulla e non è stato prenotato alcun appuntamento. Accedi o reimposta la
+  password.

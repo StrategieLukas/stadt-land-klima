@@ -1,0 +1,4 @@
+language: it-IT
+key: participation.error.processing
+value: La tua richiesta è già in elaborazione. Attendi e riprova. Se il
+  messaggio persiste, contattaci.

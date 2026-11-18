@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.error.processing
+value: Your request is already being processed. Wait briefly and try again. If
+  this continues, please contact us.

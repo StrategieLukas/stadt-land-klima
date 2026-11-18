@@ -1,0 +1,4 @@
+language: en-GB
+key: participation.error.agreements_changed
+value: The terms or privacy statement have changed. Please review and accept the
+  current versions.

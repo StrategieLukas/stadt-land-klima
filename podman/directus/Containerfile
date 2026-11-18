@@ -4,7 +4,7 @@ USER node
 COPY --chown=1000:1000 src/directus/cli /directus/cli
 COPY --chown=1000:1000 src/directus/extensions /directus/extensions
 # Extension bundles share the portable logger with Nuxt; retain its real source path.
-COPY --chown=1000:1000 src/frontend/shared/securityLog.ts src/frontend/shared/contentTranslationProtocol.ts src/frontend/shared/municipalityClassification.ts /frontend/shared/
+COPY --chown=1000:1000 src/frontend/shared/securityLog.ts src/frontend/shared/contentTranslationProtocol.ts src/frontend/shared/municipalityClassification.ts src/frontend/shared/participation.ts /frontend/shared/
 USER root
 RUN mkdir -p /frontend/node_modules && ln -s /directus/cli/node_modules/zod /frontend/node_modules/zod
 USER node

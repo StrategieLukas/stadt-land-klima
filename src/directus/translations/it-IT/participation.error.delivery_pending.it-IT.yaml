@@ -1,0 +1,4 @@
+language: it-IT
+key: participation.error.delivery_pending
+value: "Il tuo account è stato creato, ma non è stato possibile inviare la
+  conferma. Riprova: un appuntamento già prenotato non verrà duplicato."
