@@ -114,6 +114,17 @@ were submitted to that service. Future advisory databases can return new results
 
 ## Security behavior verified locally
 
+The monitoring installer adds no npm dependency. It reuses the reviewed backend
+pin, plugin pin and Caddy build recipe. A missing rate-limit module can cause a
+binary/build-metadata overlay onto the current proxy image, after checking registered module
+names. This preserves the existing image settings/base OS; it does not scan or
+patch that inherited OS or establish semantic compatibility of arbitrary custom
+modules. Deployment verification and private rollback snapshots remain necessary.
+Its tests cover configuration/plugin-list preservation, file-secret handling,
+module-loss refusal and rollback after a failed restart; optional real-container
+tests validate the generated Caddy configuration, Quadlet merge and image overlay
+runtime metadata. DNS/provider credentials and remote deployment are excluded.
+
 The real-binary fixture checks authenticated TLS with certificate/hostname
 verification, native secret-file resolution (including quote/dollar characters),
 metadata exclusion, stable service/severity fields, disk-buffer recovery after

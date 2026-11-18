@@ -17,6 +17,118 @@ Grafana/VictoriaMetrics Quadlets or migrate their data. Review the current
 [security findings](LOGGING_SECURITY_REVIEW.md) before live activation. No remote
 installation is authorized or performed by preparing these files.
 
+## Automated installation
+
+Run this **on the monitoring server as its existing Podman deployment account**.
+The installer needs Linux, the project's Node 24.22.3 runtime, Podman/cgroup v2 and active Grafana/Caddy
+Quadlets in the standard owner directory. Grafana must be 11.5+ and include its
+usual `/bin/sh`, `cat`, `grep` and `grafana` CLI. The Caddy container must bind-mount
+its maintained Caddyfile. Both containers must use the same Podman owner/scope.
+Custom unit names work; custom `ServiceName=` mappings and native host Caddy use
+the manual procedure below. Existing rootless linger must already be enabled.
+
+First create the DNS record for `logs.stadt-land-klima.de` pointing to the current
+HTTPS proxy and allow its normal ACME certificate issuance. The installer does
+not change your DNS provider, firewall, Grafana login/SSO or remote machines.
+Obtain this reviewed repository revision through the normal deployment workflow.
+
+```bash
+cd /path/to/stadt-land-klima
+install -d -m 0700 ~/.config/slk-monitoring
+install -m 0600 podman/logging/monitoring/install.example.json ~/.config/slk-monitoring/install.json
+```
+
+Edit that **untracked runtime copy**, setting:
+
+- `grafanaUnit` and `caddyUnit` to the existing generated service names;
+- `caddyfile` to its existing host bind source, outside any Git checkout, and
+  `caddyfileInContainer` to the corresponding container path;
+- `directory` to a dedicated mode-0700 directory owned by this account;
+- `hostname`, `username`, `hostLabel` and `environment` for the intended sender.
+
+Use the discovery commands below if you do not know these values. For rootful
+Quadlets use an explicit `"scope": "system"`, root-owned paths/config and the
+existing root Podman manager. Never use root against a rootless stack.
+
+```bash
+./bin/slk monitoring plan --config /home/deploy/.config/slk-monitoring/install.json
+./bin/slk monitoring install --config /home/deploy/.config/slk-monitoring/install.json
+./bin/slk monitoring verify --config /home/deploy/.config/slk-monitoring/install.json
+```
+
+The script can also run without installing npm packages:
+
+```bash
+node bin/cli/monitoring-install.ts plan --config /home/deploy/.config/slk-monitoring/install.json
+node bin/cli/monitoring-install.ts install --config /home/deploy/.config/slk-monitoring/install.json
+node bin/cli/monitoring-install.ts verify --config /home/deploy/.config/slk-monitoring/install.json
+```
+
+`plan` discovers the running containers/source units and lists changes without
+pulling/building images, generating credentials or modifying files/services.
+`install` automatically:
+
+1. Checks owner/scope, bind paths, resource/config collisions and current plugins.
+2. Generates/reuses a private password and bcrypt hash without command-line or
+   console disclosure. It preserves active INI/environment plugin lists and
+   installs the signed VictoriaLogs plugin synchronously at its pinned version.
+3. Adds the backend Quadlets, Grafana/Caddy network drop-ins and datasource mount.
+   It adds/replaces one clearly marked ingestion block in the installed Caddyfile,
+   preserving other sites, mounts, networks, plugin lists and the metrics source.
+4. Validates the merged Caddyfile, saves a private rollback snapshot, checks Quadlet
+   generation and restarts VictoriaLogs, Grafana and Caddy. Expect brief monitoring
+   interruption; no application-host service is restarted by this command.
+5. Checks plugin presence, private networking, backend health, verified HTTPS,
+   unauthenticated 401/public-query 404 boundaries, then inserts a harmless canary
+   through authenticated HTTPS and queries it through the private backend network.
+
+If Caddy lacks the rate-limit module, `buildCaddyIfNeeded: true` builds the reviewed
+binary from `caddy/Containerfile`, verifies that all existing module names remain,
+and layers that binary plus its build metadata onto the current image. Existing image settings
+including user/entrypoint/environment remain inherited, and the drop-in pins the
+resulting local image ID. This requires internet/build resources. It refuses to
+drop custom DNS/auth modules; merge those into the reviewed build first if needed.
+Binary replacement does not preserve file capabilities. If the current setup
+depends on those, port binding can fail and trigger rollback; review that setup
+before installing. Set `buildCaddyIfNeeded: false` to require a compatible image
+already installed. Derived local images must be retained/rebuilt before migration
+to a new server; this does not add an automatic image update mechanism.
+
+Caught installation/verification failures restore the previous file bytes/modes,
+reload systemd and restart the previous services. A newly started backend is
+stopped; named volumes/networks are retained. Check the rollback message: failures
+to restore/restart require operator attention. Snapshots live under
+`directory/backups/<id>/manifest.json` (owner-only; original bytes are base64).
+Keep them in the existing encrypted backup workflow. Power loss/SIGKILL can
+interrupt rollback; inspect that manifest and restore the recorded paths/modes
+before retrying. Do not remove a stale `.install.lock` until its process has exited.
+The installer never prunes/deletes volumes, deploys the application, or enables
+unsigned-plugin exceptions. It stops on unrecognized/existing conflicting config.
+
+On success, the private state directory contains:
+
+- `vector.env`: ready application-host logging settings, using the default
+  `/root/.config/slk/victorialogs-password` credential path;
+- `vector-password`: the raw password, mode 0600; transfer it separately through
+  your existing secure operator workflow;
+- `ingestion.hash`, datasource configuration and private rollback snapshots.
+
+Copy `vector.env` to the application host as its root-owned mode-0600
+`/root/.config/slk/logging.env`, and `vector-password` as root-owned mode-0600
+`/root/.config/slk/victorialogs-password`. Then follow the
+[application-host activation steps](CENTRAL_LOGGING.md#5-install-the-vector-binary-on-each-application-host).
+The script does not transmit credentials or activate collection on another machine.
+It currently manages one sender identity/site; additional senders require reviewed
+configuration changes. Repeated installs reuse credentials and the managed image.
+
+`verify` performs read-only network/plugin/health/HTTPS boundary checks; only
+`install` writes and queries the installation canary. A Grafana API-created
+datasource with the same UID, custom start-time environment overrides, other
+provisioning mechanisms and actual dashboard query/rendering still need operator
+acceptance. Native Grafana plugin signature verification remains enabled; CLI
+plugin presence alone does not establish dashboard compatibility. Reboot, backup
+restore and monitoring-host storage failure remain acceptance checks below.
+
 ## 1. Identify the existing Podman owner and unit filenames
 
 Use the **same Podman user and systemd manager as Grafana**. For rootless hosting,

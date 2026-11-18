@@ -26,6 +26,8 @@ Monitoring already uses Podman Quadlets. Follow the concrete
 systemd manager as the existing Grafana. It includes discovery commands for the
 current unit filenames, network scope, proxy placement and plugin storage.
 Preserve the existing Grafana/VictoriaMetrics services, data and networks.
+The guide starts with an automated `slk monitoring plan/install/verify` installer,
+including generated credentials, configuration, validation and rollback.
 
 ## 2. Install VictoriaLogs as a Quadlet
 

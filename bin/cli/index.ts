@@ -23,6 +23,20 @@ const parser = yargs(hideBin(process.argv))
   .help()
   .wrap(Math.min(110, process.stdout.columns || 110))
   .command(
+    "monitoring <action>",
+    "Plan, install or verify Vector ingestion, VictoriaLogs and existing monitoring Quadlets",
+    (p) =>
+      p.positional("action", { choices: ["plan", "install", "verify"] as const }).option("config", {
+        type: "string",
+        demandOption: true,
+        description: "Absolute owner-only monitoring JSON file",
+      }),
+    async (argv) => {
+      const { monitoringInstall } = await import("./monitoring-install.ts");
+      await monitoringInstall(argv.action!, argv.config);
+    },
+  )
+  .command(
     "host <action>",
     "Plan, install or verify reviewed production host service copies (root/Linux)",
     (p) =>
