@@ -89,7 +89,8 @@ export default defineEventHandler(async (event) => {
         list_uuids: listUuids,
       },
     });
-    z.object({ data: z.literal(true) }).parse(response);
+    // Listmonk 6 returns opt-in metadata; older releases acknowledged with true.
+    z.object({ data: z.union([z.literal(true), z.object({ has_optin: z.boolean() })]) }).parse(response);
   } catch (err: unknown) {
     // ofetch exposes the HTTP status on FetchError.status.
     if (err && typeof err === "object" && "status" in err && err.status === 409) {

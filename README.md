@@ -176,6 +176,28 @@ timeouts, native/deployed limitations and report handling. The existing
 CMS fixture suite is writable and requires disposable data. The `ready` runner
 executes the development suite's unit and live halves once each.
 
+## Newsletter runtime configuration
+
+The frontend's private runtime dotenv must provide `LISTMONK_ENDPOINT`,
+`LISTMONK_API_USERNAME`, `LISTMONK_API_TOKEN`, and the numeric default
+`LISTMONK_LIST_ID`. The `NUXT_LISTMONK_*` runtime overrides are also supported.
+These values are server-only; keep credentials out of Git and public Nuxt config.
+The deployed frontend reads the mounted dotenv at startup, so changing it requires
+restarting the frontend. A successful frontend build or homepage health check does
+not verify newsletter configuration.
+
+Before a release, verify the configured provider's authenticated `/api/lists`
+response and that the selected default list exists and uses double opt-in. The
+website's read-only `/api/newsletter-lists` route must return the intended public
+lists. Missing endpoint/API credentials produce an unavailable newsletter service;
+do not replace an existing private dotenv with the empty example during deployment.
+Run diagnostic commands through the runtime environment loader: a bare container
+`exec` does not inherit the mounted dotenv values loaded by the server process.
+
+Subscription acknowledgement accepts both legacy `data: true` and Listmonk 6's
+`data: { has_optin: boolean }`. Actual confirmation-email delivery remains a
+separate acceptance check requiring an explicitly approved test recipient.
+
 ## Newsletter SMTP routing on staging
 
 The newsletter service is operated separately in `/home/deploy/newsletter`.

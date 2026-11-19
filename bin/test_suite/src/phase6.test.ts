@@ -665,7 +665,17 @@ test("newsletter normalizes provider URLs, validates acknowledgement and hides p
   assert.equal((await handler(event)).success, true);
   assert.deepEqual(plain(requests[0]!.body.list_uuids), ["public-id"]);
   assert.ok(!requests[0]!.headers.Authorization, "Public subscription never receives provider credentials");
-  for (const value of [{ data: false }, {}, Object.assign(new Error("private-provider-detail"), { status: 500 })]) {
+  for (const hasOptin of [true, false]) {
+    response = { data: { has_optin: hasOptin } };
+    assert.deepEqual(plain(await handler(event)), { success: true, alreadySubscribed: false });
+  }
+  for (const value of [
+    { data: false },
+    { data: {} },
+    { data: { has_optin: "true" } },
+    {},
+    Object.assign(new Error("private-provider-detail"), { status: 500 }),
+  ]) {
     response = value;
     await assert.rejects(
       handler(event),
