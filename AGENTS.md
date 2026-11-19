@@ -8,7 +8,16 @@ Code language and variables always favour english language.
 
 ## Design memory
 
-Read [Design guidelines](docs/DESIGN_GUIDELINES.md) before changing page heroes or typography. It records the shared hero heading scale, introduction styling, section hierarchy, and compact avatar layout conventions.
+Read [Design guidelines](docs/DESIGN_GUIDELINES.md) before changing frontend appearance or interaction, including shared CSS, themes, overlays, navigation, buttons, cards, charts, spacing and typography. The current design is deliberate; the guidelines record details restored or refined in commits `8ee4e4aa` and `4a62c3e3`. Preserve them during refactors and unrelated fixes. Change a recorded decision only when the user's request calls for that change, and update the guidelines and feature inventory together.
+
+In particular:
+
+- Search and shared modal backdrops must leave the underlying site visible in both themes. Preserve 50% backdrop color alpha; never replace the dark-theme translucent mix with an opaque `--slk-backdrop` fill. Navigation temporarily hides search results while retaining the tint, query and results.
+- Keep semantic badge foreground/background pairs, subdued colored dark rating surfaces, readable labels and theme-specific logo artwork. Do not flatten all dark-mode surfaces into one color or apply blanket image inversion.
+- Preserve the shared page gutters, compact header/search geometry, full-width timeline background with aligned compact links, flat job/election panels, municipality action boxes and compact organisation avatars. Component-specific exceptions in the guidelines are intentional.
+- Keep CanonicalButton's shared filled/outline styling, icon dividers, wrapped labels, hover and keyboard-focus behavior; use supported props instead of local CSS overrides.
+
+Check relevant appearance changes in light/dark themes and narrow/desktop layouts, including keyboard focus and reduced motion when interactions change. Existing tests cover only part of the design; consult the coverage references in the guidelines and `FEATURES.md`, and report visual checks that remain unverified.
 
 Preserve already displayed content while its replacement loads. For tour station changes, keep the previous decoded postcards visible in their current position until the active station's replacement set is ready, then swap it atomically without a blank interval or loading animation. Late downloads for an earlier station must never replace the current station's postcards. See the loading-stability rules in the design guidelines.
 
