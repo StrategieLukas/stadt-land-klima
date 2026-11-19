@@ -1,6 +1,6 @@
 import type { Spec as VegaSpec } from "vega";
 import { asRecord } from "~/shared/visualization";
-import { withCollectionBarAxes } from "~/utils/collectionCharts";
+import { withCollectionBarAxes } from "~/shared/collectionChartAxes";
 
 export const COLLECTION_CHART_FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 const palettes = {

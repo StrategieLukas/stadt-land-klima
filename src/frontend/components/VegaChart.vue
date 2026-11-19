@@ -93,7 +93,7 @@ import {
   emptyCollectionChartPreview,
 } from "~/utils/collectionChartTheme";
 import { withNativeScaleZoom } from "~/utils/chartZoom";
-import { withCollectionBarAxes } from "~/utils/collectionCharts";
+import { withCollectionBarAxes } from "~/shared/collectionChartAxes";
 import { histogramBinFromItem } from "~/utils/municipalityOverview";
 import { clientDiagnostic } from "~/shared/securityLog";
 

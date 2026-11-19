@@ -167,7 +167,7 @@ test("municipality results distinguish missing from zero and construct local pro
   assert.equal(page.results[1]?.value, null);
   assert.equal(
     municipalityProductRoute("wind-turbines", municipalityFixture),
-    "/data/stadtkreis_stuttgart/wind-turbines",
+    "/data/stadtkreis_stuttgart#wind-turbines",
   );
   assert.throws(() => municipalityProductRoute("wind-turbines", { slug: "../../admin" }));
 });

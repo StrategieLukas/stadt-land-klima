@@ -1,3 +1,5 @@
+import { isRaster } from "../../../src/frontend/shared/utils.js";
+import { withCollectionBarAxes } from "../../../src/frontend/shared/collectionChartAxes.js";
 import { prepareButtonIcons } from "../../../src/frontend/utils/buttonIcons.js";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
@@ -67,6 +69,7 @@ async function render(
   props: Record<string, unknown>,
   globals: Record<string, unknown> = {},
   dependencies: Record<string, unknown> = {},
+  components: Record<string, import("../../../src/frontend/node_modules/vue/dist/vue.js").Component> = {},
 ) {
   const app = vue.createSSRApp(load(name, globals, dependencies), props);
   app.component(
@@ -85,6 +88,7 @@ async function render(
       },
     }),
   );
+  for (const [componentName, component] of Object.entries(components)) app.component(componentName, component);
   app.config.globalProperties.$t = (key: string) => key;
   app.directive("blokkli-editable", { getSSRProps: () => ({}) });
   return ssr.renderToString(app);
@@ -346,6 +350,23 @@ test("captcha state events accept only string payloads and ignore malformed deta
 });
 
 test("project cards render both asset IDs and expanded organisation logos as actual asset URLs", async () => {
+  const components = {
+    OrganisationLogo: load(
+      "OrganisationLogo.vue",
+      {},
+      {
+        "~/shared/utils": { isRaster },
+        "~/assets/images/LocalZero-logo-small-dark.png": "localzero-dark.png",
+      },
+    ),
+    SmartImg: load(
+      "SmartImg.vue",
+      {},
+      {
+        "~/shared/successProjectTour": { TOUR_REPORT_MEDIA: Symbol("tour-report-media") },
+      },
+    ),
+  };
   const dependencies = {
     "~/shared/utils": { buildLocationString: () => "" },
     "~/shared/projectDate": { formatProjectDate: () => "" },
@@ -353,11 +374,13 @@ test("project cards render both asset IDs and expanded organisation logos as act
   for (const logo of ["logo-id", { id: "logo-id", type: "image/svg+xml" }]) {
     const html = await render(
       "ProjectCard.vue",
-      { title: "Project", organisation: { name: "Partner", logo } },
+      { title: "Project", organisation: { name: "Partner", logo, logo_dark: "dark-logo-id" } },
       {},
       dependencies,
+      components,
     );
     assert.match(html, /src="https:\/\/cms.example.org\/assets\/logo-id"/);
+    assert.match(html, /src="https:\/\/cms.example.org\/assets\/dark-logo-id"/);
     assert.doesNotMatch(html, /object Object/);
   }
 });
@@ -461,6 +484,7 @@ test("CanonicalButton forwards a typed native click exactly once with disabled a
     disabled: true,
     href: "https://example.org",
     external: true,
+    busy: true,
     onClick: (received: MouseEvent) => {
       assert.equal(received, event);
       clicks++;
@@ -468,6 +492,7 @@ test("CanonicalButton forwards a typed native click exactly once with disabled a
   };
   const vnode = component.setup(props, {})(props, []);
   assert.equal(vnode.props.disabled, true);
+  assert.equal(vnode.props["aria-busy"], true);
   assert.equal(vnode.props.href, "https://example.org");
   assert.equal(vnode.props.rel, "noopener noreferrer");
   assert.equal(vnode.props["data-test"], "action");
@@ -607,4 +632,42 @@ test("localized legacy contact buttons retain authored external links and safe n
   assert.match(html, /target="_blank"/);
   assert.match(html, /rel="noopener noreferrer"/);
   assert.match(html, /Keep <strong>authored prose<\/strong> &amp; links\./);
+});
+
+test("collection chart axes preprocessing retains visible axes without mutating the source", () => {
+  const input = {
+    usermeta: {
+      barLabels: [
+        {
+          barName: "bars_marks",
+          textName: "labels_marks",
+          orientation: "horizontal",
+          labelField: "name",
+          valueField: "value",
+          font: "Inter",
+          fontSize: 12,
+          padding: 4,
+        },
+      ],
+    },
+    encoding: {
+      y: { type: "nominal", field: "name" },
+      x: { type: "quantitative", field: "value", axis: { labels: false, ticks: false } },
+    },
+    layer: [
+      { name: "bars", mark: { type: "bar" } },
+      { name: "labels", mark: { type: "text" } },
+    ],
+  };
+  const result = withCollectionBarAxes(input);
+  assert.deepEqual(result.layer, [
+    {
+      name: "bars",
+      mark: { type: "bar" },
+      encoding: { ...input.encoding, x: { ...input.encoding.x, axis: { labels: true, ticks: true } } },
+    },
+  ]);
+  assert.deepEqual(result.usermeta, { barLabels: [] });
+  assert.equal(input.layer.length, 2);
+  assert.equal(input.encoding.x.axis.labels, false);
 });
