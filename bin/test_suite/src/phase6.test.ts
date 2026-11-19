@@ -637,7 +637,8 @@ test("newsletter selection never permits client-requested private lists, includi
 });
 
 test("newsletter normalizes provider URLs, validates acknowledgement and hides provider failures", async () => {
-  let response: unknown = { data: true };
+  // Listmonk 6.2 returns opt-in metadata after it has queued the confirmation.
+  let response: unknown = { data: { has_optin: true } };
   let defaultListId = "1";
   const requests: Row[] = [];
   const handler = load(
@@ -665,7 +666,17 @@ test("newsletter normalizes provider URLs, validates acknowledgement and hides p
   assert.equal((await handler(event)).success, true);
   assert.deepEqual(plain(requests[0]!.body.list_uuids), ["public-id"]);
   assert.ok(!requests[0]!.headers.Authorization, "Public subscription never receives provider credentials");
-  for (const value of [{ data: false }, {}, Object.assign(new Error("private-provider-detail"), { status: 500 })]) {
+  for (const value of [{ data: { has_optin: false } }, { data: true }]) {
+    response = value;
+    assert.equal((await handler(event)).success, true);
+  }
+  for (const value of [
+    { data: false },
+    { data: {} },
+    { data: { has_optin: "true" } },
+    {},
+    Object.assign(new Error("private-provider-detail"), { status: 500 }),
+  ]) {
     response = value;
     await assert.rejects(
       handler(event),
