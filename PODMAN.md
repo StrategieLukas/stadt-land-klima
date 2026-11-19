@@ -139,6 +139,47 @@ It reloads mounted files for `exec`, too. Explicit `-e KEY=value` command overri
 are retained. Direct engine exec does not inherit a PID-1 entrypoint's environment.
 Do not paste private values into command arguments; use the mounted file instead.
 
+## Flushing application caches
+
+```bash
+./bin/slk cache flush --dry-run
+./bin/slk cache flush --env development
+```
+
+Use `--env production` explicitly on an authorized deployment host. The command
+uses the same rootless preflight, private runtime/storage overlays and exclusive
+project lock as other stack mutations. The development-only
+`--unsafe-skip-podman-version-check` option is available here too; every other
+preflight remains in force. `--dry-run` only prints the plan and needs no running
+containers or private environment files.
+
+Directus and frontend must already be running. The command first uses the
+private CLI identity to clear Directus application/schema caches through its
+container-local API. If that request fails, neither service is stopped. It then
+stops frontend writers, restarts Directus to clear extension metadata caches,
+and waits for CMS health. In development, an unpublished helper reuses the
+existing frontend image/mounts to remove only `.nuxt/cache`,
+`node_modules/.cache` and `node_modules/.vite`, rejecting symlinked parents.
+The helper performs no application startup or dependency installation. A missing
+configured frontend image fails preflight instead of triggering Compose’s
+automatic build behavior. Normal
+development frontend startup still follows the existing `/start_dev.sh` path.
+
+The existing frontend container is started again, clearing its in-memory
+response, catalogue and translation caches. Success requires the CMS-backed
+site-layout and catalogue APIs to respond. Frontend restart is attempted even
+if a later cleanup step fails, and failures return a nonzero exit status.
+Both application services are briefly unavailable; no image build is requested.
+
+Redis is shared with sessions, rate limits, proof-replay protection, quotas and
+synchronization locks. It is never globally flushed or restarted. Stored content
+and translations, uploaded files, Meilisearch indexes, `.data/kv` durable storage,
+installed dependencies and verified production output are retained. Production
+Nitro response storage currently uses memory; development response storage uses
+`.nuxt/cache`. If that storage configuration changes, update this command's scope
+alongside it. Browser/CDN caches and external Stadt.Land.Zahl caches cannot be
+invalidated by this local stack command; reload open browser pages afterwards.
+
 ## Build and start
 
 ```bash

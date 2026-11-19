@@ -233,55 +233,51 @@
           </div>
         </Transition>
 
-        <!-- Compact social share buttons -->
-        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <button
+        <!-- Social share buttons -->
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <CanonicalButton
             type="button"
             :disabled="isGenerating"
-            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
-            :aria-label="$t('elections.wahlcheck.results.share.button_insta')"
+            :aria-busy="isGenerating"
+            :label="$t('elections.wahlcheck.results.share.button_insta')"
+            icon-slug="mdi:instagram"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             :title="$t('elections.wahlcheck.results.share.button_insta')"
             @click="shareToStory"
-          >
-            <span v-if="isGenerating" class="loading loading-xs loading-spinner"></span>
-            <img v-else src="~/assets/icons/icon_instagram.svg" alt="" class="h-5 w-5" />
-            <span>{{ $t("elections.wahlcheck.results.share.button_insta") }}</span>
-          </button>
+          />
 
-          <button
+          <CanonicalButton
             type="button"
-            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
-            :aria-label="$t('elections.wahlcheck.results.share.button_whatsapp')"
+            :label="$t('elections.wahlcheck.results.share.button_whatsapp')"
+            icon-slug="mdi:whatsapp"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             :title="$t('elections.wahlcheck.results.share.button_whatsapp')"
             @click="shareToWhatsApp"
-          >
-            <img src="~/assets/icons/icon_whatsapp.svg" alt="" class="h-5 w-5" />
-            <span>{{ $t("elections.wahlcheck.results.share.button_whatsapp") }}</span>
-          </button>
+          />
 
-          <button
+          <CanonicalButton
             type="button"
-            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
-            :aria-label="$t('elections.wahlcheck.results.share.button_linkedin')"
+            :label="$t('elections.wahlcheck.results.share.button_linkedin')"
+            icon-slug="mdi:linkedin"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             :title="$t('elections.wahlcheck.results.share.button_linkedin')"
             @click="shareToLinkedIn"
-          >
-            <img src="~/assets/icons/icon_linkedin.svg" alt="" class="h-5 w-5" />
-            <span>{{ $t("elections.wahlcheck.results.share.button_linkedin") }}</span>
-          </button>
+          />
 
-          <button
+          <CanonicalButton
             type="button"
             :disabled="isGenerating"
-            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
-            :aria-label="$t('elections.wahlcheck.results.share.button_tiktok')"
+            :aria-busy="isGenerating"
+            :label="$t('elections.wahlcheck.results.share.button_tiktok')"
+            icon-slug="simple-icons:tiktok"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             :title="$t('elections.wahlcheck.results.share.button_tiktok')"
             @click="shareToTikTok"
-          >
-            <img v-if="!isGenerating" src="~/assets/icons/icon_tiktok.svg" alt="" class="h-5 w-5" />
-            <span v-else class="loading loading-xs loading-spinner"></span>
-            <span>{{ $t("elections.wahlcheck.results.share.button_tiktok") }}</span>
-          </button>
+          />
         </div>
 
         <!-- Secondary Actions Grid -->

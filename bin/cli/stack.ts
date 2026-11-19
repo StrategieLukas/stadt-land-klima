@@ -276,7 +276,9 @@ export async function performStack(
   const mode = action === "build" ? "build" : action === "doctor" ? "doctor" : "runtime";
   const rt = await runtime(environment, mode, options.unsafeSkipPodmanVersionCheck);
   if (
-    ["start", "prepare", "build", "restart", "stop", "maintenance", "translation-worker"].includes(action) &&
+    ["start", "prepare", "build", "restart", "stop", "maintenance", "translation-worker", "cache-flush"].includes(
+      action,
+    ) &&
     process.env.SLK_DEPLOYMENT_LOCK !== rt.project
   ) {
     return run(
@@ -300,6 +302,11 @@ export async function performStack(
       break;
     case "compose":
       return rt.compose(args);
+    case "cache-flush": {
+      const { flushApplicationCaches } = await import("./cache.ts");
+      await flushApplicationCaches(rt);
+      break;
+    }
     case "prepare":
       await rt.prepare();
       break;

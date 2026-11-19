@@ -158,7 +158,7 @@
           :label="$t('elections.wahlcheck.summary.show_results')"
           icon-slug="mdi:chart-bar"
           :color="isLocalzero ? 'yellow' : 'bright-green'"
-          text-color="black"
+          text-color="white"
           @click="$emit('next')"
         />
       </div>

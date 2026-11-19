@@ -148,11 +148,11 @@ const linkAttrs = computed(() => {
 }
 
 .canonical-button__icon {
-  border-color: currentColor;
+  border-color: var(--slk-text-inverse);
 }
 
 html[data-theme="staedteChallengeDark"] .canonical-button {
-  --btn-fill: color-mix(in srgb, var(--btn-color) 55%, var(--slk-surface, #17212b));
+  --btn-fill: color-mix(in srgb, var(--btn-color) 65%, var(--slk-surface, #17212b));
   --btn-edge: color-mix(in srgb, var(--btn-fill) 80%, var(--btn-color));
   --btn-focus: color-mix(in srgb, var(--btn-fill) 60%, white);
   --btn-shadow: rgb(0 0 0 / 30%);
@@ -163,7 +163,7 @@ html[data-theme="staedteChallengeDark"] .canonical-button--auto-text:not(.canoni
 }
 
 html[data-theme="staedteChallengeDark"] .canonical-button:not(.canonical-button--outline) .canonical-button__icon {
-  border-color: var(--slk-page, #101820);
+  border-color: var(--slk-text-muted);
 }
 
 .canonical-button--outline {
@@ -172,6 +172,15 @@ html[data-theme="staedteChallengeDark"] .canonical-button:not(.canonical-button-
   --btn-edge: var(--btn-ink);
   --btn-hover: var(--btn-ink);
   --btn-focus: var(--btn-ink);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    outline-color 150ms ease;
+}
+
+.canonical-button--outline .canonical-button__icon {
+  border-color: var(--btn-edge);
+  transition: border-color 150ms ease;
 }
 
 .canonical-button--outline.canonical-button--auto-text {
@@ -185,8 +194,17 @@ html[data-theme="staedteChallengeDark"] .canonical-button--outline {
   --btn-focus: var(--btn-ink);
 }
 
-.canonical-button:not(:disabled):hover {
+.canonical-button:not(.canonical-button--outline):not(:disabled):hover {
   outline-color: var(--btn-hover);
+}
+
+.canonical-button--outline:not(:disabled):hover {
+  background-color: var(--btn-ink);
+  color: var(--slk-surface);
+}
+
+.canonical-button--outline:not(:disabled):hover .canonical-button__icon {
+  border-color: var(--slk-surface);
 }
 
 .canonical-button:not(:disabled):focus-visible {
@@ -196,5 +214,12 @@ html[data-theme="staedteChallengeDark"] .canonical-button--outline {
 .canonical-button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canonical-button,
+  .canonical-button .canonical-button__icon {
+    transition: none;
+  }
 }
 </style>

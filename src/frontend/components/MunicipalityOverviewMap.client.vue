@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative overflow-hidden rounded-lg border border-(--slk-border) bg-(--slk-surface-subdued)"
+    class="municipality-overview-map relative overflow-hidden rounded-lg border border-(--slk-border) bg-(--slk-surface-subdued)"
     :class="compact ? 'h-80 sm:h-96' : 'data-overview-map-size'"
   >
     <div ref="container" class="h-full w-full" :aria-label="$t('data.dashboard.map')" role="region" />
@@ -320,3 +320,29 @@ onBeforeUnmount(() => {
   map = null;
 });
 </script>
+
+<style scoped>
+:deep(.maplibregl-ctrl.maplibregl-ctrl-attrib) {
+  background-color: var(--slk-surface);
+  color: var(--slk-text);
+  box-shadow: 0 0 0 1px var(--slk-border);
+}
+
+:deep(.maplibregl-ctrl-attrib a) {
+  color: var(--slk-text);
+}
+
+:deep(.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button) {
+  background-color: transparent;
+}
+
+:global(html[data-theme="staedteChallengeDark"] .municipality-overview-map .maplibregl-ctrl-attrib-button) {
+  filter: invert(1);
+}
+
+:deep(.maplibregl-ctrl-attrib-button:focus-visible) {
+  outline: 2px solid var(--slk-text-strong);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+</style>

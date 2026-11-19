@@ -258,20 +258,27 @@
           class="h-32 animate-pulse rounded-lg bg-gray-200 motion-reduce:animate-none"
           aria-hidden="true"
         />
-        <section v-for="section in descriptionSections" :key="section.id" class="space-y-1">
-          <h3 v-if="section.title" class="font-heading text-lg font-bold">{{ section.title }}</h3>
-          <p
-            v-for="paragraph in section.paragraphs"
-            :key="paragraph"
-            class="text-sm leading-relaxed whitespace-pre-line"
+        <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+          <section
+            v-for="section in descriptionSections"
+            :key="section.id"
+            class="min-w-0 space-y-1"
+            :class="{ 'sm:col-span-2 lg:col-span-3': section.id === 'product' }"
           >
-            {{ paragraph }}
-          </p>
-        </section>
+            <h3 v-if="section.title" class="font-heading text-lg font-bold">{{ section.title }}</h3>
+            <p
+              v-for="paragraph in section.paragraphs"
+              :key="paragraph"
+              class="text-sm leading-relaxed whitespace-pre-line"
+            >
+              {{ paragraph }}
+            </p>
+          </section>
+        </div>
         <p v-if="context?.status === 'no_data'" role="status">{{ $t("generic.no_data") }}</p>
         <div v-if="loading || context" class="min-w-0">
           <template v-if="context && metric">
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
               <div v-for="stat in coverage" :key="stat.label" class="rounded-lg bg-(--slk-surface-subdued) p-2.5">
                 <span class="block text-xs text-(--slk-text-subtle)">{{ $t(stat.label) }}</span><strong
                   class="mt-1 block text-xl tabular-nums"
@@ -280,7 +287,7 @@
               </div>
             </div>
           </template>
-          <div v-else-if="loading" class="grid grid-cols-2 gap-2" aria-hidden="true">
+          <div v-else-if="loading" class="grid grid-cols-2 gap-2 lg:grid-cols-4" aria-hidden="true">
             <div
               v-for="index in 4"
               :key="index"

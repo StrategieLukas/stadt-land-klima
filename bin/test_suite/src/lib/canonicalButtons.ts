@@ -81,7 +81,7 @@ export async function assertCanonicalButtonStyles(page: Page): Promise<void> {
       const expected = await button.evaluate(
         (element, { accent, dark }) => {
           const probe = document.createElement("span");
-          const fill = dark ? `color-mix(in srgb, ${accent} 55%, var(--slk-surface, #17212b))` : accent;
+          const fill = dark ? `color-mix(in srgb, ${accent} 65%, var(--slk-surface, #17212b))` : accent;
           const edge = dark ? `color-mix(in srgb, ${fill} 80%, ${accent})` : "rgb(255 255 255 / 20%)";
           probe.style.backgroundColor = fill;
           probe.style.boxShadow = `inset 0 0 0 1px ${edge}, 0 1px 2px rgb(0 0 0 / ${dark ? "30%" : "5%"})`;

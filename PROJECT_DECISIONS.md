@@ -188,6 +188,20 @@ Redis is still required for sessions, quotas and synchronization. Retain locked
 deployed-library replacements and tested stream-json 1.x own-property/depth
 backports; toolchain audits alone do not inspect the bundled vendor image.
 
+`bin/slk cache flush` invalidates application caches through the selected local
+stack's private runtime and project mutation lock. Directus cache clearing uses
+its existing authenticated API, pinned to container loopback; restarting Directus
+also clears extension-local caches. Frontend writers stop before development
+response/compiler cache removal; restarting frontend clears Nitro production
+memory storage and module-local caches. Redis sessions, proof replay records,
+rate limits, delivery quotas and locks are durable security/coordination state,
+not flushable application caches: never use FLUSHDB/FLUSHALL or restart Redis for
+this command. Preserve content, persisted translations, search indexes, uploads,
+`.data/kv`, dependencies and stamped production output. External upstream and
+browser caches are outside the local stack boundary. A dry run has no side
+effects; mutating runs require existing application containers and attempt
+frontend recovery after failures. No new public administration endpoint is added.
+
 The frontend resolves Nitro's actual listener to upstream node-forge 1.4.3.
 `scripts/check-node-forge.mts` verifies its version and RSA source hash without
 modifying installed dependencies. Signature-forgery regressions and local HTTPS

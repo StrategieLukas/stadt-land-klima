@@ -267,6 +267,7 @@ html[data-theme="staedteChallemgeTheme"] {
   --slk-border: #d9dfd3;
   --slk-border-strong: #b9c2b0;
   --slk-text: #505050;
+  --slk-text-inverse: #dce5ea;
   --slk-text-strong: #101820;
   --slk-text-muted: #667085;
   --slk-text-subtle: #8a96a3;
@@ -324,6 +325,7 @@ html[data-theme="staedteChallengeDark"] {
   --slk-border: #344454;
   --slk-border-strong: #526575;
   --slk-text: #dce5ea;
+  --slk-text-inverse: #3f3f3f;
   --slk-text-strong: #f7fbfd;
   --slk-text-muted: #b8c4cc;
   --slk-text-subtle: #91a0aa;

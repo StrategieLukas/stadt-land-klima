@@ -74,6 +74,38 @@ const parser = yargs(hideBin(process.argv))
     },
   )
   .command(
+    "cache <action>",
+    "Flush CMS/frontend application caches and restart those services",
+    (p) =>
+      p
+        .positional("action", { choices: ["flush"] as const })
+        .option("dry-run", { type: "boolean", default: false, description: "Show the plan without changing services" })
+        .option("unsafe-skip-podman-version-check", {
+          type: "boolean",
+          default: false,
+          description: "Development only: skip the Podman version check; retain all other checks",
+        })
+        .check(
+          (argv) =>
+            !argv.unsafeSkipPodmanVersionCheck ||
+            argv.env === "development" ||
+            "--unsafe-skip-podman-version-check is only allowed with --env development",
+        )
+        .check((argv) => !passthrough(argv["--"]).length || "Cache flush does not accept forwarded arguments"),
+    async (argv) => {
+      if (argv.dryRun) {
+        const { cacheFlushPlan } = await import("./cache.ts");
+        console.log("Dry run; no services or cache files will change.");
+        for (const line of cacheFlushPlan(argv.env)) console.log(line);
+        return;
+      }
+      const { performStack } = await import("./stack.ts");
+      await performStack(argv.env, "cache-flush", [], {
+        unsafeSkipPodmanVersionCheck: argv.unsafeSkipPodmanVersionCheck,
+      });
+    },
+  )
+  .command(
     "database <action>",
     "Backups, SQL, sanitization, role hardening and verified core upgrades",
     (p) =>
@@ -333,6 +365,7 @@ const parser = yargs(hideBin(process.argv))
   .example("$0 stack build --env production", "Build application/data/maintenance images")
   .example("$0 stack start --env production --import", "Start and import YAML")
   .example("$0 stack restart frontend --env production", "Reload edited runtime settings")
+  .example("$0 cache flush", "Flush development application caches and restart CMS/frontend")
   .example("$0 stack compose --env development -- exec -T directus node --version", "Forward provider options after --")
   .example("$0 database export --env production > backup.sql", "Export through the bootstrap operator")
   .example("$0 check ready", "Run local readiness gates with concise results")

@@ -1081,8 +1081,8 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         assert(
           (await reportAction
             .locator(".canonical-button__icon")
-            .evaluate((el) => getComputedStyle(el).borderRightColor)) === "rgb(255, 255, 255)",
-          "Light-mode icon dividers should match the white label",
+            .evaluate((el) => getComputedStyle(el).borderRightColor)) === "rgb(220, 229, 234)",
+          "Light-mode icon dividers should use the soft off-white inverse content color",
         );
         await page.evaluate(() => {
           document.documentElement.dataset.theme = "staedteChallengeDark";
@@ -1137,8 +1137,8 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         assert(
           (await reportAction
             .locator(".canonical-button__icon")
-            .evaluate((el) => getComputedStyle(el).borderRightColor)) === "rgb(16, 24, 32)",
-          "Dark-mode icon dividers should use the dark theme page color",
+            .evaluate((el) => getComputedStyle(el).borderRightColor)) === "rgb(184, 196, 204)",
+          "Dark-mode icon dividers should use the soft gray-white theme content color",
         );
         await assertCanonicalButtonStyles(page);
         await page.evaluate(() => {

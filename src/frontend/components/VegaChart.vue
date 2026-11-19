@@ -93,6 +93,7 @@ import {
   emptyCollectionChartPreview,
 } from "~/utils/collectionChartTheme";
 import { withNativeScaleZoom } from "~/utils/chartZoom";
+import { withCollectionBarAxes } from "~/utils/collectionCharts";
 import { histogramBinFromItem } from "~/utils/municipalityOverview";
 import { clientDiagnostic } from "~/shared/securityLog";
 
@@ -184,7 +185,7 @@ const resolvedDataApiUrl = computed(() => {
   return url ? resolveUrl(url) : "";
 });
 const hasAdaptiveBarLabels = computed(() => {
-  const labels = asRecord(asRecord(props.spec)?.usermeta)?.barLabels;
+  const labels = asRecord(props.spec ? withCollectionBarAxes(props.spec).usermeta : null)?.barLabels;
   return Array.isArray(labels) && labels.length > 0;
 });
 

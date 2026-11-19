@@ -1,6 +1,5 @@
 <template>
   <button
-    ref="cardRef"
     type="button"
     class="group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-left shadow-xs transition-all hover:border-stats-dark hover:shadow-list focus:outline-hidden focus-visible:ring-2 focus-visible:ring-stats-dark"
     :aria-pressed="compact ? expanded : undefined"
@@ -84,8 +83,9 @@
 
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import type { Collection, CollectionSummary } from "~/types/slz-api";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import type { Collection } from "~/types/slz-api";
+import { useCollectionResources } from "~/composables/useCollectionResources";
 import {
   collectionCoverImage,
   collectionIconifyStr,
@@ -116,15 +116,13 @@ defineEmits<{
   (e: "select"): void;
 }>();
 
-const cardRef = ref<HTMLElement | null>(null);
 const collectionDetails = ref<Collection | null>(null);
 const aggregate = ref<Record<string, unknown> | null>(null);
 const canonicalKpi = ref<{ value: number | null; precision?: number | null | undefined } | null>(null);
-const hasRequestedSummary = ref(false);
-const hasRequestedDetails = ref(false);
+const resources = useCollectionResources(props.baseUrl);
 const runtimeConfig = useRuntimeConfig();
 const { $translateDynamic, $t: _$t, $locale } = useNuxtApp();
-let observer: IntersectionObserver | null = null;
+let generation = 0;
 
 const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
 const title = computed(() => {
@@ -186,62 +184,35 @@ function hexToRgba(hex: string, alpha: number) {
 }
 
 async function loadSummary() {
-  if (hasRequestedSummary.value || !props.ars || !props.collection.id) return;
-  hasRequestedSummary.value = true;
-  try {
-    if (!kpi.value) {
-      await loadCollectionDetails();
-    }
-    if (!kpi.value) return;
-    const data = await $fetch<CollectionSummary>(`${props.baseUrl}/api/collections/${props.collection.id}/summary/`, {
-      params: { area: props.ars },
-      timeout: 10000,
-    });
-    aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null;
-    const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {};
-    canonicalKpi.value =
-      (kpiValues?.[kpi.value.plot_id] as { value: number | null; precision?: number | null | undefined } | undefined) ??
-      null;
-  } catch {
-    aggregate.value = null;
-    canonicalKpi.value = null;
-  }
+  const current = ++generation;
+  const id = props.collection.id;
+  const ars = props.ars;
+  collectionDetails.value = null;
+  aggregate.value = null;
+  canonicalKpi.value = null;
+  if (!props.showKpi || !ars || !id) return;
+  const [metadata, summary] = await Promise.allSettled([
+    kpi.value ? Promise.resolve(normalizeCollection(props.collection)) : resources.metadata(id),
+    resources.summary(id, ars),
+  ]);
+  if (current !== generation || id !== props.collection.id || ars !== props.ars) return;
+  if (metadata.status === "fulfilled") collectionDetails.value = normalizeCollection(metadata.value);
+  if (summary.status !== "fulfilled") return;
+  aggregate.value = summary.value.aggregate;
+  const kpiValues = summary.value.kpi_values ?? summary.value.kpiValues ?? {};
+  canonicalKpi.value = kpi.value ? (kpiValues[kpi.value.plot_id] ?? null) : null;
 }
 
-async function loadCollectionDetails() {
-  if (hasRequestedDetails.value || collectionDetails.value) return;
-  hasRequestedDetails.value = true;
-  try {
-    const data = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`, {
-      params: { metadata_only: "true" },
-      timeout: 8000,
-    });
-    collectionDetails.value = normalizeCollection(data);
-  } catch {
-    collectionDetails.value = null;
-  }
-}
-
+// Start every grid KPI after hydration; the shared page loader bounds concurrency.
 onMounted(() => {
-  if (!props.showKpi) return;
-  if (!cardRef.value || typeof IntersectionObserver === "undefined") {
-    void loadSummary();
-    return;
-  }
-  observer = new IntersectionObserver(
-    (entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) {
-        void loadSummary();
-        observer?.disconnect();
-        observer = null;
-      }
-    },
-    { rootMargin: "360px 0px" },
+  void loadSummary();
+  watch(
+    () => [props.collection.id, props.ars, props.showKpi],
+    () => void loadSummary(),
   );
-  observer.observe(cardRef.value);
 });
 
-onBeforeUnmount(() => observer?.disconnect());
+onBeforeUnmount(() => ++generation);
 </script>
 
 <style scoped>

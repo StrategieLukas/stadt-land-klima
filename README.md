@@ -35,6 +35,19 @@ Incomplete commands print the relevant help and exit with status 1 before any
 operation starts. `./bin/slk --version` reports the Git tag/revision and appends
 `-dirty` for tracked changes; source archives without Git metadata say so explicitly.
 
+Flush application caches for the selected local stack with:
+
+```bash
+./bin/slk cache flush
+./bin/slk cache flush --dry-run
+```
+
+The command clears Directus caches, restarts CMS/frontend memory caches and
+removes development Nuxt/Vite caches. It briefly interrupts both services and
+preserves Redis sessions/protection state, stored translations, search indexes
+and production output. See [cache operations](PODMAN.md#flushing-application-caches)
+for environment selection and scope.
+
 ## Development
 
 Prepare the host as described in [PODMAN.md](PODMAN.md#host-requirements). Image

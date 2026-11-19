@@ -399,6 +399,7 @@ const slug = computed(() => String(route.params.slug ?? ""));
 
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl;
+provideCollectionResources(baseUrl);
 const { data: dataPageConfig } = await useDataPageConfig();
 const { label: dataRouteLabel, seedArea, stop: stopDataRouteFeedback, clearSeedArea } = useDataRouteFeedback();
 

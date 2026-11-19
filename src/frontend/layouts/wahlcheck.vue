@@ -1,5 +1,5 @@
 <template>
-  <main ref="content" class="flow-root bg-mild-white font-sans text-neutral">
+  <main ref="content" class="flow-root overflow-x-clip bg-mild-white font-sans text-neutral">
     <slot />
   </main>
 </template>

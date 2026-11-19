@@ -1,5 +1,6 @@
 import type { Spec as VegaSpec } from "vega";
-import { asRecord, cloneVisualization } from "~/shared/visualization";
+import { asRecord } from "~/shared/visualization";
+import { withCollectionBarAxes } from "~/utils/collectionCharts";
 
 export const COLLECTION_CHART_FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 const palettes = {
@@ -12,7 +13,7 @@ export function collectionChartPalette(dark: boolean) {
 
 /** Color expressions keep the compiled chart and its loaded data alive across theme changes. */
 export function withCollectionChartTheme(input: unknown, signalName: string) {
-  const spec = cloneVisualization(input);
+  const spec = withCollectionBarAxes(input);
   const native = Array.isArray(spec.marks);
   const color = (key: keyof typeof palettes.light) =>
     native ? { signal: `${signalName}.${key}` } : { expr: `${signalName}.${key}` };

@@ -112,14 +112,15 @@
         <p v-if="errorMessage" class="mb-3 text-sm text-red-600">{{ errorMessage }}</p>
 
         <!-- Submit Button -->
-        <button
+        <CanonicalButton
           type="submit"
+          :label="$t(loading ? 'feedback.form.submit.loading' : 'feedback.form.submit')"
+          icon-slug="mdi:send"
+          color="bright-green"
           :disabled="loading"
-          class="w-full rounded-sm bg-[#AFCA0B] py-2 font-bold text-white hover:bg-green disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <span v-if="loading">{{ $t("feedback.form.submit.loading") }}</span>
-          <span v-else>{{ $t("feedback.form.submit") }}</span>
-        </button>
+          :aria-busy="loading"
+          class="w-full"
+        />
       </form>
 
       <p class="mt-4 text-xs italic">{{ $t("generic.privacy.disclaimer") }}</p>
