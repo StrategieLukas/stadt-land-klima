@@ -188,6 +188,7 @@ export interface SummaryAggregate {
         license_url?: string | null | undefined;
         effective_date?: string | null | undefined;
       }
+    | null
     | undefined;
   [key: string]: unknown;
 }
