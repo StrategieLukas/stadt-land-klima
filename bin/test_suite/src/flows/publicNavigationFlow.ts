@@ -1001,6 +1001,7 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
           // Scope to the actual ranking card, not lingering command-palette results.
           const city = page
             .locator(`a[href^="/municipalities/${fixture.municipality.slug}?v="]`)
+            .filter({ has: page.locator(".slk-ranking-card") })
             .filter({ visible: true })
             .first();
           await city.waitFor();
