@@ -1,16 +1,25 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { expect } from "@playwright/test";
 import type { Browser, Page } from "playwright";
 import { newContext, waitForHydration } from "../lib/browser.js";
 import type { TestRunner } from "../lib/runner.js";
+import type { TestFixture } from "../lib/fixture.js";
 
-/** Real hydrated components, deterministic read-only providers; no CMS fixtures or writes. */
-export async function runSearchInteractionFlow(runner: TestRunner, origin: string, browser: Browser) {
+/** Real hydrated components, deterministic search providers and a disposable filter-enabled page. */
+export async function runSearchInteractionFlow(
+  runner: TestRunner,
+  origin: string,
+  browser: Browser,
+  fixture: TestFixture,
+) {
   await runner.step(
     "Search interactions: repeated activation, dismissal, selection identity and responsive focus",
     async () => {
       const context = await newContext(browser);
       let releaseArea = () => {};
+      let filterPageId: string | undefined;
+      let filterBlockId: string | undefined;
       try {
         const page = await context.newPage();
         page.setDefaultTimeout(10000);
@@ -257,7 +266,28 @@ export async function runSearchInteractionFlow(runner: TestRunner, origin: strin
         await area.press("Escape");
         await goto("/regions/080000000000");
         await expect(page.locator("[data-area-search-input]")).toHaveCount(0);
-        await goto("/");
+        const filterSlug = `search-filter-${fixture.config.runId}`;
+        const filterPage = await fixture.admin.createItem<{ id: string }>("pages", {
+          name: "Search filter regression",
+          slug: filterSlug,
+          status: "published",
+          contents: "",
+        });
+        filterPageId = filterPage.id;
+        // The CMS derives page slugs from names on creation; set this fixture's routing slug afterward.
+        await fixture.admin.updateItem("pages", filterPage.id, { slug: filterSlug });
+        const filterBlock = await fixture.admin.createItem<{ id: string }>("blocks", {
+          uuid: randomUUID(),
+          entity_type: "pages",
+          entity_uuid: filterPage.id,
+          field_name: "content",
+          bundle: "municipality_search_hero",
+          props: { title: "Search filter regression", subtitle: "" },
+          options: {},
+          status: "published",
+        });
+        filterBlockId = filterBlock.id;
+        await goto(`/${filterSlug}`);
         const filterArea = page.locator("[data-area-search-input]").first();
         await filterArea.fill("Munich");
         await expect(page.locator(".slk-area-search-result").first()).toContainText("Munich");
@@ -265,7 +295,7 @@ export async function runSearchInteractionFlow(runner: TestRunner, origin: strin
         await page.locator(".slk-area-search-tab").last().click();
         await filterArea.press("ArrowDown");
         await filterArea.press("Enter");
-        await expect(page).toHaveURL(`${origin}/`);
+        await expect(page).toHaveURL(`${origin}/${filterSlug}`);
         await expect(page.locator(".slk-area-search-result")).toHaveCount(0);
         releaseArea();
         await expect(page.locator(".slk-area-search-result").first()).toContainText("Munich");
@@ -288,6 +318,8 @@ export async function runSearchInteractionFlow(runner: TestRunner, origin: strin
       } finally {
         releaseArea();
         await context.close();
+        if (filterBlockId) await fixture.admin.deleteItem("blocks", filterBlockId);
+        if (filterPageId) await fixture.admin.deleteItem("pages", filterPageId);
       }
     },
   );

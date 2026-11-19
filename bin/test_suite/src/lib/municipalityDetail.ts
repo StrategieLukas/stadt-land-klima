@@ -17,7 +17,8 @@ export async function assertMunicipalityDetailLayout(page: Page): Promise<void> 
         width: link.getBoundingClientRect().width,
         padding: style.padding,
         radius: style.borderRadius,
-        shadow: style.boxShadow,
+        // Canonical actions share shadow geometry while their inset edge follows the action color.
+        shadow: style.boxShadow.replace(/\b(?:color|rgba?)\([^)]*\)/g, "<color>"),
         display: style.display,
         gap: style.gap,
         font: getComputedStyle(label).font,

@@ -1,3 +1,4 @@
+import * as stadtlandzahlResponseCache from "../../../src/frontend/server/utils/stadtlandzahlResponseCache.js";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -187,6 +188,7 @@ test("StadtLandZahl proxy forwards Node request bytes while replacing credential
     require: (id: string) => {
       const logging = loggingModule(id);
       if (logging) return logging;
+      if (id === "../../utils/stadtlandzahlResponseCache") return stadtlandzahlResponseCache;
       assert.equal(id, "../../utils/rateLimit");
       return {
         rateLimit: async (_event: unknown, key: string) => {

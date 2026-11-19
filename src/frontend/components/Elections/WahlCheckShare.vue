@@ -238,7 +238,7 @@
           <CanonicalButton
             type="button"
             :disabled="isGenerating"
-            :aria-busy="isGenerating"
+            :busy="isGenerating"
             :label="$t('elections.wahlcheck.results.share.button_insta')"
             icon-slug="mdi:instagram"
             :color="isLocalzero ? 'yellow' : 'dark'"
@@ -270,7 +270,7 @@
           <CanonicalButton
             type="button"
             :disabled="isGenerating"
-            :aria-busy="isGenerating"
+            :busy="isGenerating"
             :label="$t('elections.wahlcheck.results.share.button_tiktok')"
             icon-slug="simple-icons:tiktok"
             :color="isLocalzero ? 'yellow' : 'dark'"

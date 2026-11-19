@@ -99,6 +99,11 @@ done
 npm --prefix bin/test_suite exec -- playwright install --with-deps chromium
 ```
 
+The Quadlet regression uses the system generator by default. If that generator
+predates the maintained units, set `SLK_TEST_QUADLET_GENERATOR` to a compatible
+generator executable. An explicitly selected generator must run successfully;
+missing or incompatible selected tools fail the test rather than skipping it.
+
 Installing browser system dependencies may require host privileges. Use a
 disposable checkout if clean installs or production builds would interfere with a
 running development stack. Do not omit optional native dependencies. The audit job

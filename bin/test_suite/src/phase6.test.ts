@@ -53,6 +53,7 @@ function load(path: string, dependencies: Row = {}, globals: Row = {}): Row {
     if (id.endsWith("/rateLimit")) return { rateLimit: async () => true };
     if (["zod", "sanitize-html", "node:crypto"].includes(id)) return frontend(id);
     if (id.startsWith("~/shared/")) return frontend("./" + id.slice(2) + ".ts");
+    if (id.endsWith("/organisationLogos")) return load("server/utils/organisationLogos.ts");
     if (id.endsWith("/cmsValue")) return load("server/utils/cmsValue.ts");
     if (id.endsWith("/parseCms")) return load("server/utils/parseCms.ts");
     if (id.endsWith("/publicQuery")) return load("server/utils/publicQuery.ts");

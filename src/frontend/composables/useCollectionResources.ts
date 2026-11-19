@@ -11,7 +11,9 @@ function createCollectionResources(baseUrl: string) {
   const controller = new AbortController();
   const waiting: (() => void)[] = [];
   let active = 0;
-  onScopeDispose(() => controller.abort());
+  onScopeDispose(() => {
+    controller.abort();
+  });
 
   async function read<T>(cache: Map<string, Promise<T>>, key: string, request: () => Promise<T>): Promise<T> {
     const existing = cache.get(key);

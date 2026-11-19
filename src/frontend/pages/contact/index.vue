@@ -118,7 +118,7 @@
           icon-slug="mdi:send"
           color="bright-green"
           :disabled="loading"
-          :aria-busy="loading"
+          :busy="loading"
           class="w-full"
         />
       </form>

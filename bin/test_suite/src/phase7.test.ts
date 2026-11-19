@@ -310,6 +310,7 @@ test("the actual MapLibre component validates its constructed style before creat
         return dependencies[id];
       },
       console: { warn() {} },
+      useNuxtApp: () => ({ $t: (key: string) => key }),
       useTheme: () => ({ isDark: vue.ref(false) }),
       requestAnimationFrame() {},
       window: { location: { origin: "https://site.example" } },

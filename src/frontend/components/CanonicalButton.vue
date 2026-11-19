@@ -66,6 +66,7 @@ const props = withDefaults(
   defineProps<{
     onClick?: ((event: MouseEvent) => void) | undefined;
     disabled?: boolean | undefined;
+    busy?: boolean | undefined;
     type?: "button" | "submit" | "reset" | undefined;
     label: string;
     href?: string | undefined;
@@ -78,7 +79,7 @@ const props = withDefaults(
     external?: boolean | undefined;
     wrapLabel?: boolean | undefined;
   }>(),
-  { wrapLabel: true },
+  { wrapLabel: true, busy: undefined },
 );
 
 const attrs = useAttrs();
@@ -123,6 +124,7 @@ const linkAttrs = computed(() => {
   if (props.onClick) base.onClick = props.onClick;
   if (props.title !== undefined) base.title = props.title;
   if (props.disabled !== undefined) base.disabled = props.disabled;
+  if (props.busy !== undefined) base["aria-busy"] = props.busy;
   if (props.href) {
     base.href = props.href;
     if (props.external) {
