@@ -9,7 +9,8 @@ import { parse } from "yaml";
 
 const root = resolve(import.meta.dirname, "../..");
 const source = resolve(root, "podman/logging/monitoring");
-const generator = "/usr/lib/systemd/system-generators/podman-system-generator";
+const configuredGenerator = process.env.SLK_TEST_QUADLET_GENERATOR;
+const generator = configuredGenerator || "/usr/lib/systemd/system-generators/podman-system-generator";
 const unit = readFileSync(resolve(source, "slk-victorialogs.container"), "utf8");
 const image = /^Image=(.+)$/m.exec(unit)![1]!;
 
@@ -40,7 +41,7 @@ test("Quadlet backend is pinned, unprivileged, persistent and unpublished; clien
 test(
   "real Quadlet generator resolves volume/network dependencies and preserves existing Grafana networking",
   {
-    skip: process.platform !== "linux" || !existsSync(generator),
+    skip: process.platform !== "linux" || (!configuredGenerator && !existsSync(generator)),
   },
   () => {
     const directory = mkdtempSync(resolve(tmpdir(), "slk-quadlet-"));
