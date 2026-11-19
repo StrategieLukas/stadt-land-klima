@@ -8,7 +8,7 @@
     :entity="item"
   >
     <template #default>
-      <div class="flex w-full flex-col items-center px-4 py-8">
+      <div class="flex w-full flex-col items-center py-8">
         <div class="w-full max-w-3xl">
           <div class="mb-4">
             <NuxtLink :to="backHref" class="inline-flex items-center gap-1 text-sm text-[#006e94] hover:underline">

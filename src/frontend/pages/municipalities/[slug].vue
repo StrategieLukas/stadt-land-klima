@@ -1,17 +1,9 @@
 <template>
   <!-- PREVIEW_LOCKED: unverified creator, no valid token -->
-  <div v-if="pageView === PV.PREVIEW_LOCKED" class="mt-10">
+  <div v-if="pageView === PV.PREVIEW_LOCKED" class="mt-10 mb-8">
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue"> &larr; {{ backLabel }} </NuxtLink>
-    <div
-      class="mt-6 flex flex-col gap-4 rounded-xs border-l-4 border-rating-1 bg-rating-1-very-light px-5 py-4 sm:flex-row sm:items-start"
-    >
-      <img
-        src="~/assets/icons/icon_hint.svg"
-        class="mt-0.5 hidden h-7 w-7 shrink-0 sm:block"
-        style="
-          filter: brightness(0) saturate(100%) invert(62%) sepia(100%) saturate(520%) hue-rotate(355deg) brightness(95%);
-        "
-      />
+    <div class="mt-6 flex items-start gap-3 border border-(--slk-border) bg-(--slk-orange-tint) p-4">
+      <Icon icon="mdi:lock-outline" class="mt-0.5 h-6 w-6 shrink-0 text-(--slk-orange)" :ariaHidden="true" />
       <div class="min-w-0 flex-1">
         <p class="mb-1 font-heading text-base leading-snug font-bold text-gray">
           Zugriff eingeschränkt: „{{ previewMuniName }}“
@@ -20,35 +12,28 @@
           {{ $t("municipalities.preview_locked") }}
         </p>
         <div class="flex flex-wrap gap-2">
-          <button
-            class="rounded-md border border-rating-1 px-4 py-1.5 text-sm font-medium text-rating-1 transition-colors hover:bg-rating-1-light"
+          <CanonicalButton
+            :label="copiedState.preview ? $t('generic.link_copied') : $t('generic.copy_link')"
+            :icon-slug="copiedState.preview ? 'mdi:check' : 'mdi:content-copy'"
+            color="orange"
             @click="copyShareLink('preview')"
-          >
-            {{ copiedState.preview ? "\u2713 Link kopiert" : "Share-Link kopieren" }}
-          </button>
-          <NuxtLink
-            :to="`/contact?title=${encodeURIComponent('Verifizierung Lokalteam ' + previewMuniName)}&type=cooperation&content=${encodeURIComponent('Ich bitte um Verifizierung meines Lokalteam-Accounts für ' + previewMuniName + '.\n\nMeine Kontaktdaten:\n')}`"
-            class="rounded-md bg-olive-green px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:opacity-90"
-            >Kontakt aufnehmen →</NuxtLink
-          >
+          />
+          <CanonicalButton
+            :href="`/contact?title=${encodeURIComponent('Verifizierung Lokalteam ' + previewMuniName)}&type=cooperation&content=${encodeURIComponent('Ich bitte um Verifizierung meines Lokalteam-Accounts für ' + previewMuniName + '.\n\nMeine Kontaktdaten:\n')}`"
+            :label="$t('generic.contact')"
+            icon-slug="mdi:email-outline"
+            color="orange"
+          />
         </div>
       </div>
     </div>
   </div>
 
   <!-- IN_PROGRESS_LOCKED: incomplete rating, requires ?preview=true -->
-  <div v-else-if="pageView === PV.IN_PROGRESS_LOCKED && directusData.municipalityScore" class="mt-10">
+  <div v-else-if="pageView === PV.IN_PROGRESS_LOCKED && directusData.municipalityScore" class="mt-10 mb-8">
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue"> &larr; {{ backLabel }} </NuxtLink>
-    <div
-      class="mt-6 flex flex-col gap-4 rounded-xs border-l-4 border-rating-1 bg-rating-1-very-light px-5 py-4 sm:flex-row sm:items-start"
-    >
-      <img
-        src="~/assets/icons/icon_hint.svg"
-        class="mt-0.5 hidden h-7 w-7 shrink-0 sm:block"
-        style="
-          filter: brightness(0) saturate(100%) invert(62%) sepia(100%) saturate(520%) hue-rotate(355deg) brightness(95%);
-        "
-      />
+    <div class="mt-6 flex items-start gap-3 border border-(--slk-border) bg-(--slk-orange-tint) p-4">
+      <Icon icon="mdi:progress-pencil" class="mt-0.5 h-6 w-6 shrink-0 text-(--slk-orange)" :ariaHidden="true" />
       <div class="min-w-0 flex-1">
         <p class="mb-1 font-heading text-base leading-snug font-bold text-gray">
           Bewertung noch in Bearbeitung: „{{ directusData.municipalityScore.municipality.name }}"
@@ -59,11 +44,12 @@
           erkunden.
         </p>
         <div class="flex flex-wrap gap-2">
-          <NuxtLink
-            :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
-            class="rounded-md bg-olive-green px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:opacity-90"
-            >Lokalteam kontaktieren →</NuxtLink
-          >
+          <CanonicalButton
+            :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+            :label="$t('localteam.contact_action')"
+            icon-slug="mdi:email-outline"
+            color="orange"
+          />
         </div>
       </div>
     </div>
@@ -82,15 +68,9 @@
     <!-- RATED_DRAFT: unlocked draft preview — share banner with copy button -->
     <div
       v-if="pageView === PV.RATED_DRAFT"
-      class="mb-6 flex flex-col gap-4 rounded-xs border-l-4 border-rating-1 bg-rating-1-very-light px-5 py-4 sm:flex-row sm:items-start"
+      class="mb-6 flex items-start gap-3 border border-(--slk-border) bg-(--slk-orange-tint) p-4"
     >
-      <img
-        src="~/assets/icons/icon_hint.svg"
-        class="mt-0.5 hidden h-7 w-7 shrink-0 sm:block"
-        style="
-          filter: brightness(0) saturate(100%) invert(62%) sepia(100%) saturate(520%) hue-rotate(355deg) brightness(95%);
-        "
-      />
+      <Icon icon="mdi:eye-outline" class="mt-0.5 h-6 w-6 shrink-0 text-(--slk-orange)" :ariaHidden="true" />
       <div class="min-w-0 flex-1">
         <p class="mb-1 font-heading text-base leading-snug font-bold text-gray">
           Vorschau: „{{ directusData.municipalityScore.municipality.name }}“
@@ -98,26 +78,20 @@
         <p class="mb-3 text-sm leading-snug text-mid-gray">
           {{ $t("municipalities.preview_text") }}
         </p>
-        <button
-          class="rounded-md border border-rating-1 px-4 py-1.5 text-sm font-medium text-rating-1 transition-colors hover:bg-rating-1-light"
+        <CanonicalButton
+          :label="copiedState.draft ? $t('generic.link_copied') : $t('municipality.preview.share')"
+          :icon-slug="copiedState.draft ? 'mdi:check' : 'mdi:share-variant-outline'"
+          color="orange"
           @click="copyShareLink('draft')"
-        >
-          {{ copiedState.draft ? "\u2713 Link kopiert" : "Vorschau-Link teilen" }}
-        </button>
+        />
       </div>
     </div>
-    <!-- Outdated catalog: info banner with action buttons -->
+    <!-- Outdated catalog notice -->
     <div
       v-else-if="pageView === PV.RATED_OUTDATED"
-      class="mt-2 mb-6 flex flex-col gap-4 rounded-xs border-l-4 border-rating-1 bg-rating-1-very-light px-5 py-4 sm:flex-row sm:items-start"
+      class="mt-2 mb-6 flex items-start gap-3 border border-(--slk-border) bg-(--slk-blue-tint) p-4"
     >
-      <img
-        src="~/assets/icons/icon_hint.svg"
-        class="mt-0.5 hidden h-7 w-7 shrink-0 sm:block"
-        style="
-          filter: brightness(0) saturate(100%) invert(62%) sepia(100%) saturate(520%) hue-rotate(355deg) brightness(95%);
-        "
-      />
+      <Icon icon="mdi:information-outline" class="mt-0.5 h-6 w-6 shrink-0 text-(--slk-blue)" :ariaHidden="true" />
       <div class="min-w-0 flex-1">
         <p class="mb-1 font-heading text-base leading-snug font-bold text-gray">
           Älterer Maßnahmenkatalog: „{{ selectedCatalogVersion.name }}"
@@ -126,22 +100,20 @@
           Diese Bewertung basiert auf einem älteren Maßnahmenkatalog. Hilf dem Lokalteam, die Bewertung auf den
           aktuellen Katalog zu aktualisieren!
         </p>
-        <div class="flex flex-wrap gap-2">
-          <NuxtLink
-            :to="`/municipalities/${slug}`"
-            class="rounded-md border border-rating-1 px-4 py-1.5 text-sm font-medium text-rating-1 transition-colors hover:bg-rating-1-light"
+        <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <NuxtLink :to="`/municipalities/${slug}`" class="text-gray underline underline-offset-4 hover:no-underline"
             >Zur aktuellen Bewertung →</NuxtLink
           >
           <NuxtLink
             :to="`/contact?title=${encodeURIComponent('Bewertung aktualisieren: ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + directusData.municipalityScore.municipality.name + ' dabei unterstützen, die Bewertung auf den aktuellen Maßnahmenkatalog zu aktualisieren.\n\nMeine Kontaktdaten:\n')}`"
-            class="rounded-md bg-olive-green px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:opacity-90"
+            class="text-gray underline underline-offset-4 hover:no-underline"
             >Lokalteam kontaktieren →</NuxtLink
           >
         </div>
       </div>
     </div>
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue"> ← {{ backLabel }} </NuxtLink>
-    <article class="mt-5 mb-8 px-2 sm:px-4">
+    <article class="mt-5 mb-8">
       <detail-municipality
         :municipality-score="directusData.municipalityScore"
         :ratings-by-sector="directusData.ratingsBySector ?? {}"
@@ -151,70 +123,67 @@
     <!-- CTA block based on rating completeness -->
     <div class="mb-8">
       <!-- RATED_COMPLETE (all measures rated): contact / feedback -->
-      <div
+      <MunicipalityActionBox
         v-if="pageView === PV.RATED_COMPLETE"
-        class="flex flex-col items-center justify-center rounded-xs bg-rating-3-light p-10 text-center shadow-list"
+        :title="$t('localteam.join')"
+        :description="
+          $t('municipality.callout.join_body', { ':name': directusData.municipalityScore.municipality.name })
+        "
+        icon="mdi:account-group-outline"
+        tone="green"
       >
-        <img src="~/assets/icons/icon_team.svg" class="mb-4 h-14 w-auto opacity-80" />
-        <h2 class="mb-2 font-heading text-h2 font-bold text-green">Mitmachen beim Lokalteam</h2>
-        <p class="mb-6 max-w-sm text-gray-600">
-          <strong>{{ directusData.municipalityScore.municipality.name }}</strong> hat eine vollständige Bewertung. Nimm
-          Kontakt zum Lokalteam auf oder schick uns dein Feedback.
-        </p>
-        <div class="flex flex-col gap-3 sm:flex-row">
-          <NuxtLink
-            :to="`/contact?title=${encodeURIComponent('Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mitmachen.\n\nMeine Kontaktdaten:\n')}`"
-            class="rounded-md bg-green px-6 py-2.5 font-semibold text-white transition-colors hover:opacity-90 focus:ring-2 focus:ring-green focus:ring-offset-2 focus:outline-hidden"
-          >
-            Kontakt aufnehmen →
-          </NuxtLink>
-          <NuxtLink
-            :to="`/contact?title=${encodeURIComponent('Feedback zu ' + directusData.municipalityScore.municipality.name)}&type=suggestion&content=${encodeURIComponent('Kommune: ' + directusData.municipalityScore.municipality.name + '\nLink: /municipalities/' + route.params.slug + '\n\nMein Feedback:\n')}`"
-            class="rounded-md border border-gray-300 px-6 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 focus:outline-hidden"
-          >
-            Feedback geben
-          </NuxtLink>
-        </div>
-      </div>
+        <CanonicalButton
+          :href="`/contact?title=${encodeURIComponent('Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mitmachen.\n\nMeine Kontaktdaten:\n')}`"
+          :label="$t('generic.contact')"
+          icon-slug="mdi:email-outline"
+          color="dark-green"
+        />
+        <CanonicalButton
+          :href="`/contact?title=${encodeURIComponent('Feedback zu ' + directusData.municipalityScore.municipality.name)}&type=suggestion&content=${encodeURIComponent('Kommune: ' + directusData.municipalityScore.municipality.name + '\nLink: /municipalities/' + route.params.slug + '\n\nMein Feedback:\n')}`"
+          :label="$t('feedback.give')"
+          icon-slug="mdi:message-outline"
+          color="dark-green"
+        />
+      </MunicipalityActionBox>
 
       <!-- RATED_IN_PROGRESS / RATED_DRAFT: help the team complete the rating -->
-      <div
+      <MunicipalityActionBox
         v-else-if="pageView === PV.RATED_DRAFT"
-        class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-xs p-10 text-center shadow-list"
+        :title="$t('localteam.support')"
+        :description="
+          $t('municipality.callout.support_body', { ':name': directusData.municipalityScore.municipality.name })
+        "
+        icon="mdi:account-group-outline"
+        tone="orange"
       >
-        <img src="~/assets/icons/icon_team.svg" class="mb-4 h-14 w-auto opacity-60" />
-        <h2 class="mb-2 font-heading text-h2 font-bold text-gray-800">Lokalteam unterstützen</h2>
-        <p class="mb-6 max-w-sm text-gray-600">
-          In <strong>{{ directusData.municipalityScore.municipality.name }}</strong> arbeitet bereits ein Lokalteam an
-          der Bewertung. Hilf ihnen dabei, die Bewertung zu vervollständigen.
-        </p>
-        <NuxtLink
-          :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
-          class="rounded-md bg-green px-6 py-2.5 font-semibold text-white transition-colors hover:opacity-90 focus:ring-2 focus:ring-green focus:ring-offset-2 focus:outline-hidden"
-        >
-          Lokalteam unterstützen →
-        </NuxtLink>
-      </div>
+        <CanonicalButton
+          :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+          :label="$t('localteam.support')"
+          icon-slug="icon_team"
+          color="orange"
+        />
+      </MunicipalityActionBox>
 
       <!-- RATED_OUTDATED: encourage update to current catalog -->
-      <div
+      <MunicipalityActionBox
         v-else-if="pageView === PV.RATED_OUTDATED"
-        class="flex flex-col items-center justify-center rounded-xs bg-rating-1-very-light p-10 text-center shadow-list"
+        :title="$t('search.rating.update')"
+        :description="
+          $t('municipality.callout.update_body', {
+            ':name': directusData.municipalityScore.municipality.name,
+            ':catalog': selectedCatalogVersion.name,
+          })
+        "
+        icon="mdi:history"
+        tone="orange"
       >
-        <img src="~/assets/icons/icon_hint.svg" class="mb-4 h-14 w-auto opacity-50" />
-        <h2 class="mb-2 font-heading text-h2 font-bold text-rating-1">Bewertung aktualisieren</h2>
-        <p class="mb-6 max-w-sm text-mid-gray">
-          <strong>{{ directusData.municipalityScore.municipality.name }}</strong> wurde nach dem Maßnahmenkatalog „{{
-            selectedCatalogVersion.name
-          }}“ bewertet. Hilf dem Lokalteam dabei, die Bewertung auf den aktuellen Katalog zu aktualisieren!
-        </p>
-        <NuxtLink
-          :to="`/contact?title=${encodeURIComponent('Bewertung aktualisieren: ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + directusData.municipalityScore.municipality.name + ' dabei unterstützen, die Bewertung auf den aktuellen Maßnahmenkatalog zu aktualisieren.\n\nMeine Kontaktdaten:\n')}`"
-          class="rounded-md bg-olive-green px-6 py-2.5 font-semibold text-white transition-colors hover:opacity-90 focus:ring-2 focus:ring-olive-green focus:ring-offset-2 focus:outline-hidden"
-        >
-          Lokalteam kontaktieren →
-        </NuxtLink>
-      </div>
+        <CanonicalButton
+          :href="`/contact?title=${encodeURIComponent('Bewertung aktualisieren: ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + directusData.municipalityScore.municipality.name + ' dabei unterstützen, die Bewertung auf den aktuellen Maßnahmenkatalog zu aktualisieren.\n\nMeine Kontaktdaten:\n')}`"
+          :label="$t('localteam.contact_action')"
+          icon-slug="mdi:email-outline"
+          color="orange"
+        />
+      </MunicipalityActionBox>
     </div>
 
     <NearbyMunicipalitiesCarousel
@@ -246,247 +215,56 @@
   </div>
 
   <!-- SLZ_FOUND: no score, area found in Stadt-Land-Zahl (ARS-based page) -->
-  <div v-else-if="pageView === PV.SLZ_FOUND && slzArea" class="slk-municipality-pending">
+  <div v-else-if="pageView === PV.SLZ_FOUND && slzArea && unratedMunicipality">
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue"> ← {{ backLabel }} </NuxtLink>
-    <article class="mt-10 mb-8">
-      <!-- Header band (mirrors ItemRanking, no score) -->
-      <div class="slk-municipality-pending-header relative mb-3 flex items-stretch gap-4 py-5 pr-4 pl-10">
-        <div class="relative h-full pt-6">
-          <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
-          <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black">?</div>
-        </div>
-        <div class="grow">
-          <h1 class="font-heading text-4xl font-black break-words text-light-green sm:text-6xl">{{ slzArea.name }}</h1>
-          <p class="text-sm text-gray-500">{{ slzArea.prefix }}</p>
-          <!-- Gray placeholder bar instead of score progress -->
-          <div class="slk-municipality-pending-progress mt-2 h-3 w-full rounded-sm"></div>
-        </div>
-        <div v-if="slzArea.geo_center" class="flex shrink-0 items-center">
-          <GermanyMapIndicator :lat="slzArea.geo_center.lat" :lon="slzArea.geo_center.lon" :size="80" />
-        </div>
-      </div>
-
-      <!-- Mobile layout -->
-      <div class="mt-6 block space-y-4 lg:hidden">
-        <!-- Info box -->
-        <div class="slk-municipality-pending-card rounded-xs shadow-list">
-          <div class="flex items-center gap-2 px-6 py-4">
-            <img src="~/assets/icons/icon_info.svg" alt="" class="slk-theme-icon--light h-6 w-6 opacity-60" />
-            <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-theme-icon--dark h-6 w-6" />
-            <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
-          </div>
-          <div class="space-y-3 px-6 pb-6">
-            <div v-if="slzArea.state" class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("state") }}</span>
-              </div>
-              <span class="text-sm font-bold text-gray-900">{{ slzArea.state }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
-              </div>
-              <span class="text-sm font-bold text-gray-900">
-                {{ slzArea.population ? slzArea.population.toLocaleString() : $t("generic.not_entered") }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <img src="~/assets/icons/icon_politics.svg" alt="" class="slk-theme-icon--light h-5 w-5 opacity-60" />
-                <img src="~/assets/icons/icon_politics-dark.svg" alt="" class="slk-theme-icon--dark h-5 w-5" />
-                <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
-              </div>
-              <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
-            </div>
-            <div v-if="directusMuniByArs?.localteam_id?.date_created" class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("municipality.localteam_founded") }}</span>
-              </div>
-              <span class="text-sm font-bold text-gray-900">
-                {{
-                  new Date(directusMuniByArs.localteam_id.date_created).toLocaleDateString("de-DE", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                  })
-                }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats link -->
-        <NuxtLink
-          :to="`/data/${slzArea.ars}`"
-          class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-4 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
-        >
-          <img
-            src="~/assets/icons/icon_evaluation_criteria.svg"
-            alt=""
-            class="slk-municipality-cta-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14"
-          />
-          <img
-            src="~/assets/icons/icon_evaluation_criteria-dark.svg"
-            alt=""
-            class="slk-municipality-cta-icon slk-theme-icon--dark h-auto w-12 md:w-14"
-          />
-          <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
-        </NuxtLink>
-
-        <!-- CTA: support existing localteam or invite to found one -->
-        <div
-          v-if="hasLocalteam"
-          class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-xs p-10 text-center shadow-list"
-        >
-          <img src="~/assets/icons/icon_team.svg" class="mb-4 h-14 w-auto opacity-60" />
-          <h2 class="mb-2 font-heading text-h2 font-bold text-gray-800">Lokalteam unterstützen</h2>
-          <p class="mb-6 max-w-sm text-gray-600">
-            In <strong>{{ slzArea.name }}</strong> arbeitet bereits ein Lokalteam an der Bewertung. Hilf ihnen dabei,
-            die Bewertung zu vervollständigen.
-          </p>
-          <CanonicalButton
-            :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
-            label="Lokalteam unterstützen"
-            icon-slug="icon_team"
-            color="dark-green"
-          />
-        </div>
-        <div
-          v-else
-          class="slk-municipality-pending-card slk-municipality-pending-card--found flex flex-col items-center justify-center rounded-xs p-10 text-center shadow-list"
-        >
-          <img src="~/assets/icons/icon_location_green_marker.svg" class="mb-4 h-14 w-auto opacity-80" />
-          <h2 class="mb-2 font-heading text-h2 font-bold text-green">Lokalteam gründen</h2>
-          <p class="mb-6 max-w-sm text-gray-600">
-            <strong>{{ slzArea.name }}</strong> wurde noch nicht bewertet. Gründe ein Lokalteam und bringe aktiven
-            Klimaschutz in deine Kommune.
-          </p>
-          <CanonicalButton
-            :href="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
-            label="Jetzt Lokalteam gründen"
-            icon-slug="icon_location_green_marker"
-            color="green"
-          />
-        </div>
-      </div>
-
-      <!-- Desktop layout -->
-      <div class="mt-6 hidden lg:grid lg:grid-cols-3 lg:gap-8">
-        <!-- Left column (2/3): CTA -->
+    <article class="mt-5 mb-8">
+      <MunicipalityDetailHero :name="slzArea.name" :introduction="$t('municipality.hero.unrated_introduction')" />
+      <div class="grid w-full gap-6 lg:grid-cols-3 lg:gap-8">
         <div class="lg:col-span-2">
-          <div
+          <MunicipalityActionBox
             v-if="hasLocalteam"
-            class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-xs p-10 text-center shadow-list"
+            :title="$t('localteam.support')"
+            :description="$t('municipality.callout.support_body', { ':name': slzArea.name })"
+            icon="mdi:account-group-outline"
+            tone="orange"
           >
-            <img src="~/assets/icons/icon_team.svg" class="mb-4 h-14 w-auto opacity-60" />
-            <h2 class="mb-2 font-heading text-h2 font-bold text-gray-800">Lokalteam unterstützen</h2>
-            <p class="mb-6 max-w-sm text-gray-600">
-              In <strong>{{ slzArea.name }}</strong> arbeitet bereits ein Lokalteam an der Bewertung. Hilf ihnen dabei,
-              die Bewertung zu vervollständigen.
-            </p>
             <CanonicalButton
               :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
-              label="Lokalteam unterstützen"
+              :label="$t('localteam.support')"
               icon-slug="icon_team"
-              color="dark-green"
+              color="orange"
             />
-          </div>
-          <div
+          </MunicipalityActionBox>
+          <MunicipalityActionBox
             v-else
-            class="slk-municipality-pending-card slk-municipality-pending-card--found flex flex-col items-center justify-center rounded-xs p-10 text-center shadow-list"
+            :title="$t('localteam.create')"
+            :description="$t('municipality.callout.found_body', { ':name': slzArea.name })"
+            icon="mdi:map-marker-plus-outline"
+            tone="green"
           >
-            <img src="~/assets/icons/icon_location_green_marker.svg" class="mb-4 h-14 w-auto opacity-80" />
-            <h2 class="mb-2 font-heading text-h2 font-bold text-green">Lokalteam gründen</h2>
-            <p class="mb-6 max-w-sm text-gray-600">
-              <strong>{{ slzArea.name }}</strong> wurde noch nicht bewertet. Gründe ein Lokalteam und bringe aktiven
-              Klimaschutz in deine Kommune.
-            </p>
             <CanonicalButton
               :href="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
-              label="Jetzt Lokalteam gründen"
+              :label="$t('localteam.create_now')"
               icon-slug="icon_location_green_marker"
-              color="green"
+              color="dark-green"
             />
-          </div>
+          </MunicipalityActionBox>
         </div>
-
-        <!-- Right column (1/3): sticky sidebar -->
         <div class="pb-4 lg:col-span-1">
-          <div class="sticky top-24 space-y-6">
-            <!-- Info box -->
-            <div class="slk-municipality-pending-card rounded-xs shadow-list">
-              <div class="flex items-center gap-2 px-6 py-4">
-                <img src="~/assets/icons/icon_info.svg" alt="" class="slk-theme-icon--light h-6 w-6 opacity-60" />
-                <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-theme-icon--dark h-6 w-6" />
-                <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
-              </div>
-              <div class="space-y-3 px-6 pb-6">
-                <div v-if="slzArea.state" class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("state") }}</span>
-                  </div>
-                  <span class="text-sm font-bold text-gray-900">{{ slzArea.state }}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
-                  </div>
-                  <span class="text-sm font-bold text-gray-900">
-                    {{ slzArea.population ? slzArea.population.toLocaleString() : $t("generic.not_entered") }}
-                  </span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <img
-                      src="~/assets/icons/icon_politics.svg"
-                      alt=""
-                      class="slk-theme-icon--light h-5 w-5 opacity-60"
-                    />
-                    <img src="~/assets/icons/icon_politics-dark.svg" alt="" class="slk-theme-icon--dark h-5 w-5" />
-                    <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
-                  </div>
-                  <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
-                </div>
-                <div v-if="directusMuniByArs?.localteam_id?.date_created" class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("municipality.localteam_founded") }}</span>
-                  </div>
-                  <span class="text-sm font-bold text-gray-900">
-                    {{
-                      new Date(directusMuniByArs.localteam_id.date_created).toLocaleDateString("de-DE", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                      })
-                    }}
-                  </span>
-                </div>
-              </div>
+          <div class="space-y-6 lg:sticky lg:top-24">
+            <DetailMunicipalityQuickInfoDesktop
+              :municipality="unratedMunicipality"
+              :municipality-type-label="slzArea.prefix"
+            />
+            <div class="rounded-xs border border-(--slk-border) bg-(--slk-blue-tint) p-4 shadow-list">
+              <CanonicalButton
+                :href="`/data/${slzArea.ars}`"
+                :label="$t('stats.title')"
+                icon-slug="icon_evaluation_criteria"
+                color="dark"
+                class="w-full"
+              />
             </div>
-
-            <!-- Stats link -->
-            <NuxtLink
-              :to="`/data/${slzArea.ars}`"
-              class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
-            >
-              <img
-                src="~/assets/icons/icon_evaluation_criteria.svg"
-                alt=""
-                class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
-              />
-              <img
-                src="~/assets/icons/icon_evaluation_criteria-dark.svg"
-                alt=""
-                class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6"
-              />
-              <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
-            </NuxtLink>
           </div>
         </div>
       </div>
@@ -511,6 +289,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Municipality } from "~/types/components/municipality";
+import { Icon } from "@iconify/vue";
 import { useMunicipalityPageState } from "~/composables/useMunicipalityPageState";
 import { useReferrer } from "~/composables/useReferrer";
 import { MunicipalityPageSchema } from "~/shared/contracts/municipality";
@@ -610,6 +390,23 @@ const slzAreaLookup = useAsyncData(`slz-area-${slug}`, async () => {
 });
 
 const { data: slzArea, pending: slzPending } = await slzAreaLookup;
+
+// Reuse the rated municipality facts card without inventing a score.
+const unratedMunicipality = computed<Municipality | null>(() => {
+  const area = slzArea.value;
+  if (!area) return null;
+  const municipality = directusMuniBySlug.value;
+  return {
+    ...municipality,
+    id: municipality?.id ?? area.ars,
+    name: area.name,
+    slug,
+    ars: area.ars,
+    state: area.state,
+    population: area.population,
+    geolocation: area.geo_center ? { type: "Point", coordinates: [area.geo_center.lon, area.geo_center.lat] } : null,
+  };
+});
 
 // Centralised page-view state. All 9 cases are documented in useMunicipalityPageState.js.
 const {

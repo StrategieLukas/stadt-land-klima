@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
+    "predev": "npm run translations:generate",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -91,6 +92,7 @@
     "tailwindcss": "4.3.5",
     "vega": "^6.4.0",
     "vega-embed": "^7.3.0",
+    "vega-interpreter": "2.3.2",
     "vega-lite": "^6.5.0",
     "vue-chartjs": "^5.3.4",
     "zod": "^4.6.7"

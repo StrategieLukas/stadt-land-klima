@@ -2,7 +2,7 @@ import { shallowReactive } from "vue";
 interface SearchBridge {
   move: ((direction: number) => void) | null;
   navigate: (() => void | Promise<void>) | null;
-  focus: (() => void) | null;
+  focus: (() => boolean) | null;
 }
 const browserBridge = shallowReactive<SearchBridge>({ move: null, navigate: null, focus: null });
 export function useEmbeddedSearchBridge() {
@@ -15,9 +15,16 @@ export function useEmbeddedSearchBridge() {
     register(this: void, moveFn: (direction: number) => void, navigateFn: () => void | Promise<void>) {
       bridge.move = moveFn;
       bridge.navigate = navigateFn;
+      return () => {
+        if (bridge.move === moveFn) bridge.move = null;
+        if (bridge.navigate === navigateFn) bridge.navigate = null;
+      };
     },
-    registerFocusInput(this: void, fn: () => void) {
+    registerFocusInput(this: void, fn: () => boolean) {
       bridge.focus = fn;
+      return () => {
+        if (bridge.focus === fn) bridge.focus = null;
+      };
     },
     moveFocusEmbedded(this: void, direction: number) {
       bridge.move?.(direction);
@@ -26,7 +33,7 @@ export function useEmbeddedSearchBridge() {
       return bridge.navigate?.();
     },
     focusHeaderInput(this: void) {
-      bridge.focus?.();
+      return bridge.focus?.() ?? false;
     },
     get hasHeaderInput() {
       return !!bridge.focus;

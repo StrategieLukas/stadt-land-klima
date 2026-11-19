@@ -10,6 +10,8 @@ export type RunOptions = {
   output?: number;
   capture?: boolean;
   quiet?: boolean;
+  inheritStderr?: boolean;
+  label?: string;
 };
 export class CommandError extends Error {
   readonly code: number;
@@ -26,7 +28,7 @@ export function run(executable: string, args: string[] = [], options: RunOptions
       stdio: [
         typeof options.input === "number" ? options.input : typeof options.input === "string" ? "pipe" : "inherit",
         options.output ?? (options.capture ? "pipe" : options.quiet ? "ignore" : "inherit"),
-        options.capture || options.quiet ? "pipe" : "inherit",
+        options.inheritStderr || !(options.capture || options.quiet) ? "inherit" : "pipe",
       ],
     });
     let output = "";
@@ -34,11 +36,12 @@ export function run(executable: string, args: string[] = [], options: RunOptions
       output += chunk.toString();
       if (output.length > 16 * 1024 * 1024) child.kill();
     });
-    // Capture errors without reflecting upstream credentials or source content.
+    // Captured/quiet commands hide upstream credentials and source content by default.
+    // Only callers of helpers with sanitized diagnostics opt into inherited stderr.
     child.stderr?.resume();
     child.on("error", () => reject(new Error(`${executable} could not be started.`)));
     child.on("close", (code) =>
-      code === 0 ? resolve(output.trim()) : reject(new CommandError(code ?? 1, executable)),
+      code === 0 ? resolve(output.trim()) : reject(new CommandError(code ?? 1, options.label ?? executable)),
     );
     if (typeof options.input === "string") child.stdin?.end(options.input);
   });

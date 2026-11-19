@@ -18,6 +18,7 @@ export const SECURITY_LOG_ROUTES = [
   "/api/public/municipalities/:slug",
   "/api/public/news/:slug",
   "/api/public/pages/:slug",
+  "/api/public/regions/:ars",
   "/api/public/stats/:catalog",
   "/api/public/tours/:slug",
   "/api/public/wahlcheck/:municipalitySlug",

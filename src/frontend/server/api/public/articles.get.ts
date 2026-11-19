@@ -1,3 +1,4 @@
+import { readWithOrganisationDarkLogo } from "~/server/utils/organisationLogos";
 import { ProjectMunicipalitySchema, createProjectLocationResolver } from "~/shared/projectMap";
 import { pointLatLng } from "~/shared/tour";
 import { cmsRows } from "~/server/utils/cmsValue";
@@ -17,38 +18,43 @@ export default defineEventHandler(async (event) => {
   const municipality = queryText(query.municipality, 200);
   const limit = queryLimit(query.limit, -1, 500, true);
   const sort = queryChoice(query.sort, ["-date_created", "date_created", "title", "-title"] as const, "-date_created");
-  const articles = await client
-    .request(
-      readItems("articles", {
-        filter: { status: { _eq: "published" }, ...(municipality ? { municipality_name: { _eq: municipality } } : {}) },
-        fields: [
-          "id",
-          "slug",
-          "title",
-          "abstract",
-          "author",
-          "date_created",
-          "municipality_name",
-          "geolocation",
-          "location_label",
-          "state",
-          "sectors",
-          "can_do_autonomously",
-          "is_profitable",
-          "public_impact_effects",
-          "ghg_savings_level",
-          "profile_stage",
-          "image_credits",
-          { municipality: ["id", "name", "state", "geolocation"] },
-          { image: ["id", "type"] },
-          { organisation: ["id", "name", "logo"] },
-          { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] },
-        ],
-        sort: [sort ?? "-date_created"],
-        limit,
-      }),
-    )
-    .then(cmsRows);
+  const articles = await readWithOrganisationDarkLogo((includeDarkLogo) =>
+    client
+      .request(
+        readItems("articles", {
+          filter: {
+            status: { _eq: "published" },
+            ...(municipality ? { municipality_name: { _eq: municipality } } : {}),
+          },
+          fields: [
+            "id",
+            "slug",
+            "title",
+            "abstract",
+            "author",
+            "date_created",
+            "municipality_name",
+            "geolocation",
+            "location_label",
+            "state",
+            "sectors",
+            "can_do_autonomously",
+            "is_profitable",
+            "public_impact_effects",
+            "ghg_savings_level",
+            "profile_stage",
+            "image_credits",
+            { municipality: ["id", "name", "state", "geolocation"] },
+            { image: ["id", "type"] },
+            { organisation: ["id", "name", "logo", ...(includeDarkLogo ? ["logo_dark"] : [])] },
+            { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] },
+          ],
+          sort: [sort ?? "-date_created"],
+          limit,
+        }),
+      )
+      .then(cmsRows),
+  );
 
   const projects = parseCms(z.array(ProjectListSchema), articles);
   // Only geographical facts from published municipality records enter automatic name matching.

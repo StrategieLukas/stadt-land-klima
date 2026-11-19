@@ -1,0 +1,4 @@
+language: de-DE
+key: region.rating_eligibility_municipalities
+value: >-
+  Gemeinden (ADE 6) ab 5.000 Einwohner:innen, in denen weniger als die Hälfte der Bevölkerung ihres Gemeindeverbands (ADE 5) lebt. Gibt es keinen Gemeindeverband, zählt der Landkreis (ADE 4) als Vergleich.

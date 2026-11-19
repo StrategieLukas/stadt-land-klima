@@ -1,5 +1,5 @@
 <template>
-  <main v-if="event" class="event-detail mx-auto w-full max-w-3xl px-4 py-8">
+  <main v-if="event" class="event-detail mx-auto w-full max-w-3xl py-8">
     <NuxtLink :to="backHref" class="mb-6 inline-flex text-sm text-stats-dark hover:underline"
       >← {{ backLabel }}</NuxtLink
     >

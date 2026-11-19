@@ -1,12 +1,15 @@
 <template>
   <div v-if="loaded && nearbyAreas.length === 0" />
 
-  <div v-else class="max-w-full overflow-hidden border-t border-b bg-gray-300 px-3 py-6 sm:px-4 lg:px-6">
+  <div
+    v-else
+    class="max-w-full overflow-hidden border-t border-b border-(--slk-border) bg-(--slk-surface-subdued) px-3 py-6 sm:px-4 lg:px-6"
+  >
     <div class="mb-4">
-      <h3 class="mb-2 text-lg font-semibold text-gray-800">
+      <h3 class="mb-2 text-lg font-semibold text-(--slk-text-strong)">
         {{ $t("administrative_areas.nearby_alternatives") }}
       </h3>
-      <p class="text-sm text-gray-600">
+      <p class="text-sm text-(--slk-text-muted)">
         {{ $t("administrative_areas.nearby_alternatives_description") }}
       </p>
     </div>
@@ -14,7 +17,7 @@
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center gap-2 py-8">
       <SlkFlowerSpinner :size="32" />
-      <span class="text-blue-600">{{ $t("generic.loading") }}...</span>
+      <span class="text-(--slk-blue)">{{ $t("generic.loading") }}</span>
     </div>
 
     <!-- Carousel -->
@@ -28,10 +31,10 @@
         <div
           v-for="area in nearbyAreas"
           :key="area.ars"
-          class="flex w-64 max-w-full flex-none flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg sm:w-72 lg:w-80"
+          class="flex w-64 max-w-full flex-none flex-col overflow-hidden rounded-lg border border-(--slk-border) bg-(--slk-surface) sm:w-72 lg:w-80"
         >
           <!-- Mini map -->
-          <div class="relative flex h-32 items-center justify-center bg-linear-to-br from-green-100 to-blue-100">
+          <div class="relative flex h-32 items-center justify-center bg-(--slk-blue-tint)">
             <LMap
               :ref="
                 (el) => {
@@ -66,10 +69,10 @@
             <!-- Name row with score badge -->
             <div class="mb-3 flex items-start justify-between gap-2">
               <div class="min-w-0 flex-1">
-                <p class="mb-1 text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                <p class="mb-1 text-xs font-semibold tracking-wide text-(--slk-text-muted) uppercase">
                   {{ area.prefix }}
                 </p>
-                <h4 class="text-sm leading-tight font-bold wrap-break-word text-gray-900">
+                <h4 class="text-sm leading-tight font-bold wrap-break-word text-(--slk-text-strong)">
                   {{ area.name }}
                 </h4>
               </div>
@@ -77,7 +80,7 @@
                 <!-- Complete or published: show numeric score -->
                 <span
                   v-if="area.isComplete && area.scoreTotal != null"
-                  class="inline-block rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                  class="slk-rating-chip inline-block rounded-full px-2 py-0.5 text-xs font-bold"
                   :class="`bg-${scoreBgColor(area.scoreTotal)}`"
                 >
                   {{ Math.round(area.scoreTotal) }}%
@@ -85,16 +88,13 @@
                 <!-- Localteam exists but not yet published -->
                 <span
                   v-else-if="area.ctaType === 'in-progress'"
-                  class="inline-block rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700"
+                  class="slk-badge slk-badge--warning inline-block rounded-full px-2 py-0.5 text-xs font-medium"
                 >
-                  Bewertung läuft
+                  {{ $t("rating.in_progress") }}
                 </span>
                 <!-- No localteam -->
-                <span
-                  v-else
-                  class="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-400"
-                >
-                  Nicht bewertet
+                <span v-else class="slk-badge inline-block rounded-full px-2 py-0.5 text-xs font-medium">
+                  {{ $t("administrative_areas.not_rated_yet") }}
                 </span>
               </div>
             </div>
@@ -104,44 +104,44 @@
               <NuxtLink
                 v-if="area.ctaType === 'complete'"
                 :to="`/municipalities/${area.slug}?v=${catalogVersionName}`"
-                class="inline-flex items-center text-xs font-medium text-[#AFCA0B] hover:text-lime-700 sm:text-sm"
+                class="inline-flex items-center text-xs font-medium text-(--slk-olive-green) hover:underline sm:text-sm"
               >
                 <svg class="mr-1 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span>Bewertung anzeigen</span>
+                <span>{{ $t("rating.view") }}</span>
               </NuxtLink>
               <!-- Case: localteam active, rating in progress → support them -->
               <NuxtLink
                 v-else-if="area.ctaType === 'in-progress'"
-                :to="`/contact?title=${encodeURIComponent('Lokalteam unterstützen in ' + area.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + area.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
-                class="inline-flex items-center text-xs font-medium text-green hover:opacity-80 sm:text-sm"
+                :to="`/contact?title=${encodeURIComponent($t('localteam.support.contact_title', { ':name': area.name }))}&type=cooperation&content=${encodeURIComponent($t('localteam.support.contact_content', { ':name': area.name }))}`"
+                class="inline-flex items-center text-xs font-medium text-(--slk-olive-green) hover:underline sm:text-sm"
               >
                 <svg class="mr-1 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span>Lokalteam unterstützen</span>
+                <span>{{ $t("localteam.support") }}</span>
               </NuxtLink>
               <!-- Case: no localteam → found one -->
               <NuxtLink
                 v-else
                 :to="`/register_localteam?ars=${area.ars}&name=${encodeURIComponent(area.name)}`"
-                class="inline-flex items-center text-xs font-medium text-green hover:opacity-80 sm:text-sm"
+                class="inline-flex items-center text-xs font-medium text-(--slk-olive-green) hover:underline sm:text-sm"
               >
                 <svg class="mr-1 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span>Lokalteam gründen</span>
+                <span>{{ $t("localteam.create") }}</span>
               </NuxtLink>
               <!-- Statistiken (always shown) -->
               <NuxtLink
                 :to="`/data/${area.ars}`"
-                class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 sm:text-sm"
+                class="inline-flex items-center text-xs font-medium text-(--slk-blue) hover:underline sm:text-sm"
               >
                 <svg class="mr-1 h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span>Statistiken anzeigen</span>
+                <span>{{ $t("stats.view_stats") }}</span>
               </NuxtLink>
             </div>
           </div>

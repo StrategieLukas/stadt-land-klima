@@ -1,11 +1,11 @@
 <template>
-  <div class="mx-auto max-w-4xl px-4 py-8">
+  <div class="elections-flow mx-auto max-w-4xl py-8 text-(--slk-text)">
     <!-- Header -->
-    <div class="mb-8 rounded-2xl border border-solid-gray-10 bg-white p-8 shadow-list">
-      <h1 class="mb-4 text-h2 font-bold text-stats-dark">
+    <header class="mb-8">
+      <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">
         {{ $t("election_info.title_for", { ":name": municipalityScore.municipality.name }) }}
       </h1>
-      <p class="mb-4 text-lg text-mid-gray">
+      <p class="mb-4 max-w-3xl text-lg leading-relaxed text-gray">
         {{ $t("election_info.intro_prefix") }}
         <span class="font-semibold text-stats-dark">{{ $t("election_info.improvement_potential") }}</span>
         {{ $t("election_info.intro_suffix") }}
@@ -40,7 +40,7 @@
         }}</span>
       </div>
 
-      <div class="mt-6 flex justify-center">
+      <div class="mt-6 flex">
         <PdfExportForm
           action="/api/election-pdf"
           :request="{
@@ -53,23 +53,23 @@
             type="submit"
             :label="$t('generic.generate_pdf')"
             icon-slug="mdi:file-pdf-box"
-            color="bright-green"
+            color="dark"
           />
         </PdfExportForm>
       </div>
-    </div>
+    </header>
 
     <!-- Measures List -->
     <div class="space-y-6">
       <div
         v-for="(measure, index) in sortedMeasures.slice(0, 10)"
         :key="measure.measure_id"
-        class="rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-shadow hover:shadow-xl"
+        class="border border-(--slk-border) bg-(--slk-surface) p-4 sm:p-6"
       >
         <!-- Measure Header -->
         <div class="mb-4 flex items-start justify-between">
           <div class="flex-1">
-            <h3 class="flex items-center gap-3 text-xl font-bold text-stats-dark">
+            <h2 class="flex flex-wrap items-center gap-3 text-xl font-bold text-(--slk-text-strong)">
               <span
                 class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stats-dark text-sm font-bold text-white"
               >
@@ -77,7 +77,7 @@
               </span>
               {{ measure.name }}
               <span class="ml-2 text-sm font-normal text-mid-gray">({{ measure.measure_id }})</span>
-            </h3>
+            </h2>
           </div>
         </div>
 
@@ -91,23 +91,20 @@
           ></div>
 
           <!-- Current Progress -->
-          <div v-if="measure.currentProgress" class="rounded-lg border border-solid-gray-10 bg-mild-white p-4">
+          <div v-if="measure.currentProgress" class="border-t border-(--slk-border) pt-4">
             <p class="mb-1 font-semibold text-stats-dark">{{ $t("election_info.current_status") }}</p>
             <p class="text-mid-gray">{{ measure.currentProgress }}</p>
           </div>
 
           <!-- Political Demand -->
-          <div v-if="measure.politicalDemand" class="rounded-lg border border-solid-gray-10 bg-mild-white p-4">
+          <div v-if="measure.politicalDemand" class="border-t border-(--slk-border) pt-4">
             <p class="mb-1 font-semibold text-stats-dark">{{ $t("election_info.political_demand") }}</p>
             <p class="text-mid-gray">{{ measure.politicalDemand }}</p>
           </div>
 
           <!-- Contribution Description -->
-          <div
-            v-if="measure.description_contribution"
-            class="rounded-lg border border-solid-ff-green-20 bg-solid-ff-green-05 p-4"
-          >
-            <p class="mb-1 font-semibold text-ff-green">{{ $t("election_info.contribution") }}</p>
+          <div v-if="measure.description_contribution" class="border-t border-(--slk-border) pt-4">
+            <p class="mb-1 font-semibold text-(--slk-text-strong)">{{ $t("election_info.contribution") }}</p>
             <div
               class="prose max-w-none text-mid-gray"
               v-html="sanitizeHtml(md.render(measure.description_contribution))"
@@ -117,21 +114,12 @@
 
         <!-- Link to Municipality -->
         <div class="mt-4 flex justify-end border-t border-solid-gray-10 pt-4">
-          <NuxtLink
-            :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`"
-            class="btn gap-2 btn-outline text-stats-dark btn-secondary btn-sm hover:bg-solid-light-green-10"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-            {{ $t("election_info.to_rating") }}
-          </NuxtLink>
+          <CanonicalButton
+            :href="`/municipalities/${municipalityScore.municipality.slug}?v=${encodeURIComponent(municipalityScore.catalog_version.name)}#measure-${measure.measure_id}`"
+            :label="$t('election_info.to_rating')"
+            icon-slug="mdi:arrow-right"
+            color="dark"
+          />
         </div>
       </div>
     </div>
@@ -146,12 +134,7 @@
           measures: sortedMeasures.slice(0, 10),
         }"
       >
-        <CanonicalButton
-          type="submit"
-          :label="$t('generic.generate_pdf')"
-          icon-slug="mdi:file-pdf-box"
-          color="bright-green"
-        />
+        <CanonicalButton type="submit" :label="$t('generic.generate_pdf')" icon-slug="mdi:file-pdf-box" color="dark" />
       </PdfExportForm>
     </div>
   </div>

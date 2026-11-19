@@ -44,6 +44,7 @@ permissions:
       - short_description
       - link
       - logo
+      - logo_dark
       - instagram
       - linkedin
       - social_media_segment
@@ -63,6 +64,7 @@ permissions:
       - id
       - name
       - logo
+      - logo_dark
       - link
       - short_description
       - instagram
@@ -78,6 +80,7 @@ permissions:
       - short_description
       - link
       - logo
+      - logo_dark
       - instagram
       - linkedin
       - social_media_segment

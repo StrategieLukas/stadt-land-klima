@@ -1,5 +1,5 @@
 <template>
-  <main v-if="series" class="container mx-auto px-4 py-8">
+  <main v-if="series" class="w-full py-8">
     <h1 class="mb-4 font-heading text-4xl font-black">{{ series.title }}</h1>
     <p v-if="series.introduction" class="mb-8">{{ series.introduction }}</p>
     <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

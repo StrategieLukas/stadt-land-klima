@@ -222,16 +222,26 @@
             <template v-if="isHydrated && mapOpen && !isMobileTour">
               <div
                 v-for="(stop, index) in stops"
-                v-show="activeStop === index && reportMedia(stop.id).length"
+                v-show="(activeStop === index || displayedPostcardStopId === stop.id) && reportMedia(stop.id).length"
                 :key="`prints-${stop.id}`"
                 class="tour-photos tour-explorer__prints"
-                :class="{ 'tour-photos--pair': reportMedia(stop.id).length > 1 }"
-                :style="printsPositionStyle"
+                :class="{
+                  'tour-photos--pair': reportMedia(stop.id).length > 1,
+                  'is-loading': displayedPostcardStopId !== stop.id,
+                }"
+                :inert="displayedPostcardStopId !== stop.id"
+                :aria-hidden="displayedPostcardStopId !== stop.id ? 'true' : undefined"
+                :style="displayedPostcardStopId === stop.id ? displayedPostcardPosition : printsPositionStyle"
               >
                 <figure
                   v-for="(photo, photoIndex) in reportMedia(stop.id).slice(0, 2)"
-                  :key="photo.id"
-                  :class="{ 'tour-postcard--natural': !isVideoMedia(photo) || relationId(photo.poster) }"
+                  :key="postcardKey(stop.id, photo)"
+                  :class="{
+                    'tour-postcard--natural': !isVideoMedia(photo) || relationId(photo.poster),
+                    'is-failed': postcardStatuses[postcardKey(stop.id, photo)] === 'error',
+                  }"
+                  :inert="postcardStatuses[postcardKey(stop.id, photo)] === 'error'"
+                  :aria-hidden="postcardStatuses[postcardKey(stop.id, photo)] === 'error' ? 'true' : undefined"
                   :style="postcardStyle(stop.id, photo.id, photoIndex)"
                 >
                   <button
@@ -239,7 +249,11 @@
                     :aria-label="`${$t('tour.media_open')}: ${photo.alt}`"
                     @click="openMedia(stop.id, photoIndex)"
                   >
-                    <TourMediaPreview :item="photo" preserve-aspect-ratio />
+                    <TourMediaPreview
+                      :item="photo"
+                      preserve-aspect-ratio
+                      @status="postcardStatuses[postcardKey(stop.id, photo)] = $event"
+                    />
                   </button>
                   <figcaption>
                     <span v-if="photo.caption">{{ photo.caption }}</span><small>{{ photo.credit }}</small
@@ -329,12 +343,12 @@
 
 <script setup lang="ts">
 import { routeSlug } from "~/shared/routeValues";
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 import { berlinDayNumber, pinColor, relationId, visitHasEnded } from "~/shared/tour";
 import { isVideoMedia, orderedMedia } from "~/shared/tourMedia";
 import { tourStopHref } from "~/shared/successProjectTour";
 import type { SuccessProjectTour, SuccessProjectTourStop } from "~/shared/successProjectTour";
-import type { TourMedia } from "~/shared/tourMedia";
+import type { TourMedia, TourMediaPreviewStatus } from "~/shared/tourMedia";
 import { isRaster } from "~/shared/utils";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
@@ -399,6 +413,18 @@ const reportFor = (stopId: string): Stop | undefined =>
   stops.value.find((stop) => stop.id === stopId && stop.report_status === "published");
 const projectsFor = (stopId: string): Project[] => projectsByStop.value.get(stopId) ?? [];
 const reportMedia = (stopId: string): TourMedia[] => orderedMedia(reportFor(stopId));
+const postcardStatuses = ref<Record<string, TourMediaPreviewStatus>>({});
+const displayedPostcardStopId = ref<string | null>(null);
+const displayedPostcardPosition = ref<Record<string, string>>({});
+const postcardKey = (stopId: string, photo: TourMedia) =>
+  JSON.stringify([stopId, photo.id, relationId(photo.file), relationId(photo.poster)]);
+const postcardsSettled = (stopId: string) =>
+  reportMedia(stopId)
+    .slice(0, 2)
+    .every((photo) => {
+      const status = postcardStatuses.value[postcardKey(stopId, photo)];
+      return status === "ready" || status === "error";
+    });
 const mediaOpen = ref(false);
 const mediaViewer = ref<{ open: (media: TourMedia[], index: number, title: string) => void } | null>(null);
 function openMedia(stopId: string, index: number) {
@@ -474,16 +500,35 @@ const cardPositionStyle = computed(() => {
     "--card-top": `${Math.max(160, Math.min(marker.y, marker.height - 160))}px`,
   };
 });
-const printsPositionStyle = computed(() => {
+const printsPositionStyle = computed<Record<string, string>>(() => {
   const marker = markerPosition.value;
   if (!marker) return {};
   const cardWidth = Math.min(560, marker.width * 0.43);
   const cardOnRight = marker.x + 54 + cardWidth <= marker.width - 20;
-  const width = Math.min(544, marker.width * 0.44);
+  const paired = reportMedia(stops.value[activeStop.value]?.id ?? "").length > 1;
+  const width = paired ? Math.min(640, marker.width * 0.48) : Math.min(544, marker.width * 0.44);
   const preferredLeft = cardOnRight ? marker.x - width - 66 : marker.x + 66;
   return {
     "--prints-left": `${Math.max(20, Math.min(preferredLeft, marker.width - width - 20))}px`,
   };
+});
+watchEffect(() => {
+  const stop = stops.value[activeStop.value];
+  const photos = stop ? reportMedia(stop.id).slice(0, 2) : [];
+  if (!mapOpen.value || isMobileTour.value || !stop || !photos.length) {
+    displayedPostcardStopId.value = null;
+    displayedPostcardPosition.value = {};
+    return;
+  }
+  // Keep the previous decoded set and its position until the active station is ready.
+  // Only the active station may replace it, even if earlier downloads finish later.
+  if (
+    postcardsSettled(stop.id) &&
+    photos.some((photo) => postcardStatuses.value[postcardKey(stop.id, photo)] === "ready")
+  ) {
+    displayedPostcardStopId.value = stop.id;
+    displayedPostcardPosition.value = printsPositionStyle.value;
+  }
 });
 let nowTimer: ReturnType<typeof setInterval> | null = null;
 let scrollFrame = 0;
@@ -2031,7 +2076,15 @@ usePageSeo({
   overflow: visible;
 }
 .tour-explorer__prints.tour-photos--pair {
-  column-gap: 4rem;
+  width: min(40rem, 48vw);
+  column-gap: 3rem;
+}
+.tour-explorer__prints.is-loading {
+  opacity: 0;
+  pointer-events: none;
+}
+.tour-explorer__prints figure.is-failed {
+  visibility: hidden;
 }
 .tour-explorer__prints figure {
   position: relative;
@@ -2187,7 +2240,8 @@ usePageSeo({
     max-height: 47%;
     transform: none;
   }
-  .tour-explorer__prints {
+  .tour-explorer__prints,
+  .tour-explorer__prints.tour-photos--pair {
     top: 1.2rem;
     bottom: auto;
     right: 1.2rem;

@@ -2,11 +2,14 @@
   <component
     :is="href ? 'a' : 'button'"
     v-bind="linkAttrs"
-    class="canonical-button inline-flex items-stretch overflow-hidden rounded-md text-sm font-bold no-underline shadow-xs ring-1 ring-white/20 ring-inset"
+    class="canonical-button inline-flex max-w-full items-stretch overflow-hidden rounded-md text-sm font-bold no-underline"
     :class="[
       textClass,
       wrapLabel ? 'whitespace-normal' : 'whitespace-nowrap',
-      { 'canonical-button--auto-text': !textColor || textColor === 'auto' },
+      {
+        'canonical-button--auto-text': !textColor || textColor === 'auto',
+        'canonical-button--outline': variant === 'outline',
+      },
     ]"
     :style="{ '--btn-color': colorHex }"
   >
@@ -46,7 +49,7 @@
       <Icon :icon="iconifySlug" :class="iconSize === 'lg' ? 'h-7 w-7' : 'h-5 w-5'" />
     </span>
     <!-- Label -->
-    <span class="flex flex-1 items-center justify-center" :class="hasIcon ? 'py-2 pr-4 pl-3' : 'px-4 py-2'">{{
+    <span class="flex min-w-0 flex-1 items-center justify-center" :class="hasIcon ? 'py-2 pr-4 pl-3' : 'px-4 py-2'">{{
       label
     }}</span>
   </component>
@@ -59,20 +62,24 @@ import { computed, useAttrs } from "vue";
 
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps<{
-  onClick?: ((event: MouseEvent) => void) | undefined;
-  disabled?: boolean | undefined;
-  type?: "button" | "submit" | "reset" | undefined;
-  label: string;
-  href?: string | undefined;
-  title?: string | undefined;
-  iconSlug?: string | undefined;
-  color?: string | undefined;
-  textColor?: "auto" | "white" | "black" | undefined;
-  iconSize?: "sm" | "lg" | undefined;
-  external?: boolean | undefined;
-  wrapLabel?: boolean | undefined;
-}>();
+const props = withDefaults(
+  defineProps<{
+    onClick?: ((event: MouseEvent) => void) | undefined;
+    disabled?: boolean | undefined;
+    type?: "button" | "submit" | "reset" | undefined;
+    label: string;
+    href?: string | undefined;
+    title?: string | undefined;
+    iconSlug?: string | undefined;
+    color?: string | undefined;
+    textColor?: "auto" | "white" | "black" | undefined;
+    iconSize?: "sm" | "lg" | undefined;
+    variant?: "filled" | "outline" | undefined;
+    external?: boolean | undefined;
+    wrapLabel?: boolean | undefined;
+  }>(),
+  { wrapLabel: true },
+);
 
 const attrs = useAttrs();
 
@@ -131,38 +138,93 @@ const linkAttrs = computed(() => {
 
 <style scoped>
 .canonical-button {
-  background-color: var(--btn-color);
+  --btn-fill: var(--btn-color);
+  --btn-edge: rgb(255 255 255 / 20%);
+  --btn-hover: var(--btn-fill);
+  --btn-focus: var(--btn-color);
+  --btn-shadow: rgb(0 0 0 / 5%);
+  background-color: var(--btn-fill);
+  box-shadow:
+    inset 0 0 0 1px var(--btn-edge),
+    0 1px 2px var(--btn-shadow);
   outline: 2px solid transparent;
   outline-offset: 2px;
   transition: outline-color 150ms ease;
 }
 
 .canonical-button__icon {
-  border-color: currentColor;
+  border-color: var(--slk-text-inverse);
 }
 
 html[data-theme="staedteChallengeDark"] .canonical-button {
-  background-color: color-mix(in srgb, var(--btn-color) 55%, var(--slk-surface, #17212b));
-  box-shadow:
-    inset 0 0 0 1px var(--slk-border-strong),
-    0 1px 2px rgba(0, 0, 0, 0.3);
+  --btn-fill: color-mix(in srgb, var(--btn-color) 65%, var(--slk-surface, #17212b));
+  --btn-edge: color-mix(in srgb, var(--btn-fill) 80%, var(--btn-color));
+  --btn-focus: color-mix(in srgb, var(--btn-fill) 60%, white);
+  --btn-shadow: rgb(0 0 0 / 30%);
 }
 
-html[data-theme="staedteChallengeDark"] .canonical-button--auto-text {
+html[data-theme="staedteChallengeDark"] .canonical-button--auto-text:not(.canonical-button--outline) {
   color: white;
 }
 
-html[data-theme="staedteChallengeDark"] .canonical-button__icon {
-  border-color: var(--slk-page, #101820);
+html[data-theme="staedteChallengeDark"] .canonical-button:not(.canonical-button--outline) .canonical-button__icon {
+  border-color: var(--slk-text-muted);
 }
 
-.canonical-button:hover,
-.canonical-button:focus-visible {
-  outline-color: var(--btn-color);
+.canonical-button--outline {
+  --btn-ink: color-mix(in srgb, var(--btn-color) 82%, black);
+  --btn-fill: var(--slk-surface, white);
+  --btn-edge: var(--btn-ink);
+  --btn-hover: var(--btn-ink);
+  --btn-focus: var(--btn-ink);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    outline-color 150ms ease;
+}
+
+.canonical-button--outline .canonical-button__icon {
+  border-color: var(--btn-edge);
+  transition: border-color 150ms ease;
+}
+
+.canonical-button--outline.canonical-button--auto-text {
+  color: var(--btn-ink);
+}
+
+html[data-theme="staedteChallengeDark"] .canonical-button--outline {
+  --btn-ink: color-mix(in srgb, var(--btn-color) 65%, white);
+  --btn-fill: var(--slk-surface, #17212b);
+  --btn-edge: var(--btn-ink);
+  --btn-focus: var(--btn-ink);
+}
+
+.canonical-button:not(.canonical-button--outline):not(:disabled):hover {
+  outline-color: var(--btn-hover);
+}
+
+.canonical-button--outline:not(:disabled):hover {
+  background-color: var(--btn-ink);
+  color: var(--slk-surface);
+}
+
+.canonical-button--outline:not(:disabled):hover .canonical-button__icon {
+  border-color: var(--slk-surface);
+}
+
+.canonical-button:not(:disabled):focus-visible {
+  outline-color: var(--btn-focus);
 }
 
 .canonical-button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canonical-button,
+  .canonical-button .canonical-button__icon {
+    transition: none;
+  }
 }
 </style>

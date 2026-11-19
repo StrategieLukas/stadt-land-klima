@@ -1,13 +1,22 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { parse } from "yaml";
+import { ORGANISATION_TEAM_LABELS } from "../shared/organisationTeams.ts";
+import { PUBLIC_NUXT_ROUTES } from "../shared/publicRoutes.ts";
 const root = new URL("../../directus/translations/", import.meta.url);
 if (readdirSync(root).some((name) => name.endsWith(".yaml")))
   throw new Error("Move translations into their supported language directory");
 const languages = ["de-DE", "en-GB", "it-IT"];
 const seoMessages: Record<string, Record<string, string>> = {};
+const staticSearchKeys = new Set<string>([
+  ...PUBLIC_NUXT_ROUTES.flatMap((route) => [route.titleKey, ...route.textKeys]),
+  ...Object.values(ORGANISATION_TEAM_LABELS).flat(),
+]);
+const staticSearchMessages: Record<string, Record<string, string>> = {};
 const sets = languages.map((language) => {
   const seo: Record<string, string> = {};
   seoMessages[language] = seo;
+  const search: Record<string, string> = {};
+  staticSearchMessages[language] = search;
   const dir = new URL(`${language}/`, root);
   const keys = new Set<string>();
   for (const filename of readdirSync(dir)
@@ -29,6 +38,7 @@ const sets = languages.map((language) => {
     }
     keys.add(entry.key);
     if (entry.key.startsWith("seo.")) seo[entry.key] = entry.value;
+    if (staticSearchKeys.has(entry.key)) search[entry.key] = entry.value;
   }
   return keys;
 });
@@ -49,4 +59,10 @@ if (process.argv.includes("--check")) {
   if (readFileSync(seoTarget, "utf8") !== seoOutput)
     throw new Error("SEO translations changed; run npm run translations:generate");
 } else writeFileSync(seoTarget, seoOutput);
+const searchOutput = `// Generated from the translation YAML files; do not edit.\n// prettier-ignore\nexport const staticSearchMessages = ${JSON.stringify(staticSearchMessages, null, 2)} as const;\n`;
+const searchTarget = new URL("../shared/staticSearchMessages.ts", import.meta.url);
+if (process.argv.includes("--check")) {
+  if (readFileSync(searchTarget, "utf8") !== searchOutput)
+    throw new Error("Static search translations changed; run npm run translations:generate");
+} else writeFileSync(searchTarget, searchOutput);
 console.log(`Translations complete: ${keys.length} keys × ${languages.length} languages`);

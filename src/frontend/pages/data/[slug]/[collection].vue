@@ -62,6 +62,7 @@
           :key="step.index"
           :step="step"
           :collection="collection!"
+          :summary="collectionSummary"
           :ars="area?.ars ?? ''"
           :base-url="baseUrl"
           :population="area?.population ?? null"
@@ -72,16 +73,14 @@
       </div>
 
       <!-- ── Attribution ───────────────────────────────────────────────── -->
-      <AttributionBlock
-        :summary="collectionSummary?.aggregate ?? null"
-        :sources="collectionSummary?.source_attributions ?? collectionSummary?.sourceAttributions ?? []"
-      />
+      <AttributionBlock :summary="collectionSummary" :collection="collection" />
     </template>
 
     <!-- ── No narrative steps yet: fall back to DataProductPanel ─────────── -->
     <div v-else-if="collection" class="mt-6">
       <DataProductPanel
         :collection="collection"
+        :initial-summary="collectionSummary"
         :ars="area?.ars ?? ''"
         :base-url="baseUrl"
         :municipality-name="exportAreaName"
@@ -89,17 +88,14 @@
         :export-updated-at="exportUpdatedAt"
         :export-attribution="exportAttribution"
       />
-      <AttributionBlock
-        :summary="collectionSummary?.aggregate ?? null"
-        :sources="collectionSummary?.source_attributions ?? collectionSummary?.sourceAttributions ?? []"
-      />
+      <AttributionBlock :summary="collectionSummary" :collection="collection" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { CollectionSchema, SummarySchema } from "~/shared/contracts/slz";
 import { singleRouteValue } from "~/shared/routeValues";
+import { formatDataAttribution, resolveDataAttribution } from "~/utils/dataAttribution";
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
@@ -107,10 +103,9 @@ import { resolveSlugToArea } from "~/composables/useAreaBySlug";
 import { useCollectionRender } from "~/composables/useCollectionRender";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible } from "~/utils/dataPageVisibility";
-import type { Collection, CollectionSummary } from "~/types/slz-api";
 
 definePageMeta({
-  key: (route) => route.fullPath,
+  key: (route) => route.path,
   middleware: ["data-availability"],
 });
 
@@ -130,20 +125,22 @@ const { t } = useSlzLocale();
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
 
-const isDesktop = ref(false);
+const isDesktop = useState("layout-isDesktop", () => true);
 const pillTop = computed(() => (isDesktop.value ? headerHeight.value : mobileHeaderHidden.value ? 0 : 64));
 
-// ── Collection + render data (CSR) ────────────────────────────────────────────
+// ── Collection + render data (SSR) ────────────────────────────────────────────
 
-const collection = ref<Collection | null>(null);
-const collectionSummary = ref<CollectionSummary | null>(null);
+const { data: area } = await useAsyncData(`area-${areaSlug.value}`, () => resolveSlugToArea(areaSlug.value, true));
+const productData = await useCollectionPageData(collectionSlug, () => area.value?.ars ?? "");
+const collection = computed(() => productData.data.value?.collection ?? null);
+const collectionSummary = computed(() => productData.data.value?.summary ?? null);
 
 const {
   steps: renderSteps,
   loading: renderLoading,
   error: renderError,
   load,
-  loadFromRender,
+  seedRender,
 } = useCollectionRender(baseUrl);
 const {
   isLoading: dataRouteLoading,
@@ -160,87 +157,27 @@ const exportAreaName = computed(
 );
 const summaryMetadata = computed(() => collectionSummary.value?.aggregate?.metadata ?? null);
 const exportUpdatedAt = computed(() => summaryMetadata.value?.effective_date ?? "");
-function sourceLabel(value: Record<string, string> | string | null | undefined) {
-  if (!value) return "";
-  if (typeof value === "string") return value;
-  return t(value);
-}
-const exportAttribution = computed(() => {
-  const meta = summaryMetadata.value;
-  const aggregateAttribution = [meta?.attribution, meta?.license_name].filter(Boolean).join(" | ");
-  if (aggregateAttribution) return aggregateAttribution;
-  const sources = collectionSummary.value?.source_attributions ?? collectionSummary.value?.sourceAttributions ?? [];
-  return sources
-    .map((source) =>
-      [sourceLabel(source.source), source.attribution, source.license_name ?? source.licenseName]
-        .filter(Boolean)
-        .join(" | "),
-    )
-    .filter(Boolean)
-    .join("; ");
-});
+const exportAttribution = computed(() =>
+  formatDataAttribution(resolveDataAttribution({ summary: collectionSummary.value, collection: collection.value }, t)),
+);
 
 // ── Step observer ─────────────────────────────────────────────────────────────
 
 const activeStepIndex = ref(0);
 const stepsContainer = ref<HTMLElement | null>(null);
-const pageLoading = ref(true);
+const pageLoading = computed(() => productData.status.value === "pending");
 let stepObserver: IntersectionObserver | null = null;
-let mediaQueryList: MediaQueryList | null = null;
-let mediaQueryCleanup: (() => void) | null = null;
 
-onMounted(() => {
-  mediaQueryList = window.matchMedia("(min-width: 1280px)");
-  const updateIsDesktop = (e: MediaQueryList | MediaQueryListEvent) => {
-    isDesktop.value = e.matches;
-  };
-  updateIsDesktop(mediaQueryList);
-  mediaQueryList.addEventListener("change", updateIsDesktop);
-  mediaQueryCleanup = () => mediaQueryList?.removeEventListener("change", updateIsDesktop);
-});
-
-onMounted(async () => {
-  const metadataTask = (async () => {
-    try {
-      const data = CollectionSchema.parse(
-        await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`, {
-          ...(area.value?.ars ? { params: { metadata_only: "true" } } : {}),
-        }),
-      );
-      collection.value = data;
-      if (!area.value?.ars) await load(collectionSlug.value, data);
-    } catch {
-      renderError.value = true;
-    } finally {
-      pageLoading.value = false;
-      stopDataRouteFeedback();
-    }
-  })();
-  const renderTask = area.value?.ars ? loadFromRender(collectionSlug.value, area.value.ars) : Promise.resolve();
-  const summaryTask = (async () => {
-    if (!area.value?.ars) return;
-    try {
-      collectionSummary.value = SummarySchema.parse(
-        await $fetch(`${baseUrl}/api/collections/${collectionSlug.value}/summary/`, {
-          params: { area: area.value.ars },
-        }),
-      );
-    } catch {
-      /* Attribution is optional when the source is unavailable. */
-    }
-  })();
-  await Promise.allSettled([metadataTask, renderTask, summaryTask]);
-  initStepObserver();
-});
+const initialData = productData.data.value;
+if (initialData?.render) seedRender(initialData.render);
+else if (collection.value) await load(collectionSlug.value, collection.value);
+else renderError.value = true;
+stopDataRouteFeedback();
+onMounted(initStepObserver);
 
 onBeforeUnmount(() => {
-  mediaQueryCleanup?.();
   stepObserver?.disconnect();
 });
-
-// ── Area data (SSR) ────────────────────────────────────────────────────────────
-
-const { data: area } = await useAsyncData(`area-${areaSlug.value}`, () => resolveSlugToArea(areaSlug.value, true));
 
 function initStepObserver() {
   if (!stepsContainer.value) return;

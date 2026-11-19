@@ -4,6 +4,7 @@ import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync } from "
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { reconcileTranslationWorker } from "./translation-worker.ts";
+import { reconcileDevelopmentServiceUsers } from "./service-users.ts";
 import { directusRuntimeConfigProbe } from "../lib/podman-environment.ts";
 import {
   run,
@@ -22,6 +23,7 @@ export type StackOptions = {
   prepareOnly?: boolean;
   noDirectusBuild?: boolean;
   noFrontendBuild?: boolean;
+  unsafeSkipPodmanVersionCheck?: boolean;
 };
 export class Runtime {
   readonly environment: Environment;
@@ -183,7 +185,13 @@ export class Runtime {
     }
   }
 }
-export async function runtime(environment: Environment, doctor = false): Promise<Runtime> {
+export async function runtime(
+  environment: Environment,
+  mode: "runtime" | "doctor" | "build" = "runtime",
+  unsafeSkipPodmanVersionCheck = false,
+): Promise<Runtime> {
+  if (unsafeSkipPodmanVersionCheck && environment !== "development")
+    throw new Error("--unsafe-skip-podman-version-check is only allowed with --env development");
   if (
     existsSync("/etc/apparmor.d/slk-rootless") &&
     !readFileSync("/proc/self/attr/current", "utf8").includes("slk-rootless")
@@ -215,9 +223,18 @@ export async function runtime(environment: Environment, doctor = false): Promise
   const provider = /podman-compose version (\d+)\.(\d+)\.(\d+)/.exec(await capture("podman-compose", ["--version"]));
   if (!provider || +provider[1]! < 1 || (+provider[1]! === 1 && +provider[2]! < 6))
     throw new Error("podman-compose 1.6 or newer is required.");
-  const seccomp = await node("bin/lib/podman-security.ts", ["host", environment], { capture: true });
+  const seccomp = await node(
+    "bin/lib/podman-security.ts",
+    ["host", environment, ...(unsafeSkipPodmanVersionCheck ? ["--unsafe-skip-podman-version-check"] : [])],
+    {
+      capture: true,
+      inheritStderr: true,
+      label: "Podman host preflight",
+    },
+  );
   process.env.CONTAINERS_CONF_OVERRIDE = join(process.env.XDG_RUNTIME_DIR!, "slk-podman/engine.conf");
-  await node("bin/lib/podman-security.ts", ["environment"]);
+  if (mode !== "build")
+    await node("bin/lib/podman-security.ts", ["environment"], { label: "Podman environment preflight" });
   const env = {
     ...process.env,
     SLK_PODMAN_WEB_PORT: String(web),
@@ -236,12 +253,20 @@ export async function runtime(environment: Environment, doctor = false): Promise
     "-f",
     `podman-compose.${environment === "production" ? "prod" : "dev"}.yaml`,
   ];
-  if (!doctor)
-    args.push("-f", await node("bin/lib/podman-environment.ts", [environment, project], { capture: true, env }));
+  if (mode === "runtime")
+    args.push(
+      "-f",
+      await node("bin/lib/podman-environment.ts", [environment, project], {
+        capture: true,
+        inheritStderr: true,
+        label: "Podman runtime mount preparation",
+        env,
+      }),
+    );
   const storage = `podman/core-storage/${environment}.compose.json`;
   const rt = new Runtime(environment, project, args, env, web, cms);
-  if (existsSync(join(root, storage))) await rt.useStorageOverlay(join(root, storage));
-  if (!doctor && process.env.SLK_PODMAN_VOLUME_OVERLAY)
+  if (mode !== "build" && existsSync(join(root, storage))) await rt.useStorageOverlay(join(root, storage));
+  if (mode === "runtime" && process.env.SLK_PODMAN_VOLUME_OVERLAY)
     await rt.useStorageOverlay(resolve(process.env.SLK_PODMAN_VOLUME_OVERLAY));
   return rt;
 }
@@ -251,9 +276,12 @@ export async function performStack(
   args: string[] = [],
   options: StackOptions = {},
 ) {
-  const rt = await runtime(environment, action === "doctor");
+  const mode = action === "build" ? "build" : action === "doctor" ? "doctor" : "runtime";
+  const rt = await runtime(environment, mode, options.unsafeSkipPodmanVersionCheck);
   if (
-    ["start", "prepare", "build", "restart", "stop", "maintenance", "translation-worker"].includes(action) &&
+    ["start", "prepare", "build", "restart", "stop", "maintenance", "translation-worker", "cache-flush"].includes(
+      action,
+    ) &&
     process.env.SLK_DEPLOYMENT_LOCK !== rt.project
   ) {
     return run(
@@ -277,12 +305,17 @@ export async function performStack(
       break;
     case "compose":
       return rt.compose(args);
+    case "cache-flush": {
+      const { flushApplicationCaches } = await import("./cache.ts");
+      await flushApplicationCaches(rt);
+      break;
+    }
     case "prepare":
       await rt.prepare();
       break;
     case "restart":
       await node("bin/lib/maintenance-meta.ts", [rt.metadataPath]);
-      if (environment === "production" && (!args.length || args.includes("frontend"))) {
+      if (!args.length || args.includes("frontend")) {
         await rt.raw(["stop", "frontend"]);
         const others = args.length
           ? args.filter((service) => service !== "frontend")
@@ -292,8 +325,11 @@ export async function performStack(
         if (others.includes("directus"))
           await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "directus"]);
         await rt.ready(`http://127.0.0.1:${rt.cmsPort}/server/health`);
+        await reconcileDevelopmentServiceUsers(rt);
         await reconcileTranslationWorker(rt);
-        return rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "frontend"]);
+        await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "frontend"]);
+        if (environment === "development") await developmentFrontendReady(rt);
+        return "";
       }
       if (environment === "production" && args.includes("directus")) {
         const others = args.filter((service) => service !== "directus");
@@ -375,14 +411,28 @@ export async function performStack(
           "node",
           "/directus/cli/bootstrapConfiguration.ts",
         ]);
+      } else {
+        // A fresh database needs the YAML schema before custom migrations run.
+        await rt.raw([
+          "run",
+          "--rm",
+          "--no-deps",
+          "--entrypoint",
+          "/usr/local/bin/slk-env",
+          "directus",
+          "node",
+          "/directus/cli/bootstrapState.ts",
+        ]);
       }
       await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "directus"]);
       await rt.ready(`http://127.0.0.1:${rt.cmsPort}/server/health`);
       if (options.prepareOnly) break;
+      await reconcileDevelopmentServiceUsers(rt);
       await reconcileTranslationWorker(rt);
       await rt.prepare();
       await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "frontend"]);
       await rt.ready(`http://127.0.0.1:${rt.webPort}/`);
+      if (environment === "development") await developmentFrontendReady(rt);
       if (environment === "production") {
         await audit(rt);
         await rt.raw(["--profile", "maintenance", "stop", "maintenance"]);
@@ -396,6 +446,11 @@ export async function performStack(
       throw new Error("Unknown stack action");
   }
   return "";
+}
+async function developmentFrontendReady(rt: Runtime): Promise<void> {
+  // The HTML shell can return 200 while its CMS-backed data requests fail.
+  for (const path of ["/api/public/site-layout", "/api/public/catalogs"])
+    await rt.ready(`http://127.0.0.1:${rt.webPort}${path}`);
 }
 export async function maintenance(rt: Runtime) {
   await node("bin/lib/maintenance-meta.ts", [rt.metadataPath]);

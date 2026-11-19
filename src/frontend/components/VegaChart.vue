@@ -1,109 +1,122 @@
 <template>
-  <div
-    ref="containerRef"
-    class="slk-vega-chart group/vega-chart relative w-full bg-white dark:bg-[#17212b]"
-    :class="{ 'slk-vega-chart-bar-labels': hasAdaptiveBarLabels }"
+  <VisualizationFullscreen
+    :enabled="fullscreen"
+    :label="exportTitle || $t('data.chart.fullscreen')"
     :style="height ? `height:${height}px` : 'height:100%'"
   >
     <div
-      v-if="nativeZoomEnabled && canExport"
-      class="pointer-events-none absolute right-2 bottom-2 z-20 flex items-center gap-1 rounded-full border border-gray-300 bg-white/95 p-1 opacity-0 shadow-md transition-opacity group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
+      ref="containerRef"
+      class="slk-vega-chart group/vega-chart relative w-full bg-white dark:bg-[#17212b]"
+      :class="{ 'slk-vega-chart-bar-labels': hasAdaptiveBarLabels }"
+      style="height: 100%"
     >
-      <button
-        type="button"
-        class="btn h-7 min-h-0 btn-ghost px-2 text-[11px] btn-xs"
-        title="Zoom zurücksetzen"
-        aria-label="Zoom zurücksetzen"
-        @click.stop="resetNativeZoom"
+      <div
+        v-if="nativeZoomEnabled && canExport"
+        class="pointer-events-none absolute right-2 bottom-2 z-20 flex items-center gap-1 rounded-full border border-gray-300 bg-white/95 p-1 opacity-0 shadow-md transition-opacity group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
       >
-        <Icon icon="mdi:restore" class="h-4 w-4" />
-        Zoom
-      </button>
-    </div>
-    <div
-      v-if="canExport"
-      class="pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border border-gray-300 bg-white/95 p-1 opacity-0 shadow-md transition-opacity group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
-    >
-      <button
-        type="button"
-        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
-        title="Daten herunterladen"
-        aria-label="Daten herunterladen"
-        @click.stop="downloadData"
+        <button
+          type="button"
+          class="btn h-7 min-h-0 btn-ghost px-2 text-[11px] btn-xs"
+          title="Zoom zurücksetzen"
+          aria-label="Zoom zurücksetzen"
+          @click.stop="resetNativeZoom"
+        >
+          <Icon icon="mdi:restore" class="h-4 w-4" />
+          Zoom
+        </button>
+      </div>
+      <div
+        v-if="canExport"
+        class="pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border border-gray-300 bg-white/95 p-1 opacity-0 shadow-md transition-opacity group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
       >
-        <Icon icon="mdi:database-arrow-down-outline" class="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
-        title="Diagramm als PNG herunterladen"
-        aria-label="Diagramm als PNG herunterladen"
-        @click.stop="downloadPng"
+        <button
+          type="button"
+          class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
+          title="Daten herunterladen"
+          aria-label="Daten herunterladen"
+          @click.stop="downloadData"
+        >
+          <Icon icon="mdi:database-arrow-down-outline" class="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
+          title="Diagramm als PNG herunterladen"
+          aria-label="Diagramm als PNG herunterladen"
+          @click.stop="downloadPng"
+        >
+          <Icon icon="mdi:file-image-outline" class="h-4 w-4" />
+        </button>
+        <button
+          v-if="resolvedDataApiUrl"
+          type="button"
+          class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
+          title="API-Aufruf kopieren"
+          aria-label="API-Aufruf kopieren"
+          @click.stop="copyApiCall"
+        >
+          <Icon icon="mdi:content-copy" class="h-4 w-4" />
+        </button>
+      </div>
+      <div v-if="loading && !hasPreview && !exportReady" class="absolute inset-0 flex items-center justify-center">
+        <SlkFlowerSpinner :size="24" />
+      </div>
+      <div
+        v-if="renderError"
+        class="absolute inset-0 flex items-center justify-center text-xs text-gray-400 dark:text-slate-400"
       >
-        <Icon icon="mdi:file-image-outline" class="h-4 w-4" />
-      </button>
-      <button
-        v-if="resolvedDataApiUrl"
-        type="button"
-        class="btn h-7 min-h-0 w-7 btn-ghost px-0 btn-xs"
-        title="API-Aufruf kopieren"
-        aria-label="API-Aufruf kopieren"
-        @click.stop="copyApiCall"
+        Diagramm konnte nicht geladen werden.
+      </div>
+      <div
+        v-if="hasPreview && !exportReady"
+        class="chart-ssr-preview absolute inset-0"
+        role="img"
+        :aria-label="exportTitle || $t('data.chart.fullscreen')"
       >
-        <Icon icon="mdi:content-copy" class="h-4 w-4" />
-      </button>
+        <!-- eslint-disable-next-line vue/no-v-html -- Server previews allow only sanitized SVG geometry and text. -->
+        <div class="h-full w-full dark:hidden" aria-hidden="true" v-html="preview.light" />
+        <!-- eslint-disable-next-line vue/no-v-html -- Server previews allow only sanitized SVG geometry and text. -->
+        <div class="hidden h-full w-full dark:block" aria-hidden="true" v-html="preview.dark" />
+      </div>
+      <div ref="vegaRef" class="h-full w-full" :class="{ invisible: hasPreview && !exportReady }" />
     </div>
-    <div v-if="loading" class="absolute inset-0 flex items-center justify-center">
-      <SlkFlowerSpinner :size="24" />
-    </div>
-    <div
-      v-if="renderError"
-      class="absolute inset-0 flex items-center justify-center text-xs text-gray-400 dark:text-slate-400"
-    >
-      Diagramm konnte nicht geladen werden.
-    </div>
-    <div ref="vegaRef" class="h-full w-full" />
-  </div>
+  </VisualizationFullscreen>
 </template>
 
 <script setup lang="ts">
 import { embedCollectionChart } from "~/utils/collectionCharts";
+import {
+  COLLECTION_CHART_FONT,
+  collectionChartPalette,
+  withCollectionChartTheme,
+  withCollectionChartThemeSignal,
+  emptyCollectionChartPreview,
+} from "~/utils/collectionChartTheme";
 import { withNativeScaleZoom } from "~/utils/chartZoom";
+import { withCollectionBarAxes } from "~/utils/collectionCharts";
+import { histogramBinFromItem } from "~/utils/municipalityOverview";
 import { clientDiagnostic } from "~/shared/securityLog";
 
 import { checkedVisualizationSpec, safeVisualizationLoader } from "~/shared/visualizationSafety";
 import type { View } from "vega";
 import { cloneVisualization, asRecord, displayScalar } from "~/shared/visualization";
 import type { PropType } from "vue";
-import type { VisualizationSpec } from "vega-embed";
+import type { Result, VisualizationSpec } from "vega-embed";
 
 import { Icon } from "@iconify/vue";
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, useId, watch } from "vue";
 import slkLogoUrl from "~/assets/images/Stadt-Land-Klima-Logo.svg";
 
 const DATA_WEB_URL = "www.stadt-land-klima.de/data";
-const EXPORT_FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+const EXPORT_FONT = COLLECTION_CHART_FONT;
 let nativeZoomId = 0;
 const MIN_CHART_WIDTH = 240;
 const MIN_CHART_HEIGHT = 160;
-const LIGHT_VEGA_BACKGROUND = "#ffffff";
-const DARK_VEGA_BACKGROUND = "#17212b";
-const darkVegaConfig = {
-  background: DARK_VEGA_BACKGROUND,
-  view: { fill: DARK_VEGA_BACKGROUND, stroke: "#344454" },
-  axis: {
-    labelColor: "#8aa4b8",
-    titleColor: "#8aa4b8",
-    gridColor: "#243444",
-    domainColor: "#344454",
-    tickColor: "#344454",
-  },
-  title: { color: "#d0dce5", subtitleColor: "#8aa4b8" },
-  legend: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
-  header: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
-};
 
 const props = defineProps({
+  fullscreen: { type: Boolean, default: false },
+  binSelection: { type: Boolean, default: false },
+  dataApiUrl: { type: String, default: "" },
   spec: {
     type: Object as PropType<VisualizationSpec | import("~/shared/visualization").EditableSpec | null>,
     required: true,
@@ -141,6 +154,21 @@ const props = defineProps({
     default: "",
   },
 });
+const emit = defineEmits<{ "select-bin": [binIndex: number] }>();
+const { $t } = useNuxtApp();
+const chartId = useId();
+const previewSpec = JSON.stringify(props.spec);
+const { data: previewData } = await useAsyncData(
+  `collection-chart-preview:${chartId}`,
+  () => {
+    if (import.meta.server && props.spec) return useNuxtApp().$collectionChartPreview(props.spec, props.height ?? 240);
+    return Promise.resolve(emptyCollectionChartPreview());
+  },
+  { deep: false },
+);
+const preview = computed(() => previewData.value ?? emptyCollectionChartPreview());
+const previewMatchesSpec = computed(() => JSON.stringify(props.spec) === previewSpec);
+const hasPreview = computed(() => previewMatchesSpec.value && !!preview.value.light && !!preview.value.dark);
 
 const containerRef = ref<HTMLElement | null>(null);
 const vegaRef = ref<HTMLElement | null>(null);
@@ -149,86 +177,106 @@ const renderError = ref(false);
 const exportReady = ref(false);
 const nativeZoomEnabled = ref(false);
 const nativeZoomParamName = `slk_native_scale_zoom_${++nativeZoomId}`;
+const themeSignalName = `slk_chart_palette_${nativeZoomId}`;
 const canExport = computed(() => exportReady.value && !loading.value && !renderError.value);
 const { isDark } = useTheme();
 const resolvedDataApiUrl = computed(() => {
-  const url = findDataUrl(props.spec);
+  const url = props.dataApiUrl || findDataUrl(props.spec);
   return url ? resolveUrl(url) : "";
 });
 const hasAdaptiveBarLabels = computed(() => {
-  const labels = asRecord(asRecord(props.spec)?.usermeta)?.barLabels;
+  const labels = asRecord(props.spec ? withCollectionBarAxes(props.spec).usermeta : null)?.barLabels;
   return Array.isArray(labels) && labels.length > 0;
 });
 
 let vegaView: View | null = null;
+function handleBinClick(_event: unknown, item: unknown) {
+  if (!props.binSelection) return;
+  const index = histogramBinFromItem(item);
+  if (index !== null) emit("select-bin", index);
+}
 let finalizeChart: (() => void) | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 let renderedSize = { width: 0, height: 0 };
+let renderGeneration = 0;
 
 async function render() {
+  const generation = ++renderGeneration;
   if (!vegaRef.value || !props.spec) return;
   loading.value = true;
   renderError.value = false;
-  exportReady.value = false;
+  let target: HTMLDivElement | undefined;
+  let result: Result | undefined;
+  let published = false;
 
   try {
     const { default: vegaEmbed, vega } = await import("vega-embed");
+    if (generation !== renderGeneration) return;
 
-    if (vegaView) {
-      finalizeChart?.();
-      finalizeChart = null;
-      vegaView = null;
-    }
-    vegaRef.value.innerHTML = "";
-    nativeZoomEnabled.value = false;
-    await nextTick();
-    const responsiveSpec = withTheme(withResponsiveSize(props.spec));
+    // Keep the decoded preview or live chart visible while its replacement loads.
+    target = document.createElement("div");
+    target.className = "h-full w-full";
+    target.style.cssText = "position:absolute;inset:0;visibility:hidden";
+    vegaRef.value.appendChild(target);
+    const responsiveSpec = withCollectionChartTheme(withResponsiveSize(props.spec), themeSignalName);
     const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(responsiveSpec, nativeZoomParamName);
-    nativeZoomEnabled.value = hasNativeZoom;
 
-    const result = await embedCollectionChart(vegaRef.value, checkedVisualizationSpec(embeddableSpec), vegaEmbed, {
+    const dataLoader = vega.loader({ http: { credentials: "omit", redirect: "error" } });
+    const load = dataLoader.load.bind(dataLoader);
+    const feeds = previewMatchesSpec.value ? preview.value.data : {};
+    dataLoader.load = (uri, options) => {
+      const body = feeds[uri];
+      return body !== undefined ? Promise.resolve(body) : load(uri, options);
+    };
+    result = await embedCollectionChart(target, checkedVisualizationSpec(embeddableSpec), vegaEmbed, {
       ast: true,
       defaultStyle: false,
       tooltip: { disableDefaultStyle: true },
-      loader: safeVisualizationLoader(
-        vega.loader({ http: { credentials: "omit", redirect: "error" } }),
-        window.location.origin,
-      ),
+      loader: safeVisualizationLoader(dataLoader, window.location.origin),
       renderer: "canvas",
       actions: false,
-      config: vegaConfig.value,
+      patch: (compiled) => withCollectionChartThemeSignal(compiled, themeSignalName, isDark.value),
     });
+    let palette: ReturnType<typeof collectionChartPalette>;
+    do {
+      palette = collectionChartPalette(isDark.value);
+      await result.view.signal(themeSignalName, palette).runAsync();
+    } while (generation === renderGeneration && palette !== collectionChartPalette(isDark.value));
+    if (generation !== renderGeneration || !vegaRef.value) return;
+    const previousFinalize = finalizeChart;
+    target.style.cssText = "";
+    vegaRef.value.replaceChildren(target);
     vegaView = result.view;
     finalizeChart = result.finalize;
+    published = true;
+    // Finalization removes listeners, including the optional histogram click handler.
+    previousFinalize?.();
+    if (props.binSelection) vegaView.addEventListener("click", handleBinClick);
+    nativeZoomEnabled.value = hasNativeZoom;
     renderedSize = measureChartSize();
     exportReady.value = true;
   } catch {
+    if (generation !== renderGeneration) return;
     clientDiagnostic("app.components.VegaChart.render.degraded", "warn");
     renderError.value = true;
-    exportReady.value = false;
+    if (!vegaView) exportReady.value = false;
   } finally {
-    loading.value = false;
+    if (!published) {
+      result?.finalize();
+      target?.remove();
+    }
+    if (generation === renderGeneration) loading.value = false;
   }
 }
 
-const vegaConfig = computed(() => ({
-  ...(isDark.value ? darkVegaConfig : { background: LIGHT_VEGA_BACKGROUND, view: { fill: LIGHT_VEGA_BACKGROUND } }),
-  font: EXPORT_FONT,
-}));
-
-function withTheme(spec: unknown) {
-  const themed = cloneVisualization(spec);
-  themed.background = isDark.value ? DARK_VEGA_BACKGROUND : LIGHT_VEGA_BACKGROUND;
-  themed.config = {
-    ...(asRecord(themed.config) ?? {}),
-    ...vegaConfig.value,
-    view: {
-      ...(asRecord(asRecord(themed.config)?.view) ?? {}),
-      ...(vegaConfig.value.view ?? {}),
-    },
-  };
-  return themed;
+async function updateTheme() {
+  if (!vegaView) return;
+  try {
+    await vegaView.signal(themeSignalName, collectionChartPalette(isDark.value)).runAsync();
+  } catch {
+    clientDiagnostic("app.components.VegaChart.render.degraded", "warn");
+  }
 }
 
 function withResponsiveSize(spec: unknown) {
@@ -273,8 +321,7 @@ function scheduleResize() {
 }
 
 async function resizeVegaView() {
-  if (!vegaView || loading.value || renderError.value || isMultiViewSpec(props.spec) || hasAdaptiveBarLabels.value)
-    return;
+  if (!vegaView || loading.value || renderError.value) return;
 
   const nextSize = measureChartSize();
   if (Math.abs(nextSize.width - renderedSize.width) < 2 && Math.abs(nextSize.height - renderedSize.height) < 2) {
@@ -283,7 +330,12 @@ async function resizeVegaView() {
 
   renderedSize = nextSize;
   try {
-    await vegaView.width(nextSize.width).height(nextSize.height).resize().runAsync();
+    if (!isMultiViewSpec(props.spec)) {
+      // The label adapter owns the width and its text gutters for adaptive bars.
+      if (!hasAdaptiveBarLabels.value) vegaView.width(nextSize.width);
+      vegaView.height(nextSize.height);
+    }
+    await vegaView.resize().runAsync();
   } catch {
     clientDiagnostic("app.components.VegaChart.resizeVegaView.degraded", "warn");
     void render();
@@ -726,10 +778,11 @@ function normalizeDate(value: string) {
 }
 
 watch(
-  () => [props.spec, isDark.value],
+  () => props.spec,
   () => render(),
   { deep: true },
 );
+watch(isDark, () => void updateTheme());
 
 onMounted(() => {
   observeContainerSize();
@@ -737,6 +790,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  ++renderGeneration;
   resizeObserver?.disconnect();
   resizeObserver = null;
   if (resizeTimer) clearTimeout(resizeTimer);
@@ -762,6 +816,11 @@ onUnmounted(() => {
 
 .slk-vega-chart-bar-labels :deep(canvas) {
   max-width: none;
+}
+
+.chart-ssr-preview :deep(svg) {
+  width: 100%;
+  height: 100%;
 }
 
 :global(html[data-theme="staedteChallengeDark"] .slk-vega-chart .vega-embed) {

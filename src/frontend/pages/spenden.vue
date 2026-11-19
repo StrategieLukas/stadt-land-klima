@@ -1,5 +1,5 @@
 <template>
-  <section class="w-full px-4 py-10 sm:py-14 lg:py-16">
+  <section class="w-full py-10 sm:py-14 lg:py-16">
     <div
       class="mx-auto grid max-w-(--breakpoint-lg) items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(360px,440px)]"
     >

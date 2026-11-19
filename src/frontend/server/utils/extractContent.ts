@@ -1,3 +1,5 @@
+import { PUBLIC_NUXT_ROUTES } from "../../shared/publicRoutes.ts";
+import { staticSearchMessages } from "../../shared/staticSearchMessages.ts";
 import { z } from "zod";
 const text = z
   .string()
@@ -129,128 +131,43 @@ export function extractBlockText(bundle: string, props: Record<string, unknown>)
 
 export type SiteContentDoc = {
   id: string;
-  type: "block" | "page" | "event" | "article" | "measure" | "static_page" | "news_item" | "member" | "team";
+  type:
+    | "block"
+    | "page"
+    | "event"
+    | "article"
+    | "measure"
+    | "static_page"
+    | "news_item"
+    | "member"
+    | "team"
+    | "job"
+    | "climate_tool"
+    | "event_series"
+    | "tour"
+    | "tour_stop"
+    | "election";
   title: string;
   text: string;
   url: string;
   meta: string | null;
+  requiresPublishedReport?: boolean;
 };
 
 // Static (hardcoded Nuxt) pages that are not managed through Directus
 export const STATIC_PAGES: Array<{ id: string; title: string; text: string; url: string; meta: string | null }> = [
-  {
-    id: "static_municipalities",
-    title: "Gemeinde-Ranking",
-    text: "Gemeinde-Ranking Klimaschutz Bewertung Kommunen Städte Landkreise Übersicht",
-    url: "/municipalities",
-    meta: "Übersicht",
-  },
-  {
-    id: "static_map",
-    title: "Karte",
-    text: "Klimaschutz-Karte Kommunen Gemeinden Karte Deutschland",
-    url: "/map",
-    meta: "Übersicht",
-  },
-  {
-    id: "static_stats",
-    title: "Statistiken",
-    text: "Statistiken Klimaschutz Kommunen Auswertungen Daten Vergleich",
-    url: "/stats",
-    meta: "Übersicht",
-  },
-  {
-    id: "static_measures",
-    title: "Maßnahmenkatalog",
-    text: "Maßnahmenkatalog Klimaschutzmaßnahmen kommunaler Klimaschutz Bewertungskriterien",
-    url: "/measures",
-    meta: "Übersicht",
-  },
-  {
-    id: "static_projects",
-    title: "Projekte",
-    text: "Projekte Klimaschutzprojekte Gemeinden Kommunen Erfolgsgeschichten",
-    url: "/projects",
-    meta: "Übersicht",
-  },
-  {
-    id: "static_feedback",
-    title: "Kontakt",
-    text: "Kontakt Feedback Fehler melden Verbesserungsvorschlag Nachricht",
-    url: "/contact",
-    meta: "Übersicht",
-  },
-  {
-    id: "static_register_localteam",
-    title: "Lokalteam gründen",
-    text: "Lokalteam gründen registrieren Kommune Klimaschutz vor Ort aktiv werden",
-    url: "/register_localteam",
-    meta: "Übersicht",
-  },
-  {
-    id: "static_news",
-    title: "Neuigkeiten",
-    text: "Neuigkeiten News Meldungen Aktuelles Stadt Land Klima",
-    url: "/news",
-    meta: "Übersicht",
-  },
-  {
-    id: "static_organisation",
-    title: "Organisation",
-    text: "Organisation Team Mitglieder Ressorts Aufgabenbereiche Arbeitsgruppen Projektgruppen Ehrenamt Verein",
-    url: "/organisation",
-    meta: "Übersicht",
-  },
-  // ── Organisation teams ──────────────────────────────────────────────────────
-  {
-    id: "team_lokalteams",
-    title: "Lokalteams / Netzwerk",
-    text: "Lokalteams Netzwerk Onboarding Betreuung von Lokalteams Kooperationen Unterstützung Veranstaltungen community@stadt-land-klima.de",
-    url: "/organisation#team-lokalteams",
-    meta: "Ressort",
-  },
-  {
-    id: "team_technik",
-    title: "Technik & IT",
-    text: "Technik IT Web-App Frontend Backend Logik GitHub Chatbot API UI/UX-Design IT-Infrastruktur Mail-Server Cloud dev@stadt-land-klima.de",
-    url: "/organisation#team-technik",
-    meta: "Ressort",
-  },
-  {
-    id: "team_steuerkreis",
-    title: "Steuerkreis",
-    text: "Steuerkreis Planung Strategieentwicklung Fundraising Förderung Spenden Projektkoordination Koordinierung Arbeitsgruppen info@stadt-land-klima.de",
-    url: "/organisation#team-steuerkreis",
-    meta: "Ressort",
-  },
-  {
-    id: "team_massnahmen",
-    title: "Maßnahmen",
-    text: "Maßnahmen Maßnahmenentwicklung Evaluation Qualitätssicherung Peer Review Kommunen massnahmen@stadt-land-klima.de",
-    url: "/organisation#team-massnahmen",
-    meta: "Ressort",
-  },
-  {
-    id: "team_kommunikation",
-    title: "Kommunikation / Öffentlichkeitsarbeit",
-    text: "Kommunikation Öffentlichkeitsarbeit Pressearbeit Social Media Newsletter Webredaktion Redaktion presse@stadt-land-klima.de",
-    url: "/organisation#team-kommunikation",
-    meta: "Ressort",
-  },
-  {
-    id: "team_vorstand",
-    title: "Vorstand / Verwaltung",
-    text: "Vorstand Verwaltung Mitgliederbetreuung Mitgliederversammlung Rechtliches Finanzen verein@stadt-land-klima.de",
-    url: "/organisation#team-vorstand",
-    meta: "Ressort",
-  },
-  {
-    id: "team_kassenwart",
-    title: "Kassenwart",
-    text: "Kassenwart Buchführung Jahresabschluss Mitgliedsbeiträge Spendenverwaltung Finanzberichte Kassenprüfung kassenwart@stadt-land-klima.de",
-    url: "/organisation#team-kassenwart",
-    meta: "Ressort",
-  },
+  ...PUBLIC_NUXT_ROUTES.map((route) => ({
+    id: route.id,
+    title: staticSearchMessages["de-DE"][route.titleKey],
+    text: [
+      route.url,
+      ...Object.values(staticSearchMessages).flatMap((messages) =>
+        [route.titleKey, ...route.textKeys].map((key) => messages[key]),
+      ),
+    ].join(" "),
+    url: route.url,
+    meta: null,
+  })),
 ];
 
 export function buildMemberDoc(input: unknown): SiteContentDoc | null {
@@ -387,5 +304,33 @@ export function buildBlockDoc(
     text,
     url: `${baseUrl}/${entitySlug ?? block.entity_uuid}#block-${block.uuid}`,
     meta: bundleLabel(block.bundle),
+  };
+}
+
+const jobContent = z.object({
+  slug: z.string().regex(/^[a-z0-9-]{1,160}$/),
+  role_title: z.string().min(1),
+  status: z.literal("published"),
+  tasks: text,
+  qualifications: text,
+  benefits: text,
+  organisation: z.object({ name: z.string() }).nullish(),
+});
+
+/** Index only the public description, never application URLs or contact details. */
+export function buildJobDoc(input: unknown): SiteContentDoc | null {
+  const parsed = jobContent.safeParse(input);
+  if (!parsed.success) return null;
+  const job = parsed.data;
+  return {
+    id: `job_${job.slug}`,
+    type: "job",
+    title: job.role_title,
+    text: [job.organisation?.name, job.tasks, job.qualifications, job.benefits]
+      .map((value) => stripHtml(stripMd(value)))
+      .filter(Boolean)
+      .join(" "),
+    url: `/jobs/${encodeURIComponent(job.slug)}`,
+    meta: job.organisation?.name ?? null,
   };
 }

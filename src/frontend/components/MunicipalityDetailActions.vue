@@ -1,65 +1,37 @@
 <template>
-  <nav :aria-label="$t('municipality.hero.actions')" class="space-y-4" data-testid="municipality-sidebar-actions">
-    <!-- Statistics Section Link -->
-    <NuxtLink
-      :to="municipality.ars ? `/data/${municipality.ars}` : '/data'"
-      class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-xs bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
-    >
-      <img
-        src="~/assets/icons/icon_evaluation_criteria.svg"
-        alt=""
-        class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
-      />
-      <img
-        src="~/assets/icons/icon_evaluation_criteria-dark.svg"
-        alt=""
-        class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
-      />
-      <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
-    </NuxtLink>
-
-    <!-- Kommunalwahl Question Generation Link -->
-    <NuxtLink
-      :to="`/elections/${municipality.slug}`"
-      class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
-    >
-      <img
-        src="~/assets/icons/icon_politics.svg"
-        alt=""
-        class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
-      />
-      <img
-        src="~/assets/icons/icon_politics-dark.svg"
-        alt=""
-        class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
-      />
-      <h3 class="font-heading text-h3">
-        {{
-          $t("local_elections.title", {
-            ":year": municipalElectionYear ?? "",
-          })
-        }}
-        →
-      </h3>
-    </NuxtLink>
-
-    <NuxtLink
+  <nav
+    :aria-label="$t('municipality.hero.actions')"
+    class="space-y-3 rounded-xs border border-(--slk-border) bg-(--slk-surface) p-4 shadow-list"
+    data-testid="municipality-sidebar-actions"
+  >
+    <CanonicalButton
+      :href="municipality.ars ? `/data/${municipality.ars}` : '/data'"
+      :label="$t('stats.title')"
+      icon-slug="icon_evaluation_criteria"
+      icon-size="lg"
+      variant="outline"
+      color="dark"
+      class="w-full"
+    />
+    <CanonicalButton
+      :href="`/elections/${municipality.slug}`"
+      :label="$t('local_elections.title', { ':year': municipalElectionYear ?? '' })"
+      icon-slug="icon_politics"
+      icon-size="lg"
+      variant="outline"
+      color="dark-green"
+      class="w-full"
+    />
+    <CanonicalButton
       v-if="complete"
-      :to="historyHref"
-      class="slk-municipality-cta slk-municipality-cta--history flex items-center gap-3 rounded-xs bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
-    >
-      <img
-        src="~/assets/icons/icon_history.svg"
-        alt=""
-        class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
-      />
-      <img
-        src="~/assets/icons/icon_history-dark.svg"
-        alt=""
-        class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
-      />
-      <h3 class="font-heading text-h3">{{ $t("municipality.updates.title") }} →</h3>
-    </NuxtLink>
+      :href="historyHref"
+      :label="$t('municipality.updates.title')"
+      icon-slug="icon_history"
+      icon-size="lg"
+      variant="outline"
+      color="dark-green"
+      class="w-full"
+    />
   </nav>
 </template>
 <script setup lang="ts">

@@ -1,3 +1,4 @@
 language: it-IT
 key: region.municipalities_count
-value: Comuni
+value: >-
+  Comuni valutabili

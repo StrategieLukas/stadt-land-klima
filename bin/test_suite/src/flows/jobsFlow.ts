@@ -158,6 +158,35 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
           `Sparse role ${config.runId}`,
           "Direct entry hydrates with nullable fields",
         );
+        const contactAction = page.locator('main aside a.canonical-button[href^="/contact?"]');
+        const contactHref = await contactAction.getAttribute("href");
+        assert(contactHref, "Jobs without an application URL must offer contact");
+        const contactUrl = new URL(contactHref, config.frontendUrl);
+        assert(
+          contactUrl.searchParams.get("title") === `Sparse role ${config.runId}`,
+          "Contact subject identifies the job",
+        );
+        assert(contactUrl.searchParams.get("type") === "cooperation", "Contact category is preselected");
+        assertIncludes(
+          contactUrl.searchParams.get("content") || "",
+          `/jobs/${slug}-sparse`,
+          "Contact message includes the job URL",
+        );
+        assert((await contactAction.getAttribute("target")) === null, "Contact form opens in the current tab");
+        await contactAction.click();
+        await page.waitForURL("**/contact?**");
+        await waitForHydration(page);
+        assert(
+          (await page.locator('form input[type="text"]').first().inputValue()) === `Sparse role ${config.runId}`,
+          "Contact form keeps the job subject",
+        );
+        assert((await page.locator("form select").inputValue()) === "cooperation", "Contact form keeps its category");
+        assertIncludes(
+          await page.locator("form textarea").inputValue(),
+          `/jobs/${slug}-sparse`,
+          "Contact form keeps the job context",
+        );
+
         // The CMS requires organisation on writes; simulate an unavailable
         // relation through the public contract without changing that constraint.
         await page.goto(`${config.frontendUrl}/jobs`, { waitUntil: "domcontentloaded" });

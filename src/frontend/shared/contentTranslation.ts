@@ -101,7 +101,7 @@ export const CONTENT_TRANSLATION_POLICIES: Record<string, ContentTranslationPoli
     ],
   },
   "/api/public/ratings": { fields: [...text("ratings.*.measure_id", "name"), ...text("ratings.*.measure", "name")] },
-  "/api/public/organisation-teams": { fields: text("*", "label", "tasks.*") },
+  "/api/public/organisation-teams": { fields: text("*", "label", "tasks.*", "contacts.*.label") },
   "/api/org-members": { fields: html("*", "bio") },
   "/api/public/data-page-config": { fields: markdown("config", "under_construction_explanation") },
   "/api/public/tours": { fields: tour("tours.*") },

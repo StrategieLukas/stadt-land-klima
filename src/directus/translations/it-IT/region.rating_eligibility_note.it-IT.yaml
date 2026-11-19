@@ -1,0 +1,4 @@
+language: it-IT
+key: region.rating_eligibility_note
+value: >-
+  Il conteggio include anche comuni senza una valutazione pubblicata.

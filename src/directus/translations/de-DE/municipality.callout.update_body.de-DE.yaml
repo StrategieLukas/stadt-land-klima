@@ -1,0 +1,3 @@
+language: de-DE
+key: municipality.callout.update_body
+value: ":name wurde nach dem Maßnahmenkatalog „:catalog“ bewertet. Hilf dem Lokalteam dabei, die Bewertung auf den aktuellen Katalog zu aktualisieren!"

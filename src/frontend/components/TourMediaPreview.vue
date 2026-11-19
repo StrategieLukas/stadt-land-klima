@@ -1,7 +1,12 @@
 <template>
-  <span class="tour-media-preview" :class="{ 'tour-media-preview--natural': preserveAspectRatio && previewFile }">
+  <span
+    ref="preview"
+    class="tour-media-preview"
+    :class="{ 'tour-media-preview--natural': preserveAspectRatio && previewFile }"
+  >
     <SmartImg
       v-if="previewFile"
+      :key="previewKey"
       asset-base-url="/api/tour-media"
       :editor-preview="editorPreview"
       :asset-id="relationId(previewFile)"
@@ -11,6 +16,8 @@
       :height="preserveAspectRatio ? undefined : 448"
       :fit="preserveAspectRatio ? 'contain' : 'cover'"
       img-class="tour-media-preview__image"
+      @load="onLoad"
+      @error="onError"
     />
     <span v-else class="tour-media-preview__placeholder">{{ $t("tour.video") }}</span>
     <span v-if="isVideoMedia(item)" class="tour-media-preview__play" aria-hidden="true">▶</span>
@@ -18,7 +25,7 @@
 </template>
 <script setup lang="ts">
 import { isVideoMedia } from "~/shared/tourMedia";
-import type { TourMedia } from "~/shared/tourMedia";
+import type { TourMedia, TourMediaPreviewStatus } from "~/shared/tourMedia";
 import { relationId } from "~/shared/tour";
 import { isRaster } from "~/shared/utils";
 const props = defineProps<{
@@ -27,7 +34,48 @@ const props = defineProps<{
   preserveAspectRatio?: boolean | undefined;
 }>();
 const { $t } = useNuxtApp();
+const emit = defineEmits<{ status: [status: TourMediaPreviewStatus] }>();
+const preview = ref<HTMLElement | null>(null);
 const previewFile = computed(() => (isVideoMedia(props.item) ? props.item.poster : props.item.file));
+const previewKey = computed(() =>
+  JSON.stringify([relationId(previewFile.value), props.editorPreview, props.preserveAspectRatio, previewFile.value]),
+);
+let generation = 0;
+
+async function decodeImage(image: HTMLImageElement) {
+  const currentGeneration = generation;
+  try {
+    await image.decode();
+    if (currentGeneration === generation && image === preview.value?.querySelector("img")) {
+      emit("status", image.naturalWidth > 0 ? "ready" : "error");
+    }
+  } catch {
+    if (currentGeneration === generation && image === preview.value?.querySelector("img")) emit("status", "error");
+  }
+}
+function onLoad(event: Event) {
+  if (event.target instanceof HTMLImageElement) void decodeImage(event.target);
+}
+function onError(event: Event) {
+  if (event.target === preview.value?.querySelector("img")) emit("status", "error");
+}
+watch(
+  previewKey,
+  async (_key, _previous, onCleanup) => {
+    const currentGeneration = ++generation;
+    onCleanup(() => generation++);
+    emit("status", previewFile.value ? "loading" : "ready");
+    await nextTick();
+    if (currentGeneration !== generation) return;
+    // Cached images can finish before the load listener is attached during hydration.
+    const image = preview.value?.querySelector("img");
+    if (image?.complete) {
+      if (image.naturalWidth > 0) void decodeImage(image);
+      else emit("status", "error");
+    }
+  },
+  { immediate: true, flush: "post" },
+);
 </script>
 <style scoped>
 .tour-media-preview {

@@ -1,3 +1,4 @@
+import { readWithOrganisationDarkLogo } from "~/server/utils/organisationLogos";
 import { readItems } from "@directus/sdk";
 import { createError, defineEventHandler, setResponseHeader } from "h3";
 import { createTypedDirectusServerClient } from "../../utils/directusServerClient";
@@ -8,26 +9,34 @@ export default defineEventHandler(async (event) => {
   setResponseHeader(event, "Cache-Control", "public, max-age=60");
   const client = createTypedDirectusServerClient<DirectusSchema>();
 
-  const jobs = await client.request(
-    readItems("job_offers", {
-      filter: { status: { _eq: "published" } },
-      fields: [
-        "id",
-        "slug",
-        "role_title",
-        "type",
-        "start_date",
-        "end_date",
-        "weekly_hours",
-        "salary",
-        "hourly_wage",
-        {
-          organisation: ["id", "name", "link", { logo: ["id", "type"] }],
-        },
-      ],
-      sort: ["-date_created"],
-      limit: 50,
-    }),
+  const jobs = await readWithOrganisationDarkLogo((includeDarkLogo) =>
+    client.request(
+      readItems("job_offers", {
+        filter: { status: { _eq: "published" } },
+        fields: [
+          "id",
+          "slug",
+          "role_title",
+          "type",
+          "start_date",
+          "end_date",
+          "weekly_hours",
+          "salary",
+          "hourly_wage",
+          {
+            organisation: [
+              "id",
+              "name",
+              "link",
+              { logo: ["id", "type"] },
+              ...(includeDarkLogo ? [{ logo_dark: ["id" as const, "type" as const] }] : []),
+            ],
+          },
+        ],
+        sort: ["-date_created"],
+        limit: 50,
+      }),
+    ),
   );
 
   // Build allowlisted response — only approved fields reach the browser
@@ -51,6 +60,12 @@ export default defineEventHandler(async (event) => {
               ? {
                   id: job.organisation.logo.id,
                   type: job.organisation.logo.type ?? null,
+                }
+              : null,
+            logo_dark: job.organisation.logo_dark
+              ? {
+                  id: job.organisation.logo_dark.id,
+                  type: job.organisation.logo_dark.type ?? null,
                 }
               : null,
           }

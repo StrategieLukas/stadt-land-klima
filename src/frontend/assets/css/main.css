@@ -1,5 +1,19 @@
 @import "tailwindcss" source(none);
 @config "../../tailwind.config.js";
+
+/* Shared by the SSR placeholder and the client map so hydration keeps its footprint. */
+.data-overview-map-size {
+  width: 100%;
+  height: clamp(320px, 60svh, 520px);
+}
+@media (min-width: 1024px) {
+  .data-overview-map-size {
+    height: auto;
+    aspect-ratio: 4 / 5;
+    min-height: 420px;
+    max-height: 760px;
+  }
+}
 @source "../../components";
 @source "../../layouts";
 @source "../../pages";
@@ -253,6 +267,7 @@ html[data-theme="staedteChallemgeTheme"] {
   --slk-border: #d9dfd3;
   --slk-border-strong: #b9c2b0;
   --slk-text: #505050;
+  --slk-text-inverse: #dce5ea;
   --slk-text-strong: #101820;
   --slk-text-muted: #667085;
   --slk-text-subtle: #8a96a3;
@@ -289,6 +304,8 @@ html[data-theme="staedteChallemgeTheme"] {
   --slk-filter-control-font-size: 0.875rem;
   --slk-filter-control-line-height: 1.25rem;
   --slk-filter-control-font-weight: 600;
+  --slk-badge-news-bg: #ccfbf1;
+  --slk-badge-news-text: #115e59;
   --slk-warning-text: #9a4d00;
   --slk-success-text: #1f6f31;
   --slk-on-dark-muted: #e7edf1;
@@ -308,6 +325,7 @@ html[data-theme="staedteChallengeDark"] {
   --slk-border: #344454;
   --slk-border-strong: #526575;
   --slk-text: #dce5ea;
+  --slk-text-inverse: #3f3f3f;
   --slk-text-strong: #f7fbfd;
   --slk-text-muted: #b8c4cc;
   --slk-text-subtle: #91a0aa;
@@ -322,14 +340,14 @@ html[data-theme="staedteChallengeDark"] {
   --slk-blue-tint: #173444;
   --slk-orange-tint: #402b16;
   --slk-red-tint: #3d1f24;
-  --slk-rating-0-tint: #ffb3ba;
-  --slk-rating-1-tint: #ffcc85;
-  --slk-rating-2-tint: #ffe878;
-  --slk-rating-3-tint: #dfea76;
-  --slk-rating-4-tint: #88dda7;
-  --slk-rating-na-tint: #8896a4;
-  --slk-ranking-card-text: #101820;
-  --slk-ranking-card-muted: #344054;
+  --slk-rating-0-tint: #3d242c;
+  --slk-rating-1-tint: #3e301f;
+  --slk-rating-2-tint: #3b3720;
+  --slk-rating-3-tint: #30391f;
+  --slk-rating-4-tint: #203a2c;
+  --slk-rating-na-tint: #2a3540;
+  --slk-ranking-card-text: var(--slk-text-strong);
+  --slk-ranking-card-muted: var(--slk-text-muted);
   --slk-municipalities-panel-bg: #203821;
   --slk-filter-panel-bg: var(--slk-surface-subdued);
   --slk-filter-panel-border: var(--slk-border-strong);
@@ -340,6 +358,8 @@ html[data-theme="staedteChallengeDark"] {
   --slk-filter-inactive-text: #dfea9d;
   --slk-filter-inactive-border: #afca0b;
   --slk-filter-hover-bg: var(--slk-surface-muted);
+  --slk-badge-news-bg: #163b3b;
+  --slk-badge-news-text: #99f6e4;
   --slk-warning-text: #ffd199;
   --slk-success-text: #bfe9a4;
   --slk-on-dark-muted: #dce5ea;
@@ -400,9 +420,19 @@ html[data-theme="staedteChallengeDark"] .slk-home-step-icon {
 
 /* News filters and timeline links share readable, theme-aware interaction states. */
 .slk-timeline-navigation {
-  width: calc(100% + 2rem);
-  margin-inline: -1rem;
-  padding-inline: 1rem;
+  width: var(--slk-timeline-width, 100vw);
+  margin-inline: calc((100% - var(--slk-timeline-width, 100vw)) / 2);
+  box-shadow: 0 6px 12px -6px color-mix(in srgb, var(--slk-shadow-color) 85%, transparent);
+}
+.slk-timeline-links {
+  width: calc(100% - 2rem);
+  max-width: calc(var(--breakpoint-xl) - 2rem);
+  margin-inline: auto;
+}
+@media (min-width: 640px) {
+  .slk-timeline-links {
+    width: calc(100% - 3rem);
+  }
 }
 .slk-timeline-pill,
 .slk-news-filter {
@@ -416,6 +446,11 @@ html[data-theme="staedteChallengeDark"] .slk-home-step-icon {
   font-weight: 600;
   text-align: center;
   white-space: nowrap;
+}
+.slk-timeline-pill {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
 }
 .slk-timeline-pill:hover,
 .slk-news-filter:hover {
@@ -487,7 +522,7 @@ html[data-theme="staedteChallengeDark"] .leaflet-control-attribution a {
 }
 
 html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
-  background: var(--slk-backdrop);
+  background: color-mix(in srgb, var(--slk-backdrop) 50%, transparent);
 }
 
 .slk-filter-theme-green {
@@ -733,6 +768,39 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
   color: #ffffff;
 }
 
+/* Semantic badges use paired foreground/surface tokens in both themes.
+   Keep rating and identity colours separate from status/category badges. */
+.slk-badge {
+  background-color: var(--slk-surface-muted);
+  color: var(--slk-text-strong);
+}
+.slk-badge--warning {
+  background-color: var(--slk-orange-tint);
+  color: var(--slk-warning-text);
+}
+.slk-badge--success {
+  background-color: var(--slk-green-tint);
+  color: var(--slk-success-text);
+}
+.slk-badge--info {
+  background-color: var(--slk-blue-tint);
+  color: var(--slk-blue);
+}
+.slk-badge--news {
+  background-color: var(--slk-badge-news-bg);
+  color: var(--slk-badge-news-text);
+}
+.slk-badge-action {
+  border-color: currentColor;
+}
+.slk-badge-action:hover {
+  background-color: color-mix(in srgb, currentColor 12%, var(--slk-surface));
+}
+.slk-badge-action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 .slk-bright-badge {
   color: #ffffff;
 }
@@ -878,32 +946,6 @@ html[data-theme="staedteChallengeDark"] .slk-chart-panel {
   color: var(--slk-text);
 }
 
-.slk-municipality-pending-header {
-  background-color: var(--slk-surface-muted);
-  border: 1px solid var(--slk-border);
-  color: var(--slk-text);
-}
-
-.slk-municipality-pending-progress {
-  background-color: var(--slk-border-strong);
-}
-
-.slk-municipality-pending-card {
-  background-color: var(--slk-surface);
-  border: 1px solid var(--slk-border);
-  color: var(--slk-text);
-}
-
-.slk-municipality-pending-card--support {
-  background-color: var(--slk-orange-tint);
-  border-color: color-mix(in srgb, var(--slk-orange) 55%, var(--slk-border));
-}
-
-.slk-municipality-pending-card--found {
-  background-color: var(--slk-green-tint);
-  border-color: color-mix(in srgb, var(--slk-green) 55%, var(--slk-border));
-}
-
 html[data-theme="staedteChallengeDark"] .stats-page {
   background-color: var(--slk-page);
   color: var(--slk-text);
@@ -948,6 +990,11 @@ html[data-theme="staedteChallengeDark"] .slk-municipality-cta--history:hover {
   display: none;
 }
 
+.slk-sector-icon--themed {
+  background-color: currentColor;
+  mask: var(--sector-icon) center / contain no-repeat;
+}
+
 html[data-theme="staedteChallengeDark"] .slk-theme-icon--light {
   display: none !important;
 }
@@ -989,9 +1036,12 @@ html[data-theme="staedteChallengeDark"] .slk-ranking-card.slk-ranking-card--rati
   background-color: var(--slk-rating-4-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-black,
-html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-gray-700 {
+html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-black:not(.slk-progress-label) {
   color: var(--slk-ranking-card-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-gray-700 {
+  color: var(--slk-ranking-card-muted) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-gray-600,
@@ -1114,26 +1164,63 @@ html[data-theme="staedteChallengeDark"] .bg-gray-50,
 html[data-theme="staedteChallengeDark"] .bg-gray-100,
 html[data-theme="staedteChallengeDark"] .bg-slate-100,
 html[data-theme="staedteChallengeDark"] .bg-very-light-blue,
-html[data-theme="staedteChallengeDark"] .bg-stats-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-3-very-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-4-very-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-na-very-light {
+html[data-theme="staedteChallengeDark"] .bg-stats-light {
   background-color: var(--slk-surface-subdued) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-gray-200,
 html[data-theme="staedteChallengeDark"] .bg-gray-300,
-html[data-theme="staedteChallengeDark"] .bg-slate-200,
-html[data-theme="staedteChallengeDark"] .bg-rating-0-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-0-very-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-1-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-1-very-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-2-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-2-very-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-3-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-4-light,
-html[data-theme="staedteChallengeDark"] .bg-rating-na-light {
+html[data-theme="staedteChallengeDark"] .bg-slate-200 {
   background-color: var(--slk-surface-muted) !important;
+}
+
+/* Layout surfaces retain each score hue without the bright chart/marker fills. */
+html[data-theme="staedteChallengeDark"] :is(.bg-rating-0-light, .bg-rating-0-very-light) {
+  --slk-rating-surface: var(--slk-rating-0-tint);
+}
+
+html[data-theme="staedteChallengeDark"] :is(.bg-rating-1-light, .bg-rating-1-very-light) {
+  --slk-rating-surface: var(--slk-rating-1-tint);
+}
+
+html[data-theme="staedteChallengeDark"] :is(.bg-rating-2-light, .bg-rating-2-very-light) {
+  --slk-rating-surface: var(--slk-rating-2-tint);
+}
+
+html[data-theme="staedteChallengeDark"] :is(.bg-rating-3-light, .bg-rating-3-very-light) {
+  --slk-rating-surface: var(--slk-rating-3-tint);
+}
+
+html[data-theme="staedteChallengeDark"] :is(.bg-rating-4-light, .bg-rating-4-very-light) {
+  --slk-rating-surface: var(--slk-rating-4-tint);
+}
+
+html[data-theme="staedteChallengeDark"] :is(.bg-rating-na-light, .bg-rating-na-very-light) {
+  --slk-rating-surface: var(--slk-rating-na-tint);
+}
+
+html[data-theme="staedteChallengeDark"]
+  :is(
+    .bg-rating-0-light,
+    .bg-rating-1-light,
+    .bg-rating-2-light,
+    .bg-rating-3-light,
+    .bg-rating-4-light,
+    .bg-rating-na-light
+  ) {
+  background-color: var(--slk-rating-surface) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  :is(
+    .bg-rating-0-very-light,
+    .bg-rating-1-very-light,
+    .bg-rating-2-very-light,
+    .bg-rating-3-very-light,
+    .bg-rating-4-very-light,
+    .bg-rating-na-very-light
+  ) {
+  background-color: color-mix(in srgb, var(--slk-rating-surface) 50%, var(--slk-surface)) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .bg-white\/10,
@@ -1761,14 +1848,28 @@ html[data-theme="staedteChallengeDark"] .shadow-list {
   mask: var(--city-icon) center / contain no-repeat;
 }
 
-/* One page gutter; authored block containers retain their own spacing controls. */
+/* The default layout owns the outer gutter; cards and authored blocks own their padding. */
+:root {
+  --slk-page-gutter: 1rem;
+}
+@media (min-width: 640px) {
+  :root {
+    --slk-page-gutter: 1.5rem;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --slk-page-gutter: 2rem;
+  }
+}
+
 .cms-page-shell {
   width: 100%;
   min-width: 0;
-  padding: 1.5rem 0.75rem;
+  padding-block: 1.5rem;
 }
 @media (min-width: 640px) {
   .cms-page-shell {
-    padding: 2rem 1.5rem;
+    padding-block: 2rem;
   }
 }

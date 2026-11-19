@@ -1,18 +1,22 @@
 <template>
   <div
-    class="data-products-coming-soon flex min-h-[180px] flex-col justify-center gap-4 rounded-lg border p-5"
-    :class="tileLayout"
+    class="data-products-coming-soon flex flex-wrap items-center justify-between gap-3 rounded-lg border"
+    :class="compact ? 'p-3' : 'p-5'"
   >
-    <div>
-      <h3 class="font-heading text-xl font-bold">{{ $t("data.products.coming_soon") }}</h3>
-      <p class="mt-1 text-sm leading-relaxed">{{ $t("data.products.feedback_invite") }}</p>
+    <div class="min-w-0 flex-1 basis-32">
+      <h3 class="font-heading font-bold" :class="compact ? 'text-base' : 'text-xl'">
+        {{ $t("data.products.coming_soon") }}
+      </h3>
+      <p class="mt-1 leading-relaxed" :class="compact ? 'text-xs' : 'text-sm'">
+        {{ $t("data.products.feedback_invite") }}
+      </p>
     </div>
     <CanonicalButton
       :href="contactHref"
       :label="$t('data.products.contact')"
       icon-slug="mdi:email-outline"
       color="dark"
-      class="self-start"
+      class="shrink-0 self-center"
     />
   </div>
 </template>
@@ -23,19 +27,11 @@ import { computed } from "vue";
 const props = defineProps<{
   collectionCount: number;
   areaName?: string | undefined;
+  compact?: boolean | undefined;
 }>();
 
 const { $t } = useNuxtApp();
 const route = useRoute();
-
-const tileLayout = computed(() => ({
-  "xs:col-span-2 xs:min-h-[160px]": props.collectionCount % 2 === 0,
-  "xs:col-span-1 xs:min-h-[250px]": props.collectionCount % 2 !== 0,
-  "lg:col-span-4 lg:min-h-[160px]": props.collectionCount % 4 === 0,
-  "lg:col-span-3 lg:min-h-[250px] xl:min-h-[260px]": props.collectionCount % 4 === 1,
-  "lg:col-span-2 lg:min-h-[250px] xl:min-h-[260px]": props.collectionCount % 4 === 2,
-  "lg:col-span-1 lg:min-h-[250px] xl:min-h-[260px]": props.collectionCount % 4 === 3,
-}));
 
 const contactHref = computed(() => {
   const title = props.areaName
@@ -51,6 +47,8 @@ const contactHref = computed(() => {
 
 <style scoped>
 .data-products-coming-soon {
+  grid-column: span var(--data-products-fill, 2);
+  min-width: 0;
   background-color: var(--slk-blue-tint, #e6f1f5);
   border-color: var(--slk-border, #d9dfd3);
   color: var(--slk-text, #505050);

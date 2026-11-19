@@ -1,4 +1,4 @@
-import { frontendRuntimeEnvironment } from "../shared/runtimeEnvironment.ts";
+import { frontendRuntimeEnvironment } from "../shared/runtimeEnvironment.mts";
 
 const [command, ...args] = process.argv.slice(2);
 if (!command) throw new Error("A runtime command is required");

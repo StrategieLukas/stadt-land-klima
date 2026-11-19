@@ -83,30 +83,7 @@ export function useCollectionRender(baseUrl: string) {
       });
       if (current !== generation) return;
 
-      const parsed = RenderResponseSchema.parse(data);
-      const elements = parsed.render_elements;
-      const map = new Map<string, RenderElement>();
-      for (const el of elements) {
-        if (el.plot_id) map.set(el.plot_id, el);
-      }
-      elementByPlotId.value = map;
-
-      const narrativeSteps = parsed.narrative_steps;
-      if (narrativeSteps.length) {
-        steps.value = narrativeSteps.map((ns) => ({
-          index: ns.index,
-          title: ns.title,
-          description: ns.description,
-          layout: ns.layout,
-          elements: ns.plot_ids
-            .map((id) => map.get(id))
-            .filter((element): element is RenderElement => Boolean(element)),
-        }));
-      } else {
-        steps.value = elements.length
-          ? [{ index: 0, title: {}, description: {}, layout: "default" as LayoutHint, elements }]
-          : [];
-      }
+      seedRender(data);
     } catch {
       if (current !== generation) return;
       error.value = true;
@@ -117,5 +94,30 @@ export function useCollectionRender(baseUrl: string) {
     }
   }
 
-  return { steps, elementByPlotId, loading, error, load, loadFromRender };
+  function seedRender(data: unknown) {
+    const parsed = RenderResponseSchema.parse(data);
+    const elements = parsed.render_elements;
+    const map = new Map<string, RenderElement>();
+    for (const el of elements) {
+      if (el.plot_id) map.set(el.plot_id, el);
+    }
+    elementByPlotId.value = map;
+
+    const narrativeSteps = parsed.narrative_steps;
+    if (narrativeSteps.length) {
+      steps.value = narrativeSteps.map((ns) => ({
+        index: ns.index,
+        title: ns.title,
+        description: ns.description,
+        layout: ns.layout,
+        elements: ns.plot_ids.map((id) => map.get(id)).filter((element): element is RenderElement => Boolean(element)),
+      }));
+    } else {
+      steps.value = elements.length
+        ? [{ index: 0, title: {}, description: {}, layout: "default" as LayoutHint, elements }]
+        : [];
+    }
+  }
+
+  return { steps, elementByPlotId, loading, error, load, loadFromRender, seedRender };
 }

@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import {
   FRONTEND_RUNTIME_ALIASES,
   frontendRuntimeEnvironment,
-} from "../../../src/frontend/shared/runtimeEnvironment.js";
+} from "../../../src/frontend/shared/runtimeEnvironment.mjs";
 import { directusRuntimeConfigProbe } from "../../lib/podman-environment.js";
 
 test("runtime audit checks effective Directus flags and rejects an autoloaded dotenv despite protected process values", () => {

@@ -31,6 +31,7 @@ import {
   podmanEnvironmentPlan,
   managedPodmanEnvironment,
   managedPodmanProductionEnvironment,
+  managedPodmanDevelopmentEnvironment,
 } from "../../lib/podman-environment.js";
 import { assertReleasePolicy } from "./lib/releasePolicy.js";
 
@@ -165,6 +166,8 @@ test("host preflight fails closed for rootful, unconfined, legacy or undelegated
     Object.assign(value.host, rest);
     Object.assign(value.host.security, security);
     assert.throws(() => assertPodmanHost(value));
+    value.version.Version = "4.9.3";
+    assert.throws(() => assertPodmanHost(value, false, true), "The unsafe version override must retain host checks");
   }
   const future = host();
   future.version.Version = "10.0.0";
@@ -172,6 +175,7 @@ test("host preflight fails closed for rootful, unconfined, legacy or undelegated
   const old = host();
   old.version.Version = "4.9.3";
   assert.throws(() => assertPodmanHost(old), /5.4/);
+  assert.equal(assertPodmanHost(old, false, true), "/usr/share/containers/seccomp.json");
   assert.throws(() => assertPodmanHost(null));
 });
 
@@ -333,11 +337,12 @@ function wrapperFixture(t: { after: (callback: () => void) => void }) {
     "bin/lib/container-environment.ts",
     "bin/lib/cms-origin.ts",
     "src/directus/cli/package.json",
-    "src/frontend/shared/runtimeEnvironment.ts",
+    "src/frontend/shared/runtimeEnvironment.mts",
   ])
     copyFileSync(fileURLToPath(new URL("../../../" + file, import.meta.url)), join(directory, file));
   for (const file of ["podman/database/.env", "podman/meilisearch/.env", "src/directus/.env", "src/frontend/.env"])
     writeFileSync(join(directory, file), "PROBE=not-a-credential\n", { mode: 0o600 });
+  writeFileSync(join(directory, "src/directus/.env"), `CLI_DIRECTUS_STATIC_TOKEN=${"d".repeat(64)}\n`, { mode: 0o600 });
   symlinkSync(
     fileURLToPath(new URL("../../../src/directus/cli/node_modules", import.meta.url)),
     join(directory, "src/directus/cli/node_modules"),
@@ -371,16 +376,23 @@ case "$*" in
 esac
 `,
     "podman-compose": `#!/bin/sh
-case "$*" in *--version*) echo 'podman-compose version 1.6.0'; exit 0 ;; esac
+if [ "$#" = 1 ] && [ "$1" = --version ]; then echo 'podman-compose version 1.6.0'; exit 0; fi
 for descriptor in /proc/self/fd/*; do
   target=$(readlink "$descriptor" || true)
   case "$target" in *.lock) echo 'lock descriptor inherited' >&2; exit 91 ;; esac
 done
 printf '%s\n' "$*" >> "$PROBE_ROOT/calls"
-case "$*" in *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;; esac
+case "$*" in
+ *bootstrapState.ts*) exit "\${PROBE_SCHEMA_STATUS:-0}" ;;
+ *bootstrapConfiguration.ts*) exit "\${PROBE_IMPORT_STATUS:-23}" ;;
+esac
 case "$*" in *provisionTranslationWorker.ts*) cat > "$PROBE_ROOT/worker-input"; if [ "$PROBE_WORKER_STATUS" != 0 ]; then exit "$PROBE_WORKER_STATUS"; fi; echo "CONTENT_TRANSLATION_WORKER_TOKEN=$(printf '%064d' 0)" ;; esac
+case "$*" in *provisionServiceUsers.ts*)
+ if [ "$PROBE_SERVICE_STATUS" != 0 ]; then exit "$PROBE_SERVICE_STATUS"; fi
+ for key in DIRECTUS_FRONTEND_SERVER_TOKEN DIRECTUS_FRONTEND_PUBLIC_TOKEN DIRECTUS_PREVIEW_TOKEN; do echo "$key=$(printf '%064d' 0)"; done ;;
+esac
 `,
-    curl: "#!/bin/sh\nexit 0\n",
+    curl: '#!/bin/sh\nprintf "%s\\n" "$*" >> "$PROBE_ROOT/readiness-calls"\nexit 0\n',
   };
   for (const [name, code] of Object.entries(tools)) {
     writeFileSync(join(directory, "tools", name), code);
@@ -389,10 +401,30 @@ case "$*" in *provisionTranslationWorker.ts*) cat > "$PROBE_ROOT/worker-input"; 
   writeFileSync(join(directory, "calls"), "");
   writeFileSync(join(directory, "engine-calls"), "");
   writeFileSync(join(directory, "secret-input"), "");
-  const invoke = (args: string[], running = "no", importFailure = true, workerFailure = false) =>
+  const invoke = (
+    args: string[],
+    running = "no",
+    importFailure = true,
+    workerFailure = false,
+    options: {
+      environment?: "development" | "production";
+      unsafeSkipVersionCheck?: boolean;
+      missingSchema?: boolean;
+      serviceFailure?: boolean;
+    } = {},
+  ) =>
     spawnSync(
       process.execPath,
-      ["bin/slk", "stack", args[0]!, "--env", "production", ...(args[0] === "compose" ? ["--"] : []), ...args.slice(1)],
+      [
+        "bin/slk",
+        "stack",
+        args[0]!,
+        "--env",
+        options.environment ?? "production",
+        ...(options.unsafeSkipVersionCheck ? ["--unsafe-skip-podman-version-check"] : []),
+        ...(args[0] === "compose" ? ["--"] : []),
+        ...args.slice(1),
+      ],
       {
         cwd: directory,
         encoding: "utf8",
@@ -403,7 +435,9 @@ case "$*" in *provisionTranslationWorker.ts*) cat > "$PROBE_ROOT/worker-input"; 
           PROBE_ROOT: directory,
           PROBE_RUNNING: running,
           PROBE_IMPORT_STATUS: importFailure ? "23" : "0",
+          PROBE_SCHEMA_STATUS: options.missingSchema ? "26" : "0",
           PROBE_WORKER_STATUS: workerFailure ? "24" : "0",
+          PROBE_SERVICE_STATUS: options.serviceFailure ? "25" : "0",
           XDG_RUNTIME_DIR: join(directory, "runtime"),
           XDG_STATE_HOME: join(directory, "state"),
           SLK_PODMAN_PROJECT: "slk-test",
@@ -428,6 +462,78 @@ case "$*" in *provisionTranslationWorker.ts*) cat > "$PROBE_ROOT/worker-input"; 
     secretInput: () => readFileSync(join(directory, "secret-input"), "utf8"),
   };
 }
+
+test("unsupported Podman prints the safe host preflight reason and never starts a build", (t) => {
+  const fixture = wrapperFixture(t);
+  const info = host();
+  info.version.Version = "4.9.3";
+  writeFileSync(join(fixture.directory, "host.json"), JSON.stringify(info));
+  const result = fixture.invoke(["build"]);
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /Podman 5\.4 or newer is required/);
+  assert.match(result.stderr, /Podman host preflight failed \(exit 1\)/);
+  assert.doesNotMatch(result.stderr, /MODULE_TYPELESS_PACKAGE_JSON|not-a-credential/);
+  assert.doesNotMatch(fixture.engineCalls(), / build /);
+});
+
+test("unsafe development build and startup preserve the explicit version override across the lock subprocess", (t) => {
+  const fixture = wrapperFixture(t);
+  const info = host();
+  info.version.Version = "4.9.3";
+  info.host.security.seccompProfilePath = join(fixture.directory, "seccomp.json");
+  writeFileSync(join(fixture.directory, "host.json"), JSON.stringify(info));
+  const options = { environment: "development" as const, unsafeSkipVersionCheck: true };
+  for (const args of [["build"], ["start", "--import"], ["compose", "exec", "-T", "directus", "node", "--version"]]) {
+    const result = fixture.invoke(args, "no", false, false, options);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stderr, /UNSAFE development: skipping the Podman version check/);
+    assert.doesNotMatch(result.stderr + result.stdout, /not-a-credential/);
+  }
+  assert.match(fixture.engineCalls(), / build /);
+  assert.match(fixture.calls(), /--force-recreate frontend/);
+  assert.match(fixture.calls(), /exec -T directus \/usr\/local\/bin\/slk-env --keep= node --version/);
+  const normal = fixture.invoke(["doctor"], "no", false, false, { environment: "development" });
+  assert.equal(normal.status, 1);
+  assert.match(normal.stderr, /Podman 5\.4 or newer is required/);
+});
+
+test("production rejects the unsafe version override before invoking Podman", (t) => {
+  const fixture = wrapperFixture(t);
+  const result = fixture.invoke(["build"], "no", false, false, { unsafeSkipVersionCheck: true });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /only allowed with --env development/);
+  assert.equal(fixture.engineCalls(), "");
+  assert.equal(fixture.calls(), "");
+});
+
+test("image builds need no private runtime files or mounts; startup and doctor still require them", (t) => {
+  for (const environment of ["development", "production"] as const) {
+    const fixture = wrapperFixture(t);
+    for (const file of ["podman/database/.env", "podman/meilisearch/.env", "src/directus/.env", "src/frontend/.env"])
+      rmSync(join(fixture.directory, file));
+    // Runtime storage state must not affect image builds or trigger Compose config reads.
+    mkdirSync(join(fixture.directory, "podman/core-storage"));
+    writeFileSync(join(fixture.directory, `podman/core-storage/${environment}.compose.json`), "private-storage-canary");
+    const options = { environment };
+    const build = fixture.invoke(["build"], "no", false, false, options);
+    assert.equal(build.status, 0, build.stderr);
+    assert.match(fixture.engineCalls(), / build /);
+    assert.match(fixture.calls(), /--profile maintenance build db meilisearch maintenance directus frontend/);
+    assert.doesNotMatch(fixture.calls(), /environment\.compose|storage\.compose|\bconfig\b/);
+    assert.doesNotMatch(build.stdout + build.stderr + fixture.calls(), /private-storage-canary|not-a-credential/);
+    assert.throws(() => readFileSync(join(fixture.directory, "runtime/slk-podman/slk-test.environment.compose.json")), {
+      code: "ENOENT",
+    });
+    const calls = fixture.calls();
+    for (const action of ["start", "doctor"]) {
+      const result = fixture.invoke([action], "no", false, false, options);
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Database environment file: missing or unreadable/);
+      assert.match(result.stderr, /Podman environment preflight failed/);
+      assert.equal(fixture.calls(), calls);
+    }
+  }
+});
 
 test("failed Podman imports leave maintenance active and never prepare or restart the frontend", (t) => {
   const fixture = wrapperFixture(t);
@@ -504,7 +610,31 @@ test("managed runtime controls are declared in their Compose environments", () =
       assert.ok(key in (base.services[service].environment ?? {}), key);
     for (const key of managedPodmanProductionEnvironment[service])
       assert.ok(key in (production.services[service]?.environment ?? {}), key);
+    for (const key of managedPodmanDevelopmentEnvironment[service])
+      assert.ok(key in (development.services[service]?.environment ?? {}), key);
   }
+});
+
+test("development logs mail through the mounted-env override without changing production mail transport", () => {
+  const paths = {
+    db: "/private/db.env",
+    meilisearch: "/private/search.env",
+    directus: "/private/cms.env",
+    frontend: "/private/web.env",
+  };
+  const dev = podmanEnvironmentPlan(paths, false).services.directus!.environment;
+  assert.equal(development.services.directus.environment.EMAIL_TRANSPORT, "sendmail");
+  assert.equal(development.services.directus.environment.EMAIL_SENDMAIL_PATH, "/directus/cli/logEmail.ts");
+  assert.ok(dev.SLK_ENV_LOCKED_KEYS?.split(",").includes("EMAIL_SENDMAIL_PATH"));
+  assert.equal(development.services.directus.environment.CONFIG_PATH, "/directus/.tmp/development.env");
+  assert.ok(dev.SLK_ENV_LOCKED_KEYS?.split(",").includes("EMAIL_TRANSPORT"));
+  assert.ok(dev.SLK_ENV_LOCKED_KEYS?.split(",").includes("CONFIG_PATH"));
+  assert.match(development.services.directus.entrypoint.join(" "), /umask 077/);
+  assert.match(development.services.directus.entrypoint.join(" "), /exec "\$\$@"/);
+  const prod = podmanEnvironmentPlan(paths, true).services.directus!.environment;
+  assert.ok(!prod.SLK_ENV_LOCKED_KEYS?.split(",").includes("EMAIL_TRANSPORT"));
+  assert.ok(!prod.SLK_ENV_LOCKED_KEYS?.split(",").includes("CONFIG_PATH"));
+  assert.equal(production.services.directus.environment.EMAIL_TRANSPORT, undefined);
 });
 
 test("prepare-only retains maintenance and never touches the frontend artifact", (t) => {
@@ -567,6 +697,37 @@ test("private YAML setup precedes the checked full CMS and never publishes helpe
   const calls = fixture.calls();
   assert.ok(calls.indexOf("bootstrapConfiguration.ts") < calls.indexOf("--force-recreate directus"));
   assert.doesNotMatch(calls, /--service-ports|SLK_STARTUP_SECURITY_CHECKS=false|stop maintenance/);
+});
+
+test("normal startup checks the imported schema before custom migrations and stops on missing application tables", (t) => {
+  const fixture = wrapperFixture(t);
+  const result = fixture.invoke(["start"], "no", false, false, { missingSchema: true });
+  assert.equal(result.status, 26, result.stderr);
+  assert.match(fixture.calls(), /bootstrapState\.ts/);
+  assert.doesNotMatch(fixture.calls(), /--force-recreate directus|--force-recreate frontend|stop maintenance/);
+});
+
+test("development provisions private website identities before frontend start and restart, and blocks failed setup", (t) => {
+  const fixture = wrapperFixture(t);
+  for (const action of ["start", "restart"]) {
+    writeFileSync(join(fixture.directory, "calls"), "");
+    const result = fixture.invoke(action === "start" ? [action] : [action, "frontend"], "no", false, false, {
+      environment: "development",
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const calls = fixture.calls();
+    assert.ok(calls.indexOf("provisionServiceUsers.ts") >= 0);
+    assert.ok(calls.indexOf("provisionServiceUsers.ts") < calls.indexOf("--force-recreate frontend"));
+    assert.doesNotMatch(calls + result.stdout + result.stderr, /d{64}|0{64}/);
+    const readiness = readFileSync(join(fixture.directory, "readiness-calls"), "utf8");
+    assert.match(readiness, /http:\/\/127\.0\.0\.1:9000\/api\/public\/site-layout/);
+    assert.match(readiness, /http:\/\/127\.0\.0\.1:9000\/api\/public\/catalogs/);
+  }
+  writeFileSync(join(fixture.directory, "calls"), "");
+  const failed = fixture.invoke(["start"], "no", false, false, { environment: "development", serviceFailure: true });
+  assert.equal(failed.status, 1);
+  assert.match(failed.stderr, /Development service-user provisioning failed/);
+  assert.doesNotMatch(fixture.calls(), /--force-recreate frontend/);
 });
 
 test("failed translation provisioning after YAML import retains maintenance and blocks frontend startup", (t) => {

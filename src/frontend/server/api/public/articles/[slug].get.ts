@@ -1,3 +1,4 @@
+import { readWithOrganisationDarkLogo } from "~/server/utils/organisationLogos";
 import { cmsRows } from "~/server/utils/cmsValue";
 import { ProjectDetailSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
@@ -14,34 +15,44 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Article not found" });
   }
 
-  const articles = await client
-    .request(
-      readItems("articles", {
-        filter: { slug: { _eq: slug }, status: { _eq: "published" } },
-        fields: [
-          "id",
-          "slug",
-          "title",
-          "date_created",
-          "subtitle",
-          "abstract",
-          "article_text",
-          "image_credits",
-          "author",
-          "municipality_name",
-          "state",
-          "link",
-          "instagram",
-          "linkedin",
-          "profile_stage",
-          { image: ["id", "type"] },
-          { organisation: ["id", "name", "link", { logo: ["id", "type"] }] },
-          { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] },
-        ],
-        limit: 1,
-      }),
-    )
-    .then(cmsRows);
+  const articles = await readWithOrganisationDarkLogo((includeDarkLogo) =>
+    client
+      .request(
+        readItems("articles", {
+          filter: { slug: { _eq: slug }, status: { _eq: "published" } },
+          fields: [
+            "id",
+            "slug",
+            "title",
+            "date_created",
+            "subtitle",
+            "abstract",
+            "article_text",
+            "image_credits",
+            "author",
+            "municipality_name",
+            "state",
+            "link",
+            "instagram",
+            "linkedin",
+            "profile_stage",
+            { image: ["id", "type"] },
+            {
+              organisation: [
+                "id",
+                "name",
+                "link",
+                { logo: ["id", "type"] },
+                ...(includeDarkLogo ? [{ logo_dark: ["id", "type"] }] : []),
+              ],
+            },
+            { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] },
+          ],
+          limit: 1,
+        }),
+      )
+      .then(cmsRows),
+  );
 
   if (!articles || articles.length === 0) {
     throw createError({ statusCode: 404, statusMessage: "Article not found" });

@@ -316,6 +316,8 @@
                 v-for="col in group.collections"
                 :key="col.id"
                 :collection="col"
+                :eager="col.id === groupedCollections[0]?.collections[0]?.id"
+                :targeted="route.hash === `#${col.id}`"
                 :ars="displayArea?.ars ?? ''"
                 :base-url="baseUrl"
                 :population="displayArea?.population ?? null"
@@ -372,7 +374,7 @@ const sectorIconSvgs = Object.fromEntries(
 );
 
 definePageMeta({
-  key: (route) => route.fullPath,
+  key: (route) => route.path,
   middleware: [
     "data-availability",
     (to) => {
@@ -392,10 +394,12 @@ definePageMeta({
 
 const { $translateDynamic } = useNuxtApp();
 const route = useRoute();
+const router = useRouter();
 const slug = computed(() => String(route.params.slug ?? ""));
 
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl;
+provideCollectionResources(baseUrl);
 const { data: dataPageConfig } = await useDataPageConfig();
 const { label: dataRouteLabel, seedArea, stop: stopDataRouteFeedback, clearSeedArea } = useDataRouteFeedback();
 
@@ -415,7 +419,7 @@ onUnmounted(() => {
 
 const pageDataKey = computed(() => `data-area-page-${slug.value}`);
 
-const { data: pageData, pending: areaPending } = useAsyncData(
+const { data: pageData, pending: areaPending } = await useAsyncData(
   pageDataKey,
   async () => {
     const resolvedArea = await $fetch("/api/area-by-slug", {
@@ -470,10 +474,11 @@ watch(pageData, (value) => {
 
 const matchingSeedArea = computed(() => (seedArea.value?.slug === slug.value ? seedArea.value : null));
 const resolvedArea = computed(() => {
+  if (pageData.value?.requestedSlug !== slug.value) return null;
   const areaValue = pageData.value?.area;
   if (!areaValue?.name) return null;
   const pageSlug = areaToSlug(areaValue?.prefix ?? "", areaValue.name);
-  return pageSlug === slug.value ? areaValue : null;
+  return pageSlug === slug.value || `${pageSlug}--${areaValue.ars}` === slug.value ? areaValue : null;
 });
 const area = computed(() => {
   const value = resolvedArea.value ?? matchingSeedArea.value;
@@ -567,86 +572,49 @@ watch(
   { immediate: true },
 );
 
-// ── Collections (CSR, area-injected) ────────────────────────────────────────
-
-const collections = ref<Collection[]>([]);
-const collectionsLoading = ref(false);
-const collectionsLoadedForSlug = ref("");
-const collectionsReady = computed(
-  () => areaReady.value && !collectionsLoading.value && collectionsLoadedForSlug.value === slug.value,
-);
-const showCollectionsSkeleton = computed(() => !areaReady.value || collectionsLoading.value || !collectionsReady.value);
-let collectionsRequestId = 0;
-
-async function loadCollectionsForCurrentArea() {
-  const requestId = ++collectionsRequestId;
-  const requestSlug = slug.value;
-
-  collections.value = [];
-  collectionsLoadedForSlug.value = "";
-
-  // Germany and non-rateable Bundesländer use AreaOverview — no collections rendered there.
-  if (!areaReady.value || usesOverviewLayout.value) {
-    collectionsLoading.value = false;
-    return;
-  }
-
-  collectionsLoading.value = true;
-
-  try {
-    // Try slim manifest first: much smaller (no vegalite_specs), CDN-cached.
-    // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded.
-    const manifest = CollectionsResponseSchema.parse(
-      await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 }),
-    );
-    const slim = (manifest?.collections ?? [])
-      .filter((c) => isCollectionVisible(c.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG))
-      .map((c) => normalizeCollection(c));
-
-    if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
-
-    if (slim.length > 0) {
-      collections.value = slim;
-      collectionsLoadedForSlug.value = requestSlug;
-      collectionsLoading.value = false;
-      return;
+// ── Published collection catalogue (SSR + hydration payload) ────────────────
+const catalogueKey = computed(() => `data-area-collections:${slug.value}`);
+const { data: catalogue, status: catalogueStatus } = await useAsyncData(
+  catalogueKey,
+  async (_app, { signal }) => {
+    const requestedSlug = slug.value;
+    if (!areaReady.value || usesOverviewLayout.value) return { requestedSlug, collections: [] };
+    let items: Collection[] = [];
+    try {
+      const manifest = CollectionsResponseSchema.parse(
+        await $fetch(`${baseUrl}/api/manifests/collections-index`, { signal, timeout: 8000, retry: 0 }),
+      );
+      items = manifest.collections.map(normalizeCollection);
+    } catch (failure) {
+      if (signal.aborted) throw failure;
     }
-  } catch {
-    /* manifest not deployed yet — fall through */
-  }
-
-  try {
-    // Area-specific charts load separately; discovery does not need product data.
-    const params = { metadata_only: "true" };
-    const data = CollectionsResponseSchema.parse(
-      await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 }),
-    );
-
-    if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
-
-    collections.value = (data?.collections ?? [])
-      .filter((c) => isCollectionVisible(c.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG))
-      .map((c) => normalizeCollection(c));
-    collectionsLoadedForSlug.value = requestSlug;
-  } catch {
-    if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
-
-    collections.value = [];
-    collectionsLoadedForSlug.value = requestSlug;
-  } finally {
-    if (requestId === collectionsRequestId && requestSlug === slug.value) {
-      collectionsLoading.value = false;
+    if (!items.length) {
+      try {
+        const response = CollectionsResponseSchema.parse(
+          await $fetch(`${baseUrl}/api/collections/`, {
+            query: { metadata_only: "true" },
+            signal,
+            timeout: 10000,
+            retry: 0,
+          }),
+        );
+        items = response.collections.map(normalizeCollection);
+      } catch (failure) {
+        if (signal.aborted) throw failure;
+      }
     }
-  }
-}
-
-watch(
-  [areaReady, usesOverviewLayout, () => area.value?.ars, slug],
-  () => {
-    void loadCollectionsForCurrentArea();
+    return {
+      requestedSlug,
+      collections: items.filter((item) =>
+        isCollectionVisible(item.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG),
+      ),
+    };
   },
-  { immediate: true },
+  { watch: [areaReady, usesOverviewLayout], dedupe: "cancel" },
 );
+const collections = computed(() => (catalogue.value?.requestedSlug === slug.value ? catalogue.value.collections : []));
+const collectionsReady = computed(() => areaReady.value && catalogueStatus.value === "success");
+const showCollectionsSkeleton = computed(() => !collectionsReady.value);
 
 // ── Product scroll navigation ────────────────────────────────────────────────
 
@@ -801,9 +769,12 @@ function scrollToAllProducts() {
 function scrollToCollection(collectionId: string) {
   const el = document.getElementById(collectionId) ?? document.querySelector(`[data-collection-id="${collectionId}"]`);
   if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY - productScrollMarginTop.value;
-  window.history.pushState(null, "", `#${collectionId}`);
-  window.scrollTo({ top, behavior: "smooth" });
+  const hash = `#${collectionId}`;
+  if (route.hash !== hash) void router.push({ hash });
+  else {
+    alignedProductHash = "";
+    void alignProductHash();
+  }
 }
 
 function scrollToSector(key: string) {
@@ -858,12 +829,34 @@ function updateActiveSectorFromScroll() {
   if (active) activeSectorKey.value = active;
 }
 
+let alignedProductHash = "";
+async function alignProductHash() {
+  const hash = route.hash;
+  if (!hash || alignedProductHash === hash || !collections.value.some((item) => `#${item.id}` === hash)) return;
+  await nextTick();
+  if (document.fonts) await document.fonts.ready;
+  if (route.hash !== hash) return;
+  const element = document.getElementById(hash.slice(1));
+  if (!element) return;
+  alignedProductHash = hash;
+  const top = element.getBoundingClientRect().top + window.scrollY - productScrollMarginTop.value;
+  window.scrollTo({ top, behavior: "instant" });
+}
+watch(
+  () => route.hash,
+  () => {
+    alignedProductHash = "";
+    if (import.meta.client) void alignProductHash();
+  },
+);
+
 onMounted(() => {
   watch(
     collections,
     async () => {
       await nextTick();
       initProductSectionObserver();
+      void alignProductHash();
     },
     { immediate: true },
   );

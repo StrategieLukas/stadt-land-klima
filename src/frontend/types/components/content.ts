@@ -5,6 +5,7 @@ export interface Organisation {
   name?: string | null | undefined;
   link?: string | null | undefined;
   logo?: Asset | undefined;
+  logo_dark?: Asset | undefined;
   instagram?: string | null | undefined;
   linkedin?: string | null | undefined;
 }

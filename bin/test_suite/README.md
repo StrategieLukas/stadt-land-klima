@@ -251,3 +251,38 @@ data, credentials or email are used. See [Caddy migration](../../caddy/README.md
 Run `npm run test:ui-feedback -- http://localhost:8080` for German/English/Italian, desktop/mobile and light/dark homepage, municipality hero, keyboard toggle and city-filter icon checks. It needs one complete published assessment and one in-progress municipality; it does not create or modify content. Screenshots are written to `/tmp/slk-home-*.png`.
 
 The default development suite covers map progress redaction and statistics-to-assessment deep links with disposable data. `npm run test:municipality-ux:live -- http://localhost:8080` additionally checks native PDF export and chart interactions.
+
+## Interactive data dashboard fixtures
+
+`npm run test:data-page` includes the overview contract, two-metric configuration,
+whole-bin mark selection, exact feed binding, URL/snapshot isolation and legacy
+compatibility regressions. The same unit tests run in the shared readiness gates.
+
+`npm run test:data-dashboard:browser` starts isolated CMS/data API fixtures and a
+Nuxt development server on loopback port 8080, then exercises the actual dashboard
+and shared histogram/dialog components at desktop and 340 px touch-mobile widths,
+plus a dark, reduced-motion tablet with WebGL disabled. It checks touch polygon
+previews, actual detail-chart bar clicks, history and snapshot recovery. Keep
+that port free, or set `SLK_DASHBOARD_TEST_PORT`. It requires locked frontend/test
+packages and an installed Playwright Chromium. Screenshots and the private Nuxt
+log are saved under `.reports/checks/dashboard-browser/`. No application database,
+external services or publication pointers are changed. Mock replies do not
+establish scientific parity or deployed backend delivery.
+
+`npm run generate:overview-contract` regenerates the JSON Schemas/examples shared
+with the Stadt.Land.Zahl backend agent. The unit test rejects a stale handoff.
+
+## Disposable CMS bootstrap regression
+
+Run `npm run test:bootstrap` from this directory after building the local Directus
+and database images. This creates a random-named internal network and tmpfs-backed
+database/CMS containers, then removes them. It uses fixture credentials and never
+connects to the application database. It covers an interrupted core bootstrap with
+zero users, protected initial-administrator recovery, the complete private import helper, and canonical YAML schema and required-folder import
+and the preview-token backfill after schema creation. Existing-token preservation
+and verified-municipality exclusion are checked. Full application startup and
+native/deployed verification remain separate acceptance gates.
+
+## Header and timeline acceptance
+
+`npm run test:header-navigation:browser` uses the running website at `http://localhost:8080` (override with `TEST_FRONTEND_URL`). This read-only Chromium flow checks full-viewport news/events strip backgrounds, page-aligned compact month pills that fill available rows, scrollbar gutters, slow-trackpad navigation reveal, reversal-noise resistance, intermediate animation frames, downward month-strip shadows, stable search-input geometry while scrolling, search/navigation overlay handoff with a persistent translucent backdrop and no lost query, Escape priority, pointer restoration and reduced motion at 340/768/1280/1920 px. It requires published navigation with at least one dropdown. Screenshots are saved under `.reports/checks/header-navigation/`; native/deployed acceptance is separate.

@@ -1,206 +1,119 @@
 <template>
-  <div :data-wahlcheck-theme="wahlcheckTheme" class="elections-flow min-h-screen bg-mild-white">
-    <!-- Header -->
-    <div class="border-b border-solid-gray-10 bg-white shadow-xs">
-      <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <NuxtLink to="/" class="flex items-center gap-3">
-          <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" :alt="$t('logo.alt')" class="h-10 w-auto dark:hidden" />
-          <img
-            src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
-            :alt="$t('logo.alt')"
-            class="hidden h-10 w-auto dark:block"
-          />
-        </NuxtLink>
-        <div class="flex-1 text-center">
-          <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
-          <p class="text-sm text-mid-gray">{{ $t("elections.wahlcheck.subtitle") }}</p>
-        </div>
-        <div class="w-10"></div>
-      </div>
-    </div>
+  <div
+    :data-wahlcheck-theme="wahlcheckTheme"
+    class="elections-flow min-h-screen bg-(--slk-page) text-center text-(--slk-text)"
+  >
+    <div class="w-full py-8">
+      <header class="mb-8">
+        <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">
+          {{ $t("elections.wahlcheck.header_title") }}
+        </h1>
+        <p class="mx-auto max-w-3xl text-lg leading-relaxed text-gray">{{ $t("elections.wahlcheck.subtitle") }}</p>
+      </header>
 
-    <!-- Main Content -->
-    <div class="mx-auto max-w-4xl px-4 py-12">
-      <!-- Loading State -->
       <div v-if="pending && !error" class="flex items-center justify-center py-20">
         <div class="flex flex-col items-center gap-4">
-          <SlkFlowerSpinner class="h-20 w-20 text-ff-green" />
+          <SlkFlowerSpinner class="h-20 w-20 text-light-green" />
           <p class="text-mid-gray">{{ $t("elections.loading_available") }}</p>
         </div>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
+      <div v-else-if="error" class="my-8 border border-red bg-solid-red-10 p-6 text-red">
         <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
         <button class="btn btn-primary" @click="loadElections">{{ $t("generic.try_again") }}</button>
       </div>
 
-      <!-- No Public Elections -->
-      <div
-        v-else-if="publicElections.length === 0"
-        class="my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center text-orange-800"
-      >
-        <div class="mb-6">
-          <img
-            src="~/assets/images/Stadt-Land-Klima-Blume.svg"
-            :alt="$t('logo.alt')"
-            class="mx-auto h-24 w-auto opacity-60"
-          />
-        </div>
-        <h2 class="mb-4 text-2xl font-bold">{{ $t("elections.no_public_elections.title") }}</h2>
-        <p class="text-mid-gray">
-          {{ $t("elections.no_public_elections.description") }}
-        </p>
+      <div v-else-if="publicElections.length === 0" class="my-8 border border-(--slk-border) bg-(--slk-surface) p-6">
+        <h2 class="mb-4 text-xl font-bold text-(--slk-text-strong)">{{ $t("elections.no_public_elections.title") }}</h2>
+        <p class="text-(--slk-text-muted)">{{ $t("elections.no_public_elections.description") }}</p>
       </div>
 
-      <!-- Elections List -->
-      <div v-else class="space-y-8">
-        <!-- Hero Section -->
-        <div class="rounded-xl border border-solid-gray-10 bg-white p-8 text-center shadow-list">
-          <div class="mb-6">
-            <img
-              src="~/assets/images/Mach_den-Klima-Wahlcheck.svg"
-              :alt="$t('elections.wahlcheck.header_title')"
-              class="mx-auto h-24 w-auto object-contain"
-            />
-          </div>
-          <h2 class="mb-4 text-2xl font-bold text-stats-dark">
+      <div v-else class="space-y-10">
+        <section>
+          <img
+            src="~/assets/images/Mach_den-Klima-Wahlcheck.svg"
+            :alt="$t('elections.wahlcheck.header_title')"
+            class="mx-auto mb-6 h-24 max-w-full object-contain"
+          />
+          <h2 class="mb-4 font-heading text-3xl font-bold text-stats-dark">
             {{ $t("elections.wahlcheck.intro.title") }}
           </h2>
-          <p class="mx-auto max-w-2xl text-lg text-mid-gray">
+          <p class="mx-auto max-w-3xl text-lg leading-relaxed text-gray">
             {{ $t("elections.wahlcheck.intro.description") }}
           </p>
           <p
             data-testid="wahlcheck-intro-disclaimer"
-            class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-mid-gray"
+            class="mx-auto mt-4 max-w-3xl text-sm leading-relaxed text-(--slk-text-muted)"
           >
             {{ $t("elections.wahlcheck.intro.disclaimer") }}
           </p>
-        </div>
+        </section>
 
-        <!-- Elections Grid -->
-        <h3 class="mb-6 text-xl font-bold text-stats-dark">
-          {{ $t("elections.wahlcheck.available_elections") }}
-        </h3>
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <NuxtLink
-            v-for="election in publicElections"
-            :key="election.id"
-            :to="{
-              path: `/elections/wahlcheck/${election.municipalitySlug || election.localteam?.slug || election.id}`,
-              query: wahlcheckQuery,
-            }"
-            class="group rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-all duration-300 hover:border-solid-ff-green-30 hover:shadow-xl"
-          >
-            <div class="mb-4 flex items-start justify-between">
+        <section>
+          <h2 class="mb-4 border-b border-(--slk-border) pb-3 text-xl font-bold text-(--slk-text-strong)">
+            {{ $t("elections.wahlcheck.available_elections") }}
+          </h2>
+          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <NuxtLink
+              v-for="election in publicElections"
+              :key="election.id"
+              :to="{
+                path: `/elections/wahlcheck/${election.municipalitySlug || election.localteam?.slug || election.id}`,
+                query: wahlcheckQuery,
+              }"
+              class="group flex h-full min-w-0 flex-col gap-6 border border-(--slk-border) bg-(--slk-surface) p-6 text-(--slk-text) focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--slk-text-strong)"
+            >
               <div>
-                <h4 class="text-lg font-bold text-black transition-colors group-hover:text-ff-green">
+                <h3
+                  class="text-xl leading-snug font-bold break-words text-(--slk-text-strong) group-hover:underline group-focus-visible:underline"
+                >
                   {{ election.descriptor }}
-                </h4>
-                <p v-if="election.localteam" class="mt-1 text-sm text-mid-gray">
+                </h3>
+                <p v-if="election.localteam" class="mt-2 break-words text-(--slk-text-muted)">
                   {{ election.localteam.municipality_name || election.localteam.name }}
                 </p>
               </div>
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-solid-ff-green-10">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 text-ff-green"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-4 text-sm text-mid-gray">
-              <div class="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span>
+              <div
+                class="mt-auto space-y-1 border-t border-(--slk-border) pt-4 text-sm leading-relaxed text-(--slk-text-muted)"
+              >
+                <p>
                   {{
                     $t(election.is_party_election ? "elections.parties_count" : "elections.candidates_count", {
                       ":count": election.candidateCount,
                     })
                   }}
-                </span>
+                </p>
+                <p>{{ $t("elections.theses_count", { ":count": election.questionCount }) }}</p>
+                <p>{{ $t("generic.created_at", { ":date": formatDate(election.date_created) }) }}</p>
               </div>
-              <div class="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-                <span>{{ $t("elections.theses_count", { ":count": election.questionCount }) }}</span>
-              </div>
-            </div>
-
-            <div class="mt-4 border-t border-solid-gray-10 pt-4">
-              <span class="text-sm text-mid-gray">
-                {{ $t("generic.created_at", { ":date": formatDate(election.date_created) }) }}
-              </span>
-            </div>
-          </NuxtLink>
-        </div>
-
-        <!-- How it works section -->
-        <div class="mt-12 rounded-xl border border-solid-ff-green-20 bg-solid-ff-green-05 p-8">
-          <h3 class="mb-6 text-center text-lg font-bold text-stats-dark">
-            {{ $t("elections.wahlcheck.how_it_works.title") }}
-          </h3>
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div class="text-center">
-              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-solid-ff-green-20">
-                <span class="text-2xl font-bold text-ff-green">1</span>
-              </div>
-              <h4 class="mb-2 font-bold text-stats-dark">{{ $t("elections.wahlcheck.how_it_works.step1.title") }}</h4>
-              <p class="text-sm text-mid-gray">
-                {{ $t("elections.wahlcheck.how_it_works.step1.description") }}
-              </p>
-            </div>
-            <div class="text-center">
-              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-solid-ff-green-20">
-                <span class="text-2xl font-bold text-ff-green">2</span>
-              </div>
-              <h4 class="mb-2 font-bold text-stats-dark">{{ $t("elections.wahlcheck.how_it_works.step2.title") }}</h4>
-              <p class="text-sm text-mid-gray">
-                {{ $t("elections.wahlcheck.how_it_works.step2.description") }}
-              </p>
-            </div>
-            <div class="text-center">
-              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-solid-ff-green-20">
-                <span class="text-2xl font-bold text-ff-green">3</span>
-              </div>
-              <h4 class="mb-2 font-bold text-stats-dark">{{ $t("elections.wahlcheck.how_it_works.step3.title") }}</h4>
-              <p class="text-sm text-mid-gray">
-                {{ $t("elections.wahlcheck.how_it_works.step3.description") }}
-              </p>
-            </div>
+            </NuxtLink>
           </div>
-        </div>
+        </section>
+
+        <section class="border-t border-(--slk-border) pt-6">
+          <h2 class="mb-6 font-heading text-3xl font-bold text-stats-dark">
+            {{ $t("elections.wahlcheck.how_it_works.title") }}
+          </h2>
+          <ol class="grid gap-6 md:grid-cols-3">
+            <li v-for="step in instructionSteps" :key="step.number">
+              <!-- eslint-disable vue/no-v-html -- Icons are prepared from checked-in SVG assets. -->
+              <span
+                aria-hidden="true"
+                class="mx-auto mb-4 flex h-12 w-12 items-center justify-center text-stats-dark [&>svg]:h-full [&>svg]:w-full"
+                v-html="step.icon"
+              />
+              <!-- eslint-enable vue/no-v-html -->
+              <h3 class="mb-2 font-bold text-(--slk-text-strong)">
+                <span aria-hidden="true" class="mr-1 text-stats-dark">{{ step.number }}.</span>
+                {{ $t(`elections.wahlcheck.how_it_works.step${step.number}.title`) }}
+              </h3>
+              <p class="text-sm leading-relaxed text-(--slk-text-muted)">
+                {{ $t(`elections.wahlcheck.how_it_works.step${step.number}.description`) }}
+              </p>
+            </li>
+          </ol>
+        </section>
       </div>
     </div>
   </div>
@@ -208,10 +121,23 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import answerIcon from "~/assets/icons/icon_list_view.svg?raw";
+import weightingIcon from "~/assets/icons/icon_evaluation_criteria.svg?raw";
+import resultsIcon from "~/assets/icons/icon_impact.svg?raw";
+import { prepareButtonIcons } from "~/utils/buttonIcons";
 
 import type { z } from "zod";
 import type { PublicElectionListSchema } from "~/shared/contracts/elections";
 const fetchContent = useContentFetch();
+const instructionIcons = prepareButtonIcons(
+  { "answers.svg": answerIcon, "weighting.svg": weightingIcon, "results.svg": resultsIcon },
+  "canonical",
+);
+const instructionSteps = [
+  { number: 1, icon: instructionIcons.answers },
+  { number: 2, icon: instructionIcons.weighting },
+  { number: 3, icon: instructionIcons.results },
+] as const;
 const { wahlcheckTheme, wahlcheckQuery } = useWahlcheckTheme();
 
 const { $t, $locale } = useNuxtApp();
@@ -269,41 +195,3 @@ usePageSeo({
   description: $t("elections.wahlcheck.meta_description"),
 });
 </script>
-
-<style scoped>
-/* Custom animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Grid item animation */
-.grid > * {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.grid > *:nth-child(1) {
-  animation-delay: 0.1s;
-}
-.grid > *:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.grid > *:nth-child(3) {
-  animation-delay: 0.3s;
-}
-.grid > *:nth-child(4) {
-  animation-delay: 0.4s;
-}
-.grid > *:nth-child(5) {
-  animation-delay: 0.5s;
-}
-.grid > *:nth-child(6) {
-  animation-delay: 0.6s;
-}
-</style>

@@ -8,12 +8,10 @@
     :style="`scroll-margin-top: ${scrollMarginTop}px`"
   >
     <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs">
-      <div
-        class="grid min-h-[900px] overflow-hidden sm:min-h-[820px] xl:min-h-[540px] xl:grid-cols-12 xl:items-stretch"
-      >
+      <div class="grid overflow-hidden xl:grid-cols-12 xl:items-stretch">
         <div class="flex min-h-0 flex-col overflow-hidden border-gray-200 xl:col-span-5 xl:border-r">
           <div
-            class="group/cover relative flex min-h-[340px] flex-1 flex-col justify-end overflow-hidden bg-white xl:min-h-0"
+            class="group/cover relative flex min-h-[240px] flex-1 flex-col justify-end overflow-hidden bg-white xl:min-h-0"
           >
             <img
               v-if="coverImageUrl"
@@ -61,6 +59,7 @@
               :collection-slug="collection.id"
               :ars="ars"
               :base-url="baseUrl"
+              :summary="collectionSummary"
               :population="population"
               flush
             />
@@ -70,7 +69,7 @@
           </div>
         </div>
 
-        <div class="min-h-[380px] sm:min-h-[480px] xl:col-span-7 xl:min-h-0">
+        <div class="h-[380px] sm:h-[440px] xl:col-span-7">
           <div class="flex h-full flex-col overflow-hidden bg-white">
             <div v-if="primaryVisual" class="flex-none border-b border-gray-100 px-4 py-2.5">
               <p class="text-sm leading-snug font-bold text-gray-900">{{ primaryVisualTitle }}</p>
@@ -101,18 +100,19 @@
               </ClientOnly>
             </div>
             <div v-else-if="primaryVisualSpec" class="min-h-0 flex-1">
-              <ClientOnly>
-                <VegaChart
-                  :spec="primaryVisualSpec"
-                  :export-area-name="areaName"
-                  :export-ars="ars"
-                  :export-title="primaryVisualTitle"
-                  :export-subtitle="primaryVisualSubtitle"
-                  :export-collection-name="title"
-                  :export-updated-at="exportUpdatedAt"
-                  :export-attribution="exportAttribution"
-                />
-              </ClientOnly>
+              <CollectionVegaChart
+                :ars="ars"
+                :element="primaryVisual"
+                :collection-id="effectiveCollection.id"
+                :spec="primaryVisualSpec"
+                :export-area-name="areaName"
+                :export-ars="ars"
+                :export-title="primaryVisualTitle"
+                :export-subtitle="primaryVisualSubtitle"
+                :export-collection-name="title"
+                :export-updated-at="exportUpdatedAt"
+                :export-attribution="exportAttribution"
+              />
             </div>
             <DataImage
               v-else-if="primaryVisual?.type === 'image'"
@@ -133,6 +133,7 @@
           v-if="hasLoaded && journeySteps.length"
           :steps="journeySteps"
           :collection="collection"
+          :summary="collectionSummary"
           :ars="ars"
           :base-url="baseUrl"
           :population="population"
@@ -174,11 +175,7 @@
       </div>
 
       <div class="border-t border-gray-200 p-4">
-        <AttributionBlock
-          :summary="collectionSummary?.aggregate ?? null"
-          :sources="collectionSummary?.source_attributions ?? collectionSummary?.sourceAttributions ?? []"
-          embedded
-        />
+        <AttributionBlock :summary="collectionSummary" :collection="effectiveCollection" embedded />
       </div>
     </div>
   </section>
@@ -186,7 +183,8 @@
 
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { formatDataAttribution, resolveDataAttribution } from "~/utils/dataAttribution";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useCollectionRender } from "~/composables/useCollectionRender";
 import type { Collection, CollectionSummary, RenderElement } from "~/types/slz-api";
 import {
@@ -210,6 +208,8 @@ const props = defineProps<{
   population?: number | null | undefined;
   scrollMarginTop: number;
   areaName?: string | undefined;
+  eager?: boolean | undefined;
+  targeted?: boolean | undefined;
 }>();
 
 const sectionRef = ref<HTMLElement | null>(null);
@@ -217,6 +217,7 @@ const hasLoaded = ref(false);
 const collectionDetails = ref<Collection | null>(null);
 const collectionSummary = ref<CollectionSummary | null>(null);
 const runtimeConfig = useRuntimeConfig();
+const { t } = useSlzLocale();
 let observer: IntersectionObserver | null = null;
 
 const {
@@ -224,7 +225,7 @@ const {
   loading: renderLoading,
   error: renderError,
   load,
-  loadFromRender,
+  seedRender,
 } = useCollectionRender(props.baseUrl);
 
 const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
@@ -245,20 +246,11 @@ const color = computed(() => sectorColor(effectiveCollection.value));
 const kpi = computed(() => firstKpiElement(effectiveCollection.value));
 const summaryMetadata = computed(() => collectionSummary.value?.aggregate?.metadata ?? null);
 const exportUpdatedAt = computed(() => summaryMetadata.value?.effective_date ?? "");
-const exportAttribution = computed(() => {
-  const meta = summaryMetadata.value;
-  const aggregateAttribution = [meta?.attribution, meta?.license_name].filter(Boolean).join(" | ");
-  if (aggregateAttribution) return aggregateAttribution;
-  const sources = collectionSummary.value?.source_attributions ?? collectionSummary.value?.sourceAttributions ?? [];
-  return sources
-    .map((source) =>
-      [localizedText(source.source), source.attribution, source.license_name ?? source.licenseName]
-        .filter(Boolean)
-        .join(" | "),
-    )
-    .filter(Boolean)
-    .join("; ");
-});
+const exportAttribution = computed(() =>
+  formatDataAttribution(
+    resolveDataAttribution({ summary: collectionSummary.value, collection: effectiveCollection.value }, t),
+  ),
+);
 
 const loadedElements = computed(() => renderSteps.value.flatMap((step) => step.elements));
 
@@ -292,35 +284,37 @@ const journeySteps = computed(() => {
 
 const fallbackBackground = computed(() => `background: linear-gradient(135deg, ${color.value}18, ${color.value}36);`);
 
-async function loadSectionData() {
-  if (hasLoaded.value || !props.collection.id) return;
-  try {
-    if (props.ars) await loadFromRender(props.collection.id, props.ars);
-    if (!renderSteps.value.length) await load(props.collection.id, props.collection);
-    try {
-      collectionDetails.value = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`, {
-        params: { metadata_only: "true" },
-        timeout: 8000,
-      }).then((data) => normalizeCollection(data));
-    } catch {
-      collectionDetails.value = null;
-    }
-  } finally {
+const productData = await useCollectionPageData(
+  () => props.collection.id,
+  () => props.ars,
+  !!props.eager,
+);
+watch(
+  productData.data,
+  (data) => {
+    if (!data || data.collectionId !== props.collection.id || data.ars !== props.ars) return;
+    collectionDetails.value = data.collection ? normalizeCollection(data.collection) : null;
+    collectionSummary.value = data.summary;
+    if (data.render) seedRender(data.render);
+    else if (data.collection) void load(props.collection.id, data.collection);
+    else renderError.value = true;
     hasLoaded.value = true;
-  }
-
-  if (!props.ars) return;
-  try {
-    collectionSummary.value = await $fetch<CollectionSummary>(
-      `${props.baseUrl}/api/collections/${props.collection.id}/summary/`,
-      { params: { area: props.ars } },
-    );
-  } catch {
-    collectionSummary.value = null;
-  }
+  },
+  { immediate: true },
+);
+async function loadSectionData() {
+  if (hasLoaded.value || productData.status.value === "pending") return;
+  await productData.refresh();
 }
+watch(
+  () => props.targeted,
+  (targeted) => {
+    if (targeted && import.meta.client) void loadSectionData();
+  },
+);
 
 onMounted(() => {
+  if (props.targeted) void loadSectionData();
   if (!sectionRef.value || typeof IntersectionObserver === "undefined") {
     void loadSectionData();
     return;

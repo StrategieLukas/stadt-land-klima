@@ -1,0 +1,4 @@
+language: en-GB
+key: region.rating_eligibility_municipalities
+value: >-
+  Municipalities (ADE 6) with at least 5,000 residents that account for less than half the population of their municipal association (ADE 5). If there is no association, the population of the district (ADE 4) is used for comparison.

@@ -54,7 +54,7 @@
               v-for="item in page"
               :key="item.key"
               class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs"
-              :class="expanded ? 'h-[660px]' : 'h-[304px]'"
+              :class="expanded ? 'min-h-[660px]' : 'min-h-[304px]'"
             >
               <div class="border-b border-gray-100 px-4 py-2.5">
                 <p class="text-sm leading-snug font-bold text-gray-900">{{ item.title }}</p>
@@ -67,6 +67,7 @@
                 <KPICard
                   v-if="item.element.type === 'kpi'"
                   :element="item.element"
+                  :summary="summary"
                   :collection-slug="collection.id"
                   :ars="ars"
                   :base-url="baseUrl"
@@ -97,19 +98,25 @@
                     />
                   </ClientOnly>
                 </div>
-                <div v-else-if="item.spec" class="w-full overflow-auto" :class="expanded ? 'h-[568px]' : 'h-[220px]'">
-                  <ClientOnly>
-                    <VegaChart
-                      :spec="item.spec"
-                      :export-area-name="areaName"
-                      :export-ars="ars"
-                      :export-title="item.title"
-                      :export-subtitle="item.description"
-                      :export-collection-name="collectionTitle"
-                      :export-updated-at="exportUpdatedAt"
-                      :export-attribution="exportAttribution"
-                    />
-                  </ClientOnly>
+                <div
+                  v-else-if="item.spec"
+                  class="w-full overflow-auto"
+                  :class="item.element.type === 'histogram' ? '' : expanded ? 'h-[568px]' : 'h-[220px]'"
+                >
+                  <CollectionVegaChart
+                    :ars="ars"
+                    :element="item.element"
+                    :collection-id="collection.id"
+                    :spec="item.spec"
+                    :height="expanded ? 568 : 220"
+                    :export-area-name="areaName"
+                    :export-ars="ars"
+                    :export-title="item.title"
+                    :export-subtitle="item.description"
+                    :export-collection-name="collectionTitle"
+                    :export-updated-at="exportUpdatedAt"
+                    :export-attribution="exportAttribution"
+                  />
                 </div>
                 <div
                   v-else
@@ -129,13 +136,14 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { computed, nextTick, ref, watch } from "vue";
-import type { Collection, RenderElement } from "~/types/slz-api";
+import type { Collection, CollectionSummary, RenderElement } from "~/types/slz-api";
 import type { ResolvedStep } from "~/composables/useCollectionRender";
 import { injectAreaIntoSpec, localizedText, mapLibreSpec } from "~/utils/dataProducts";
 
 const props = defineProps<{
   steps: ResolvedStep[];
   collection: Collection;
+  summary?: CollectionSummary | null | undefined;
   ars: string;
   baseUrl: string;
   population?: number | null | undefined;

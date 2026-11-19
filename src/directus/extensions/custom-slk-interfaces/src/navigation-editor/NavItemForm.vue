@@ -55,6 +55,15 @@
         <label>Beschreibung <span class="hint">(optional, für Mega-Menü)</span></label>
         <input v-model="buffer.description" type="text" placeholder="Kurze Beschreibung..." />
       </div>
+      <div class="form-field full">
+        <label>Untermenü-Darstellung</label>
+        <select v-model="buffer.dropdown_layout">
+          <option value="">Automatisch</option>
+          <option value="preview">Liste mit Bildvorschau</option>
+          <option value="cards">Bildkarten</option>
+          <option value="list">Textliste</option>
+        </select>
+      </div>
     </div>
     <div class="form-actions">
       <button class="btn-save" @click="$emit('save')">Speichern</button>
@@ -74,6 +83,7 @@ interface EditBuffer {
   open_new_tab: boolean;
   image_id: string | null;
   description: string;
+  dropdown_layout: "" | "preview" | "cards" | "list";
 }
 
 defineProps<{

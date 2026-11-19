@@ -1,3 +1,4 @@
+import { readWithOrganisationDarkLogo } from "../../../src/frontend/server/utils/organisationLogos.js";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -10,6 +11,7 @@ import * as searchContracts from "../../../src/frontend/shared/contracts/search.
 import { CONTENT_LOCALE_QUERY } from "../../../src/frontend/shared/contentTranslation.js";
 import { MapResponseSchema } from "../../../src/frontend/shared/contracts/map.js";
 import { municipalityType } from "../../../src/frontend/shared/municipalityClassification.js";
+import * as contentContracts from "../../../src/frontend/shared/contracts/content.js";
 
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 type Row = Record<string, any>;
@@ -47,6 +49,7 @@ function load(path: string, dependencies: Record<string, unknown>, globals: Row 
           if (id === "~/shared/contentTranslation") return { CONTENT_LOCALE_QUERY };
           if (id === "~/server/utils/parseCms" || id === "./parseCms")
             return load("server/utils/parseCms.ts", { h3, zod: frontend("zod") });
+          if (id === "~/server/utils/organisationLogos") return { readWithOrganisationDarkLogo };
           if (id === "./publicQuery") return load("server/utils/publicQuery.ts", { h3 });
         }
         assert.ok(id in dependencies, `Unexpected dependency in ${path}: ${id}`);
@@ -81,6 +84,68 @@ function cms(respond: (command: Command) => Row | Row[] | Promise<Row | Row[]>) 
     },
   };
 }
+
+test("organisation teams expose opted-in leaders and checked contacts without private user fields", async () => {
+  const leader = {
+    id: "visible-user",
+    first_name: "Visible",
+    last_name: "Leader",
+    avatar: null,
+    show_on_team_page: true,
+    email: "private@example.org",
+    token: "private-token",
+  };
+  const transport = cms(() => [
+    {
+      team_key: "technik",
+      label: "Technology",
+      email: "team@example.org",
+      color: "#AFCA0B",
+      tasks: [],
+      head: leader,
+      deputy: { ...leader, id: "hidden-user", show_on_team_page: false },
+      contacts: [{ type: "phone", value: "+49 (30) 123-456", label: "Office", private_note: "hidden" }],
+      private_notes: "hidden",
+    },
+  ]);
+  const route = load("server/api/public/organisation-teams.get.ts", {
+    ...transport.dependencies,
+    "~/shared/contracts/content": contentContracts,
+  }).default;
+  const [team] = plain(await route({}));
+  assert.deepEqual(team.head, { id: "visible-user", first_name: "Visible", last_name: "Leader", avatar: null });
+  assert.equal(team.deputy, null);
+  assert.deepEqual(team.contacts, [{ type: "phone", value: "+49 (30) 123-456", label: "Office" }]);
+  assert.equal(JSON.stringify(team).includes("private"), false);
+  const fields = transport.commands[0]!.query.fields as string[];
+  assert.ok(fields.includes("head.show_on_team_page"));
+  assert.ok(fields.includes("deputy.avatar"));
+  assert.ok(!fields.some((field) => field === "*" || field.endsWith(".email") || field.endsWith(".token")));
+});
+
+test("organisation contacts preserve legacy email and reject injected links, headers and invalid phone numbers", () => {
+  const { organisationContacts, organisationContactHref } = load("utils/organisationContacts.ts", {
+    "~/shared/contracts/content": contentContracts,
+  });
+  const email = { type: "email", value: "team@example.org", label: null };
+  const phone = { type: "phone", value: "+49 (30) 123-456", label: "Office" };
+  assert.deepEqual(plain(organisationContacts("team@example.org", [email, phone])), [email, phone]);
+  assert.equal(organisationContactHref(phone), "tel:+4930123456");
+  assert.equal(organisationContactHref(email), "mailto:team@example.org");
+  assert.deepEqual(plain(organisationContacts("bad@example.org?bcc=private@example.org", [])), []);
+  for (const contact of [
+    { type: "email", value: "bad@example.org\r\nBcc: private@example.org" },
+    { type: "phone", value: "javascript:alert(1)" },
+    { type: "phone", value: "tel:+4930123" },
+    { type: "phone", value: "---" },
+    { type: "url", value: "https://example.org" },
+  ])
+    assert.equal(contentContracts.OrganisationContactSchema.safeParse(contact).success, false);
+  const legacy = contentContracts.OrganisationTeamSchema.parse({ team_key: "technik" });
+  assert.equal(legacy.head, null);
+  assert.equal(legacy.deputy, null);
+  assert.deepEqual(legacy.contacts, []);
+});
 
 test("public pagination returns all rows with stable order, preserving publication filters", async () => {
   const rows = Array.from({ length: 2001 }, (_, id) => ({ id }));

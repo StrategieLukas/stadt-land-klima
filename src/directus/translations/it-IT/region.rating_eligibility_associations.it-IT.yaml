@@ -1,0 +1,4 @@
+language: it-IT
+key: region.rating_eligibility_associations
+value: >-
+  Le associazioni di comuni (ADE 5; comuni amministrati insieme) con almeno 5.000 abitanti.

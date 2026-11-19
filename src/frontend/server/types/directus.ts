@@ -31,6 +31,7 @@ export interface DirectusOrganisation {
   name: string;
   link: string | null;
   logo: string | DirectusAssets | null;
+  logo_dark: string | DirectusAssets | null;
 }
 
 export interface DirectusAssets {

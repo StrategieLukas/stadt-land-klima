@@ -1,0 +1,77 @@
+collection: organisation_teams
+field: contacts
+type: json
+meta:
+  collection: organisation_teams
+  conditions: null
+  display: null
+  display_options: null
+  field: contacts
+  group: null
+  hidden: false
+  interface: list
+  note: Öffentliche Kontaktmöglichkeiten des Ressorts. Die bestehende E-Mail-Adresse wird weiterhin angezeigt.
+  options:
+    template: "{{label}} {{value}}"
+    limit: 20
+    fields:
+      - field: type
+        name: Kontaktart / Contact type / Tipo di contatto
+        type: string
+        meta:
+          interface: select-dropdown
+          required: true
+          options:
+            choices:
+              - text: E-Mail / Email
+                value: email
+              - text: Telefon / Phone / Telefono
+                value: phone
+      - field: value
+        name: Adresse oder Nummer / Address or number / Indirizzo o numero
+        type: string
+        meta:
+          interface: input
+          required: true
+          options:
+            trim: true
+      - field: label
+        name: Bezeichnung (optional) / Label (optional) / Etichetta (opzionale)
+        type: string
+        meta:
+          interface: input
+          options:
+            trim: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 10
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Kontaktdaten
+    - language: en-GB
+      translation: Contact details
+    - language: it-IT
+      translation: Recapiti
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: contacts
+  table: organisation_teams
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

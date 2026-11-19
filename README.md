@@ -14,22 +14,61 @@ Designs: https://www.figma.com/design/xOUA8jmhBBreYvmZRdlFSn/Stadt.Land.Klima!
 
 ## Operations CLI
 
-Install the locked operator tools with `npm ci --prefix bin`, then use
+Use the Node version pinned in `.node-version` before installing or running the
+CLI. It requires Node 24 or newer with native TypeScript support; Node 22.14.0
+cannot load the CLI's `.ts` entrypoint. With nvm, run these from the repository root:
+
+```bash
+nvm install "$(cat .node-version)"
+nvm use "$(cat .node-version)"
+npm ci --prefix bin
+```
+
+Then use
 `./bin/slk --help` or `./bin/slk <group> --help`. All former bin shell scripts are
 replaced by this TypeScript CLI. Commands default to development; select
 `--env production` explicitly for production. Put tool/provider arguments after
 `--`, for example `./bin/slk database sql --env production -- -c 'SELECT 1'`.
 
+Help includes a mint-green FIGlet header on color terminals; redirected output is
+plain text. `NO_COLOR` disables color and `FORCE_COLOR=1` enables it explicitly.
+Incomplete commands print the relevant help and exit with status 1 before any
+operation starts. `./bin/slk --version` reports the Git tag/revision and appends
+`-dirty` for tracked changes; source archives without Git metadata say so explicitly.
+
+Flush application caches for the selected local stack with:
+
+```bash
+./bin/slk cache flush
+./bin/slk cache flush --dry-run
+```
+
+The command clears Directus caches, restarts CMS/frontend memory caches and
+removes development Nuxt/Vite caches. It briefly interrupts both services and
+preserves Redis sessions/protection state, stored translations, search indexes
+and production output. See [cache operations](PODMAN.md#flushing-application-caches)
+for environment selection and scope.
+
 ## Development
 
-Prepare the host and four private dotenv files as described in [PODMAN.md](PODMAN.md#private-runtime-configuration), then:
+Prepare the host as described in [PODMAN.md](PODMAN.md#host-requirements). Image
+builds do not require runtime credentials; configure the four private dotenv files
+before starting services (existing checkouts may need to move their database and
+search configuration from `docker/` to `podman/`):
 
 ```bash
 ./bin/slk stack build --env development && ./bin/slk stack start --env development --import
 ```
 
+For an older development Podman, append
+`--unsafe-skip-podman-version-check` to each `stack` command. This explicit,
+development-only option skips the engine version check and prints a warning;
+all other preflights remain required. See [the override instructions](PODMAN.md#unsafe-development-version-override).
+
 Frontend: http://localhost:8080; CMS: http://localhost:8081. Frontend source
-hot-reloads. Import the code-first configuration using:
+hot-reloads. The first start requires `--import`; normal startup checks the schema
+before running custom migrations and reports this requirement on an empty database.
+Import the code-first configuration using:
 
 ```bash
 ./bin/slk stack compose --env development -- exec -T directus /directus/cli/import-all.sh
@@ -37,9 +76,12 @@ hot-reloads. Import the code-first configuration using:
 
 Configure the private CLI administrator token in the host Directus dotenv file.
 On a fresh installation, create it through authenticated CMS administration;
-bootstrap passwords do not reset persisted accounts. Use the service provisioner
-from the deployment checklist for private server/preview identities. Never put a
-CMS service token into public runtime configuration.
+bootstrap passwords do not reset persisted accounts. Development start/restart
+automatically provisions the private website identities and synchronizes the
+frontend credentials without rotating existing account tokens. Readiness checks
+the layout and catalogue APIs as well as the HTML response. Production identity
+setup remains the explicit service-provisioner workflow in the deployment checklist.
+Never put a CMS service token into public runtime configuration.
 
 ## Production and runtime configuration
 

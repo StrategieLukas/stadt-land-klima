@@ -1,6 +1,6 @@
 <template>
-  <div class="mt-8 rounded-xl border border-solid-gray-10 bg-white p-4 shadow-list sm:p-8">
-    <div class="mx-auto mb-6 max-w-2xl text-center">
+  <div class="mt-8 border border-(--slk-border) bg-(--slk-surface) p-4 sm:p-6">
+    <div class="mb-6 max-w-3xl">
       <h3 class="mb-2 text-xl font-bold text-stats-dark sm:text-2xl">
         {{ $t("elections.wahlcheck.results.share.title") }}
       </h3>
@@ -36,72 +36,75 @@
       <!-- Story Frame Preview -->
       <div class="flex flex-col items-center md:col-span-5">
         <div
-          class="group relative aspect-9/16 w-full max-w-[270px] overflow-hidden rounded-2xl shadow-2xl ring-4 ring-stats-dark/10 transition-transform hover:scale-[1.01] sm:max-w-[290px]"
-          :class="isDark ? 'bg-stats-dark' : 'bg-[#e8f4ec]'"
+          class="@container relative aspect-9/16 w-full max-w-[270px] overflow-hidden rounded-2xl shadow-2xl ring-4 ring-stats-dark/10 sm:max-w-[290px]"
         >
           <!-- Dynamic generated sharepic preview (HTML/CSS Based -> No Canvas permission needed on load!) -->
           <div
             v-if="activeTab === 'personal'"
             ref="personalSharepicRef"
             data-testid="wahlcheck-personal-sharepic"
-            class="relative flex h-full w-full flex-col overflow-hidden px-4 pt-4 pb-32 select-none"
+            class="sharepic-content relative flex h-full w-full flex-col gap-2 overflow-hidden px-4 pt-4 pb-16 select-none"
             :class="
               isDark
                 ? 'bg-linear-to-b from-[#0a2731] via-[#0e3a47] to-[#164c5d] text-white'
-                : 'bg-linear-to-b from-[#ffffff] via-[#f1f8f4] to-[#dfeee4] text-stats-dark'
+                : isLocalzero
+                  ? 'bg-linear-to-b from-[#ffffff] via-[#fff8df] to-[#ffefb5] text-stats-dark'
+                  : 'bg-linear-to-b from-[#ffffff] via-[#f1f8f4] to-[#dfeee4] text-stats-dark'
             "
           >
             <!-- Background Glow Effects -->
-            <div
-              class="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full blur-2xl"
-              :class="isDark ? 'bg-ff-green/20' : 'bg-ff-green/15'"
-            ></div>
-            <div
-              class="pointer-events-none absolute top-1/2 -left-12 h-44 w-44 rounded-full blur-3xl"
-              :class="isDark ? 'bg-stats-light/20' : 'bg-stats-light/35'"
-            ></div>
-            <div
-              class="pointer-events-none absolute -right-10 -bottom-10 h-40 w-40 rounded-full blur-2xl"
-              :class="isDark ? 'bg-orange/15' : 'bg-orange/10'"
-            ></div>
+            <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
+              <div
+                class="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full blur-2xl"
+                :class="isLocalzero ? 'bg-localzero-yellow/20' : isDark ? 'bg-ff-green/20' : 'bg-ff-green/15'"
+              ></div>
+              <div
+                class="pointer-events-none absolute top-1/2 -left-12 h-44 w-44 rounded-full blur-3xl"
+                :class="isDark ? 'bg-stats-light/20' : 'bg-stats-light/35'"
+              ></div>
+              <div
+                class="pointer-events-none absolute -right-10 -bottom-10 h-40 w-40 rounded-full blur-2xl"
+                :class="isDark ? 'bg-orange/15' : 'bg-orange/10'"
+              ></div>
+            </div>
 
             <!-- Top Header & Logo -->
-            <div class="relative z-10">
+            <div class="relative z-10 shrink-0">
               <div class="mb-1 flex items-center justify-between gap-2">
                 <div
-                  class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold"
+                  class="sharepic-brand inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold"
                   :class="
                     isDark
                       ? 'border border-white/15 bg-white/10 text-white/90 backdrop-blur-md'
                       : 'border border-stats-dark/15 bg-stats-dark/5 text-stats-dark backdrop-blur-md'
                   "
                 >
-                  <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-ff-green"></span>
-                  <span>Klimawahlcheck</span>
+                  <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-ff-green"></span>
+                  <span>{{ $t("elections.wahlcheck.results.share.brand_name") }}</span>
                 </div>
                 <!-- SLK Header Logo -->
                 <div class="flex h-8 items-center">
                   <img
                     v-if="isDark"
                     src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
-                    alt="Stadt.Land.Klima!"
-                    class="h-[26px] w-auto object-contain opacity-90 brightness-0 invert"
+                    :alt="$t('logo.alt')"
+                    class="sharepic-logo h-[26px] w-auto object-contain opacity-90 brightness-0 invert"
                   />
                   <img
                     v-else
                     src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-                    alt="Stadt.Land.Klima!"
-                    class="h-[26px] w-auto object-contain"
+                    :alt="$t('logo.alt')"
+                    class="sharepic-logo h-[26px] w-auto object-contain"
                   />
                 </div>
               </div>
 
               <!-- Election Title -->
               <h4
-                class="line-clamp-2 text-sm leading-tight font-extrabold sm:text-base"
+                class="sharepic-title line-clamp-2 text-sm leading-tight font-extrabold sm:text-base"
                 :class="isDark ? 'text-white' : 'text-stats-dark'"
               >
-                {{ election?.descriptor || "Klimawahlcheck" }}
+                {{ election?.descriptor || $t("elections.wahlcheck.results.share.brand_name") }}
               </h4>
               <p class="mt-0.5 text-[10px] font-bold" :class="isDark ? 'text-white/70' : 'text-mid-gray'">
                 {{ $t("elections.wahlcheck.results.share.my_matches") }}
@@ -109,11 +112,11 @@
             </div>
 
             <!-- Top 5 Candidates Cards (Mirrored from Candidates Overview) -->
-            <div data-testid="wahlcheck-sharepic-matches" class="relative z-10 my-auto space-y-1">
+            <div data-testid="wahlcheck-sharepic-matches" class="relative z-10 grid min-h-0 flex-1 auto-rows-fr gap-1">
               <div
                 v-for="(result, idx) in topCandidates"
                 :key="result.candidateId"
-                class="rounded-xl p-1.5 text-stats-dark shadow-md"
+                class="sharepic-match flex flex-col justify-center rounded-xl p-1.5 text-stats-dark shadow-md"
                 :class="
                   isDark
                     ? 'border border-white/20 bg-[#17212b] text-white backdrop-blur-md'
@@ -121,16 +124,16 @@
                 "
               >
                 <!-- Row 1: Rank Badge + Candidate Name + Party Tag -->
-                <div class="mb-1 flex items-center justify-between gap-1.5">
+                <div class="mb-0.5 flex items-center justify-between gap-1.5">
                   <div class="flex min-w-0 flex-1 items-center gap-1.5">
                     <span
-                      class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stats-dark text-[10px] font-bold text-white"
+                      class="sharepic-rank flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-stats-dark text-[10px] font-bold text-white"
                     >
                       {{ idx + 1 }}
                     </span>
                     <span
                       v-if="!isPartyElection"
-                      class="truncate text-xs leading-tight font-bold"
+                      class="sharepic-name truncate text-xs leading-tight font-bold"
                       :class="isDark ? 'text-white' : 'text-black'"
                     >
                       {{ getCandidateName(result.candidateId) }}
@@ -139,19 +142,21 @@
                       v-if="getCandidateParty(result.candidateId)"
                       :party="getCandidateParty(result.candidateId)"
                       :state="null"
-                      class="max-w-32 shrink-0 truncate px-1.5 py-0 text-[9px]"
+                      class="max-w-32 min-w-0 truncate px-1.5 py-0 text-[9px]"
                     />
                   </div>
                   <!-- Percentage -->
-                  <span class="shrink-0 text-xs font-extrabold text-ff-green">
+                  <span class="sharepic-percentage shrink-0 text-xs font-extrabold text-ff-green">
                     {{ result.percentage.toFixed(1) }}%
                   </span>
                 </div>
 
                 <!-- Row 2: Full width progress bar (Mirrored exactly from Candidate Overview) -->
-                <div class="h-2 w-full overflow-hidden rounded-full border border-solid-gray-30 bg-solid-gray-20">
+                <div
+                  class="sharepic-progress h-2 w-full overflow-hidden rounded-full border border-solid-gray-30 bg-solid-gray-20"
+                >
                   <div
-                    class="h-full rounded-full transition-all duration-700"
+                    class="h-full rounded-full"
                     :style="{
                       width: `${result.percentage}%`,
                       backgroundColor: getProgressColorHex(result.percentage),
@@ -166,24 +171,24 @@
                 class="py-4 text-center text-xs"
                 :class="isDark ? 'text-white/70' : 'text-mid-gray'"
               >
-                Keine Ergebnisse vorhanden
+                {{ $t("elections.wahlcheck.results.share.empty") }}
               </div>
             </div>
 
             <!-- Bottom CTA -->
-            <div data-testid="wahlcheck-sharepic-cta" class="absolute inset-x-4 bottom-20 z-10 pt-2 text-center">
+            <div data-testid="wahlcheck-sharepic-cta" class="relative z-10 shrink-0 text-center">
               <div
                 v-if="isDark"
-                class="flex items-center justify-center gap-1 rounded-xl border border-white/20 bg-[#17212b] p-2 text-[11px] leading-tight font-bold text-white shadow-md"
+                class="sharepic-cta-content flex flex-wrap items-center justify-center gap-1 rounded-xl border border-white/20 bg-[#17212b] p-2 text-[11px] leading-tight font-bold text-white shadow-md"
               >
-                <span>👉 {{ $t("elections.wahlcheck.results.share.cta_button") }}</span>
+                <span><span aria-hidden="true">👉</span> {{ $t("elections.wahlcheck.results.share.cta_button") }}</span>
                 <span class="text-light-green underline">{{ sharepicCtaUrl }}</span>
               </div>
               <div
                 v-else
-                class="flex items-center justify-center gap-1 rounded-xl bg-stats-dark p-2 text-[11px] leading-tight font-bold text-white shadow-md"
+                class="sharepic-cta-content flex flex-wrap items-center justify-center gap-1 rounded-xl bg-stats-dark p-2 text-[11px] leading-tight font-bold text-white shadow-md"
               >
-                <span>👉 {{ $t("elections.wahlcheck.results.share.cta_button") }}</span>
+                <span><span aria-hidden="true">👉</span> {{ $t("elections.wahlcheck.results.share.cta_button") }}</span>
                 <span class="text-stats-light underline">{{ sharepicCtaUrl }}</span>
               </div>
             </div>
@@ -198,22 +203,18 @@
           />
 
           <!-- Loading Placeholder -->
-          <div v-else class="flex h-full w-full flex-col items-center justify-center p-4 text-center text-white/80">
-            <span class="loading mb-3 loading-lg loading-spinner text-primary"></span>
-            <span class="text-xs">Lade Sharepic...</span>
-          </div>
-
-          <!-- Story badge indicator -->
           <div
-            class="pointer-events-none absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-semibold text-white backdrop-blur-xs"
+            v-else
+            class="flex h-full w-full flex-col items-center justify-center p-4 text-center text-(--slk-text-muted)"
           >
-            <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-ff-green"></span>
-            <span>9:16 Story</span>
+            <span class="loading mb-3 loading-lg loading-spinner text-primary"></span>
+            <span class="text-xs">{{ $t("elections.wahlcheck.results.share.loading") }}</span>
           </div>
         </div>
 
-        <p class="mt-3 text-center text-xs text-solid-gray-50">
-          Format optimal für Instagram, TikTok & WhatsApp Status
+        <p class="mt-3 text-center text-xs text-(--slk-text-muted)">
+          {{ $t("elections.wahlcheck.results.share.story_format") }} ·
+          {{ $t("elections.wahlcheck.results.share.format_hint") }}
         </p>
       </div>
 
@@ -223,7 +224,7 @@
         <Transition name="fade">
           <div
             v-if="toastMessage"
-            class="flex items-center gap-2.5 rounded-xl border border-solid-ff-green-30 bg-solid-ff-green-10 p-3.5 text-xs font-medium text-stats-dark sm:text-sm"
+            class="flex items-center gap-2.5 border border-(--slk-border) bg-(--slk-surface-subdued) p-3.5 text-xs font-medium text-stats-dark sm:text-sm"
           >
             <svg class="h-5 w-5 shrink-0 text-ff-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -232,108 +233,79 @@
           </div>
         </Transition>
 
-        <!-- Compact social share buttons -->
-        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <button
+        <!-- Social share buttons -->
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <CanonicalButton
             type="button"
             :disabled="isGenerating"
-            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
-            :aria-label="$t('elections.wahlcheck.results.share.button_insta')"
+            :aria-busy="isGenerating"
+            :label="$t('elections.wahlcheck.results.share.button_insta')"
+            icon-slug="mdi:instagram"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             :title="$t('elections.wahlcheck.results.share.button_insta')"
             @click="shareToStory"
-          >
-            <span v-if="isGenerating" class="loading loading-xs loading-spinner"></span>
-            <img v-else src="~/assets/icons/icon_instagram.svg" alt="" class="h-5 w-5" />
-            <span>{{ $t("elections.wahlcheck.results.share.button_insta") }}</span>
-          </button>
+          />
 
-          <button
+          <CanonicalButton
             type="button"
-            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
-            :aria-label="$t('elections.wahlcheck.results.share.button_whatsapp')"
+            :label="$t('elections.wahlcheck.results.share.button_whatsapp')"
+            icon-slug="mdi:whatsapp"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             :title="$t('elections.wahlcheck.results.share.button_whatsapp')"
             @click="shareToWhatsApp"
-          >
-            <img src="~/assets/icons/icon_whatsapp.svg" alt="" class="h-5 w-5" />
-            <span>{{ $t("elections.wahlcheck.results.share.button_whatsapp") }}</span>
-          </button>
+          />
 
-          <button
+          <CanonicalButton
             type="button"
-            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
-            :aria-label="$t('elections.wahlcheck.results.share.button_linkedin')"
+            :label="$t('elections.wahlcheck.results.share.button_linkedin')"
+            icon-slug="mdi:linkedin"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             :title="$t('elections.wahlcheck.results.share.button_linkedin')"
             @click="shareToLinkedIn"
-          >
-            <img src="~/assets/icons/icon_linkedin.svg" alt="" class="h-5 w-5" />
-            <span>{{ $t("elections.wahlcheck.results.share.button_linkedin") }}</span>
-          </button>
+          />
 
-          <button
+          <CanonicalButton
             type="button"
             :disabled="isGenerating"
-            class="btn flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white btn-outline px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
-            :aria-label="$t('elections.wahlcheck.results.share.button_tiktok')"
+            :aria-busy="isGenerating"
+            :label="$t('elections.wahlcheck.results.share.button_tiktok')"
+            icon-slug="simple-icons:tiktok"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             :title="$t('elections.wahlcheck.results.share.button_tiktok')"
             @click="shareToTikTok"
-          >
-            <img v-if="!isGenerating" src="~/assets/icons/icon_tiktok.svg" alt="" class="h-5 w-5" />
-            <span v-else class="loading loading-xs loading-spinner"></span>
-            <span>{{ $t("elections.wahlcheck.results.share.button_tiktok") }}</span>
-          </button>
+          />
         </div>
 
         <!-- Secondary Actions Grid -->
         <div class="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
           <!-- Download Image Button -->
-          <button
-            type="button"
+          <CanonicalButton
             data-testid="wahlcheck-sharepic-download"
             :disabled="isGenerating"
-            class="btn flex items-center justify-center gap-2 rounded-xl btn-outline px-3 py-2.5 text-xs font-semibold btn-secondary sm:text-sm"
+            :label="$t('elections.wahlcheck.results.share.button_download')"
+            icon-slug="mdi:download"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             @click="downloadActiveSharepic"
-          >
-            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            <span>{{ $t("elections.wahlcheck.results.share.button_download") }}</span>
-          </button>
+          />
 
           <!-- Copy Link Button -->
-          <button
-            type="button"
-            class="btn flex items-center justify-center gap-2 rounded-xl btn-outline px-3 py-2.5 text-xs font-semibold transition-colors sm:text-sm"
-            :class="linkCopied ? 'border-ff-green bg-solid-ff-green-10 text-ff-green' : 'btn-secondary'"
-            @click="copyLink"
-          >
-            <svg
-              v-if="linkCopied"
-              class="h-4 w-4 shrink-0 text-ff-green"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <svg v-else class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
-            <span>{{
+          <CanonicalButton
+            data-testid="wahlcheck-share-link-copy"
+            :label="
               linkCopied
-                ? $t("elections.wahlcheck.results.share.link_copied")
-                : $t("elections.wahlcheck.results.share.button_copy_link")
-            }}</span>
-          </button>
+                ? $t('elections.wahlcheck.results.share.link_copied')
+                : $t('elections.wahlcheck.results.share.button_copy_link')
+            "
+            :icon-slug="linkCopied ? 'mdi:check' : 'mdi:content-copy'"
+            :color="isLocalzero ? 'yellow' : linkCopied ? 'green' : 'dark'"
+            variant="outline"
+            @click="copyLink"
+          />
         </div>
 
         <!-- Native Web Share (if browser supports it) -->
@@ -602,8 +574,8 @@ async function shareToStory() {
   ) {
     try {
       await navigator.share({
-        title: props.election?.descriptor || "Klimawahlcheck",
-        text: `${$t("elections.wahlcheck.results.share.my_matches")}: ${props.election?.descriptor || "Klimawahlcheck"}`,
+        title: props.election?.descriptor || $t("elections.wahlcheck.results.share.brand_name"),
+        text: `${$t("elections.wahlcheck.results.share.my_matches")}: ${props.election?.descriptor || $t("elections.wahlcheck.results.share.brand_name")}`,
         files: [file],
       });
       return;
@@ -632,7 +604,7 @@ async function shareToStory() {
 
 // Share to WhatsApp
 function shareToWhatsApp() {
-  const electionTitle = props.election?.descriptor || "Klimawahlcheck";
+  const electionTitle = props.election?.descriptor || $t("elections.wahlcheck.results.share.brand_name");
   const shareUrl = getShareUrl();
   let text = $t(
     isPartyElection.value
@@ -669,7 +641,7 @@ async function shareViaWebShare() {
 
   const file = await getActiveSharepicFile();
   const shareUrl = getShareUrl();
-  const title = props.election?.descriptor || "Klimawahlcheck";
+  const title = props.election?.descriptor || $t("elections.wahlcheck.results.share.brand_name");
   const text = $t(
     isPartyElection.value
       ? "elections.wahlcheck.results.share.whatsapp_text_parties"
@@ -715,6 +687,49 @@ function showToast(message: string) {
 </script>
 
 <style scoped>
+/* Fit all five matches above the story safe area even in narrow iframe previews. */
+@container (max-width: 250px) {
+  .sharepic-content {
+    gap: 0.375rem;
+    padding-top: 0.5rem;
+    padding-inline: 0.5rem;
+  }
+
+  .sharepic-brand {
+    gap: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    font-size: 0.5rem;
+  }
+
+  .sharepic-logo {
+    height: 1.375rem;
+  }
+
+  .sharepic-match {
+    padding: 0.25rem;
+  }
+
+  .sharepic-name,
+  .sharepic-percentage,
+  .sharepic-cta-content {
+    font-size: 0.625rem;
+  }
+
+  .sharepic-title {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .sharepic-rank {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .sharepic-progress {
+    height: 0.375rem;
+  }
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

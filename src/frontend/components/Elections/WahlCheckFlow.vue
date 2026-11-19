@@ -1,11 +1,11 @@
 <template>
   <div
     :data-wahlcheck-theme="wahlcheckTheme"
-    class="elections-flow bg-mild-white"
+    class="elections-flow bg-(--slk-page) text-(--slk-text)"
     :class="{ 'min-h-screen': !embedded }"
   >
     <!-- Header -->
-    <div class="border-b border-solid-gray-10 bg-white shadow-xs">
+    <div class="border-b border-(--slk-border) bg-(--slk-surface)">
       <div class="mx-auto max-w-6xl px-4 py-4 text-center">
         <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
         <p v-if="electionData?.election" class="text-sm text-mid-gray">
@@ -57,24 +57,34 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
+      <div v-else-if="error" class="my-12 border border-red bg-solid-red-10 p-8 text-center text-red">
         <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
-        <NuxtLink to="/" class="btn btn-primary">{{ $t("generic.back_to_home") }}</NuxtLink>
+        <CanonicalButton
+          href="/"
+          :label="$t('generic.back_to_home')"
+          icon-slug="mdi:home"
+          :color="isLocalzero ? 'yellow' : 'bright-green'"
+          text-color="black"
+        />
       </div>
 
       <!-- Not Found / Not Public -->
       <div
         v-else-if="!electionData?.election"
-        class="my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center text-orange-800"
+        class="my-12 border border-orange bg-solid-orange-10 p-8 text-center text-orange-800"
       >
         <h2 class="mb-4 text-2xl font-bold">{{ $t("elections.no_public_election.title") }}</h2>
         <p class="mb-4">
           {{ $t("elections.no_public_election.description") }}
         </p>
-        <NuxtLink :to="{ path: '/elections/wahlcheck', query: wahlcheckQuery }" class="btn btn-secondary">{{
-          $t("elections.back_to_wahlcheck_overview")
-        }}</NuxtLink>
+        <CanonicalButton
+          :href="overviewHref"
+          :label="$t('elections.back_to_wahlcheck_overview')"
+          icon-slug="mdi:arrow-left"
+          :color="isLocalzero ? 'yellow' : 'dark'"
+          variant="outline"
+        />
       </div>
 
       <!-- Steps with transition (Requirement 3) -->
@@ -128,7 +138,7 @@ import { clientDiagnostic, clientFailure } from "~/shared/securityLog";
 
 import type { WahlcheckCompletionRequest } from "~/shared/contracts/submissions";
 import { computed, ref, onMounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import { routeSlug } from "~/shared/routeValues";
 import { checkedWahlcheckState } from "~/shared/contracts/elections";
@@ -140,7 +150,9 @@ withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 const embedScroll = useWahlcheckEmbedScroll();
 
 const route = useRoute();
-const { wahlcheckTheme, wahlcheckQuery } = useWahlcheckTheme();
+const router = useRouter();
+const { isLocalzero, wahlcheckTheme, wahlcheckQuery } = useWahlcheckTheme();
+const overviewHref = computed(() => router.resolve({ path: "/elections/wahlcheck", query: wahlcheckQuery.value }).href);
 const { $t } = useNuxtApp();
 const municipalitySlug = routeSlug(route.params.municipalitySlug);
 if (!municipalitySlug) throw createError({ statusCode: 404, statusMessage: "Not found" });

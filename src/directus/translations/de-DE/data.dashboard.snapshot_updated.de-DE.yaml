@@ -1,0 +1,3 @@
+language: de-DE
+key: data.dashboard.snapshot_updated
+value: "Die Daten haben sich geändert. Die Ansicht wurde aktualisiert und die Auswahl aufgehoben."

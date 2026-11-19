@@ -1,7 +1,9 @@
 import { loginWebsite } from "../lib/browser.js";
+import { expect } from "@playwright/test";
+import { assertCanonicalButtonStyles } from "../lib/canonicalButtons.js";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import type { Browser } from "playwright";
+import type { Browser, Page, Route } from "playwright";
 import { assert, assertIncludes, assertNotIncludes } from "../lib/assert.js";
 import { newContext, waitForHydration } from "../lib/browser.js";
 import { openBlokkliField, saveBlokkliField } from "../lib/blokkli.js";
@@ -12,6 +14,223 @@ import { visitDaysAway, visitHasEnded } from "../../../../src/frontend/shared/to
 import { formatEventDateTimeRange, getEventPhase } from "../../../../src/frontend/shared/eventDateTime.js";
 
 type RecordId = { id: string | number; slug?: string };
+
+export async function assertGalleryCentered(page: Page): Promise<void> {
+  const geometry = await page.locator("dialog[open]").evaluate((dialog) => {
+    const bounds = dialog.getBoundingClientRect();
+    return {
+      centered:
+        Math.abs(bounds.x + bounds.width / 2 - innerWidth / 2) <= 2 &&
+        Math.abs(bounds.y + bounds.height / 2 - innerHeight / 2) <= 2,
+      contained: bounds.left >= 0 && bounds.top >= 0 && bounds.right <= innerWidth && bounds.bottom <= innerHeight,
+    };
+  });
+  assert(geometry.centered && geometry.contained, "Gallery must be centered in both directions and fit the viewport");
+}
+
+export async function assertPostcardGeometry(page: Page, width: number): Promise<void> {
+  const prints = page.locator(".tour-explorer__prints:visible");
+  await page.waitForFunction(() => {
+    const prints = [...document.querySelectorAll<HTMLElement>(".tour-explorer__prints")].find(
+      (element) => element.offsetWidth > 0,
+    );
+    return prints && !prints.classList.contains("is-loading");
+  });
+  const geometry = await prints.evaluate((element) => {
+    const figures = [...element.querySelectorAll("figure")].map((figure) => figure.getBoundingClientRect());
+    const map = document.querySelector(".tour-explorer__scene") ?? element.parentElement!;
+    const scene = map.getBoundingClientRect();
+    return {
+      width: element.getBoundingClientRect().width,
+      separated: figures.length === 2 && figures[0]!.right < figures[1]!.left,
+      contained: figures.every(
+        (bounds) =>
+          bounds.left >= scene.left &&
+          bounds.right <= scene.right &&
+          bounds.top >= scene.top &&
+          bounds.bottom <= scene.bottom,
+      ),
+      images: [...element.querySelectorAll("img")].map((image) => ({
+        width: image.clientWidth,
+        naturalWidth: image.naturalWidth,
+        ratio: image.clientWidth / image.clientHeight,
+        naturalRatio: image.naturalWidth / image.naturalHeight,
+      })),
+    };
+  });
+  assert(geometry.separated && geometry.contained, `${width}px postcards must remain separated and inside the scene`);
+  assert(
+    geometry.images.every((image) => Math.abs(image.ratio - image.naturalRatio) < 0.015),
+    `${width}px postcards must retain natural image proportions`,
+  );
+  if (width >= 1280) {
+    assert(
+      Math.abs(geometry.width - Math.min(640, width * 0.48)) <= 8,
+      "Desktop pairs should use the enlarged 40rem/48vw container",
+    );
+    assert(
+      geometry.images.some((image) => image.width >= 220 || image.naturalWidth < 220),
+      "Desktop paired photos should be visibly larger",
+    );
+  }
+}
+
+export async function assertPostcardLoading(
+  browser: Browser,
+  frontendUrl: string,
+  slug: string,
+  stopSlug: string,
+  firstImageId: string,
+  secondImageId: string,
+  stopIndex = 0,
+): Promise<void> {
+  for (const failSecond of [false, true]) {
+    const context = await newContext(browser, { reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
+    try {
+      const page = await context.newPage();
+      const held = new Map<string, Route>();
+      let hold = true;
+      await page.route("**/api/tour-media/*", async (route) => {
+        const url = new URL(route.request().url());
+        const id = url.pathname.split("/").pop()!;
+        if (
+          hold &&
+          [firstImageId, secondImageId].includes(id) &&
+          url.searchParams.get("fit") === "contain" &&
+          url.searchParams.get("width") === "900"
+        )
+          held.set(id, route);
+        else await route.continue();
+      });
+      await page.goto(`${frontendUrl}/projects/tours/${slug}#stop-${stopSlug}`, {
+        waitUntil: "domcontentloaded",
+      });
+      await waitForHydration(page);
+      const stopLinks = page.locator(".tour-explorer__nav a");
+      await stopLinks.nth(stopIndex).click();
+      await expect.poll(() => held.size, { timeout: 15_000 }).toBe(2);
+      const group = page.locator(".tour-explorer__prints").nth(stopIndex);
+      const isHiddenAndInert = () =>
+        group.evaluate(
+          (element) =>
+            element instanceof HTMLElement &&
+            element.inert &&
+            element.getAttribute("aria-hidden") === "true" &&
+            getComputedStyle(element).opacity === "0",
+        );
+      assert(await isHiddenAndInert(), "Postcard frames and captions must remain hidden and inert during loading");
+      assert(
+        await group
+          .locator("button")
+          .first()
+          .evaluate((button) => {
+            button.focus();
+            return document.activeElement !== button;
+          }),
+        "Pending postcard buttons must not receive focus",
+      );
+      const surroundings = () =>
+        page.evaluate(() =>
+          [
+            document.querySelector(".tour-explorer__scene"),
+            document.querySelector(".tour-collage:not([style*='display: none'])"),
+          ].map((element) => {
+            const bounds = element!.getBoundingClientRect();
+            return { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height };
+          }),
+        );
+      const before = await surroundings();
+      await held.get(firstImageId)!.continue();
+      await group
+        .locator("img")
+        .first()
+        .evaluate((image: HTMLImageElement) => image.decode());
+      assert(await isHiddenAndInert(), "A decoded postcard must wait for its neighboring preview");
+      hold = false;
+      if (failSecond) await held.get(secondImageId)!.abort("failed");
+      else await held.get(secondImageId)!.continue();
+      await expect.poll(isHiddenAndInert).toBe(false);
+      const after = await surroundings();
+      assert(
+        before.every((bounds, index) =>
+          Object.entries(bounds).every(
+            ([key, value]) => Math.abs(value - after[index]![key as keyof typeof bounds]) <= 1,
+          ),
+        ),
+        "Revealing postcards must not move or resize the map and story card",
+      );
+      assert(
+        await group.evaluate(
+          (element) =>
+            getComputedStyle(element).transitionDuration === "0s" && getComputedStyle(element).animationName === "none",
+        ),
+        "Postcards should reveal without loading motion",
+      );
+      if (failSecond) {
+        assert(
+          await group
+            .locator("figure")
+            .last()
+            .evaluate(
+              (element) =>
+                element instanceof HTMLElement && element.inert && getComputedStyle(element).visibility === "hidden",
+            ),
+          "Failed postcards must remain hidden and inert",
+        );
+        assert(await group.locator("button").first().isVisible(), "A failed neighbor must not hide a decoded photo");
+      } else {
+        await assertPostcardGeometry(page, 1440);
+        // Remount previews with already downloaded assets; readiness cannot depend on a new load event.
+        await page.getByRole("radio", { name: "Liste", exact: true }).click();
+        await page.getByRole("radio", { name: "Karte", exact: true }).click();
+        await expect.poll(isHiddenAndInert).toBe(false);
+        await assertPostcardGeometry(page, 1440);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+  const context = await newContext(browser, { reducedMotion: "reduce" });
+  try {
+    const page = await context.newPage();
+    const held: Route[] = [];
+    await page.route("**/api/tour-media/*", async (route) => {
+      const url = new URL(route.request().url());
+      if (
+        [firstImageId, secondImageId].includes(url.pathname.split("/").pop()!) &&
+        url.searchParams.get("fit") === "contain"
+      )
+        held.push(route);
+      else await route.continue();
+    });
+    await page.goto(`${frontendUrl}/projects/tours/${slug}#stop-${stopSlug}`, {
+      waitUntil: "domcontentloaded",
+    });
+    await waitForHydration(page);
+    const links = page.locator(".tour-explorer__nav a");
+    await links.nth(stopIndex).click();
+    await expect.poll(() => held.length, { timeout: 15_000 }).toBe(2);
+    await links.nth((stopIndex + 1) % (await links.count())).click();
+    await Promise.all(held.map((route) => route.continue()));
+    await page
+      .locator(".tour-explorer__prints")
+      .nth(stopIndex)
+      .locator("img")
+      .evaluateAll((images) => Promise.all(images.map((image) => (image as HTMLImageElement).decode())));
+    assert(
+      (await links.nth((stopIndex + 1) % (await links.count())).getAttribute("aria-current")) === "location",
+      "Completing previous-stop images must not change the active stop",
+    );
+    assert(
+      await page.locator(".tour-explorer__prints").nth(stopIndex).isHidden(),
+      "Previous-stop postcards must stay hidden when their downloads finish",
+    );
+    await links.nth(stopIndex).click();
+    await assertPostcardGeometry(page, 1440);
+  } finally {
+    await context.close();
+  }
+}
 
 async function pageHtml(url: string): Promise<string> {
   const response = await fetch(url);
@@ -836,6 +1055,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           }),
         );
         assert(postcardBounds[0].right < postcardBounds[1].left, "Two postcards should remain separated");
+        await assertPostcardGeometry(page, 1440);
         await postcards.first().hover();
         assert(
           await postcards.first().evaluate((el) => getComputedStyle(el).zIndex === "20"),
@@ -846,6 +1066,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           "Map postcards should retain photo credits",
         );
         const reportAction = page.locator(".tour-collage:visible .tour-collage__primary");
+        await assertCanonicalButtonStyles(page);
         assert(
           (await reportAction.evaluate((el) => getComputedStyle(el).backgroundColor)) === "rgb(175, 202, 11)",
           "Light-mode visit reports should retain brand lime green",
@@ -860,8 +1081,8 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         assert(
           (await reportAction
             .locator(".canonical-button__icon")
-            .evaluate((el) => getComputedStyle(el).borderRightColor)) === "rgb(255, 255, 255)",
-          "Light-mode icon dividers should match the white label",
+            .evaluate((el) => getComputedStyle(el).borderRightColor)) === "rgb(220, 229, 234)",
+          "Light-mode icon dividers should use the soft off-white inverse content color",
         );
         await page.evaluate(() => {
           document.documentElement.dataset.theme = "staedteChallengeDark";
@@ -916,9 +1137,10 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         assert(
           (await reportAction
             .locator(".canonical-button__icon")
-            .evaluate((el) => getComputedStyle(el).borderRightColor)) === "rgb(16, 24, 32)",
-          "Dark-mode icon dividers should use the dark theme page color",
+            .evaluate((el) => getComputedStyle(el).borderRightColor)) === "rgb(184, 196, 204)",
+          "Dark-mode icon dividers should use the soft gray-white theme content color",
         );
+        await assertCanonicalButtonStyles(page);
         await page.evaluate(() => {
           document.documentElement.dataset.theme = "staedteChallemgeTheme";
         });
@@ -926,6 +1148,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         await secondPreview.click();
         const dialog = page.locator("dialog[open]");
         assert(await dialog.isVisible(), "Map media should open in a dialog");
+        await assertGalleryCentered(page);
         assert(
           await dialog.evaluate(
             (el) =>
@@ -951,6 +1174,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           (await dialog.evaluate((el) => getComputedStyle(el).backgroundColor)) !== lightBackground,
           "Carousel backgrounds should respond to theme changes",
         );
+        await assertGalleryCentered(page);
         await page.evaluate(() => {
           document.documentElement.dataset.theme = "staedteChallemgeTheme";
         });
@@ -975,6 +1199,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           return image && image.naturalHeight > image.naturalWidth && image.complete;
         });
         const portraitFrame = await dialog.boundingBox();
+        await assertGalleryCentered(page);
         assert(
           landscapeFrame &&
             portraitFrame &&
@@ -988,6 +1213,12 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           await secondPreview.evaluate((el) => el === document.activeElement),
           "Closing should restore focus to the preview",
         );
+        await secondPreview.click();
+        for (const width of [960, 768, 390, 1440]) {
+          await page.setViewportSize({ width, height: 900 });
+          await assertGalleryCentered(page);
+        }
+        await page.keyboard.press("Escape");
         await page.goto(
           `${config.frontendUrl}/news/${ids.report.slug}#block-${(await admin.readItem<{ uuid: string }>("blocks", ids.blocks[0].id)).uuid}`,
         );
@@ -1195,10 +1426,17 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
               ),
             `${width}px tour heading should not overlap the artwork`,
           );
+          if (width >= 768) await assertPostcardGeometry(page, width);
         }
       } finally {
         await context.close();
       }
+    });
+    await runner.step("Tour series: decoded postcards and loading stability", async () => {
+      assert(ids.file && ids.landscape, "Image fixtures must exist");
+      const portraitId = String(ids.file.id);
+      const landscapeId = String(ids.landscape.id);
+      await assertPostcardLoading(browser, config.frontendUrl, slug, ids.events[0].slug!, portraitId, landscapeId);
     });
     await runner.step("Tour series: report actions follow publication status", async () => {
       assert(ids.eventReport && ids.articles[0], "Report-action fixtures must exist");

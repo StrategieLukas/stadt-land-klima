@@ -1,0 +1,3 @@
+language: de-DE
+key: data.dashboard.product_count
+value: ":count Datenprodukte"

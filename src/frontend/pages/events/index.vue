@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-2 py-6 sm:px-4 sm:py-8">
+  <div class="w-full py-6 sm:py-8">
     <header class="mb-10">
       <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t("events.title") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("events.hero.description") }}</p>
@@ -13,7 +13,7 @@
     >
       <div
         ref="mobilePillStrip"
-        class="flex w-full gap-2 overflow-x-auto py-2"
+        class="slk-timeline-links flex gap-1.5 overflow-x-auto py-1.5"
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
         <a

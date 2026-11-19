@@ -649,7 +649,15 @@ permissions:
     validation: {}
     presets: null
     fields:
-      - '*'
+      - team_key
+      - label
+      - email
+      - color
+      - tasks
+      - sort
+      - head
+      - deputy
+      - contacts
   - collection: organisations
     action: read
     permissions: null
@@ -660,6 +668,7 @@ permissions:
       - link
       - short_description
       - logo
+      - logo_dark
       - id
       - instagram
       - linkedin

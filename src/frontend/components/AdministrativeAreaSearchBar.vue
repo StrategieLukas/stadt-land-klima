@@ -1,16 +1,20 @@
 <template>
   <!-- Search Bar: stacked on mobile (filter below), side-by-side on sm+ (filter right) -->
-  <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+  <div ref="searchRoot" class="flex w-full flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
     <!-- Input + label -->
     <form class="relative min-w-0 flex-1 overflow-visible" @submit.prevent>
       <div class="flex w-full flex-col">
-        <label for="admin-search-input" :class="compact ? 'sr-only' : 'flex items-center justify-between px-1 py-2'">{{
+        <label :for="inputId" :class="compact ? 'sr-only' : 'flex items-center justify-between px-1 py-2'">{{
           translatedLabel
         }}</label>
         <input
-          id="admin-search-input"
+          :id="inputId"
           ref="inputRef"
           v-model="q"
+          data-area-search-input
+          :aria-controls="resultsId"
+          :aria-expanded="dropdownOpen"
+          aria-haspopup="dialog"
           class="input w-full border-stats-dark bg-white pr-12 text-base focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
           name="q"
           type="text"
@@ -18,24 +22,20 @@
           :placeholder="translatedPlaceholder"
           @input="onInput"
           @focus="handleFocus"
-          @keydown.down.prevent="moveFocus(1)"
-          @keydown.up.prevent="moveFocus(-1)"
-          @keydown.enter.prevent="goToFocused()"
+          @click="handleFocus"
+          @keydown="handleKeydown"
         />
       </div>
 
-      <!-- Teleport dropdown to body to escape stacking context -->
+      <!-- Escape page stacking contexts while staying below the fixed header (z-50). -->
       <Teleport to="body">
         <div
-          v-if="
-            (visibleSuggestions.length ||
-              isLoading ||
-              (searchFocused && q.trim() && !isLoading && !visibleSuggestions.length)) &&
-            searchFocused &&
-            dropdownPosition.show
-          "
+          v-if="dropdownOpen"
+          :id="resultsId"
           ref="dropdown"
-          class="slk-area-search-dropdown fixed z-99999 max-h-60 overflow-y-auto rounded-md border border-gray-200 bg-white font-sans shadow-lg"
+          role="dialog"
+          :aria-label="translatedLabel"
+          class="slk-area-search-dropdown fixed z-40 max-h-60 overflow-y-auto rounded-md border border-gray-200 bg-white font-sans shadow-lg"
           :style="{
             top: dropdownPosition.top + 'px',
             left: dropdownPosition.left + 'px',
@@ -57,24 +57,19 @@
 
           <!-- Search results -->
           <div v-else>
-            <div
+            <component
+              :is="props.routeBuilder ? 'button' : NuxtLink"
               v-for="(suggestion, index) in visibleSuggestions"
               :key="suggestion.ars"
-              class="slk-area-search-result cursor-pointer border-b border-gray-100 px-3 py-3 last:border-b-0 sm:px-4"
+              :type="props.routeBuilder ? 'button' : undefined"
+              :to="props.routeBuilder ? undefined : suggestion.url"
+              class="slk-area-search-result block w-full cursor-pointer border-b border-gray-100 px-3 py-3 text-left last:border-b-0 sm:px-4"
               :class="{
                 'slk-area-search-result--focused': index === focusedIndex,
                 'cursor-default opacity-60': !props.routeBuilder && !suggestion.url,
               }"
-              @mousedown.prevent="
-                props.routeBuilder || suggestion.url
-                  ? (goTo(suggestion.url, suggestion), handleSuggestionClick())
-                  : null
-              "
-              @touchend.prevent="
-                props.routeBuilder || suggestion.url
-                  ? (goTo(suggestion.url, suggestion), handleSuggestionClick())
-                  : null
-              "
+              @click="selectSuggestion($event, suggestion)"
+              @focus="focusedIndex = index"
             >
               <div class="flex items-start justify-between gap-2 sm:items-center">
                 <div class="min-w-0 flex-1">
@@ -89,7 +84,7 @@
                   <!-- Published: score -->
                   <div v-if="suggestion.ctaType === 'complete'" class="flex flex-col gap-1 sm:flex-row sm:gap-2">
                     <span
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap text-white"
+                      class="slk-rating-chip inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
                       :class="`bg-${suggestion.scoreTotalColorClass}`"
                     >
                       {{ suggestion.scoreDisplay }}
@@ -98,20 +93,20 @@
                   <!-- Localteam active, rating in progress -->
                   <div
                     v-else-if="suggestion.ctaType === 'in-progress'"
-                    class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-yellow-800"
+                    class="slk-badge slk-badge--warning inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
                   >
                     {{ $t("rating.in_progress") }}
                   </div>
                   <!-- No localteam yet -->
                   <div
                     v-else
-                    class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-gray-800"
+                    class="slk-badge inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
                   >
                     {{ $t("administrative_areas.not_rated_yet") }}
                   </div>
                 </div>
               </div>
-            </div>
+            </component>
           </div>
         </div>
       </Teleport>
@@ -153,7 +148,8 @@ import type { RouteLocationRaw } from "vue-router";
 
 import type { PropType } from "vue";
 
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, useId, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { NuxtLink } from "#components";
 import { useRoute, useRouter } from "vue-router";
 import { useAreaSearch } from "~/composables/useAreaSearch";
 import { getCatalogVersion } from "~/composables/getCatalogVersion";
@@ -201,6 +197,9 @@ const props = defineProps({
   },
 });
 
+const inputId = useId();
+const resultsId = useId();
+const searchRoot = ref<HTMLElement | null>(null);
 const dropdown = ref<HTMLElement | null>(null);
 const radioGroup = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
@@ -245,6 +244,13 @@ function getResultUrl(result: AreaResult) {
 
 const visibleSuggestions = computed(() => rawResults.value.slice(0, 5).map((r) => ({ ...r, url: getResultUrl(r) })));
 
+const dropdownOpen = computed(
+  () =>
+    searchFocused.value &&
+    dropdownPosition.value.show &&
+    (visibleSuggestions.value.length > 0 || isLoading.value || q.value.trim().length > 0),
+);
+
 // Show different placeholder and label depending on the optoin selected
 const translatedLabel = computed(() =>
   filterType.value === "reasonable"
@@ -261,6 +267,8 @@ const translatedPlaceholder = computed(
 );
 
 function onInput() {
+  searchFocused.value = true;
+  calculateDropdownPosition();
   focusedIndex.value = -1;
   if (q.value.trim()) {
     search(q.value);
@@ -270,7 +278,7 @@ function onInput() {
 }
 
 function calculateDropdownPosition() {
-  if (!inputRef.value) return;
+  if (!inputRef.value || !searchFocused.value) return;
 
   const inputRect = inputRef.value.getBoundingClientRect();
   dropdownPosition.value = {
@@ -284,15 +292,45 @@ function calculateDropdownPosition() {
 }
 
 function handleFocus() {
+  const reopening = !searchFocused.value;
   searchFocused.value = true;
   calculateDropdownPosition();
+  if (reopening && q.value.trim()) search(q.value);
+}
+
+function dismiss() {
+  searchFocused.value = false;
+  focusedIndex.value = -1;
+  dropdownPosition.value.show = false;
+  clear();
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.isComposing) return;
+  if (event.key === "Escape") {
+    event.stopPropagation();
+    dismiss();
+  } else if (["ArrowDown", "ArrowUp", "Enter"].includes(event.key)) {
+    event.preventDefault();
+    if (event.key === "Enter") goToFocused();
+    else moveFocus(event.key === "ArrowDown" ? 1 : -1);
+  }
+}
+
+function selectSuggestion(event: MouseEvent, suggestion: (typeof visibleSuggestions.value)[number]) {
+  if (!searchFocused.value || isLoading.value) {
+    event.preventDefault();
+    return;
+  }
+  if (event.button || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+  event.preventDefault();
+  goTo(suggestion.url, suggestion);
 }
 
 function goTo(url: RouteLocationRaw | null | undefined, area: AreaResult | null = null) {
+  if (!searchFocused.value || isLoading.value) return;
   q.value = "";
-  focusedIndex.value = -1;
-  searchFocused.value = false;
-  dropdownPosition.value.show = false;
+  dismiss();
   if (props.routeBuilder && area) {
     const target = props.routeBuilder(area);
     if (target != null) if (target) void router.push(target);
@@ -302,25 +340,27 @@ function goTo(url: RouteLocationRaw | null | undefined, area: AreaResult | null 
 }
 
 function moveFocus(direction: number) {
+  if (!searchFocused.value || isLoading.value) return;
   const max = visibleSuggestions.value.length - 1;
   focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + direction));
+  void nextTick(() =>
+    dropdown.value?.querySelector(".slk-area-search-result--focused")?.scrollIntoView({ block: "nearest" }),
+  );
 }
 
 function goToFocused() {
+  if (!searchFocused.value || isLoading.value) return;
   const suggestion = visibleSuggestions.value[focusedIndex.value];
   if (!suggestion) return;
   if (props.routeBuilder || suggestion.url) goTo(suggestion.url, suggestion);
 }
 
 function handleFilterChange() {
-  if (q.value.trim()) search(q.value);
-}
-
-function handleSuggestionClick() {
-  q.value = "";
-  searchFocused.value = false;
   focusedIndex.value = -1;
-  dropdownPosition.value.show = false;
+  searchFocused.value = true;
+  calculateDropdownPosition();
+  if (q.value.trim()) search(q.value);
+  else clear();
 }
 
 // Close dropdown when iOS virtual keyboard is dismissed (visual viewport grows back).
@@ -331,32 +371,26 @@ function onVisualViewportResize() {
   if (!vv) return;
   if (vv.height > _lastVVHeight + 100) {
     // Keyboard closed — close the dropdown if the input is no longer focused
-    if (document.activeElement?.id !== "admin-search-input") {
-      searchFocused.value = false;
-      dropdownPosition.value.show = false;
-    }
+    if (!containsTarget(document.activeElement)) dismiss();
   }
   _lastVVHeight = vv.height;
   // Also keep the dropdown position in sync with the visual viewport
   calculateDropdownPosition();
 }
 
-function handleClickOutside(event: MouseEvent) {
-  if (!(event.target instanceof Element)) return;
-  // Only close dropdown if click is outside both dropdown and (optional) radio group
-  if (
-    dropdown.value &&
-    !dropdown.value.contains(event.target) &&
-    !event.target.closest("form") &&
-    (!radioGroup.value || !radioGroup.value.contains(event.target))
-  ) {
-    searchFocused.value = false;
-    dropdownPosition.value.show = false;
-  }
+function containsTarget(target: EventTarget | null) {
+  return target instanceof Node && (searchRoot.value?.contains(target) || dropdown.value?.contains(target));
+}
+
+function handleOutside(event: Event) {
+  if (!containsTarget(event.target)) dismiss();
 }
 
 onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
+  document.addEventListener("pointerdown", handleOutside);
+  document.addEventListener("focusin", handleOutside);
+  window.addEventListener("blur", dismiss);
+  window.addEventListener("scroll", calculateDropdownPosition, true);
   window.addEventListener("resize", calculateDropdownPosition);
   window.visualViewport?.addEventListener("resize", onVisualViewportResize);
   window.visualViewport?.addEventListener("scroll", calculateDropdownPosition);
@@ -364,7 +398,11 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener("click", handleClickOutside);
+  document.removeEventListener("pointerdown", handleOutside);
+  document.removeEventListener("focusin", handleOutside);
+  window.removeEventListener("blur", dismiss);
+  window.removeEventListener("scroll", calculateDropdownPosition, true);
+  clear();
   window.removeEventListener("resize", calculateDropdownPosition);
   window.visualViewport?.removeEventListener("resize", onVisualViewportResize);
   window.visualViewport?.removeEventListener("scroll", calculateDropdownPosition);

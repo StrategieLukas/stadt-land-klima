@@ -36,8 +36,11 @@
         @click="closeDrawerOnOutsideClick"
       >
         <!-- Main Content -->
-        <main class="flex min-w-0 grow flex-col bg-mild-white px-2">
-          <div class="mx-auto flex w-full max-w-(--breakpoint-xl) min-w-0 flex-col">
+        <main class="slk-page-main flex min-w-0 grow flex-col bg-mild-white">
+          <div
+            class="mx-auto flex w-full min-w-0 flex-col"
+            :data-content-width="analyticsRoute.meta.contentWidth ?? 'standard'"
+          >
             <slot />
           </div>
         </main>
@@ -253,16 +256,21 @@ useHead({
 }
 
 /* Force main content to be properly centered */
-main {
+.slk-page-main {
   width: 100%;
+  box-sizing: border-box;
+  padding-inline: var(--slk-page-gutter);
+}
+
+.slk-page-main > [data-content-width] {
+  width: 100%;
+  max-width: var(--breakpoint-xl);
+  margin: 0 auto;
   box-sizing: border-box;
 }
 
-main > div {
-  width: 100%;
-  max-width: 1280px; /* max-w-(--breakpoint-xl) */
-  margin: 0 auto;
-  box-sizing: border-box;
+.slk-page-main > [data-content-width="full"] {
+  max-width: none;
 }
 
 /* Prevent layout shifts during hydration */

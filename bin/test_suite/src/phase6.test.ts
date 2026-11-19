@@ -1,3 +1,6 @@
+import { ORGANISATION_TEAM_LABELS, isOrganisationTeamKey } from "../../../src/frontend/shared/organisationTeams.js";
+import { PUBLIC_NUXT_ROUTES } from "../../../src/frontend/shared/publicRoutes.js";
+import { staticSearchMessages } from "../../../src/frontend/shared/staticSearchMessages.js";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -362,9 +365,23 @@ test("search rejects filter injection before transport and strips HTML except hi
   let options: Row = {};
   let calls = 0;
   const readiness = { ready: true };
+  const searchSdk = { readItems: (collection: string, query: Row) => ({ collection, query }) };
+  const extract = load("server/utils/extractContent.ts", {
+    "../../shared/publicRoutes.ts": { PUBLIC_NUXT_ROUTES },
+    "../../shared/staticSearchMessages.ts": { staticSearchMessages },
+  });
+  const sources = load("server/utils/searchSources.ts", {
+    "@directus/sdk": searchSdk,
+    "./extractContent": extract,
+    "../../shared/organisationTeams.ts": { ORGANISATION_TEAM_LABELS, isOrganisationTeamKey },
+    "../../shared/staticSearchMessages.ts": { staticSearchMessages },
+  });
+  const wahlcheck = load("server/utils/wahlcheckRoute.ts", { "@directus/sdk": searchSdk });
   const liveVisibility = load("server/utils/searchVisibility.ts", {
     "@directus/sdk": { readItems: (collection: string, query: Row) => ({ collection, query }) },
-    "./extractContent": frontend("./server/utils/extractContent.ts"),
+    "./extractContent": extract,
+    "./searchSources": sources,
+    "./wahlcheckRoute": wahlcheck,
   });
   const route = load(
     "server/api/content-search.get.ts",

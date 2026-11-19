@@ -1,0 +1,4 @@
+language: de-DE
+key: region.rating_eligibility_city_districts
+value: >-
+  Kreisfreie Städte/Stadtkreise, bei denen Kreis (ADE 4), Gemeindeverband (ADE 5) und Gemeinde (ADE 6) dasselbe Gebiet abdecken – also dieselben Grenzen haben.

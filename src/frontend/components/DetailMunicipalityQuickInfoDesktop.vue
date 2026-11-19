@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-xs shadow-list">
+  <div data-testid="municipality-facts" class="rounded-xs shadow-list">
     <!-- Header with collapse toggle -->
     <div :class="municipality?.description ? 'collapse-plus collapse rounded-xs' : 'rounded-xs'">
       <input
@@ -90,7 +90,7 @@
         <span v-else class="text-right text-sm font-bold text-gray-900">{{ municipality.party_mayor }}</span>
       </div>
 
-      <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
+      <div v-if="municipalityTypeLabel || municipality.municipality_type" class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
           <div class="h-5 w-5 opacity-60" v-html="MunicipalitySvg" />
@@ -99,9 +99,10 @@
         </div>
         <span class="text-right text-sm font-bold text-gray-900">
           {{
-            municipality.municipality_type === "big_city"
+            municipalityTypeLabel ||
+            (municipality.municipality_type === "big_city"
               ? $t("municipality.municipality_type.major_city")
-              : $t("municipality.municipality_type.minor_city")
+              : $t("municipality.municipality_type.minor_city"))
           }}
         </span>
       </div>
@@ -158,8 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from "vue";
-import type { MunicipalityScore } from "~/types/components/municipality";
+import type { Municipality, MunicipalityScore } from "~/types/components/municipality";
 
 import majorCity from "~/assets/images/major-city-dark.svg?raw";
 import minorCity from "~/assets/images/minor-city-dark.svg?raw";
@@ -197,18 +197,17 @@ function renderMarkdown(value: string | null | undefined) {
   });
 }
 
-const props = defineProps({
-  municipalityScore: {
-    type: Object as PropType<MunicipalityScore>,
-    required: true,
-  },
-});
+const props = defineProps<{
+  municipality: Municipality;
+  municipalityScore?: MunicipalityScore;
+  municipalityTypeLabel?: string;
+}>();
 
-const municipality = props.municipalityScore.municipality;
+const municipality = computed(() => props.municipality);
 
 onMounted(async () => {
   MunicipalitySvg.value = await overwriteSvgStyles(
-    props.municipalityScore.municipality.municipality_type === "big_city" ? majorCity : minorCity,
+    props.municipality.municipality_type === "big_city" ? majorCity : minorCity,
     {
       st0: "fill-white",
       st1: "fill-black",

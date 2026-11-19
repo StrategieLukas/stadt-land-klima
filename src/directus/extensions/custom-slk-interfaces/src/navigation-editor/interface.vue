@@ -161,6 +161,7 @@ interface NavItem {
   open_new_tab: boolean;
   image_id: string | null;
   description: string;
+  dropdown_layout?: "preview" | "cards" | "list" | undefined;
   children: NavItem[];
 }
 
@@ -172,6 +173,7 @@ interface EditBuffer {
   open_new_tab: boolean;
   image_id: string | null;
   description: string;
+  dropdown_layout: "" | "preview" | "cards" | "list";
 }
 
 const props = defineProps<{
@@ -236,6 +238,7 @@ function newEditBufferDefaults(): EditBuffer {
     open_new_tab: false,
     image_id: null,
     description: "",
+    dropdown_layout: "",
   };
 }
 
@@ -248,6 +251,7 @@ function toStoredLinkFields(buffer: EditBuffer): Omit<NavItem, "id" | "children"
     open_new_tab: buffer.open_new_tab,
     image_id: buffer.image_id,
     description: buffer.description,
+    dropdown_layout: buffer.dropdown_layout || undefined,
   };
 }
 
@@ -370,6 +374,7 @@ function toggleEdit(path: string, item: NavItem): void {
         open_new_tab: item.open_new_tab,
         image_id: item.image_id,
         description: item.description,
+        dropdown_layout: item.dropdown_layout ?? "",
       }),
     );
     clearPageResults();

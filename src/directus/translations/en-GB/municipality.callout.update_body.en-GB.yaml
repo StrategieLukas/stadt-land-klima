@@ -1,0 +1,3 @@
+language: en-GB
+key: municipality.callout.update_body
+value: ":name was assessed using the “:catalog” measure catalogue. Help the local team update the assessment to the current catalogue."

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Header -->
-    <div class="rounded-xl border border-solid-gray-10 bg-white p-4 text-center shadow-list sm:p-8">
+    <div class="mb-8 text-center">
       <div class="mb-6">
         <ElectionsWahlCheckLogo
           :logo="election?.custom_logo"
@@ -11,10 +11,10 @@
           fallback-class="mx-auto h-auto w-full max-w-lg object-contain"
         />
       </div>
-      <h2 class="mb-4 text-xl font-bold text-stats-dark sm:text-2xl">
+      <h2 class="mb-4 font-heading text-2xl font-bold text-stats-dark">
         {{ $t("elections.wahlcheck.summary.title") }}
       </h2>
-      <p class="mx-auto max-w-2xl text-sm text-mid-gray sm:text-base">
+      <p class="mx-auto max-w-3xl text-base leading-relaxed text-(--slk-text-muted)">
         {{ $t("elections.wahlcheck.summary.description") }}
       </p>
       <p v-if="election" class="mt-4 text-sm text-mid-gray">
@@ -28,7 +28,7 @@
         <!-- Answered Question: Full tile clickable for double weighting -->
         <div
           v-if="userAnswers[question.id] !== undefined"
-          class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-solid-gray-10 bg-white p-3 shadow-xs transition-all select-none hover:border-solid-gray-40 hover:shadow-md sm:gap-4 sm:p-4"
+          class="flex cursor-pointer items-center justify-between gap-3 border border-(--slk-border) bg-(--slk-surface) p-3 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--slk-text-strong) sm:gap-4 sm:p-4"
           :class="{
             'border-orange/40 bg-solid-orange-10/20 ring-2 ring-orange': doubleWeightedQuestions.has(question.id),
           }"
@@ -57,7 +57,7 @@
             <!-- User's Answer - Color circle indicator -->
             <div class="shrink-0">
               <div
-                class="h-7 w-7 rounded-full shadow-md sm:h-8 sm:w-8"
+                class="h-7 w-7 rounded-full sm:h-8 sm:w-8"
                 :class="getRatingColor(userAnswers[question.id])"
                 :title="getRatingLabel(userAnswers[question.id])"
               ></div>
@@ -80,7 +80,7 @@
         <!-- Skipped Question: Non-clickable tile -->
         <div
           v-else
-          class="flex items-center justify-between gap-3 rounded-lg border border-solid-gray-10 bg-white p-3 opacity-60 shadow-xs sm:gap-4 sm:p-4"
+          class="flex items-center justify-between gap-3 border border-(--slk-border) bg-(--slk-surface) p-3 opacity-60 sm:gap-4 sm:p-4"
         >
           <div class="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
             <span
@@ -97,7 +97,7 @@
 
           <div class="flex shrink-0 items-center gap-2 sm:gap-3">
             <div
-              class="h-7 w-7 shrink-0 rounded-full bg-solid-gray-20 shadow-md sm:h-8 sm:w-8"
+              class="h-7 w-7 shrink-0 rounded-full bg-solid-gray-20 sm:h-8 sm:w-8"
               :title="$t('elections.wahlcheck.questions.skip')"
             ></div>
             <div class="h-6 w-6 shrink-0"></div>
@@ -107,7 +107,7 @@
     </div>
 
     <!-- Warning if all questions are skipped -->
-    <div v-if="answeredCount === 0" class="rounded-xl border border-orange bg-solid-orange-10 p-4 text-orange-700">
+    <div v-if="answeredCount === 0" class="border border-orange bg-solid-orange-10 p-4 text-orange-700">
       <p class="flex items-center gap-2 font-bold">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
           <path
@@ -143,20 +143,24 @@
         }}
       </div>
       <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
-        <button
-          type="button"
-          class="btn flex-1 rounded-full btn-outline px-4 py-2 font-semibold btn-secondary sm:flex-initial sm:px-6"
+        <CanonicalButton
+          data-testid="wahlcheck-summary-prev"
+          class="flex-1 sm:flex-initial"
+          :label="$t('generic.back')"
+          icon-slug="mdi:arrow-left"
+          :color="isLocalzero ? 'yellow' : 'dark'"
+          variant="outline"
           @click="$emit('prev')"
-        >
-          {{ $t("generic.back") }}
-        </button>
-        <button
-          type="button"
-          class="btn flex-1 rounded-full px-4 py-2 font-semibold whitespace-nowrap text-white btn-primary sm:flex-initial sm:px-8"
+        />
+        <CanonicalButton
+          data-testid="wahlcheck-summary-next"
+          class="flex-1 sm:flex-initial"
+          :label="$t('elections.wahlcheck.summary.show_results')"
+          icon-slug="mdi:chart-bar"
+          :color="isLocalzero ? 'yellow' : 'bright-green'"
+          text-color="white"
           @click="$emit('next')"
-        >
-          {{ $t("elections.wahlcheck.summary.show_results") }}
-        </button>
+        />
       </div>
     </div>
   </div>
@@ -170,6 +174,7 @@ import { computed } from "vue";
 import { getWahlcheckAnswerLabel, getWahlcheckRatingColor } from "~/shared/wahlcheckAnswerOptions";
 
 const { $t } = useNuxtApp();
+const { isLocalzero } = useWahlcheckTheme();
 
 const props = defineProps({
   questions: {

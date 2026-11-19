@@ -1,27 +1,14 @@
 import { defineEventHandler, setResponseHeader } from "h3";
 import { SiteLayoutSchema } from "~/shared/contracts/navigation";
+import { PUBLIC_NUXT_ROUTES } from "~/shared/publicRoutes";
 import { canonicalUrl } from "~/shared/seo";
 
 export default defineEventHandler(async (event) => {
   // Reuse the checked, published-only contract; never read authenticated editor content.
   const { pages } = SiteLayoutSchema.parse(await $fetch("/api/public/site-layout", { timeout: 5000 }));
   const paths = new Set([
-    "/",
+    ...PUBLIC_NUXT_ROUTES.map((route) => route.url),
     "/ki",
-    "/municipalities",
-    "/measures",
-    "/projects",
-    "/events",
-    "/news",
-    "/stats",
-    "/map",
-    "/data",
-    "/jobs",
-    "/organisation",
-    "/contact",
-    "/tools",
-    "/spenden",
-    "/elections/wahlcheck",
     ...pages.filter((page) => page.slug && page.slug !== "index").map((page) => `/${encodeURIComponent(page.slug)}`),
   ]);
   const origin = useRuntimeConfig().public.siteUrl;

@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { firefox, webkit, type Page } from "playwright";
 import { launchBrowser, newContext, waitForHydration, collectPublicPageErrors } from "./lib/browser.js";
+import { assertCanonicalButtonStyles } from "./lib/canonicalButtons.js";
+import { assertResponsivePageLayouts } from "./lib/pageLayout.js";
 
 const target = new URL(process.argv[2] || "http://localhost:8080");
 assert.ok(
@@ -103,6 +105,7 @@ async function assertFilterControls(page: Page) {
 }
 const started = performance.now();
 try {
+  await assertResponsivePageLayouts(browser, origin);
   for (const width of [1440, 390])
     for (const preference of ["light", "dark"] as const) {
       const context = await newContext(browser, { viewport: { width, height: 1000 }, colorScheme: preference });
@@ -152,6 +155,7 @@ try {
           assert.ok(Math.abs(layout.width! - layout.viewport) <= 1, "Content must span the viewport");
           assert.equal(layout.overflow, false);
           assert.equal(layout.buttonRadius, "6px", "CanonicalButton corners must survive the upgrade");
+          if (path === "/") await assertCanonicalButtonStyles(page);
           const header = page.locator("header.slk-header-surface:visible");
           const glass = await header.evaluate((element) => {
             const style = getComputedStyle(element);
@@ -172,6 +176,12 @@ try {
           assert.match(glass.blur, /blur\(16px\)/, "Page content must blur behind the header");
           if (width >= 640)
             assert.equal(glass.stripeBackground, "rgba(0, 0, 0, 0)", "Navigation must share the header glass");
+          // Canonical action probes can scroll to footer links. Start at the top
+          // and let the header observe that position before testing a downward scroll.
+          await page.evaluate(async () => {
+            window.scrollTo({ top: 0, behavior: "instant" });
+            await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          });
           await page.evaluate(() => window.scrollTo({ top: 500, behavior: "instant" }));
           await page.waitForFunction(() => window.scrollY >= 400);
           if (width >= 640) {

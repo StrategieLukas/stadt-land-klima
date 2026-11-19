@@ -1,5 +1,5 @@
 <template>
-  <main v-if="stop" class="event-detail mx-auto w-full max-w-3xl px-4 py-8">
+  <main v-if="stop" class="event-detail mx-auto w-full max-w-3xl py-8">
     <NuxtLink :to="tourHref(stop.tour)" class="mb-6 inline-flex text-sm text-stats-dark hover:underline"
       >← {{ $t("tour.back_to_series", { ":title": stop.tour.title }) }}</NuxtLink
     >
@@ -139,7 +139,7 @@
     </section>
     <TourMediaViewer ref="viewer" :editor-preview="editorPreview" />
   </main>
-  <p v-else-if="authChecked" class="container mx-auto py-8">{{ $t("page_not_found") }}</p>
+  <p v-else-if="authChecked" class="w-full py-8">{{ $t("page_not_found") }}</p>
 </template>
 <script setup lang="ts">
 import { customEndpoint, readItems, updateItem } from "@directus/sdk";

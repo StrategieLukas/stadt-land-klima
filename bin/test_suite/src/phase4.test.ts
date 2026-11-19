@@ -1,3 +1,4 @@
+import { areaSearchPresentation } from "../../../src/frontend/shared/areaSearchPresentation.js";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -388,6 +389,7 @@ test("clearing or replacing a search prevents a late response from restoring sta
       vue,
       lodash: { debounce },
       "~/shared/contracts/search": searchContracts,
+      "~/shared/areaSearchPresentation": { areaSearchPresentation },
       "~/shared/utils": { getScorePercentageColor, getStateFromArs: () => "State" },
       "~/shared/municipality-score-publishing": { isMunicipalityScoreComplete: () => false },
     },
@@ -572,6 +574,7 @@ test("StadtLandZahl plugin validates real REST/GraphQL replies, exact region pre
       zod: frontend("zod"),
       "~/shared/serviceUrl": urlHelpers,
       "~/shared/contracts/search": searchContracts,
+      "~/shared/areaSearchPresentation": { areaSearchPresentation },
       "~/shared/contracts/slz": slzContracts,
       "#app": { useRuntimeConfig: () => ({ public: { stadtlandzahlBaseUrl: "/api/stadtlandzahl" } }) },
       "@apollo/client/core": { ApolloClient, HttpLink: class {}, InMemoryCache: class {} },

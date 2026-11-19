@@ -1,0 +1,4 @@
+language: en-GB
+key: region.rating_eligibility_note
+value: >-
+  The count also includes municipalities without a published rating.

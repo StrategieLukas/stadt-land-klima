@@ -1,7 +1,7 @@
 <template>
   <!-- Content when municipality data is available -->
   <div>
-    <MunicipalityDetailHero :score="municipalityScore" />
+    <MunicipalityDetailHero :name="municipality.name" :preview="!isMunicipalityScoreComplete(municipalityScore)" />
     <div id="assessment" class="scroll-mt-28" />
     <!-- Mobile: Single column layout -->
     <div class="block w-full flex-col justify-center lg:hidden">
@@ -50,7 +50,7 @@
 
       <!-- Mobile: Infos zur Kommune -->
       <div class="mb-4">
-        <DetailMunicipalityQuickInfoDesktop :municipality-score="municipalityScore" />
+        <DetailMunicipalityQuickInfoDesktop :municipality="municipality" :municipality-score="municipalityScore" />
       </div>
 
       <!-- Mobile: Participate Section -->
@@ -75,17 +75,18 @@
       <DetailMunicipalitySectorCards :municipality-score="municipalityScore" :ratings-by-sector="ratingsBySector" />
 
       <!-- Mobile: Associated Projects Link -->
-      <NuxtLink
+      <div
         v-if="municipalityProjects && municipalityProjects.length > 0"
-        :to="{ path: '/projects', query: { municipality: municipality.name } }"
-        class="mt-4 flex items-center gap-3 rounded-xs bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
+        class="mt-4 rounded-xs border border-(--slk-border) bg-(--slk-blue-tint) p-4 shadow-list"
       >
-        <img src="~/assets/icons/icon_approved.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-        <h3 class="font-heading text-h2">
-          {{ $t("projects.title") }}
-          →
-        </h3>
-      </NuxtLink>
+        <CanonicalButton
+          :href="municipalityProjectsHref"
+          :label="$t('projects.title')"
+          icon-slug="icon_approved"
+          color="dark"
+          class="w-full"
+        />
+      </div>
     </div>
 
     <!-- Desktop: Two column layout -->
@@ -169,7 +170,7 @@
       <div class="pb-4 lg:col-span-1">
         <div class="sticky top-24 space-y-6">
           <!-- Municipality Quick Info -->
-          <DetailMunicipalityQuickInfoDesktop :municipality-score="municipalityScore" />
+          <DetailMunicipalityQuickInfoDesktop :municipality="municipality" :municipality-score="municipalityScore" />
 
           <MunicipalityDetailActions :score="municipalityScore" />
 
@@ -250,6 +251,7 @@
 </template>
 
 <script setup lang="ts">
+import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 import { clientFailure } from "~/shared/securityLog";
 
 import type { Project } from "~/types/components/content";
@@ -286,6 +288,7 @@ const props = defineProps({
 const municipalityScore = props.municipalityScore;
 const municipality = municipalityScore.municipality;
 const subScores = createSubScoreObject(municipalityScore);
+const municipalityProjectsHref = `/projects?${new URLSearchParams({ municipality: municipality.name })}`;
 
 const sanitizedPublicContact = computed(() => sanitizeHtml(md.render(municipality.public_contact ?? "")));
 const sanitizedOverallStatusComment = computed(() =>

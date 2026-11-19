@@ -24,7 +24,7 @@ import {
  *   Optional Directus catalog ID. When set, team and publication status are
  *   resolved from Directus for exactly this catalog.
  */
-import { ref, computed, isRef } from "vue";
+import { ref, computed, isRef, getCurrentScope, onScopeDispose } from "vue";
 import lodash from "lodash";
 import { getScorePercentageColor, getStateFromArs } from "~/shared/utils";
 import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
@@ -259,7 +259,8 @@ export function useAreaSearch({
 
   function search(term: string) {
     const generation = ++searchGeneration;
-    if (term.trim()) isLoading.value = true;
+    rawResults.value = [];
+    isLoading.value = !!term.trim();
     void _doSearch(term, generation);
   }
 
@@ -269,6 +270,8 @@ export function useAreaSearch({
     isLoading.value = false;
     _doSearch.cancel();
   }
+
+  if (getCurrentScope()) onScopeDispose(clear);
 
   return { results, isLoading, search, clear };
 }

@@ -1,4 +1,4 @@
-/** Legacy environment names mapped to Nuxt runtime overrides on every process start. */
+/** Shared ESM helper mapping legacy environment names to Nuxt overrides on every process start. */
 export const FRONTEND_RUNTIME_ALIASES: Readonly<Record<string, string>> = {
   CONTENT_TRANSLATION_ENABLED: "NUXT_CONTENT_TRANSLATION_ENABLED",
   CONTENT_TRANSLATION_GENERATION_ENABLED: "NUXT_CONTENT_TRANSLATION_GENERATION_ENABLED",

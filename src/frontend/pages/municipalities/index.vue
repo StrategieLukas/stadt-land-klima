@@ -1,5 +1,5 @@
 <template>
-  <div class="municipalities-page px-4 py-8">
+  <div class="municipalities-page w-full py-8">
     <header class="mb-8">
       <h1 class="mb-4 font-heading text-4xl font-black text-light-green sm:text-6xl">
         <span v-if="selectedCatalogVersion.name === 'beta'"
@@ -352,13 +352,13 @@
                   </p>
                 </div>
               </div>
-              <NuxtLink
-                to="/register_localteam"
-                class="mt-2 inline-block w-full rounded-md px-3 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style="background-color: #afca0b"
-              >
-                {{ $t("municipalities.cta.missing.action") }}
-              </NuxtLink>
+              <CanonicalButton
+                href="/register_localteam"
+                :label="$t('municipalities.cta.missing.action')"
+                color="bright-green"
+                icon-slug="mdi:account-group"
+                class="mt-2 w-full"
+              />
             </div>
 
             <!-- {{ $t("stats.measures.title") }} box -->
@@ -391,13 +391,13 @@
                   </p>
                 </div>
               </div>
-              <NuxtLink
-                to="/stats#massnahmenstatistiken"
-                class="mt-2 inline-block w-full rounded-md px-3 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style="background-color: #006e94"
-              >
-                {{ $t("municipalities.cta.dashboard.action") }}
-              </NuxtLink>
+              <CanonicalButton
+                href="/stats#massnahmenstatistiken"
+                :label="$t('municipalities.cta.dashboard.action')"
+                color="dark"
+                icon-slug="mdi:chart-bar"
+                class="mt-2 w-full"
+              />
             </div>
 
             <ProjectCard
@@ -429,12 +429,12 @@
         <p class="mb-4 text-sm text-gray-600">
           {{ $t("municipalities.cta.missing.body") }}
         </p>
-        <NuxtLink
-          to="/register_localteam"
-          class="inline-block rounded-md bg-green px-6 py-2.5 font-semibold text-white transition-colors hover:opacity-90 focus:ring-2 focus:ring-green focus:ring-offset-2 focus:outline-hidden"
-        >
-          {{ $t("municipalities.cta.missing.action") }}
-        </NuxtLink>
+        <CanonicalButton
+          href="/register_localteam"
+          :label="$t('municipalities.cta.missing.action')"
+          color="dark-green"
+          icon-slug="mdi:account-group"
+        />
       </div>
     </div>
 

@@ -1,3 +1,6 @@
+import { ORGANISATION_TEAM_LABELS, isOrganisationTeamKey } from "../../../src/frontend/shared/organisationTeams.js";
+import { PUBLIC_NUXT_ROUTES } from "../../../src/frontend/shared/publicRoutes.js";
+import { staticSearchMessages } from "../../../src/frontend/shared/staticSearchMessages.js";
 import { loggingModule } from "./lib/loggingModules.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -33,20 +36,38 @@ function load(name: string, dependencies: Row = {}, globals: Row = {}): Row {
   );
   return module.exports;
 }
-const extract = load("server/utils/extractContent.ts");
+const extract = load("server/utils/extractContent.ts", {
+  "../../shared/staticSearchMessages.ts": { staticSearchMessages },
+  "../../shared/publicRoutes.ts": { PUBLIC_NUXT_ROUTES },
+});
 const parseCms = load("server/utils/parseCms.ts");
 const cms = load("server/utils/cmsValue.ts", { "./parseCms": parseCms });
+const sources = load("server/utils/searchSources.ts", {
+  "@directus/sdk": sdk,
+  "./parseCms": parseCms,
+  "./extractContent": extract,
+  "../../shared/organisationTeams.ts": { ORGANISATION_TEAM_LABELS, isOrganisationTeamKey },
+  "../../shared/staticSearchMessages.ts": { staticSearchMessages },
+});
+const wahlcheck = load("server/utils/wahlcheckRoute.ts", {
+  "@directus/sdk": sdk,
+  "./parseCms": parseCms,
+});
 const snapshot = load("server/utils/searchSnapshot.ts", {
   "@directus/sdk": sdk,
   "./parseCms": parseCms,
   "./cmsValue": cms,
   "./extractContent": extract,
+  "./searchSources": sources,
+  "./wahlcheckRoute": wahlcheck,
 });
 const reconciliation = load("server/utils/searchReconciliation.ts");
 const visibility = load("server/utils/searchVisibility.ts", {
   "@directus/sdk": sdk,
   "./cmsValue": cms,
   "./extractContent": extract,
+  "./searchSources": sources,
+  "./wahlcheckRoute": wahlcheck,
 });
 
 test("search reconciliation paginates all types without skipping rows while deleting, then waits for every task", async () => {

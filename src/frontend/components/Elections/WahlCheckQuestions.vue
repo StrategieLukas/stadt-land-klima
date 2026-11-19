@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Introduction -->
-    <div class="rounded-xl border border-solid-gray-10 bg-white p-4 text-center shadow-list sm:p-8">
+    <div class="mb-8 text-center">
       <div class="mb-6">
         <ElectionsWahlCheckLogo
           :logo="election?.custom_logo"
@@ -11,10 +11,10 @@
           fallback-class="mx-auto h-auto w-full max-w-lg object-contain"
         />
       </div>
-      <h2 class="mb-4 text-xl font-bold text-stats-dark sm:text-2xl">
+      <h2 class="mb-4 font-heading text-2xl font-bold text-stats-dark">
         {{ $t("elections.wahlcheck.questions.title") }}
       </h2>
-      <p class="mx-auto max-w-2xl text-sm text-mid-gray sm:text-base">
+      <p class="mx-auto max-w-3xl text-base leading-relaxed text-(--slk-text-muted)">
         {{
           $t(
             isPartyElection
@@ -26,20 +26,30 @@
       <p v-if="localteam" class="mt-4 text-sm text-mid-gray">
         <strong>{{ $t("localteam.singular") }}:</strong> {{ localteam.municipality_name || localteam.name }}
       </p>
-      <p class="mt-2 text-xs text-solid-gray-50">
+      <p class="mt-2 text-xs text-(--slk-text-muted)">
         {{ $t("elections.wahlcheck.questions.skip_hint") }}
       </p>
     </div>
 
     <!-- Single Question Display with Carousel-like Swipe Animation -->
     <div v-if="currentQuestion" class="space-y-6">
-      <div class="relative grid min-h-[320px] grid-cols-1 grid-rows-1 overflow-hidden *:col-start-1 *:row-start-1">
-        <Transition :name="transitionDirection">
+      <div class="question-carousel relative grid grid-cols-1 grid-rows-1 *:col-start-1 *:row-start-1">
+        <Transition
+          :name="transitionDirection"
+          @before-enter="activateQuestion"
+          @before-leave="retireQuestion"
+          @leave-cancelled="activateQuestion"
+        >
           <div
             :key="currentQuestion.id"
-            class="h-fit w-full self-start rounded-xl border-2 border-ff-green bg-white p-4 shadow-list transition-all sm:p-6"
+            class="question-card w-full self-start border border-(--slk-border) bg-(--slk-surface) p-4 sm:p-6"
           >
-            <div class="mb-4 flex items-start gap-3 sm:gap-4">
+            <div
+              class="question-content mb-3 flex h-80 items-start gap-3 overflow-y-auto overscroll-contain sm:h-56 sm:gap-4"
+              role="region"
+              :aria-label="currentQuestion.title || $t('elections.wahlcheck.questions.title')"
+              tabindex="0"
+            >
               <span
                 class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stats-dark text-base font-bold text-white sm:h-10 sm:w-10 sm:text-lg"
               >
@@ -56,7 +66,7 @@
                 />
                 <p
                   v-if="currentQuestion.thesis"
-                  class="mt-4 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-3 text-base wrap-break-word hyphens-auto text-gray sm:p-4 sm:text-lg"
+                  class="mt-4 border-t border-(--slk-border) pt-4 text-base wrap-break-word hyphens-auto text-gray sm:text-lg"
                 >
                   {{ currentQuestion.thesis }}
                 </p>
@@ -71,7 +81,7 @@
               >
                 <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
                   <label
-                    class="option-btn relative flex cursor-pointer items-center justify-center rounded-full p-1 transition-transform focus-within:outline-hidden"
+                    class="option-btn relative flex cursor-pointer items-center justify-center rounded-full p-1 transition-transform"
                     :class="{ 'sparkle-active': sparklingOption === option.value }"
                     :style="{ '--sparkle-rgb': option.sparkleRgb }"
                   >
@@ -79,6 +89,7 @@
                       type="radio"
                       :name="'question-' + currentQuestion.id"
                       :value="option.value"
+                      :aria-label="option.label"
                       :checked="userAnswers[currentQuestion.id] === option.value"
                       class="absolute inset-0 z-10 h-8 w-8 cursor-pointer opacity-0 sm:h-10 sm:w-10"
                       @click="selectOption(currentQuestion.id, option.value)"
@@ -97,10 +108,14 @@
                 </div>
               </div>
               <div
-                class="grid gap-1 text-center text-[9px] font-medium tracking-wider text-mid-gray uppercase xs:text-[10px] sm:text-xs"
+                class="grid gap-1 text-center text-[10px] font-medium text-mid-gray sm:text-xs"
                 :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
               >
-                <div v-for="option in ratingOptions" :key="option.value" class="leading-tight">
+                <div
+                  v-for="option in ratingOptions"
+                  :key="option.value"
+                  class="min-w-0 leading-tight wrap-anywhere hyphens-auto"
+                >
                   {{ option.label }}
                 </div>
               </div>
@@ -135,27 +150,32 @@
           }}
         </div>
         <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
-          <button
-            type="button"
+          <CanonicalButton
+            data-testid="wahlcheck-questions-prev"
             :disabled="currentQuestionIndex === 0"
-            class="btn flex-1 rounded-full btn-outline px-4 py-2 font-semibold btn-secondary sm:flex-initial sm:px-6"
-            :class="{ 'cursor-not-allowed opacity-50': currentQuestionIndex === 0 }"
+            class="flex-1 sm:flex-initial"
+            :label="$t('generic.back')"
+            icon-slug="mdi:arrow-left"
+            :color="isLocalzero ? 'yellow' : 'dark'"
+            variant="outline"
             @click="handlePrevQuestion"
-          >
-            {{ $t("generic.back") }}
-          </button>
-          <button
-            type="button"
+          />
+          <CanonicalButton
+            data-testid="wahlcheck-questions-next"
             :disabled="!canProceedToNext"
-            class="btn flex-1 rounded-full px-4 py-2 font-semibold whitespace-nowrap text-white btn-primary sm:flex-initial sm:px-8"
-            :class="{ 'cursor-not-allowed opacity-50': !canProceedToNext }"
+            class="flex-1 sm:flex-initial"
+            :label="
+              $t(
+                currentQuestionIndex === props.questions.length - 1
+                  ? 'elections.wahlcheck.questions.to_weighting'
+                  : 'elections.wahlcheck.questions.next',
+              )
+            "
+            icon-slug="mdi:arrow-right"
+            :color="isLocalzero ? 'yellow' : 'bright-green'"
+            text-color="white"
             @click="handleNextQuestion"
-          >
-            <span v-if="currentQuestionIndex === props.questions.length - 1">{{
-              $t("elections.wahlcheck.questions.to_weighting")
-            }}</span>
-            <span v-else>{{ $t("elections.wahlcheck.questions.next") }}</span>
-          </button>
+          />
         </div>
       </div>
 
@@ -165,11 +185,14 @@
           v-for="(q, idx) in props.questions"
           :key="q.id"
           class="flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-medium transition-all sm:h-8 sm:w-8 sm:text-sm"
-          :class="{
-            'border-ff-green bg-ff-green text-white': currentQuestionIndex === idx,
-            'border-solid-gray-30 bg-white text-gray hover:border-ff-green': currentQuestionIndex !== idx,
-            'border-solid-ff-green-30 bg-solid-ff-green-10': completedQuestions.has(q.id),
-          }"
+          :class="
+            currentQuestionIndex === idx
+              ? 'border-ff-green bg-ff-green text-white'
+              : completedQuestions.has(q.id)
+                ? 'border-solid-ff-green-30 bg-solid-ff-green-10 text-gray hover:border-ff-green'
+                : 'border-solid-gray-30 bg-white text-gray hover:border-ff-green'
+          "
+          :aria-current="currentQuestionIndex === idx ? 'step' : undefined"
           :title="$t('elections.wahlcheck.questions.go_to', { ':number': idx + 1 })"
           @click="selectQuestion(idx)"
         >
@@ -215,6 +238,7 @@ const props = defineProps({
 const emit = defineEmits<{ next: [answers: UserAnswers]; prev: [] }>();
 
 const { $t } = useNuxtApp();
+const { isLocalzero } = useWahlcheckTheme();
 
 const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(props.election));
 const isPartyElection = computed(() => props.election?.is_party_election === true);
@@ -228,9 +252,19 @@ const currentQuestionIndex = ref(
   Math.min(Math.max(0, props.initialQuestionIndex || 0), Math.max(0, props.questions.length - 1)),
 );
 const completedQuestions = ref(new Set<string>());
-const transitionDirection = ref("slide-left");
+const transitionDirection = ref("question-forward");
 const sparklingOption = ref<AnswerValue | null>(null);
 let advanceTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function retireQuestion(element: Element) {
+  element.setAttribute("inert", "");
+  element.setAttribute("aria-hidden", "true");
+}
+
+function activateQuestion(element: Element) {
+  element.removeAttribute("inert");
+  element.removeAttribute("aria-hidden");
+}
 
 // Initialize completed questions based on user answers
 props.questions.forEach((question) => {
@@ -276,7 +310,7 @@ function selectOption(questionId: string, value: AnswerValue) {
   advanceTimeout = setTimeout(() => {
     sparklingOption.value = null;
     if (currentQuestionIndex.value < props.questions.length - 1) {
-      transitionDirection.value = "slide-left";
+      transitionDirection.value = "question-forward";
       currentQuestionIndex.value++;
       advanceTimeout = null;
     } else {
@@ -299,7 +333,7 @@ function _markQuestionCompleted(questionId: string) {
 
   if (currentQuestionIndex.value < props.questions.length - 1) {
     advanceTimeout = setTimeout(() => {
-      transitionDirection.value = "slide-left";
+      transitionDirection.value = "question-forward";
       currentQuestionIndex.value++;
       advanceTimeout = null;
     }, 300);
@@ -330,7 +364,7 @@ function handleSkipChange(questionId: string, event: Event) {
 
     advanceTimeout = setTimeout(() => {
       if (currentQuestionIndex.value < props.questions.length - 1) {
-        transitionDirection.value = "slide-left";
+        transitionDirection.value = "question-forward";
         currentQuestionIndex.value++;
         advanceTimeout = null;
       } else {
@@ -373,7 +407,7 @@ function selectQuestion(idx: number) {
     clearTimeout(advanceTimeout);
     advanceTimeout = null;
   }
-  transitionDirection.value = idx > currentQuestionIndex.value ? "slide-left" : "slide-right";
+  transitionDirection.value = idx > currentQuestionIndex.value ? "question-forward" : "question-back";
   currentQuestionIndex.value = idx;
 }
 
@@ -391,7 +425,7 @@ function handleNextQuestion() {
     handleNext();
   } else {
     // Move to next question
-    transitionDirection.value = "slide-left";
+    transitionDirection.value = "question-forward";
     currentQuestionIndex.value++;
   }
 }
@@ -404,7 +438,7 @@ function handlePrevQuestion() {
   }
 
   if (currentQuestionIndex.value > 0) {
-    transitionDirection.value = "slide-right";
+    transitionDirection.value = "question-back";
     currentQuestionIndex.value--;
   }
 }
@@ -471,6 +505,11 @@ defineExpose({
   border-radius: 9999px;
 }
 
+.option-btn:has(input:focus-visible) {
+  outline: 2px solid var(--slk-text-strong);
+  outline-offset: 2px;
+}
+
 .sparkle-active {
   animation: sparkleRing 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
@@ -490,28 +529,56 @@ defineExpose({
   }
 }
 
-/* Simultaneous Carousel Swipe Transitions */
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
+.question-carousel {
+  overflow: visible;
+}
+
+.question-content {
+  scrollbar-gutter: stable;
+}
+
+.question-content:focus-visible {
+  outline: 2px solid var(--slk-text-strong);
+  outline-offset: 2px;
+}
+
+/* Travel past the viewport edges rather than clipping at the page gutters. */
+.question-forward-enter-active,
+.question-forward-leave-active,
+.question-back-enter-active,
+.question-back-leave-active {
   transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
   will-change: transform;
+  pointer-events: none;
 }
 
-.slide-left-enter-from {
-  transform: translateX(100%);
+.question-forward-enter-from,
+.question-back-leave-to {
+  transform: translateX(100vw);
 }
 
-.slide-left-leave-to {
-  transform: translateX(-100%);
+.question-forward-leave-to,
+.question-back-enter-from {
+  transform: translateX(-100vw);
 }
 
-.slide-right-enter-from {
-  transform: translateX(-100%);
-}
+@media (prefers-reduced-motion: reduce) {
+  .question-forward-enter-active,
+  .question-forward-leave-active,
+  .question-back-enter-active,
+  .question-back-leave-active {
+    transition: none;
+  }
 
-.slide-right-leave-to {
-  transform: translateX(100%);
+  .question-forward-enter-from,
+  .question-forward-leave-to,
+  .question-back-enter-from,
+  .question-back-leave-to {
+    transform: none;
+  }
+
+  .sparkle-active {
+    animation: none;
+  }
 }
 </style>

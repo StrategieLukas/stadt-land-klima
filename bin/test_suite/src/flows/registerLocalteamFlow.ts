@@ -375,7 +375,7 @@ export async function runRegisterLocalteamFlow(
       await openRegisterPage(page, fixture.config.frontendUrl);
       const [request] = await Promise.all([
         page.waitForRequest((request) => request.url().includes("/api/area-search?")),
-        page.locator("#admin-search-input").pressSequentially("Bayern"),
+        page.locator("[data-area-search-input]").pressSequentially("Bayern"),
       ]);
       const mode = new URL(request.url()).searchParams.get("mode");
       assertEqual(mode, "reasonable", "Register search must request only reasonable municipalities");

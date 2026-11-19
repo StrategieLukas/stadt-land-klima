@@ -10,16 +10,14 @@ import { z } from "zod";
 export const JobTypeSchema = z.enum(["full_time", "part_time", "internship", "working_student", "volunteer"]);
 export type JobType = z.infer<typeof JobTypeSchema>;
 
+const OrganisationLogoSchema = z.object({ id: z.string(), type: z.string().nullable() }).nullable();
+
 export const PublicOrganisationSchema = z.object({
   id: z.number(),
   name: z.string(),
   link: z.string().nullable(),
-  logo: z
-    .object({
-      id: z.string(),
-      type: z.string().nullable(),
-    })
-    .nullable(),
+  logo: OrganisationLogoSchema,
+  logo_dark: OrganisationLogoSchema.optional(),
 });
 export type PublicOrganisation = z.infer<typeof PublicOrganisationSchema>;
 

@@ -77,6 +77,8 @@ const followLink = (pageSlug: string) => {
 </script>
 
 <style scoped>
+@reference "../assets/css/main.css";
+
 .slk-dock {
   background-color: var(--slk-surface);
   border-color: var(--slk-border);
@@ -84,8 +86,8 @@ const followLink = (pageSlug: string) => {
 }
 
 .slk-dock-active {
-  color: var(--slk-text-strong);
-  background-color: var(--slk-surface-muted);
+  @apply text-light-green;
+  background-color: transparent;
 }
 
 /* CMS SVGs can carry fixed paint attributes; preserve unpainted geometry. */

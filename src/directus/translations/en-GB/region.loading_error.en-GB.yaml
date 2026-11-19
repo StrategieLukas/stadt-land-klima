@@ -1,0 +1,3 @@
+language: en-GB
+key: region.loading_error
+value: The municipalities in this region could not be loaded.

@@ -1,6 +1,7 @@
 import { relationId } from "./tour";
 
 export type MediaFile = { id: string; type?: string | null | undefined } | string;
+export type TourMediaPreviewStatus = "loading" | "ready" | "error";
 export type TourMedia = {
   id: number;
   file: MediaFile;

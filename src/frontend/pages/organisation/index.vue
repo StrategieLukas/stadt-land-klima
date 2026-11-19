@@ -1,13 +1,17 @@
 <template>
-  <div class="w-full px-4 py-8 pb-16 sm:px-8">
+  <div class="organisation-page w-full py-8 pb-16">
     <header class="mb-10">
-      <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("organisation.title") }}</h1>
+      <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">
+        {{ $t("organisation.title") }}
+      </h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">
         {{ $t("organisation.teams.description") }}
       </p>
     </header>
 
-    <h2 class="mb-2 font-heading text-3xl font-bold text-gray">{{ $t("organisation.teams.title") }}</h2>
+    <h2 class="mb-3 font-heading text-3xl font-bold text-gray">
+      {{ $t("organisation.teams.title") }}
+    </h2>
     <p class="mb-8 text-sm text-gray italic">{{ $t("organisation.teams.bubble_hint") }}</p>
 
     <div class="flex flex-col items-start gap-8 lg:flex-row">
@@ -67,7 +71,7 @@
             dominant-baseline="middle"
             :font-size="team.fontSize"
             font-weight="700"
-            font-family="'Roboto Condensed', 'Inter', sans-serif"
+            font-family="RobotoCondensed, Inter, sans-serif"
             class="org-label-text"
             style="pointer-events: none"
           >
@@ -100,63 +104,76 @@
           <div id="team-detail-panel" class="mb-6 overflow-hidden rounded-lg border border-(--slk-border) shadow-md">
             <!-- Header -->
             <div
-              class="px-4 py-3"
+              class="px-5 py-5"
               :style="{ background: teamTint(activeTeam.color, 0.13), borderBottom: '2px solid ' + activeTeam.color }"
             >
-              <h2 class="text-[15px] font-bold text-gray">{{ activeTeam.label }}</h2>
-              <a
-                v-if="activeTeam.email"
-                :href="'mailto:' + activeTeam.email"
-                class="mt-0.5 block text-xs hover:underline"
-                :style="{ color: 'var(--slk-blue)' }"
-                >{{ activeTeam.email }}</a
-              >
+              <h2 class="font-heading text-3xl leading-tight font-bold text-(--slk-text-strong)">
+                {{ activeTeam.label }}
+              </h2>
+              <ul v-if="activeContacts.length" class="mt-4 flex flex-col gap-2">
+                <li v-for="contact in activeContacts" :key="organisationContactHref(contact)">
+                  <a
+                    :href="organisationContactHref(contact)"
+                    class="inline-flex max-w-full items-center gap-2 rounded-sm text-sm font-semibold text-(--slk-text-strong) underline decoration-(--slk-border) underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-4"
+                  >
+                    <svg
+                      class="h-4 w-4 shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      aria-hidden="true"
+                    >
+                      <template v-if="contact.type === 'email'">
+                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                        <path d="m3 6 9 7 9-7" />
+                      </template>
+                      <path
+                        v-else
+                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.35 1.91.69 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.69A2 2 0 0 1 22 16.92z"
+                      />
+                    </svg>
+                    <span class="min-w-0 break-words">{{
+                      contact.label ? `${contact.label}: ${contact.value}` : contact.value
+                    }}</span>
+                  </a>
+                </li>
+              </ul>
             </div>
 
             <!-- Task list -->
-            <div class="bg-(--slk-surface) px-4 py-3">
-              <ul class="list-inside list-disc space-y-1 text-sm leading-relaxed text-(--slk-text)">
+            <div v-if="activeTeam.tasks.length" class="bg-(--slk-surface) px-5 py-5">
+              <ul class="list-outside list-disc space-y-2 pl-5 text-base leading-relaxed text-(--slk-text)">
                 <li v-for="task in activeTeam.tasks" :key="task">{{ task }}</li>
               </ul>
             </div>
 
-            <!-- Members footer: small clickable avatars (replaces name strip) -->
-            <div class="border-t border-(--slk-border) px-4 py-3">
-              <div v-if="filteredMembers.length" class="flex flex-wrap gap-3">
-                <button
-                  v-for="member in filteredMembers"
-                  :key="'strip-' + member.id"
-                  type="button"
-                  class="group flex cursor-pointer flex-col items-center gap-1 focus:outline-hidden"
-                  :title="memberFullName(member)"
-                  @click="scrollToMember(member.id, activeTeam.color)"
-                >
-                  <div
-                    class="h-10 w-10 overflow-hidden rounded-full border-2 transition-transform group-hover:scale-110"
-                    :style="{ borderColor: activeTeam.color }"
-                  >
-                    <SmartImg
-                      v-if="member.avatar"
-                      :asset-id="member.avatar"
-                      :is-raster="true"
-                      :width="40"
-                      :height="40"
-                      img-class="w-full h-full object-cover"
-                    />
-                    <div
-                      v-else
-                      class="flex h-full w-full items-center justify-center"
-                      :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
-                    >
-                      <span class="text-xs font-bold" :style="{ color: activeTeam.color }">{{
-                        initials(member.first_name, member.last_name)
-                      }}</span>
-                    </div>
-                  </div>
-                  <span class="max-w-[48px] truncate text-center text-[10px] leading-tight text-(--slk-text-muted)">{{
-                    member.first_name
-                  }}</span>
-                </button>
+            <div
+              v-if="leadership.length"
+              class="org-leadership-row flex flex-wrap items-start gap-3 border-t border-(--slk-border) px-5 py-5"
+            >
+              <OrganisationMemberAvatar
+                v-for="leader in leadership"
+                :key="leader.role"
+                :member="leader.member"
+                :color="activeTeam.color"
+                :role="$t(leader.role)"
+                @select="scrollToMember($event, activeTeam.color)"
+              />
+            </div>
+
+            <div class="border-t border-(--slk-border) px-5 py-5">
+              <h3 class="mb-3 font-heading text-lg font-bold text-(--slk-text-strong)">
+                {{ $t("organisation.members") }}
+              </h3>
+              <div v-if="regularMembers.length" class="flex flex-wrap items-start gap-2">
+                <OrganisationMemberAvatar
+                  v-for="member in regularMembers"
+                  :key="member.id"
+                  :member="member"
+                  :color="activeTeam.color"
+                  @select="scrollToMember($event, activeTeam.color)"
+                />
               </div>
               <p v-else class="text-sm text-(--slk-text-subtle) italic">{{ $t("organisation.no_members") }}</p>
             </div>
@@ -183,8 +200,10 @@
     </div>
 
     <!-- ── All members list (below chart) ─────────────────────────────────── -->
-    <div v-if="members && members.length" class="mt-12">
-      <h2 class="mb-6 text-h2 font-bold text-gray">{{ $t("organisation.all_members") }}</h2>
+    <div v-if="allMembers.length" class="mt-12">
+      <h2 class="mb-6 font-heading text-3xl font-bold text-gray">
+        {{ $t("organisation.all_members") }}
+      </h2>
 
       <!-- Active-team members first (coloured border highlight) -->
       <template v-if="activeTeam && filteredMembers.length">
@@ -227,7 +246,7 @@
               </div>
             </div>
             <div class="flex flex-1 flex-col gap-2 p-4">
-              <p class="leading-snug font-bold text-(--slk-text-strong)">
+              <p class="font-heading text-xl leading-snug font-bold text-(--slk-text-strong) sm:text-2xl">
                 {{ member.first_name }} {{ member.last_name }}
               </p>
               <div
@@ -279,7 +298,7 @@
             </div>
           </div>
           <div class="flex flex-1 flex-col gap-2 p-4">
-            <p class="leading-snug font-bold text-(--slk-text-strong)">
+            <p class="font-heading text-xl leading-snug font-bold text-(--slk-text-strong) sm:text-2xl">
               {{ member.first_name }} {{ member.last_name }}
             </p>
             <div
@@ -295,7 +314,9 @@
 </template>
 
 <script setup lang="ts">
+import { ORGANISATION_TEAM_LABELS } from "~/shared/organisationTeams";
 import type { TeamMember } from "~/shared/contracts/content";
+import { organisationContacts, organisationContactHref } from "~/utils/organisationContacts";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 const fetchContent = useContentFetch();
 
@@ -309,7 +330,6 @@ usePageSeo({ title: $t("organisation") });
 const TEAM_LAYOUT = [
   {
     id: "lokalteams",
-    lineKeys: ["organisation.team.lokalteams.line1", "organisation.team.lokalteams.line2"],
     cx: 527.2,
     cy: 81.7,
     r: 72,
@@ -318,7 +338,6 @@ const TEAM_LAYOUT = [
   },
   {
     id: "technik",
-    lineKeys: ["organisation.team.technik.line1"],
     cx: 351,
     cy: 143.5,
     r: 72,
@@ -327,7 +346,6 @@ const TEAM_LAYOUT = [
   },
   {
     id: "steuerkreis",
-    lineKeys: ["organisation.team.steuerkreis.line1"],
     cx: 458.8,
     cy: 198.4,
     r: 89.7,
@@ -336,7 +354,6 @@ const TEAM_LAYOUT = [
   },
   {
     id: "massnahmen",
-    lineKeys: ["organisation.team.massnahmen.line1"],
     cx: 365,
     cy: 270.4,
     r: 72,
@@ -345,11 +362,6 @@ const TEAM_LAYOUT = [
   },
   {
     id: "kommunikation",
-    lineKeys: [
-      "organisation.team.kommunikation.line1",
-      "organisation.team.kommunikation.line2",
-      "organisation.team.kommunikation.line3",
-    ],
     cx: 531.6,
     cy: 276.2,
     r: 72,
@@ -358,7 +370,6 @@ const TEAM_LAYOUT = [
   },
   {
     id: "vorstand",
-    lineKeys: ["organisation.team.vorstand.line1", "organisation.team.vorstand.line2"],
     cx: 458.8,
     cy: 447.3,
     r: 72,
@@ -367,7 +378,6 @@ const TEAM_LAYOUT = [
   },
   {
     id: "kassenwart",
-    lineKeys: ["organisation.team.kassenwart.line1"],
     cx: 548,
     cy: 468,
     r: 52,
@@ -385,14 +395,17 @@ const { data: cmsTeams } = await useAsyncData("org-teams", () => fetchContent("/
 const TEAMS = computed(() =>
   TEAM_LAYOUT.map((layout) => {
     const cms = cmsTeams.value?.find((t) => t.team_key === layout.id);
-    const lines = layout.lineKeys.map((key) => $t(key));
+    const lines = ORGANISATION_TEAM_LABELS[layout.id].map((key) => $t(key));
     return {
       ...layout,
       lines,
-      label: cms?.label ?? lines.join(" "),
+      label: cms?.label?.trim() || lines.join(" "),
       email: cms?.email ?? "",
       color: cms?.color ?? "#9d9d9c",
       tasks: Array.isArray(cms?.tasks) ? cms.tasks : [],
+      head: cms?.head ?? null,
+      deputy: cms?.deputy ?? null,
+      contacts: cms?.contacts ?? [],
     };
   }),
 );
@@ -429,32 +442,43 @@ const activeTeam = computed(() =>
   activeTeamId.value ? (TEAMS.value.find((t) => t.id === activeTeamId.value) ?? null) : null,
 );
 
+const leadership = computed(() => {
+  const team = activeTeam.value;
+  if (!team) return [];
+  return [
+    ...(team.head ? [{ member: team.head, role: "organisation.head" as const }] : []),
+    ...(team.deputy ? [{ member: team.deputy, role: "organisation.deputy" as const }] : []),
+  ];
+});
+const activeContacts = computed(() =>
+  activeTeam.value ? organisationContacts(activeTeam.value.email, activeTeam.value.contacts) : [],
+);
 const byLastName = (a: TeamMember, b: TeamMember) => (a.last_name ?? "").localeCompare(b.last_name ?? "", "de");
 
-// Members in the active team
+// Leaders remain reachable from their avatars even when they are not assigned as ordinary members.
+const allMembers = computed(() => {
+  const result = new Map((members.value ?? []).map((member) => [member.id, member]));
+  for (const team of TEAMS.value) {
+    for (const leader of [team.head, team.deputy]) {
+      if (leader && !result.has(leader.id)) result.set(leader.id, { ...leader, bio: null, slk_team: [] });
+    }
+  }
+  return [...result.values()];
+});
 const filteredMembers = computed(() => {
-  if (!members.value || !activeTeamId.value) return [];
-  const seen = new Set();
-  return members.value
-    .filter((m) => {
-      if (!Array.isArray(m.slk_team) || !m.slk_team.some((team) => team === activeTeamId.value)) return false;
-      if (seen.has(m.id)) return false;
-      seen.add(m.id);
-      return true;
-    })
+  const leaderIds = new Set(leadership.value.map(({ member }) => member.id));
+  return allMembers.value
+    .filter((member) => leaderIds.has(member.id) || member.slk_team.some((team) => team === activeTeamId.value))
     .sort(byLastName);
 });
-
-// All other members (not in active team), sorted by last name
-const otherMembers = computed(() => {
-  if (!members.value) return [];
-  const activeIds = new Set(filteredMembers.value.map((m) => m.id));
-  return members.value.filter((m) => !activeIds.has(m.id)).sort(byLastName);
+const regularMembers = computed(() => {
+  const leaderIds = new Set(leadership.value.map(({ member }) => member.id));
+  return filteredMembers.value.filter((member) => !leaderIds.has(member.id));
 });
-
-function memberFullName(member: TeamMember) {
-  return [member.first_name, member.last_name].filter(Boolean).join(" ");
-}
+const otherMembers = computed(() => {
+  const activeIds = new Set(filteredMembers.value.map((member) => member.id));
+  return allMembers.value.filter((member) => !activeIds.has(member.id)).sort(byLastName);
+});
 
 // ── Layout stability: lock panel height to SVG height ───────────────────────
 // When panel content changes height the flex-row height must not change,

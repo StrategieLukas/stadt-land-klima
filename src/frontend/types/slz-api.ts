@@ -20,6 +20,12 @@ export interface RenderElement {
   thresholds?: Record<string, number> | undefined;
   src_url?: string | undefined;
   image_field?: string | undefined;
+  data_url?: string | undefined;
+  interactions?:
+    | {
+        reveal_municipalities?: { metric_id: string; selection: "whole_bin" } | undefined;
+      }
+    | undefined;
   [key: string]: unknown;
 }
 
@@ -125,6 +131,7 @@ export interface CollectionOverviewVisual {
 
 export interface Collection {
   id: string;
+  municipality_overview?: { contract_version: 1; default_metric_id: string } | null | undefined;
   title: Record<string, string>;
   description: Record<string, string>;
   overview_visuals?: CollectionOverviewVisual[] | undefined;
@@ -175,11 +182,11 @@ export interface SummaryAggregate {
   value?: number | undefined;
   metadata?:
     | {
-        attribution?: string | undefined;
-        attribution_url?: string | undefined;
-        license_name?: string | undefined;
-        license_url?: string | undefined;
-        effective_date?: string | undefined;
+        attribution?: string | null | undefined;
+        attribution_url?: string | null | undefined;
+        license_name?: string | null | undefined;
+        license_url?: string | null | undefined;
+        effective_date?: string | null | undefined;
       }
     | undefined;
   [key: string]: unknown;

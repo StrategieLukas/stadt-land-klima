@@ -1,0 +1,3 @@
+language: en-GB
+key: data.dashboard.map_unavailable
+value: "The map is currently unavailable. Use the search or distribution to explore municipalities."

@@ -159,76 +159,30 @@
               </button>
             </div>
 
-            <!-- Children -->
-            <div v-show="expandedId === item.id" class="border-b border-gray-100">
-              <!-- Image children: 2-column grid -->
-              <div v-if="hasImageChildren(item)" class="grid grid-cols-2 gap-2 px-4 py-3">
-                <component
-                  :is="child.link_type === 'page' ? NuxtLink : 'a'"
-                  v-for="child in childrenWithImages(item)"
-                  :key="child.id"
-                  :to="child.link_type === 'page' ? resolveHref(child) : undefined"
-                  :href="child.link_type === 'external' ? child.external_url : undefined"
-                  :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
-                  :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
-                  class="relative block h-20 overflow-hidden rounded-lg"
-                  :class="{ 'ring-2 ring-(--slk-text-strong)': child.link_type === 'page' && isActive(child) }"
+            <ul v-show="expandedId === item.id" class="space-y-1 border-b border-gray-100 px-4 py-3">
+              <li v-for="child in item.children" :key="child.id">
+                <NavigationDestination
+                  :item="child"
+                  class="flex items-center gap-3 rounded-lg p-2 text-sm text-(--slk-text) hover:bg-(--slk-surface-subdued)"
+                  :current="isActive(child) ? 'page' : undefined"
                   @click="closeDrawer"
                 >
-                  <img :src="imageUrlMap[child.image_id ?? '']" class="h-full w-full object-cover" alt="" />
-                  <div
-                    class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-2 pt-4 pb-1.5"
+                  <img
+                    v-if="child.image_id && imageUrlMap[child.image_id]"
+                    :src="imageUrlMap[child.image_id]"
+                    class="h-14 w-16 shrink-0 rounded-md object-cover"
+                    alt=""
+                    loading="lazy"
+                  />
+                  <span
+                    ><span class="block font-semibold">{{ navLabel(child) }}</span
+                    ><span v-if="child.description" class="mt-1 block text-xs text-(--slk-text-subtle)">{{
+                      navDescription(child)
+                    }}</span></span
                   >
-                    <div
-                      class="text-xs leading-snug font-semibold text-white"
-                      style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
-                    >
-                      {{ navLabel(child) }}
-                    </div>
-                  </div>
-                </component>
-              </div>
-
-              <!-- Text-only children -->
-              <template v-for="(child, index) in childrenWithoutImages(item)" :key="child.id">
-                <div v-if="index > 0" class="ml-7 border-t border-gray-100"></div>
-                <component
-                  :is="child.link_type === 'page' ? NuxtLink : 'a'"
-                  :to="child.link_type === 'page' ? resolveHref(child) : undefined"
-                  :href="child.link_type === 'external' ? child.external_url : undefined"
-                  :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
-                  :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
-                  class="flex flex-col px-7 py-2.5 text-sm transition-colors"
-                  :class="{
-                    'bg-(--slk-surface-muted) text-(--slk-text-strong)': child.link_type === 'page' && isActive(child),
-                    'text-gray-700 hover:bg-gray-50': !(child.link_type === 'page' && isActive(child)),
-                  }"
-                  @click="closeDrawer"
-                >
-                  <span class="flex items-center gap-1.5 leading-snug font-semibold">
-                    <svg
-                      v-if="child.link_type === 'external'"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-3 w-3 shrink-0 text-gray-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
-                    {{ navLabel(child) }}
-                  </span>
-                  <span v-if="child.description" class="mt-0.5 text-xs leading-snug font-normal text-gray-400">{{
-                    navDescription(child)
-                  }}</span>
-                </component>
-              </template>
-            </div>
+                </NavigationDestination>
+              </li>
+            </ul>
           </template>
 
           <!-- Simple link -->
@@ -411,17 +365,5 @@ function hasChildren(item: NavigationItem) {
 
 function anyChildActive(item: NavigationItem) {
   return hasChildren(item) && (item.children ?? []).some((child) => isActive(child));
-}
-
-function hasImageChildren(item: NavigationItem) {
-  return (item.children || []).some((c) => c.image_id);
-}
-
-function childrenWithImages(item: NavigationItem) {
-  return (item.children || []).filter((c) => c.image_id);
-}
-
-function childrenWithoutImages(item: NavigationItem) {
-  return (item.children || []).filter((c) => !c.image_id);
 }
 </script>

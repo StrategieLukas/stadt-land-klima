@@ -38,13 +38,40 @@ export const OrganisationSchema = z.object({
   id: z.number().int(),
   name: z.string(),
   logo: AssetSchema,
+  logo_dark: AssetSchema.optional(),
   link: NullableTextSchema,
 });
+export const OrganisationLeaderSchema = z.object({
+  id: z.string(),
+  first_name: NullableTextSchema,
+  last_name: NullableTextSchema,
+  avatar: z.string().nullable(),
+});
+export const OrganisationContactSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("email"), value: z.email().max(255), label: NullableTextSchema }),
+  z.object({
+    type: z.literal("phone"),
+    value: z
+      .string()
+      .trim()
+      .regex(/^\+?[\d ()/.-]{3,40}$/)
+      .refine((value) => value.replace(/\D/g, "").length >= 3),
+    label: NullableTextSchema,
+  }),
+]);
+export type OrganisationContact = z.infer<typeof OrganisationContactSchema>;
 export const OrganisationTeamSchema = z.object({
   team_key: z.string(),
   label: NullableTextSchema,
   email: NullableTextSchema,
   color: NullableTextSchema,
+  head: OrganisationLeaderSchema.nullish().transform((value) => value ?? null),
+  deputy: OrganisationLeaderSchema.nullish().transform((value) => value ?? null),
+  contacts: z
+    .array(OrganisationContactSchema)
+    .max(20)
+    .nullish()
+    .transform((value) => value ?? []),
   tasks: z
     .array(z.string())
     .nullish()

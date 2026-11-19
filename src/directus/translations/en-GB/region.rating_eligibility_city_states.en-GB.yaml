@@ -1,0 +1,4 @@
+language: en-GB
+key: region.rating_eligibility_city_states
+value: >-
+  Berlin and Hamburg as city states (ADE 2).

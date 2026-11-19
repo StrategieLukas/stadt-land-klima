@@ -1,0 +1,3 @@
+language: de-DE
+key: search.rating.update_contact_title
+value: "Bewertung aktualisieren: :name"

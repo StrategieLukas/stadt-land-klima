@@ -1,17 +1,27 @@
 <template>
   <Teleport to="body">
+    <!-- Keep the search tint below navigation dropdowns while their panels replace results. -->
     <Transition name="palette-fade">
-      <div v-if="isOpen" class="pointer-events-none fixed inset-0 z-10004 font-sans">
-        <!-- Dark backdrop — starts below header in embedded mode so the white bar stays unobscured -->
-        <div
-          class="slk-modal-backdrop pointer-events-auto absolute inset-x-0 bottom-0 bg-black/50"
-          :style="embeddedInput ? `top: ${headerHeight}px` : 'top: 0'"
-          @click="close"
-        />
-
+      <div
+        v-if="isOpen"
+        class="slk-modal-backdrop fixed inset-x-0 bottom-0 bg-black/50"
+        :class="embeddedInput ? 'z-10000' : 'z-10004'"
+        :style="embeddedInput ? `top: ${headerHeight}px` : 'top: 0'"
+        aria-hidden="true"
+        @click="close"
+      />
+    </Transition>
+    <Transition name="palette-fade">
+      <div
+        v-if="isOpen"
+        v-show="isVisible"
+        :inert="!isVisible"
+        :aria-hidden="!isVisible"
+        class="pointer-events-none fixed inset-0 z-10004 font-sans"
+      >
         <!-- Panel: drops below the header input when embedded, centred floating otherwise -->
         <div
-          class="pointer-events-auto absolute z-10"
+          class="palette-positioner pointer-events-auto absolute z-10"
           :style="
             embeddedInput && navInputRect.left !== null
               ? `left: ${navInputRect.left}px; width: ${navInputRect.width}px; top: ${headerHeight + 8}px`
@@ -19,11 +29,13 @@
           "
         >
           <div
+            id="search-palette-panel"
+            ref="panelRef"
             class="palette-panel flex flex-col overflow-hidden"
             :class="embeddedInput ? 'rounded-2xl border border-gray-200 shadow-xl' : 'rounded-2xl shadow-2xl'"
             style="max-height: 76vh"
             role="dialog"
-            aria-modal="true"
+            :aria-modal="!embeddedInput"
             :aria-label="$t('generic.search')"
             @click.stop
           >
@@ -48,10 +60,8 @@
                 v-model="query"
                 class="flex-1 py-4 text-base placeholder-gray-400 outline-hidden"
                 :placeholder="$t('search.palette.placeholder')"
-                @keydown.up.prevent="moveFocus(-1)"
-                @keydown.down.prevent="moveFocus(1)"
-                @keydown.enter.prevent="navigateToFocused"
-                @keydown.escape="close"
+                :aria-label="$t('generic.search')"
+                @keydown="onInputKeydown"
               />
               <kbd class="hidden rounded-sm bg-gray-100 px-2 py-1 text-xs text-gray-400 sm:block">ESC</kbd>
               <button
@@ -108,14 +118,19 @@
                   <li
                     v-for="result in group.results"
                     :key="result._key ?? result._flatIndex"
-                    class="palette-result cursor-pointer border-b px-4 py-3 transition-colors last:border-b-0"
+                    class="palette-result relative cursor-pointer border-b px-4 py-3 transition-colors last:border-b-0"
                     :class="focusedIndex === result._flatIndex ? 'palette-result--focused' : ''"
-                    @click="navigate(result)"
-                    @mouseenter="focusedIndex = result._flatIndex"
+                    :data-search-result-index="result._flatIndex"
+                    @mouseenter="selection.select(result)"
                   >
                     <!-- Administrative area result (municipalities + level 1-3 regions) -->
                     <template v-if="result._type === 'area'">
-                      <AreaSearchResult :result="result" @chip-action="onChipAction" />
+                      <AreaSearchResult
+                        :result="result"
+                        :href="resultUrl(result)"
+                        @navigate="onResultClick"
+                        @chip-action="onChipAction"
+                      />
                     </template>
 
                     <!-- Inhalte result -->
@@ -135,16 +150,20 @@
                             d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
                           />
                         </svg>
-                        <div class="min-w-0 flex-1">
+                        <NuxtLink
+                          :to="result.url"
+                          class="min-w-0 flex-1 after:absolute after:inset-0"
+                          @click="onResultClick"
+                        >
                           <div class="leading-tight font-semibold text-gray-900" v-html="sanitizeHtml(result.title)" />
                           <div
                             v-if="result.excerpt"
                             class="mt-0.5 line-clamp-2 text-xs text-gray-500"
                             v-html="sanitizeHtml(result.excerpt)"
                           />
-                        </div>
+                        </NuxtLink>
                         <span
-                          class="palette-content-badge ml-2 inline-flex shrink-0 items-center gap-1 self-center rounded-full bg-gray-100 px-2 py-0.5 text-xs whitespace-nowrap text-gray-600"
+                          class="slk-badge ml-2 inline-flex shrink-0 items-center gap-1 self-center rounded-full px-2 py-0.5 text-xs whitespace-nowrap"
                         >
                           {{ contentTypeLabel(result.type) }}
                           <template v-if="result.meta">
@@ -206,17 +225,18 @@
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import type { AreaChipAction } from "~/types/components/navigation";
 
-import { ref, watch, watchEffect, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "#imports";
 import { useSearchPalette } from "~/composables/useSearchPalette";
 import { useEmbeddedSearchBridge } from "~/composables/useEmbeddedSearchBridge";
+import { useSearchSelection } from "~/composables/useSearchSelection";
 import { useUnifiedSearch } from "~/composables/useUnifiedSearch";
 import { getCurrentFrontendCatalogVersion } from "~/composables/getCatalogVersion";
 import { useHeaderHeight, useNavInputRect } from "~/composables/useHeaderHeight";
 import sectorImages from "~/shared/sectorImages";
 
 const { $t } = useNuxtApp();
-const { isOpen, query, embeddedInput, open, close } = useSearchPalette();
+const { isOpen, isVisible, query, embeddedInput, navigationDropdownOpen, open, close, clearQuery } = useSearchPalette();
 const bridge = useEmbeddedSearchBridge();
 const router = useRouter();
 const { closeDrawer } = useDrawer();
@@ -224,8 +244,8 @@ const headerHeight = useHeaderHeight();
 const navInputRect = useNavInputRect();
 
 const inputRef = ref<HTMLInputElement | null>(null);
-const isLoading = ref(false);
-const focusedIndex = ref(-1);
+const panelRef = ref<HTMLElement | null>(null);
+let opener: HTMLElement | null = null;
 
 // Current frontend catalog version — used to distinguish outdated vs current ratings
 
@@ -238,79 +258,121 @@ const catalogVersionName = computed(() => currentCatalog.value?.name ?? null);
 const unifiedSearch = useUnifiedSearch({ catalogVersionName });
 const { groupsWithIndex, flatResults } = unifiedSearch;
 
-// Register keyboard nav functions with the bridge so the header can call them
-bridge.register(moveFocus, navigateToFocused);
+const isLoading = unifiedSearch.isLoading;
+const selection = useSearchSelection(flatResults, (result) => `${result._type}:${result._key}`);
+const focusedIndex = selection.index;
+const unregisterNavigation = bridge.register(moveFocus, navigateToFocused);
 
-watchEffect(() => {
-  isLoading.value = unifiedSearch.isLoading.value;
-});
+watch(
+  [isOpen, query],
+  ([open, term]) => {
+    selection.clear();
+    if (open && term.trim()) unifiedSearch.search(term);
+    else unifiedSearch.clear();
+  },
+  { flush: "sync", immediate: true },
+);
 
-// Watch open state → focus input (only when not embedded — header owns focus then)
-watch(isOpen, async (val) => {
-  if (val) {
-    focusedIndex.value = -1;
-    if (!embeddedInput.value) {
+watch(
+  [isOpen, embeddedInput],
+  async ([open, embedded], [wasOpen]) => {
+    if (open) {
+      if (!wasOpen) opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       await nextTick();
-      inputRef.value?.focus();
+      if (isOpen.value && !embeddedInput.value && !embedded) inputRef.value?.focus();
+    } else if (!embedded && opener?.isConnected) {
+      opener.focus();
     }
-  } else {
-    unifiedSearch.clear();
-  }
+  },
+  { flush: "post" },
+);
+
+// Header registration changes after hydration and on either side of the mobile breakpoint.
+watch(
+  () => bridge.hasHeaderInput,
+  async (available) => {
+    if (!isOpen.value) return;
+    await nextTick();
+    if (!isOpen.value) return;
+    if (available && bridge.focusHeaderInput()) return;
+    open();
+    await nextTick();
+    inputRef.value?.focus();
+  },
+);
+
+watch(focusedIndex, async (index) => {
+  if (index < 0) return;
+  await nextTick();
+  panelRef.value?.querySelector(`[data-search-result-index="${index}"]`)?.scrollIntoView({ block: "nearest" });
 });
 
-// Drive search from the shared query ref (works for both embedded and palette inputs)
-watch(query, (q) => {
-  focusedIndex.value = -1;
-  runSearch(q);
-});
+function finishSelection() {
+  clearQuery();
+  close();
+  closeDrawer();
+}
 
-function runSearch(q: string) {
-  if (!q.trim()) {
-    unifiedSearch.clear();
+function onResultClick(event: MouseEvent) {
+  if (!isVisible.value) {
+    event.preventDefault();
     return;
   }
-  unifiedSearch.search(q);
+  if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) finishSelection();
+}
+
+function resultUrl(result: (typeof flatResults.value)[number]) {
+  if (result._type === "content") return result.url;
+  if (result.areaKind === "administrative-area") return `/data/${encodeURIComponent(result.ars)}`;
+  if (!result.isMunicipality) return `/regions/${result.ars}`;
+  if ((result.ctaType === "complete" || result.ctaType === "outdated") && result._slug) {
+    const query =
+      result.ctaType === "outdated" && result._oldCatalogName ? `?v=${encodeURIComponent(result._oldCatalogName)}` : "";
+    return `/municipalities/${result._slug}${query}`;
+  }
+  return `/municipalities/${result.ars}`;
 }
 
 function navigate(result: (typeof flatResults.value)[number] | undefined) {
-  if (!result) return;
-  close();
-  closeDrawer();
-  if (result._type === "area") {
-    if (result.isMunicipality) {
-      if ((result.ctaType === "complete" || result.ctaType === "outdated") && result._slug) {
-        const query =
-          result.ctaType === "outdated" && result._oldCatalogName
-            ? `?v=${encodeURIComponent(result._oldCatalogName)}`
-            : "";
-        void router.push(`/municipalities/${result._slug}${query}`);
-      } else {
-        void router.push(`/municipalities/${result.ars}`);
-      }
-    } else {
-      void router.push(`/regions/${result.ars}`);
-    }
-  } else if (result._type === "content") {
-    void router.push(result.url);
-  }
+  if (!isVisible.value || !result) return;
+  const url = resultUrl(result);
+  finishSelection();
+  void router.push(url);
 }
 
 /** Called when a CTA chip inside AreaSearchResult is clicked */
-function onChipAction({ ars }: AreaChipAction) {
-  close();
-  closeDrawer();
-  void router.push(`/register_localteam?ars=${ars}`);
+function onChipAction({ action, ars, result }: AreaChipAction) {
+  if (!isVisible.value) return;
+  finishSelection();
+  if (action === "gruenden") {
+    void router.push({ path: "/register_localteam", query: { ars, name: result.name } });
+    return;
+  }
+  const name = { ":name": result.name };
+  void router.push({
+    path: "/contact",
+    query: {
+      type: "cooperation",
+      title: $t(action === "update" ? "search.rating.update_contact_title" : "localteam.contact_title", name),
+      content: $t(action === "update" ? "search.rating.update_contact_content" : "localteam.contact_content", name),
+    },
+  });
 }
 
 function moveFocus(dir: number) {
-  const max = flatResults.value.length - 1;
-  if (max < 0) return;
-  focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + dir));
+  if (isVisible.value) selection.move(dir);
 }
 
 function navigateToFocused() {
-  if (focusedIndex.value >= 0 && flatResults.value[focusedIndex.value]) {
-    navigate(flatResults.value[focusedIndex.value]);
+  if (isVisible.value) navigate(selection.selected.value);
+}
+
+function onInputKeydown(event: KeyboardEvent) {
+  if (event.isComposing) return;
+  if (["ArrowUp", "ArrowDown", "Enter"].includes(event.key)) {
+    event.preventDefault();
+    if (event.key === "Enter") navigateToFocused();
+    else moveFocus(event.key === "ArrowDown" ? 1 : -1);
   }
 }
 
@@ -324,6 +386,12 @@ const contentTypeKeys = [
   "news_item",
   "member",
   "team",
+  "job",
+  "climate_tool",
+  "event_series",
+  "tour",
+  "tour_stop",
+  "election",
 ] as const;
 function contentTypeLabel(type: string) {
   if (!type) return "";
@@ -341,42 +409,88 @@ const sectorLabels = Object.fromEntries(
 // Global Cmd+K / Ctrl+K shortcut — always route to the embedded header search
 // (falls back to opening standalone palette when no header input is registered, e.g. mobile)
 function handleKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+  if (e.isComposing) return;
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();
-    if (isOpen.value && !embeddedInput.value) {
-      close();
-      return;
-    }
-    if (bridge.hasHeaderInput) {
-      bridge.focusHeaderInput();
-    } else {
-      if (isOpen.value) {
-        close();
-      } else {
-        open();
-      }
-    }
+    if (isOpen.value && !embeddedInput.value) close();
+    else if (!bridge.focusHeaderInput()) open();
   } else if (e.key === "Escape" && isOpen.value) {
-    close();
+    if (navigationDropdownOpen.value) navigationDropdownOpen.value = false;
+    else close();
+  } else if (e.key === "Tab" && isOpen.value && !embeddedInput.value) {
+    const controls = Array.from(
+      panelRef.value?.querySelectorAll<HTMLElement>('input, button, a[href], [tabindex="0"]') ?? [],
+    ).filter((element) => element.checkVisibility() && !element.hasAttribute("disabled"));
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last?.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first?.focus();
+    }
   }
 }
 
+function handleFocusOutside(event: FocusEvent) {
+  if (!isOpen.value) return;
+  if (!(event.target instanceof Element) || panelRef.value?.contains(event.target)) return;
+  if (!embeddedInput.value) {
+    inputRef.value?.focus();
+    return;
+  }
+  if (!event.target.closest("[data-search-header], [data-nav-trigger], .navigation-panel")) close();
+}
+
+watch(
+  () => router.currentRoute.value.fullPath,
+  () => {
+    close();
+  },
+);
+
 onMounted(() => {
   document.addEventListener("keydown", handleKeydown);
+  document.addEventListener("focusin", handleFocusOutside);
 });
 onBeforeUnmount(() => {
   document.removeEventListener("keydown", handleKeydown);
+  document.removeEventListener("focusin", handleFocusOutside);
+  unregisterNavigation();
+  unifiedSearch.clear();
 });
 </script>
 
 <style scoped>
 .palette-fade-enter-active,
 .palette-fade-leave-active {
-  transition: opacity 180ms ease;
+  transition: opacity 160ms ease;
 }
 .palette-fade-enter-from,
 .palette-fade-leave-to {
   opacity: 0;
+}
+.palette-positioner {
+  transition:
+    left 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.palette-panel {
+  transform-origin: top center;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.palette-fade-enter-from .palette-panel,
+.palette-fade-leave-to .palette-panel {
+  transform: translateY(-6px) scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
 }
 .palette-panel {
   background-color: var(--slk-surface);
@@ -393,15 +507,12 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid var(--slk-border);
   color: var(--slk-text-muted);
 }
-.palette-result:hover {
+.palette-result:hover,
+.palette-result:focus-within {
   background-color: var(--slk-surface-muted);
 }
 .palette-result--focused {
   background-color: var(--slk-blue-tint);
-}
-:global(html[data-theme="staedteChallengeDark"] .palette-content-badge) {
-  background-color: var(--slk-surface-muted) !important;
-  color: var(--slk-text-strong) !important;
 }
 :global(html[data-theme="staedteChallengeDark"] .palette-sector-icon) {
   filter: none;

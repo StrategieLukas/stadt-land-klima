@@ -23,12 +23,10 @@
 
     <div v-if="hasJobs" class="space-y-12">
       <section v-if="employmentJobs.length" id="festanstellung">
-        <h2
-          class="mb-4 border-b border-solid-light-green-40 pb-2 text-base font-semibold tracking-wide text-olive-green uppercase"
-        >
+        <h2 class="mb-4 border-b border-(--slk-border) pb-3 text-xl font-bold text-(--slk-text-strong)">
           {{ $t("jobs.heading.employment") }}
         </h2>
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-2">
           <JobOfferCard
             v-for="job in employmentJobs"
             :key="job.id"
@@ -40,12 +38,10 @@
       </section>
 
       <section v-if="internshipStudentJobs.length" id="praktika-werkstudi">
-        <h2
-          class="mb-4 border-b border-stats-light pb-2 text-base font-semibold tracking-wide text-stats-dark uppercase"
-        >
+        <h2 class="mb-4 border-b border-(--slk-border) pb-3 text-xl font-bold text-(--slk-text-strong)">
           {{ $t("jobs.heading.internship_student") }}
         </h2>
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-2">
           <JobOfferCard
             v-for="job in internshipStudentJobs"
             :key="job.id"
@@ -57,12 +53,10 @@
       </section>
 
       <section v-if="volunteerJobs.length" id="ehrenamt">
-        <h2
-          class="mb-4 border-b border-rating-3-light pb-2 text-base font-semibold tracking-wide text-olive-green uppercase"
-        >
+        <h2 class="mb-4 border-b border-(--slk-border) pb-3 text-xl font-bold text-(--slk-text-strong)">
           {{ $t("jobs.heading.volunteer") }}
         </h2>
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-2">
           <JobOfferCard
             v-for="job in volunteerJobs"
             :key="job.id"
@@ -74,7 +68,7 @@
       </section>
     </div>
 
-    <div v-else class="rounded-lg border border-gray-100 bg-white p-6 text-gray-500 shadow-xs">
+    <div v-else class="border border-(--slk-border) bg-(--slk-surface) p-6 text-(--slk-text-muted)">
       {{ $t("jobs.empty") }}
     </div>
   </div>

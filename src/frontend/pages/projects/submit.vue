@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-3xl px-4 py-8">
+  <div class="mx-auto w-full max-w-3xl py-8">
     <NuxtLink to="/projects" class="mb-6 inline-block text-sm font-semibold text-light-blue hover:underline">
       ← {{ $t("projects.submit.back") }}
     </NuxtLink>
