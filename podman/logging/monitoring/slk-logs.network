@@ -1,0 +1,6 @@
+[Unit]
+Description=Private Grafana and log ingestion backend network
+
+[Network]
+NetworkName=slk-logs
+Internal=true

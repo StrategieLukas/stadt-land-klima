@@ -102,8 +102,12 @@ The wrapper generates a private Compose overlay containing read-only mount paths
 not credential values. Database and search load their own files. Directus and
 frontend load their own file followed by the shared Meilisearch file. The static
 `slk-env` entrypoint rereads them at each start and exec; no shell expressions are
-evaluated. The selected application file also masks `/frontend/.env` or
-`/directus/.env` read-only, so library dotenv readers see the same configuration.
+evaluated. The frontend file also masks `/frontend/.env` read-only. Directus receives
+its settings only through the launcher: mounting `/directus/.env` would let its
+library loader override protected process values, including `CACHE_ENABLED=false`.
+Production CMS restarts recreate its container to apply mount changes and atomically
+replaced env files; data-service restarts retain their containers and images.
+Runtime audits verify the effective Directus library configuration as well as confinement.
 Keep file modes 0600 or 0400. Runtime files never enter image contexts
 or the frontend builder. The builder emits secret-free runtime defaults.
 
@@ -374,6 +378,11 @@ confinement, open a socket, or alter sysctls. Review any host preparation failur
 with the administrator; there is no unconfined/rootful fallback.
 
 ## Application release coordination
+
+For reproducible host service copies (backup/timer, boot unit, Caddy and AppArmor),
+use [`slk host plan/install/verify`](docs/HOST_REPRODUCIBILITY.md) from the approved
+revision. Application releases remain deployment-user operations; privileged host
+installation uses a separately reviewed root-owned checkout.
 
 The production-only `slk release` command accepts `backup`, `stage`,
 `stage-prebuilt`, `activate` and `rollback` with a private host config, next tag

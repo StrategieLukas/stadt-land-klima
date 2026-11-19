@@ -17,6 +17,10 @@ import {
 } from "../../../src/frontend/server/utils/contentTranslationPersistence.js";
 import { runContentTranslationWorker } from "../../../src/frontend/server/utils/contentTranslationWorker.js";
 import { z } from "../../../src/frontend/node_modules/zod/index.js";
+import {
+  TranslationTargetsSchema,
+  type TranslationTarget,
+} from "../../../src/frontend/shared/contentTranslationProtocol.js";
 
 import { prepareTranslationDocument } from "../../../src/frontend/server/utils/contentTranslationFormat.js";
 
@@ -66,7 +70,13 @@ export function parseSampleOptions(args: string[]) {
     throw new TranslationSampleError("Sample limits exceeded");
   return { frontendUrl: url("--frontend-url"), directusUrl: url("--directus-url"), count, maxCharacters, apply };
 }
-export function planTranslationSample(data: unknown, count: number, maxCharacters: number) {
+export function planTranslationSample(
+  data: unknown,
+  count: number,
+  maxCharacters: number,
+  targets: readonly TranslationTarget[] = ["en-GB", "it-IT"],
+) {
+  TranslationTargetsSchema.parse(targets);
   if (
     !Number.isInteger(count) ||
     count < 1 ||
@@ -82,7 +92,8 @@ export function planTranslationSample(data: unknown, count: number, maxCharacter
     .slice(0, count)
     .map(({ id, slug, name }) => ({ id, slug, name }));
   if (!pages.length) throw new TranslationSampleError("No published navigation titles available");
-  const maximumSourceCharacters = pages.reduce((total, page) => total + Array.from(page.name).length, 0) * 2;
+  const maximumSourceCharacters =
+    pages.reduce((total, page) => total + Array.from(page.name).length, 0) * targets.length;
   if (maximumSourceCharacters > maxCharacters)
     throw new TranslationSampleError("Selected titles exceed sample character ceiling; reduce --count");
   const units = new Set(
@@ -95,7 +106,9 @@ export function planTranslationSample(data: unknown, count: number, maxCharacter
 const StatusSchema = z.object({
   limits: z.object({ total: z.number().int().positive(), daily: z.number().int().positive() }),
   usage: z.array(z.object({ id: z.string(), reserved_characters: z.number(), billed_characters: z.number() })),
-  job: z.object({ namespace: z.string().nullable(), lease_until: z.string().nullable() }).nullable(),
+  job: z
+    .object({ namespace: z.string().nullable(), lease_until: z.string().nullable(), targets: TranslationTargetsSchema })
+    .nullable(),
 });
 
 /** Explicit operator command. Dry-run never authenticates to DeepL or writes to Directus.
@@ -140,7 +153,13 @@ export async function runTranslationSample(
     }
     return SiteLayoutSchema.parse(JSON.parse(body) as unknown);
   }
-  let plan = planTranslationSample(await source("de-DE"), options.count, options.maxCharacters);
+  const initial = await source("de-DE");
+  let plan = planTranslationSample(
+    initial,
+    options.count,
+    options.maxCharacters,
+    options.apply ? ["en-GB"] : ["en-GB", "it-IT"],
+  );
   if (!options.apply)
     return {
       mode: "dry-run",
@@ -196,11 +215,13 @@ export async function runTranslationSample(
   );
   const status = () => admin("/content-translations/status", signal).then((value) => StatusSchema.parse(value));
   const before = await status();
+  const targets = before.job?.targets ?? ["en-GB"];
+  plan = planTranslationSample(initial, options.count, options.maxCharacters, targets);
   if (before.job?.lease_until && Date.parse(before.job.lease_until) > Date.now())
     throw new TranslationSampleError("Worker busy; disable automatic generation and wait for its lease to expire");
   if (before.job?.namespace && before.job.namespace !== provider.namespace)
     throw new TranslationSampleError("Namespace differs; sample command never switches or rebuilds namespaces");
-  const fieldKeys = ["en-GB", "it-IT"].flatMap((locale) => [
+  const fieldKeys = targets.flatMap((locale) => [
     ...collectContentTranslationSegments(
       { pages: plan.pages },
       contentTranslationPolicy(route)!,
@@ -221,8 +242,7 @@ export async function runTranslationSample(
   )
     throw new TranslationSampleError("Insufficient local sample budget; limits and counters were preserved");
   await admin("/content-translations", signal, { op: "enqueue" });
-  await timing.wait(31_000, signal);
-  plan = planTranslationSample(await source("de-DE"), options.count, options.maxCharacters);
+  plan = planTranslationSample(await source("de-DE"), options.count, options.maxCharacters, targets);
   const summary = await runContentTranslationWorker({
     persistence,
     provider,
@@ -236,7 +256,7 @@ export async function runTranslationSample(
   const reader = createPersistedTranslationReader(options.directusUrl, server, provider.namespace, true, fetcher);
   const translator = createContentTranslator(reader, 10_000);
   const samples = [];
-  for (const locale of ["en-GB", "it-IT"] as const) {
+  for (const locale of targets) {
     const result = await translator({ pages: plan.pages }, locale, contentTranslationPolicy(route)!);
     if (result.degraded || result.pending)
       throw new TranslationSampleError("Sample incomplete; inspect private status before retrying uncertain requests");

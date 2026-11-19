@@ -4,6 +4,13 @@ export const IMAGE_ADVISORY_REVIEW = [
   {
     name: "directus",
     version: "11.17.4",
+    id: "GHSA-7h45-q5jx-7r87",
+    control:
+      "Exact-source upstream share-update backport rejects creator reassignment and validates full/partial target changes before mutation; rebuilt-image regression checks forbidden updates have no side effects.",
+  },
+  {
+    name: "directus",
+    version: "11.17.4",
     id: "GHSA-c6w9-5g5j-jh2p",
     control: "Response cache is forced off in the maintained Compose configuration.",
   },

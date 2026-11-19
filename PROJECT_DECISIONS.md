@@ -267,6 +267,37 @@ purge it or infrastructure history. Collector/alert routing and retention remain
 operator configuration. Rebuild changed extension bundles and the CMS image
 together; regenerate logging manifests and inspect controlled deployed canaries.
 
+Optional host journal collection is maintained in `podman/logging/` and installed
+and drift-checked by `slk host plan/install/verify` when the root-only host dotenv
+references `SLK_HOST_LOGGING_CONFIG`. The selected stack is **Vector + VictoriaLogs**.
+Vector runs as a dedicated unprivileged journal reader, uses a systemd-loaded
+per-host credential and sends filtered JSON lines over authenticated HTTPS. Its
+1 GiB disk buffer blocks when full; acknowledgments and persistent cursors support
+restart recovery across boots. It receives no engine socket or application dotenv.
+Native secret-file lookup keeps environment interpolation disabled. The admin API
+is disabled; metrics bind only to loopback. Exact release binary hashes are pinned.
+The monitoring backend uses Podman Quadlets: single-node VictoriaLogs on a
+dedicated internal network and named volume, with additive Grafana/proxy network
+drop-ins and no published backend port by default. Query access uses private
+container DNS; a native proxy can opt in to loopback-only publishing. Retention
+is 30 days with a disk cap. Existing VictoriaMetrics
+stays the metrics backend. Host journals are bounded to 512 MiB/three days.
+`slk monitoring plan/install/verify` automates the same-owner monitoring setup with
+private JSON settings, discovered running Quadlets, preserved INI/environment
+plugin lists, generated file credentials, merged Caddy routing and private
+rollback snapshots. It validates before activation, verifies authenticated HTTPS
+delivery with a harmless canary and restores previous files/services on caught
+failure, retaining data volumes. A missing Caddy rate-limit module can trigger a
+reviewed binary overlay onto the current image only if existing module names
+remain available; custom modules need integration before activation. No remote
+deployment, DNS changes, unsigned-plugin bypass or application-host restart is
+implied. Native/deployed acceptance and exact-artifact security review still apply.
+Disk limits and retries do not establish exactly-once/power-loss durability.
+See `docs/CENTRAL_LOGGING.md`, `docs/LOGGING_ALTERNATIVES.md` and the dated release
+findings in `docs/LOGGING_SECURITY_REVIEW.md` before activation. The VictoriaLogs
+binary Go scan passed; Vector source-lock advisory matches still need an exact
+artifact/host review. No remote installation is implied by these checked files.
+
 ## Editorial and publication invariants
 
 - Municipality publication and preview use independent `published` and
@@ -448,7 +479,7 @@ workflows; `bin/cli/checks.test.ts` checks workflow coverage. The runner keeps
 complete private logs and incremental/final JSON reports under `.reports/checks/`,
 with bounded diagnostic tails for agents. Exit codes, signals, timeouts and
 prerequisites determine outcomes; diagnostic text is never parsed to infer a pass.
-Selected runs do not replace complete verification. Native matrix and deployed
+Selected runs do not replace complete verification. After investigating current upstream fixes, an authorized push may proceed with documented, currently unresolvable dependency advisories as its only remaining failures; audit exit statuses and findings stay unchanged. Exception eligibility is manually reviewed and never converts the check report or CI to a pass. Native matrix and deployed
 revision acceptance remain explicit separate environments. See [check runner
 reference](docs/CHECKS.md). Curl localhost:8080 after frontend changes.
 Explicit full HTTPS/editor/image/proxy/storage tests use disposable environments;
@@ -505,6 +536,34 @@ Local workflow validation does not establish an actual hosted-runner execution.
 
 ## Service failure handling
 
+Directus must not mount an autoloaded `/directus/.env`. Its library loader can override
+protected process values from that file, re-enabling response caching and serving stale
+translation results after direct database commits. The launcher supplies private values
+through `/run/slk-env`; production CMS restarts recreate its mounts. Runtime/image audits
+check the effective library flags for cache, TUS, WebSockets and MCP, and reject a second
+autoloaded dotenv. Data-service containers remain intact during these application updates.
+
+An interrupted CMS settings PATCH is verified through bounded authenticated reads of
+every intended value. The importer continues only when all values match, and never
+replays the ambiguous write. Missing, masked or different values and authorization
+failures stop deployment. Errors omit private setting values. A real dropped-socket
+regression covers the single-write recovery path.
+
+The pinned Directus runtime backports the upstream 12.3.1 share-update guard for
+GHSA-7h45-q5jx-7r87: share creators cannot be reassigned and changes to item/collection
+are checked against share permission before mutation. Full and partial target changes,
+denied side effects and ordinary edits have targeted rebuilt-image coverage. Directus
+remains on 11.17.4.
+
+CMS translation generation targets are an ordered, validated private job setting, initially
+English only. Language changes invalidate pending plans while preserving purchased field
+and sentence memory and lifetime usage. The private reader may read ready fields and units
+to reconstruct changed bodies with German fallback only for missing sentences; public
+requests never generate work. Operator-only configure/run/clear controls preserve budgets
+and ambiguous-request quarantine. Source mutations requeue the configured targets after
+30 seconds; idle reconciliation runs every six hours. Editorial/current content precedes
+progress notes and historical catalogues within each configured language.
+
 Translation persistence authorization errors (including bare proxy 401/403 responses)
 stop generation until private credentials are repaired and the process restarts.
 Prepared translation reads remain available. Do not replace worker credentials
@@ -527,12 +586,32 @@ regardless of copied generation switches. Prepared reads and explicit bounded sa
 commands remain available. Production deployment still requires explicit authorization;
 repository changes and read-only diagnosis do not authorize a live deployment.
 
+Production host maintenance is installed from a clean reviewed Git revision using
+`slk host plan/install/verify` and private dotenv references. Root-owned copies of
+the standalone TypeScript backup/retention code use a SHA-256 pinned Node binary,
+without executing deployment-user-writable code as root at backup time. The host
+installer also owns the retained-datastore boot unit, production Caddy entrypoint
+and AppArmor policy; hashes, owners and modes are verified against Git. Existing
+secret files, datastores, uploads and purchased translation cache/usage remain
+persistent state. Cloud failures prevent local retention. Installed source drift
+requires a reviewed Git fix and reinstallation, rather than an on-host hotfix.
+See [host reproducibility](docs/HOST_REPRODUCIBILITY.md).
+
+Release checkpoints and the database CLI share private CMS database settings.
+`DB_DATABASE` selects the live application database after a restore/cutover;
+`POSTGRES_DB` remains the datastore initialization default. Dump execution still
+loads the bootstrap identity from native or mounted datastore settings, without
+placing its password in arguments. Approving a checkpoint requires restored live
+data validation, including purchased translation memory, beyond schema checks.
+
 CMS catalogue reads share concurrent requests and a 30-second fresh metadata cache.
 The editor alone may use a successful result up to five minutes old during a
 transient upstream failure. Validation on save never uses stale-on-error metadata.
 Authentication failures and invalid metadata are not hidden by this fallback.
 Climate lookup diagnostics retain status/category, never raw upstream payloads,
 URLs or credentials; uncertain lookups continue to leave existing values alone.
+
+Legacy CMS image-button artwork is presentation data, not translatable prose. The checked asset-ID allowlist in `legacyImageButtons.ts` replaces only known image-only links from trusted CMS/legacy origins with `CanonicalButton` instances using manual DE/EN/IT keys. Destinations stay authored; photos, foreign assets and editor source HTML are preserved. `CmsHtml` sanitizes before either HTML or Vue-node rendering, and normalizes implicit table bodies for hydration. This avoids OCR, SVG text rewriting and additional provider billing.
 
 ## Data dashboard SSR and publication-aware reuse
 

@@ -8,6 +8,8 @@ Use restored staging data before production. Current constraints are in
 
 1. Preserve a verified off-host database/uploads/configuration/gateway backup and
    all active `podman/core-storage/` overlays. Confirm restore and build RAM/disk.
+   Apply the [five-backup retention policy](docs/BACKUP_RETENTION.md); nightly
+   Restic storage and local release rollback checkpoints have separate scopes.
 2. Install the reviewed revision/locks without overwriting private dotenv files.
    Keep source readable and private files mode 0600/0400; do not recursively chmod
    uploads/source or repeat completed major-service upgrades.
@@ -23,6 +25,28 @@ Use restored staging data before production. Current constraints are in
 Preparation leaves frontend stopped. Maintenance is a fallback, not a CMS write
 lock; pause external/editorial writers during sensitive operations. Build source,
 locked dependencies, extension bundles and matching YAML together.
+
+The release backup supports existing native-secret database containers as well as
+new mounted-environment containers. It uses their effective bootstrap identity and
+streams the archive directly to the private checkpoint. A failing environment
+loader aborts the backup; it never falls back to stale inherited values.
+The database name comes from the selected private Directus dotenv (`DB_DATABASE`),
+as with `slk database export`. A datastore's `POSTGRES_DB` is its initialization
+default and may refer to an obsolete database after a restored-database cutover.
+Before approving a checkpoint, restore it off-host and check representative current
+application data and paid translation memory, rather than schema presence alone.
+
+For the first native-secret-to-mounted-runtime transition, retain a clean checkout
+of the previous revision and its previous release CLI for rollback. Its compose
+configuration and entrypoints match the previous images; the current coordinator's
+ordinary application rollback assumes compatible runtime entrypoints. Preserve all
+private environment files separately in the verified off-host checkpoint. Do not
+recreate or upgrade data services as part of this application-only transition.
+Adapt `podman/slk-application-only.service.example` for boot: it starts the retained
+named datastore containers and uses the CLI with `--no-deps` for the new app,
+waiting for CMS health and reconciling the translation identity before frontend.
+The ordinary whole-stack unit would recreate datastores from the newer Compose
+pins; use it only after the separate verified datastore migration.
 
 ## Private service identities
 

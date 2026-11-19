@@ -1,0 +1,34 @@
+# Public domains on the former Future host; Caddy manages ACME certificates.
+import global.future.caddy
+import application.caddy
+import directus.caddy
+
+http://stadt-land-klima.de, http://www.stadt-land-klima.de {
+	redir https://www.stadt-land-klima.de{uri} 308
+}
+
+http://directus.stadt-land-klima.de {
+	redir https://directus.stadt-land-klima.de{uri} 308
+}
+
+https://stadt-land-klima.de {
+	tls {
+		protocols tls1.2 tls1.3
+	}
+	redir https://www.stadt-land-klima.de{uri} 308
+}
+
+https://www.stadt-land-klima.de {
+	tls {
+		protocols tls1.2 tls1.3
+	}
+	import legacy-cms.caddy
+	import slk_application
+}
+
+https://directus.stadt-land-klima.de {
+	tls {$SLK_CADDY_CERT} {$SLK_CADDY_KEY} {
+		protocols tls1.2 tls1.3
+	}
+	import slk_directus
+}

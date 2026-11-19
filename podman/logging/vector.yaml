@@ -1,0 +1,65 @@
+# Rendered and verified by slk host. Password bytes never enter this file.
+data_dir: /var/lib/slk-vector
+api:
+  enabled: false
+secret:
+  systemd:
+    type: directory
+    path: /run/slk-vector/credentials
+    remove_trailing_whitespace: true
+sources:
+  journal:
+    type: journald
+    current_boot_only: false
+    since_now: false
+    journalctl_path: /usr/bin/journalctl
+  collector_metrics:
+    type: internal_metrics
+transforms:
+  records:
+    type: remap
+    inputs: [journal]
+    file: /etc/slk/vector/normalize.vrl
+sinks:
+  monitoring:
+    type: http
+    inputs: [records]
+    uri: "__SLK_LOG_ENDPOINT__"
+    method: post
+    compression: gzip
+    acknowledgements:
+      enabled: true
+    auth:
+      strategy: basic
+      user: "__SLK_LOG_USERNAME__"
+      password: "SECRET[systemd.victorialogs-password]"
+    encoding:
+      codec: json
+    framing:
+      method: newline_delimited
+    buffer:
+      type: disk
+      max_size: 1073741824
+      when_full: block
+    batch:
+      max_bytes: 262144
+      timeout_secs: 1
+    healthcheck:
+      enabled: false
+    request:
+      concurrency: 1
+      timeout_secs: 30
+      rate_limit_num: 10
+      rate_limit_duration_secs: 1
+      headers:
+        Content-Type: application/stream+json
+        VL-Msg-Field: message
+        VL-Time-Field: timestamp
+        VL-Stream-Fields: project,environment,host,service_name
+    tls:
+      verify_certificate: true
+      verify_hostname: true
+  metrics:
+    type: prometheus_exporter
+    inputs: [collector_metrics]
+    address: 127.0.0.1:9598

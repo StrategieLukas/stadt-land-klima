@@ -260,7 +260,9 @@ permissions:
     permissions:
       _and:
         - kind:
-            _eq: field
+            _in:
+              - field
+              - unit
         - state:
             _eq: ready
     validation: null

@@ -5,6 +5,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { reconcileTranslationWorker } from "./translation-worker.ts";
 import { reconcileDevelopmentServiceUsers } from "./service-users.ts";
+import { directusRuntimeConfigProbe } from "../lib/podman-environment.ts";
 import {
   run,
   capture,
@@ -71,7 +72,9 @@ export class Runtime {
     // applying storage cutover so each destination has exactly one mount.
     type Mount = string | { type?: string; source?: string; target: string };
     type Service = { volumes?: Mount[]; build?: string | { context?: string }; image?: string };
-    const config = yaml.parse(await this.raw(["config"], { capture: true })) as {
+    const config = yaml.parse(
+      await this.raw(["--profile", "build", "--profile", "maintenance", "config"], { capture: true }),
+    ) as {
       services: Record<string, Service>;
       volumes?: Record<string, unknown>;
     };
@@ -317,13 +320,22 @@ export async function performStack(
         const others = args.length
           ? args.filter((service) => service !== "frontend")
           : ["db", "cache", "meilisearch", "directus"];
-        if (others.length) await rt.raw(["restart", ...others]);
+        const dataServices = others.filter((service) => service !== "directus");
+        if (dataServices.length) await rt.raw(["restart", ...dataServices]);
+        if (others.includes("directus"))
+          await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "directus"]);
         await rt.ready(`http://127.0.0.1:${rt.cmsPort}/server/health`);
         await reconcileDevelopmentServiceUsers(rt);
         await reconcileTranslationWorker(rt);
         await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "frontend"]);
         if (environment === "development") await developmentFrontendReady(rt);
         return "";
+      }
+      if (environment === "production" && args.includes("directus")) {
+        const others = args.filter((service) => service !== "directus");
+        if (others.length) await rt.raw(["restart", ...others]);
+        await rt.raw(["up", "-d", "--no-build", "--no-deps", "--force-recreate", "directus"]);
+        return rt.ready(`http://127.0.0.1:${rt.cmsPort}/server/health`);
       }
       return rt.raw(["restart", ...args]);
     case "translation-worker":
@@ -470,6 +482,17 @@ async function audit(rt: Runtime) {
       const label = await capture("podman", ["--remote=false", "exec", id, "cat", "/proc/1/attr/current"]);
       await node("bin/lib/podman-security.ts", ["apparmor"], { input: label });
     }
+    if (service === "directus")
+      await run("podman", [
+        "--remote=false",
+        "exec",
+        id,
+        "/usr/local/bin/slk-env",
+        "node",
+        "--input-type=module",
+        "-e",
+        directusRuntimeConfigProbe(),
+      ]);
     console.log(`Runtime confinement verified: ${service}`);
   }
 }

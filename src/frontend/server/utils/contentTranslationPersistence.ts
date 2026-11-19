@@ -8,13 +8,17 @@ import type { ContentTranslationReader } from "./contentTranslation";
 
 export type PreparedTranslationRow = z.infer<typeof TranslationMemorySchema>;
 const rowsSchema = z.object({ rows: z.array(TranslationMemorySchema).max(100) });
+const budgetSchema = z.object({
+  usage: z.array(z.object({ id: z.string(), reserved_characters: z.number().int().nonnegative() })).max(40),
+  limits: z.object({ total: z.number().int().nonnegative(), daily: z.number().int().nonnegative() }),
+});
 const fieldRowsSchema = z.object({
   data: z
     .array(
       z.object({
         id: z.string(),
         namespace: z.string(),
-        kind: z.literal("field"),
+        kind: z.enum(["field", "unit"]),
         state: z.literal("ready"),
         translated_text: z.string().min(1).max(100_000),
       }),
@@ -155,6 +159,24 @@ export function createTranslationPersistence(
   let lastWrite = 0;
   return {
     namespace,
+    async budget(signal: AbortSignal) {
+      const status = budgetSchema.parse(await request("/content-translations/status", signal));
+      const now = new Date();
+      const total = status.usage.find((row) => row.id === "total");
+      if (!total && status.usage.length) throw new TranslationPersistenceError("missing_budget_usage");
+      const day = now.toISOString().slice(0, 10);
+      const daily = status.usage.find((row) => row.id === `day:${day}`);
+      return {
+        remaining: Math.max(
+          0,
+          Math.min(
+            status.limits.total - (total?.reserved_characters ?? 0),
+            status.limits.daily - (daily?.reserved_characters ?? 0),
+          ),
+        ),
+        day,
+      };
+    },
     async load(keys: readonly string[], signal: AbortSignal) {
       const rows = new Map<string, PreparedTranslationRow>();
       for (let offset = 0; offset < keys.length; offset += 100) {
@@ -218,7 +240,7 @@ export function createPersistedTranslationReader(
           filter: JSON.stringify({
             id: { _in: chunk },
             namespace: { _eq: namespace },
-            kind: { _eq: "field" },
+            kind: { _in: ["field", "unit"] },
             state: { _eq: "ready" },
           }),
         });

@@ -5,6 +5,7 @@
     class="canonical-button inline-flex max-w-full items-stretch overflow-hidden rounded-md text-sm font-bold no-underline"
     :class="[
       textClass,
+      wrapLabel ? 'whitespace-normal' : 'whitespace-nowrap',
       {
         'canonical-button--auto-text': !textColor || textColor === 'auto',
         'canonical-button--outline': variant === 'outline',
@@ -15,6 +16,7 @@
     <!-- Local SVG icon -->
     <span
       v-if="currentIconSvg"
+      aria-hidden="true"
       class="canonical-button__icon"
       :class="
         iconSize === 'lg'
@@ -36,6 +38,7 @@
     <!-- Iconify icon (e.g. mdi:arrow-right) -->
     <span
       v-else-if="iconifySlug"
+      aria-hidden="true"
       class="canonical-button__icon"
       :class="
         iconSize === 'lg'
@@ -46,11 +49,9 @@
       <Icon :icon="iconifySlug" :class="iconSize === 'lg' ? 'h-7 w-7' : 'h-5 w-5'" />
     </span>
     <!-- Label -->
-    <span
-      class="flex min-w-0 flex-1 items-center justify-center whitespace-normal"
-      :class="hasIcon ? 'py-2 pr-4 pl-3' : 'px-4 py-2'"
-      >{{ label }}</span
-    >
+    <span class="flex min-w-0 flex-1 items-center justify-center" :class="hasIcon ? 'py-2 pr-4 pl-3' : 'px-4 py-2'">{{
+      label
+    }}</span>
   </component>
 </template>
 
@@ -61,20 +62,24 @@ import { computed, useAttrs } from "vue";
 
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps<{
-  onClick?: ((event: MouseEvent) => void) | undefined;
-  disabled?: boolean | undefined;
-  type?: "button" | "submit" | "reset" | undefined;
-  label: string;
-  href?: string | undefined;
-  title?: string | undefined;
-  iconSlug?: string | undefined;
-  color?: string | undefined;
-  textColor?: "auto" | "white" | "black" | undefined;
-  iconSize?: "sm" | "lg" | undefined;
-  variant?: "filled" | "outline" | undefined;
-  external?: boolean | undefined;
-}>();
+const props = withDefaults(
+  defineProps<{
+    onClick?: ((event: MouseEvent) => void) | undefined;
+    disabled?: boolean | undefined;
+    type?: "button" | "submit" | "reset" | undefined;
+    label: string;
+    href?: string | undefined;
+    title?: string | undefined;
+    iconSlug?: string | undefined;
+    color?: string | undefined;
+    textColor?: "auto" | "white" | "black" | undefined;
+    iconSize?: "sm" | "lg" | undefined;
+    variant?: "filled" | "outline" | undefined;
+    external?: boolean | undefined;
+    wrapLabel?: boolean | undefined;
+  }>(),
+  { wrapLabel: true },
+);
 
 const attrs = useAttrs();
 

@@ -1,0 +1,3 @@
+# Only when the gateway runs on the host rather than on slk-logs.
+[Container]
+PublishPort=127.0.0.1:9428:9428

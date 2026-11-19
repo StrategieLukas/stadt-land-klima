@@ -110,6 +110,65 @@ await check("shares flush permissions only after an authorized mutation", async 
   assert.equal(cleared, 2);
 });
 
+await check(
+  "share updates reject creator reassignment and validate every effective shared target before mutation",
+  async () => {
+    let writes = 0;
+    let cleared = 0;
+    let allow = false;
+    const checked: unknown[] = [];
+    const originals = [
+      { collection: "articles", item: "one" },
+      { collection: "pages", item: "two" },
+    ];
+    class ItemsService {
+      accountability = { user: "editor", admin: false };
+      knex = { select: () => ({ from: () => ({ whereIn: async () => originals }) }) };
+      async updateMany() {
+        writes++;
+        return ["share-one", "share-two"];
+      }
+    }
+    const { SharesService } = load("dist/services/shares.js", {
+      ItemsService,
+      InvalidPayloadError: class extends Error {},
+      validateAccess: async (access: unknown) => {
+        checked.push(access);
+        if (!allow) throw Error("FORBIDDEN");
+      },
+      clearCache: async () => {
+        cleared++;
+      },
+    });
+    const service = new SharesService();
+    for (const data of [{ user_created: "admin", role: "admin" }, { user_created: null }])
+      await assert.rejects(service.updateMany(["share-one"], data));
+    assert.equal(checked.length, 0);
+    for (const data of [{ collection: "private", item: "secret" }, { item: "secret" }, { collection: "private" }])
+      await assert.rejects(service.updateMany(["share-one", "share-two"], data), /FORBIDDEN/);
+    assert.equal(writes, 0);
+    assert.equal(cleared, 0);
+    allow = true;
+    checked.length = 0;
+    await service.updateMany(["share-one", "share-two"], { item: "allowed" });
+    assert.deepEqual(
+      JSON.parse(JSON.stringify(checked)),
+      originals.map((row) => ({
+        accountability: service.accountability,
+        action: "share",
+        collection: row.collection,
+        primaryKeys: ["allowed"],
+      })),
+    );
+    assert.equal(writes, 1);
+    assert.equal(cleared, 1);
+    checked.length = 0;
+    await service.updateMany(["share-one"], { name: "Renamed", role: "reader" });
+    assert.equal(checked.length, 0);
+    assert.equal(writes, 2);
+  },
+);
+
 await check("settings/deployment side effects follow successful mutations", async () => {
   let reports = 0;
   class ItemsService {

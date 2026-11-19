@@ -14,12 +14,18 @@ import {
 import { runContentTranslationWorker } from "../../../src/frontend/server/utils/contentTranslationWorker.js";
 import { createContentTranslator } from "../../../src/frontend/server/utils/contentTranslation.js";
 import { contentTranslationPolicy } from "../../../src/frontend/shared/contentTranslation.js";
-import { collectPublicTranslationSnapshots } from "../../../src/frontend/server/utils/contentTranslationSources.js";
+import {
+  collectPublicTranslationSnapshots,
+  type TranslationSourceReader,
+} from "../../../src/frontend/server/utils/contentTranslationSources.js";
 import type {
   PreparedTranslationRow,
   TranslationPersistence,
 } from "../../../src/frontend/server/utils/contentTranslationPersistence.js";
-import type { TranslationOperation } from "../../../src/frontend/shared/contentTranslationProtocol.js";
+import type {
+  TranslationOperation,
+  TranslationTarget,
+} from "../../../src/frontend/shared/contentTranslationProtocol.js";
 
 const require = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
 const { parseDocument, DomUtils } =
@@ -186,13 +192,25 @@ function harness(sourceData: { pages?: { name: string; contents: string }[]; too
   const generations: { locale: string; texts: string[] }[] = [];
   let fail: "uncertain" | undefined;
   let remaining = 1_000_000;
+  let localRemaining = 1_000_000;
+  let targets: TranslationTarget[] = ["en-GB", "it-IT"];
+  const budget = () => ({ remaining: localRemaining, day: new Date().toISOString().slice(0, 10) });
   const persistence: TranslationPersistence = {
     namespace,
+    budget: async () => budget(),
     load: async (keys) => new Map(keys.flatMap((key) => (rows.has(key) ? [[key, rows.get(key)!]] : []))),
     operation: async (operation) => {
       operations.push(operation);
-      if (operation.op === "claim") return { lease: { owner: operation.owner, revision: 1 } };
+      if (operation.op === "claim")
+        return { lease: { owner: operation.owner, revision: 1, targets, budget: budget() } };
       if (operation.op === "reserve") {
+        const characters = operation.units.reduce((sum, unit) => sum + unit.characters, 0);
+        assert(characters <= localRemaining, "Reservations must never exceed remaining local budget");
+        assert(
+          operation.units.every((unit) => targets.includes(unit.locale)),
+          "Only configured targets may reserve credits",
+        );
+        localRemaining -= characters;
         reservations.set(operation.batch, operation.units);
         for (const unit of operation.units)
           rows.set(unit.key, {
@@ -243,7 +261,7 @@ function harness(sourceData: { pages?: { name: string; contents: string }[]; too
       return texts.map((text) => ({ text: `${locale}|${text}`, billed: Array.from(text).length }));
     },
   };
-  const source = {
+  const source: TranslationSourceReader = {
     records: async () => [],
     fetch: async (path: string) =>
       path === "/api/public/site-layout"
@@ -259,6 +277,12 @@ function harness(sourceData: { pages?: { name: string; contents: string }[]; too
     persistence,
     source,
     provider,
+    setTargets: (value: TranslationTarget[]) => {
+      targets = value;
+    },
+    setLocalRemaining: (value: number) => {
+      localRemaining = value;
+    },
     setFail: (value: typeof fail) => {
       fail = value;
     },
@@ -346,6 +370,185 @@ test("provider quota is checked before reservation and a missing quota never mak
   assert(!fixture.operations.some((operation) => operation.op === "reserve"));
   assert.equal(fixture.operations.at(-1)?.op, "finish");
   assert(fixture.operations.some((operation) => operation.op === "finish" && operation.error === "budget"));
+});
+
+test("English-only generation preserves Italian memory and partial reads reuse unchanged sentences without provider work", async () => {
+  const data = { pages: [{ name: "Titel", contents: "<p>Erster Satz.</p><p>Zweiter Satz.</p>" }] };
+  const fixture = harness(data);
+  await fixture.run();
+  const italianMemory = [...fixture.rows].filter(([, row]) => row.locale === "it-IT");
+  const before = fixture.generations.length;
+  fixture.setTargets(["en-GB"]);
+  data.pages[0]!.contents = "<p>Erster Satz.</p><p>Ein neuer Satz.</p>";
+  const read = createContentTranslator({
+    namespace: fixture.persistence.namespace,
+    enabled: true,
+    getMany: async (keys) =>
+      new Map(
+        keys.flatMap((key) => {
+          const row = fixture.rows.get(key);
+          return row?.state === "ready" && row.translated_text ? [[key, row.translated_text]] : [];
+        }),
+      ),
+  });
+  const partial = await read({ page: data.pages[0] }, "en-GB", contentTranslationPolicy("/api/public/pages/test")!);
+  assert.equal(partial.pending, true);
+  assert.equal(partial.degraded, false);
+  assert.match(partial.data.page.contents, /en-GB\|Erster Satz\./);
+  assert.match(partial.data.page.contents, /<p>Ein neuer Satz\.<\/p>/);
+  assert.doesNotMatch(partial.data.page.contents, /Zweiter Satz/);
+  assert.equal(fixture.generations.length, before, "A page read cannot spend credits");
+  assert.equal((await fixture.run()).generated, 1, "Only the changed English sentence is generated");
+  assert.deepEqual(
+    fixture.generations.slice(before).map((call) => call.locale),
+    ["en-GB"],
+  );
+  for (const [key, row] of italianMemory)
+    assert.deepEqual(fixture.rows.get(key), row, "Italian paid memory is retained");
+  assert.equal(
+    (await read({ page: data.pages[0] }, "en-GB", contentTranslationPolicy("/api/public/pages/test")!)).pending,
+    false,
+  );
+  fixture.setTargets(["it-IT"]);
+  assert.equal((await fixture.run()).generated, 1, "Re-enabling Italian reuses its unchanged sentences");
+  fixture.setTargets(["en-GB", "it-IT"]);
+  assert.equal((await fixture.run()).generated, 0);
+});
+
+test("a small budget skips oversized units without associating returned text with the wrong field", async () => {
+  const fixture = harness({ tools: [{ title: "Ein langer Titel" }, { title: "Kurz" }, { title: "X" }] });
+  fixture.setTargets(["en-GB"]);
+  fixture.setLocalRemaining(5);
+  assert.equal((await fixture.run()).generated, 2);
+  assert.deepEqual(
+    fixture.generations.map((call) => call.texts),
+    [["Kurz", "X"]],
+  );
+  const reservations = fixture.operations.filter((operation) => operation.op === "reserve");
+  assert.equal(
+    reservations.reduce((sum, op) => sum + op.units.reduce((n, u) => n + u.characters, 0), 0),
+    5,
+  );
+  assert(fixture.operations.some((operation) => operation.op === "finish" && operation.error === "budget"));
+  const readyText = [...fixture.rows.values()].filter((row) => row.kind === "field").map((row) => row.translated_text);
+  assert.deepEqual(readyText.sort(), ["en-GB|Kurz", "en-GB|X"].sort());
+  assert.deepEqual(deepLBatch(options, "en-GB", ["zu lang", "a", "bb"], 3).texts, ["a", "bb"]);
+  assert.equal(deepLBatch(options, "en-GB", ["Hallo"], 0).texts.length, 0);
+  assert.throws(() => deepLBatch(options, "en-GB", ["Hallo"], NaN));
+});
+
+test("configured language order completes available English work before starting Italian and operator controls never reset cache namespaces", async () => {
+  const fixture = harness({ tools: Array.from({ length: 60 }, (_, i) => ({ title: `Klimatitel Nummer ${i}` })) });
+  await fixture.run();
+  const locales = fixture.generations.map((call) => call.locale);
+  const italian = locales.indexOf("it-IT");
+  assert(italian > 0);
+  assert(locales.slice(0, italian).every((locale) => locale === "en-GB"));
+  assert(locales.slice(italian).every((locale) => locale === "it-IT"));
+  const { contentTranslations } = await import("../../../src/directus/cli/contentTranslations.js");
+  const sent: unknown[] = [];
+  const fake: typeof fetch = async (_url, init) => {
+    sent.push(init?.body ? JSON.parse(String(init.body)) : undefined);
+    return Response.json({ accepted: true });
+  };
+  await contentTranslations("http://private:8055", "operator-fixture", ["configure", "en-GB"], fake);
+  await contentTranslations("http://private:8055", "operator-fixture", ["run"], fake);
+  await contentTranslations("http://private:8055", "operator-fixture", ["clear"], fake);
+  assert.deepEqual(sent, [{ op: "configure", targets: ["en-GB"] }, { op: "enqueue" }, { op: "clear" }]);
+  for (const targets of ["en-GB,en-GB", "de-DE", "fr-FR", ""])
+    await assert.rejects(contentTranslations("http://private:8055", "operator-fixture", ["configure", targets], fake));
+  assert.equal(sent.length, 3, "Invalid configurations fail before an HTTP write");
+});
+
+test("editorial bodies and current catalogue content precede election answers, progress notes and historical catalogues", async () => {
+  const fixture = harness({});
+  fixture.setTargets(["en-GB"]);
+  fixture.source.records = async (collection, _fields, filter) => {
+    if (collection === "articles") return [{ id: "article-id", slug: "story", status: "published" }];
+    if (collection === "measure_catalog")
+      return [
+        { id: "old", name: "beta", hidden: false, isCurrentFrontend: false },
+        { id: "current", name: "v1.0", hidden: false, isCurrentFrontend: true },
+      ];
+    if (collection === "municipality_scores" && (filter.catalog_version as { _eq: string })._eq === "current")
+      return [{ published: true, municipality: { slug: "town" } }];
+    return [];
+  };
+  fixture.source.fetch = async (path) => {
+    if (path === "/api/public/articles/story") return { article: { title: "Artikel", article_text: "Artikelinhalt" } };
+    if (path === "/api/public/wahlcheck") return [{ municipalitySlug: "election" }];
+    if (path === "/api/public/wahlcheck/election")
+      return { candidates: [{ answers: [{ explanation: "Wahlantwort" }] }] };
+    if (path === "/api/public/measures?v=beta") return { measures: [{ name: "Historische Maßnahme" }] };
+    if (path === "/api/public/measures?v=v1.0") return { measures: [{ name: "Aktuelle Maßnahme" }] };
+    if (path.startsWith("/api/public/municipalities/town"))
+      return { directusData: { ratingsBySector: { energy: [{ current_progress: "Langer Fortschrittsbericht" }] } } };
+    return {};
+  };
+  await fixture.run();
+  const requests = fixture.generations.map((call) => call.texts.join(" "));
+  const position = (text: string) => requests.findIndex((request) => request.includes(text));
+  for (const text of [
+    "Artikelinhalt",
+    "Aktuelle Maßnahme",
+    "Wahlantwort",
+    "Langer Fortschrittsbericht",
+    "Historische Maßnahme",
+  ])
+    assert(position(text) >= 0, text);
+  assert(position("Artikelinhalt") < position("Aktuelle Maßnahme"));
+  assert(position("Aktuelle Maßnahme") < position("Wahlantwort"));
+  assert(position("Wahlantwort") < position("Langer Fortschrittsbericht"));
+  assert(position("Langer Fortschrittsbericht") < position("Historische Maßnahme"));
+});
+
+test("a slow partial-unit lookup preserves ready complete fields and never calls a provider", async () => {
+  const { contentTranslationKey } = await import("../../../src/frontend/server/utils/contentTranslation.js");
+  const namespace = deepLNamespace(options);
+  const titleKey = contentTranslationKey(namespace, "en-GB", { text: "Titel", context: "name", format: "text" });
+  let reads = 0;
+  const translate = createContentTranslator({
+    namespace,
+    enabled: true,
+    getMany: async (_keys, signal) => {
+      if (++reads === 1) return new Map([[titleKey, "Title"]]);
+      return new Promise((_resolve, reject) =>
+        signal.addEventListener("abort", () => reject(new Error("fixture timeout")), { once: true }),
+      );
+    },
+  });
+  const result = await translate(
+    { page: { name: "Titel", contents: "<p>Unvorbereitet</p>" } },
+    "en-GB",
+    contentTranslationPolicy("/api/public/pages/test")!,
+  );
+  assert.equal(result.data.page.name, "Title");
+  assert.equal(result.data.page.contents, "<p>Unvorbereitet</p>");
+  assert.equal(result.pending, true);
+  assert.equal(result.degraded, true);
+});
+
+test("budget reads support a fresh ledger, honour the smaller remaining ceiling and reject inconsistent data", async () => {
+  const { createTranslationPersistence } =
+    await import("../../../src/frontend/server/utils/contentTranslationPersistence.js");
+  let usage: { id: string; reserved_characters: number }[] = [];
+  const persistence = createTranslationPersistence(
+    "http://private:8055",
+    "private-fixture-token",
+    deepLNamespace(options),
+    async (_url, init) => {
+      assert.equal(init?.method, "GET");
+      return Response.json({ usage, limits: { total: 10, daily: 8 } });
+    },
+  );
+  assert.equal((await persistence.budget(new AbortController().signal)).remaining, 8);
+  usage = [
+    { id: "total", reserved_characters: 7 },
+    { id: `day:${new Date().toISOString().slice(0, 10)}`, reserved_characters: 4 },
+  ];
+  assert.equal((await persistence.budget(new AbortController().signal)).remaining, 3);
+  usage.shift();
+  await assert.rejects(persistence.budget(new AbortController().signal));
 });
 
 test("source enumeration uses published identities and rechecks every body through a registered public route", async () => {
@@ -695,7 +898,7 @@ test("bounded staging apply persists both locales, verifies public overlays and 
             billed_characters: billed,
           },
         ],
-        job: { namespace: store.persistence.namespace, lease_until: null },
+        job: { namespace: store.persistence.namespace, lease_until: null, targets: ["en-GB", "it-IT"] },
       });
     if (url.pathname === "/content-translations/memory")
       return Response.json({

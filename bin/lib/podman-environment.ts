@@ -54,11 +54,7 @@ export function podmanEnvironmentPlan(
     services[service] = {
       volumes: [
         ...inputs.map((input, index) => `${paths[input as keyof typeof paths]}:${files[index]}:ro,z`),
-        ...(service === "frontend"
-          ? [`${paths.frontend}:/frontend/.env:ro,z`]
-          : service === "directus"
-            ? [`${paths.directus}:/directus/.env:ro,z`]
-            : []),
+        ...(service === "frontend" ? [`${paths.frontend}:/frontend/.env:ro,z`] : []),
       ],
       environment: {
         SLK_ENV_FILES: files.join(":"),
@@ -71,6 +67,24 @@ export function podmanEnvironmentPlan(
   }
   // Build artifacts contain defaults only. No runtime env files or credentials enter builds.
   return { services };
+}
+
+/** Inspect the library's effective configuration, not just the inherited process environment. */
+export function directusRuntimeConfigProbe(root = "/directus") {
+  return `
+    const {createRequire}=await import('node:module');
+    const {existsSync}=await import('node:fs');
+    const {join}=await import('node:path');
+    const root=${JSON.stringify(root)};
+    if(existsSync(join(root,'.env'))) throw Error('Directus must not autoload a second .env file');
+    const require=createRequire(join(root,'package.json'));
+    const api=createRequire(require.resolve('@directus/api/package.json'));
+    const env=api('@directus/env').useEnv();
+    const flags=['CACHE_ENABLED','TUS_ENABLED','WEBSOCKETS_ENABLED','MCP_ENABLED'];
+    const unsafe=flags.filter(key=>env[key]!==false);
+    if(unsafe.length) throw Error('Effective Directus protections are not disabled: '+unsafe.join(','));
+    console.log('Effective Directus cache, TUS, WebSocket and MCP protections verified.');
+  `;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

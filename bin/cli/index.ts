@@ -4,7 +4,7 @@ import { CHECK_PROFILES } from "./check-plan.ts";
 import { hideBin } from "yargs/helpers";
 import { hostEnvironment } from "./host-environment.ts";
 import { createBundle, verifyBundle } from "../lib/portable-backup.ts";
-import { run, root, CommandError, type Environment } from "./process.ts";
+import { node, run, root, CommandError, type Environment } from "./process.ts";
 import { cliVersion, printHelp } from "./presentation.ts";
 
 process.umask(0o077);
@@ -26,6 +26,50 @@ const parser = yargs(hideBin(process.argv))
   .version("version", "Show repository version", cliVersion())
   .help()
   .wrap(Math.min(110, process.stdout.columns || 110))
+  .command(
+    "monitoring <action>",
+    "Plan, install or verify Vector ingestion, VictoriaLogs and existing monitoring Quadlets",
+    (p) =>
+      p.positional("action", { choices: ["plan", "install", "verify"] as const }).option("config", {
+        type: "string",
+        demandOption: true,
+        description: "Absolute owner-only monitoring JSON file",
+      }),
+    async (argv) => {
+      const { monitoringInstall } = await import("./monitoring-install.ts");
+      await monitoringInstall(argv.action!, argv.config);
+    },
+  )
+  .command(
+    "host <action>",
+    "Plan, install or verify reviewed production host service copies (root/Linux)",
+    (p) =>
+      p
+        .positional("action", { choices: ["plan", "install", "verify"] as const })
+        .option("config", { type: "string", demandOption: true, description: "Absolute root-only host dotenv file" })
+        .option("node-binary", {
+          type: "string",
+          description: "Verified Node binary to install; defaults to installed runtime",
+        }),
+    async (argv) => {
+      const args = [
+        "bin/cli/host-maintenance.ts",
+        argv.action!,
+        argv.config,
+        argv.nodeBinary ?? "/usr/local/lib/slk/node",
+      ];
+      if (argv.action === "install")
+        await run("flock", [
+          "--nonblock",
+          "--conflict-exit-code",
+          "75",
+          "/run/lock/staedtechallenge-backup.lock",
+          process.execPath,
+          ...args,
+        ]);
+      else await node(args[0]!, args.slice(1));
+    },
+  )
   .command(
     "stack <action> [services..]",
     "Build, run and inspect the rootless Podman stack",
@@ -258,24 +302,34 @@ const parser = yargs(hideBin(process.argv))
   )
   .command(
     "backup <action> [directory]",
-    "Create or verify a complete private Podman recovery bundle",
+    "Create/verify recovery bundles or retain the latest five local/cloud backups",
     (p) =>
       p
-        .positional("action", { choices: ["create", "verify"] as const })
+        .positional("action", { choices: ["create", "verify", "retain", "retain-cloud"] as const })
         .positional("directory", { type: "string" })
         .option("project", { type: "string" })
         .option("output", { type: "string" })
         .option("config", { type: "string", array: true, default: [] })
+        .option("host", { type: "string", description: "Explicit Restic snapshot host for cloud retention" })
+        .option("tag", { type: "string", description: "Explicit Restic app tag for cloud retention" })
+        .option("apply", { type: "boolean", default: false, description: "Apply retention; default is dry-run" })
         .option("writers-stopped", { type: "boolean", default: false })
-        .requiresArg(["project", "output", "config"])
+        .requiresArg(["project", "output", "config", "host", "tag"])
         .check((argv) => {
           if (argv.action === "verify") return Boolean(argv.directory) || "Provide a backup directory to verify";
+          if (argv.action !== "create") return true;
           if (!(argv.project || process.env.SLK_PODMAN_PROJECT) || !argv.output)
             return "Provide --project and --output for the stopped source stack";
           return argv.writersStopped || "Stop external writers and deployment automation, then pass --writers-stopped";
         }),
     async (argv) => {
-      if (argv.action === "verify") {
+      if (argv.action === "retain-cloud") {
+        const { retainCloudBackups } = await import("./cloud-retention.ts");
+        retainCloudBackups(argv.host ?? "", argv.tag ?? "", argv.apply);
+      } else if (argv.action === "retain") {
+        if (argv.directory) throw new Error("Local retention uses only this user's release directory");
+        await node("bin/cli/release-retention.ts", argv.apply ? ["--apply"] : []);
+      } else if (argv.action === "verify") {
         if (!argv.directory) throw new Error("Provide a backup directory to verify");
         await verifyBundle(argv.directory);
         console.log("All backup checksums verified.");
@@ -292,6 +346,51 @@ const parser = yargs(hideBin(process.argv))
           }),
         );
       }
+    },
+  )
+  .command(
+    "translations <action>",
+    "Configure translation targets, run now, clear pending work or inspect status; paid memory and budgets are preserved",
+    (p) =>
+      p
+        .positional("action", { choices: ["status", "configure", "run", "clear"] as const })
+        .option("targets", {
+          type: "string",
+          description: "Ordered comma-separated generation targets, e.g. en-GB or en-GB,it-IT",
+        })
+        .option("namespace", {
+          type: "string",
+          description: "Explicit semantic namespace when changing provider settings",
+        }),
+    async (argv) => {
+      if (argv.action === "configure" && !argv.targets) throw new Error("Configure requires --targets");
+      if (argv.targets && argv.action !== "configure") throw new Error("--targets is only valid for configure");
+      if (argv.namespace && argv.action !== "run") throw new Error("--namespace is only valid for run");
+      const { runtime } = await import("./stack.ts");
+      const rt = await runtime(argv.env);
+      await rt.compose([
+        "exec",
+        "-T",
+        "-e",
+        "DIRECTUS_URL=http://127.0.0.1:8055",
+        "directus",
+        "node",
+        "/directus/cli/contentTranslations.ts",
+        argv.action!,
+        ...(argv.targets ? [argv.targets] : argv.namespace ? [argv.namespace] : []),
+      ]);
+    },
+  )
+  .command(
+    "images <action>",
+    "Inspect or apply image retention while preserving active, previous and recovery images",
+    (p) =>
+      p
+        .positional("action", { choices: ["retain"] as const })
+        .option("project", { type: "string", demandOption: true })
+        .option("apply", { type: "boolean", default: false }),
+    async (argv) => {
+      await node("bin/cli/image-retention.ts", ["--project", argv.project, ...(argv.apply ? ["--apply"] : [])]);
     },
   )
   .command(

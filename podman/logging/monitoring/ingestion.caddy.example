@@ -1,0 +1,56 @@
+# Add this site to the monitoring server's existing Caddy configuration.
+# Replace the hash in the installed copy; preserve existing Grafana sites.
+logs.stadt-land-klima.de {
+	log {
+		output stdout
+		format filter {
+			wrap json
+			fields {
+				request>uri delete
+				request>headers delete
+				request>remote_ip delete
+				request>remote_port delete
+				request>client_ip delete
+				resp_headers delete
+			}
+		}
+	}
+
+	@push {
+		method POST
+		path /insert/jsonline
+		expression `{http.request.uri.query} == ""`
+	}
+	handle @push {
+		route {
+			rate_limit {
+				disable_metrics
+				sweep_interval 10s
+				zone slk_log_ingestion {
+					key {remote_host}
+					events 20
+					window 1s
+				}
+			}
+			basic_auth {
+				slk-production REPLACE_WITH_CADDY_PASSWORD_HASH
+			}
+			request_body {
+				max_size 2MB
+			}
+			request_header -VL-*
+			reverse_proxy slk-victorialogs:9428 {
+				header_up -Authorization
+				header_up -Cookie
+				header_up AccountID 0
+				header_up ProjectID 0
+				header_up VL-Msg-Field message
+				header_up VL-Time-Field timestamp
+				header_up VL-Stream-Fields project,environment,host,service_name
+			}
+		}
+	}
+	handle {
+		respond 404
+	}
+}

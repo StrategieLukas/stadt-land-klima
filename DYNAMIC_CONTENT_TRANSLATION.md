@@ -2,12 +2,12 @@
 
 The integration is implemented. **Generation defaults to disabled; supply a private API key
 and explicitly enable generation to activate it.** German (`de-DE`) remains the source; prepared content targets English
-(`en-GB`) and Italian (`it-IT`). Page requests only read prepared translations. They never
+(`en-GB`) by default; Italian (`it-IT`) is an optional generation target. Page requests only read prepared translations. They never
 contact DeepL, create jobs, reserve credits or write translation data.
 
 The existing typed DE/EN/IT interface dictionaries remain separate. Machine translated
 content has a small translated legal note in non-German public footers; previews and candidate access pages are
-excluded. Missing translations fall back to the current German field. Incomplete or failed
+excluded. Missing sentences fall back to the current German text while unchanged cached sentences remain translated. Incomplete or failed
 lookups are `no-store`, so completed preparation becomes visible on the next request.
 
 ## Minimising usage
@@ -15,7 +15,7 @@ lookups are `no-store`, so completed preparation becomes visible on the next req
 - Persist complete fields **and smaller sentence/text units** in PostgreSQL. There is no
   expiry or restart-based eviction of paid translations. Redis is not the durable copy.
 - Read a ready field directly. When a field changes, reuse its unchanged sentences and
-  text fragments; translate only missing units. Markup-only edits need no new translations.
+  text fragments immediately on reads; translate only missing units in the background. Markup-only edits need no new translations.
 - Deduplicate identical provider inputs across records, headings, bodies and list/detail
   responses. Each target language has its own memory. Reverting an edit or republishing
   unchanged content can reuse earlier results.
@@ -24,12 +24,16 @@ lookups are `no-store`, so completed preparation becomes visible on the next req
   addresses, submitted choices, IDs, dates, numbers, scores and proper-name fields local.
   Translate image alt/title prose; retain the original destinations and technical attributes.
 - Debounce committed source changes for 30 seconds. Skip technical-only changes through
-  the source-column manifest. Reconcile every 15 minutes to recover missed/new content.
+  the source-column manifest. Reconcile every six hours to recover missed/new content.
+  Configured language order takes precedence; within each language, editorial bodies and current
+  catalogue content precede election answers, progress notes and historical catalogues.
 - Recheck the committed source revision before every paid batch. An edited/unpublished
   source invalidates an older plan; already received translations remain reusable privately.
 - Check DeepL's reported account and API-key quota before each paid request, then atomically
   reserve the local budget. Batch up to 50 strings / 10,000 source code points, with an
   additional 120 KiB encoded-body bound below DeepL's 128 KiB limit.
+  Fit batches to the smaller remaining local/provider allowance, skipping units too large
+  for that allowance rather than rejecting an otherwise affordable batch.
 - Do not automatically retry a timed-out, malformed or failed 5xx translation request: it
   may already have been billed. Quarantine its units and retain the conservative reservation.
   Retrying the same database commit is safe and does not call DeepL again.
@@ -202,9 +206,9 @@ matching staging files and URLs, not local credentials against a remote deployme
 
 Apply refuses automatic-generation mode, active worker leases, namespace changes and
 insufficient budget. It uses the real persistence/worker pipeline with a bounded source,
-waits for the normal 30-second debounce and respects control pacing. Allow roughly 1–2
+honours the centrally configured generation targets and respects control pacing. Allow roughly 1–2
 minutes. A second guard permits at most two provider POSTs and the specified number of
-source characters **in total across both languages**. The CLI ceiling cannot exceed 500;
+source characters **in total across configured languages**. The CLI ceiling cannot exceed 500;
 page count cannot exceed five. Ambiguous requests are never automatically retried.
 
 Check `providerCalls`, `submittedCharacters`, `billedDelta` and the EN/IT title results.
@@ -274,6 +278,26 @@ Changing namespaces is an intentional regeneration decision, not routine cache m
 
 ## Operator controls
 
+From the repository root, select the actual stack environment:
+
+```bash
+./bin/slk translations status --env production
+./bin/slk translations configure --targets en-GB --env production
+./bin/slk translations run --env production
+./bin/slk translations clear --env production
+```
+
+`configure` stores an ordered, unique target list in the private job (default `en-GB`).
+Use `--targets en-GB,it-IT` to restore both. It invalidates the previous plan and immediately
+queues a fresh sweep without deleting translations or changing namespaces or budgets.
+Existing Italian translations remain readable while Italian generation is disabled.
+`run` makes the job eligible immediately; the enabled worker polls within one minute,
+including after a daily budget pause. It never bypasses provider or local ceilings.
+`clear` cancels pending work and parks the job without deleting purchased memory, usage or
+an already reserved response. A subsequent source text/publication change, `configure` or
+`run` unpauses it. Normal text changes automatically queue work for the configured targets
+after the 30-second debounce. Master/generation switches must still permit the worker.
+
 Inside the Directus container, using its existing private CLI administrator credential:
 
 ```bash
@@ -284,7 +308,7 @@ DIRECTUS_URL=http://127.0.0.1:8055 /directus/cli/node_modules/.bin/tsx /directus
 
 `status` returns job/revision/lease timing, per-state counts, local reserved/billed totals,
 limits and up to 50 attention keys. It returns neither source bodies nor translations/keys
-for the provider. `enqueue` debounces a fresh source sweep; unchanged content stays free.
+for the provider. `enqueue` (alias `run`) immediately queues a fresh source sweep; unchanged content stays free.
 
 For an uncertain request, first inspect the provider's usage and the attention list. An
 operator can explicitly allow another attempt, which **may consume credits again**:
@@ -349,7 +373,7 @@ memory. Old results can be retained privately and reused after an exact revert/r
 Existing source-response cache lifetimes still bound revocation; translation storage does
 not create an extra public source cache.
 
-`Frontend-Server` can read only ready field results through its private policy. The distinct
+`Frontend-Server` can read only ready field and sentence-unit results through its private policy, using the same minimal projected fields. Partial reconstruction happens only after checking current publication. The distinct
 `Content-Translation-Worker` has no ordinary source-collection or translation-table access;
 it uses the bounded persistence endpoint after active-user/role/email verification. Only
 operators may request a new namespace or retry ambiguous work. Public/asset/preview/editor

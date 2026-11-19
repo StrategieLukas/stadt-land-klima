@@ -1,0 +1,13 @@
+{
+  "scope": "user",
+  "grafanaUnit": "grafana.service",
+  "caddyUnit": "caddy.service",
+  "caddyfile": "/home/deploy/.config/caddy/Caddyfile",
+  "caddyfileInContainer": "/etc/caddy/Caddyfile",
+  "hostname": "logs.stadt-land-klima.de",
+  "username": "slk-production",
+  "hostLabel": "slk-production-1",
+  "environment": "production",
+  "directory": "/home/deploy/.config/slk-monitoring",
+  "buildCaddyIfNeeded": true
+}

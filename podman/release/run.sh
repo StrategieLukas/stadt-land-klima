@@ -146,13 +146,17 @@ case "$action" in
     [[ ! -e "$state/backups.sha256" ]] || { echo 'Preserve the existing backup; use a new release record.' >&2; exit 1; }
     database="$(podman --remote=false ps -q --filter "label=io.podman.compose.project=$project" --filter label=io.podman.compose.service=db)"
     [[ -n "$database" ]] || exit 1
-    podman --remote=false exec "$database" /usr/local/bin/slk-env sh -ec 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > "$state/database.before.dump"
+    node "$SCRIPT_DIR/cli/release-backup.ts" "$database" > "$state/database.before.dump"
     podman --remote=false exec -i "$database" pg_restore --list < "$state/database.before.dump" > "$state/database.before.list"
     podman --remote=false volume export "${project}_uploads" > "$state/uploads.before.tar"
     podman --remote=false volume export "$active" > "$state/frontend-output.before.tar"
     tar --exclude=.git --exclude=node_modules --exclude=.nuxt --exclude=.output --exclude=uploads --exclude='core.*' --exclude=podman/data --exclude=docker/data --exclude=backups --exclude=.reports -czf "$state/source.before.tar.gz" .
     tar -czf "$state/config.before.tar.gz" "$config" "$HOME/.config/systemd/user/slk.service"
     (cd "$state"; sha256sum database.before.dump uploads.before.tar frontend-output.before.tar source.before.tar.gz config.before.tar.gz > backups.sha256)
+    (
+      exec {release_lock}>&- {project_lock}>&-
+      node "$SCRIPT_DIR/cli/release-retention.ts" --apply
+    )
     echo 'Backups recorded. Copy off-host and verify before creating backup.verified.'
     ;;
   stage|stage-prebuilt)

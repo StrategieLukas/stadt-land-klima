@@ -16,17 +16,8 @@ import { tmpdir } from "node:os";
 import dotenv from "dotenv";
 import { run, node, root, type Environment } from "./process.ts";
 import { runtime, maintenance, performStack, type Runtime, type StackOptions } from "./stack.ts";
+import { databaseSettings } from "../lib/database-settings.ts";
 
-function databaseSettings() {
-  const env = dotenv.parse(readFileSync(process.env.SLK_PODMAN_DIRECTUS_ENV_FILE || join(root, "src/directus/.env")));
-  const database = env.DB_DATABASE ?? process.env.DB_DATABASE;
-  if (!database) throw new Error("DB_DATABASE is required in the private Directus environment.");
-  return {
-    database,
-    port: env.DB_PORT ?? process.env.DB_PORT ?? "5432",
-    user: env.DB_USER ?? process.env.DB_USER ?? "",
-  };
-}
 export async function databaseTransfer(
   rt: Runtime,
   action: "export" | "import" | "sql",

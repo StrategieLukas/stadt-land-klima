@@ -1,8 +1,55 @@
 import path from "path";
 import createDirectusClient from "../shared/createDirectusClient.ts";
 import type { TaskOptions } from "../shared/models.ts";
-import { errorMessages, RecordSchema } from "../shared/models.ts";
+import { RecordSchema } from "../shared/models.ts";
 import readYamlFile from "../shared/readYamlFile.ts";
+import { isDeepStrictEqual } from "node:util";
+
+/** A lost PATCH response is ambiguous: verify every intended value, never blindly replay it. */
+export async function applySettings(
+  baseUrl: string,
+  token: string,
+  settings: Record<string, unknown>,
+  fetcher: typeof globalThis.fetch = globalThis.fetch,
+  wait: () => Promise<void> = () => new Promise((resolve) => setTimeout(resolve, 1000)),
+): Promise<boolean> {
+  const url = `${baseUrl.replace(/\/$/, "")}/settings`;
+  const headers = { Authorization: `Bearer ${token}` };
+  let response: Response;
+  try {
+    response = await fetcher(url, {
+      method: "PATCH",
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify(settings),
+    });
+  } catch {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      if (attempt) await wait();
+      try {
+        const read = await fetcher(url, { headers, redirect: "error", signal: AbortSignal.timeout(5000) });
+        if (read.status === 401 || read.status === 403) break;
+        if (!read.ok) continue;
+        const body = RecordSchema.parse(await read.json());
+        const actual = RecordSchema.parse(body.data);
+        if (
+          Object.entries(settings).every(
+            ([key, value]) => Object.hasOwn(actual, key) && isDeepStrictEqual(actual[key], value),
+          )
+        )
+          return true;
+      } catch {
+        // Transient reads may recover; missing/masked/different settings never count as success.
+      }
+    }
+    throw new Error(
+      "Settings update response was lost and persisted values could not be verified; no write was retried.",
+    );
+  }
+  if (!response.ok) throw new Error(`Settings import failed (HTTP ${response.status}).`);
+  return false;
+}
 
 // Sensitive settings fields that should be populated from environment variables
 // These are filtered out during export and merged during import
@@ -75,7 +122,7 @@ function mergeEnvSettings(settings: Record<string, unknown>, verbose = false) {
 }
 
 async function importSettings(src: string, options: TaskOptions = {}) {
-  const client = createDirectusClient();
+  createDirectusClient();
 
   try {
     const settings = readYamlFile(path.join(src, "settings.yaml"), RecordSchema);
@@ -88,22 +135,11 @@ async function importSettings(src: string, options: TaskOptions = {}) {
     const directusUrl = process.env.FRONTEND_DIRECTUS_URL || "http://directus:8055";
     const token = process.env.CLI_DIRECTUS_STATIC_TOKEN;
 
-    const response = await fetch(`${directusUrl}/settings`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(settingsWithEnv),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to update settings: ${errorMessages(errorData) || response.statusText}`);
-    }
+    const recovered = await applySettings(directusUrl, token!, settingsWithEnv);
 
     if (options.verbose) {
       console.info("Settings imported");
+      if (recovered) console.info("Persisted settings verified after a lost update response; no write was retried.");
       if (mergedCount > 0) {
         console.info(`Merged ${mergedCount} sensitive field(s) from environment variables`);
       }

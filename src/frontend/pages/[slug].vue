@@ -16,7 +16,7 @@
         <!-- Fallback: render legacy HTML content when not editing and no blocks exist -->
         <div v-if="!isEditing && pageBlocks.length === 0 && page.contents" class="mx-auto prose max-w-3xl">
           <template v-for="(block, index) in processedPageContent" :key="index">
-            <div v-if="block.type === 'html'" v-html="sanitizeHtml(block.html)" />
+            <CmsHtml v-if="block.type === 'html'" :html="block.html" />
             <OnboardingBox v-else-if="block.type === 'component'" name="Otto" :avatar-src="onboardingAvatarUrl" />
           </template>
         </div>
@@ -37,7 +37,6 @@ import OnboardingBox from "@/components/OnboardingBox.vue";
 import { useAuth } from "~/composables/useAuth";
 import { getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
 import { routeSlug } from "~/shared/routeValues";
-import { sanitizeHtml } from "~/utils/sanitizeHtml";
 const fetchContent = useContentFetch();
 const renderCmsHtml = useCmsHtml();
 

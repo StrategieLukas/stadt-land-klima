@@ -1,0 +1,4 @@
+# Optional file provisioning. This adds no plugin/environment/network reset.
+# Install the datasource file at the matching host path first.
+[Container]
+Volume=%h/.config/slk-monitoring/slk-victorialogs.yaml:/etc/grafana/provisioning/datasources/slk-victorialogs.yaml:ro,Z

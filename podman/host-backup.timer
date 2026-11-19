@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly encrypted Stadt-Land-Klima backup
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Europe/Berlin
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target
