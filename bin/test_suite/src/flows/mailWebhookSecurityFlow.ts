@@ -116,10 +116,13 @@ export async function runMailWebhookSecurityFlow(runner: TestRunner, fixture: Te
             "Caller-controlled template names must never reach the mail operation",
           );
         }
+        let rejected = false;
         try {
           await fixture.admin.request("POST", `/flows/trigger/${flow.id}`, {
             body: {
-              to: captureEnabled ? "webhook-security@example.invalid" : [],
+              // Sendmail transports can accept an empty envelope. This malformed
+              // address fails message construction before any transport can send.
+              to: captureEnabled ? "webhook-security@example.invalid" : { address: { toString: null } },
               subject: marker,
               body: "Authenticated notification regression check",
               securityProbe: marker,
@@ -136,12 +139,17 @@ export async function runMailWebhookSecurityFlow(runner: TestRunner, fixture: Te
             },
           });
         } catch (error) {
-          // Without a test SMTP inbox, empty recipients intentionally prevent delivery.
+          // Without a test SMTP inbox, the invalid address intentionally prevents delivery.
           if (captureEnabled) throw error;
+          rejected = true;
         }
         const steps = await runSteps(fixture, flow, marker);
         assertEqual(steps.length, 2, "An administrator must reach the mail operation");
         assertEqual(steps[0].status, "resolve", "Verified administrator accountability must pass");
+        if (!captureEnabled) {
+          assert(rejected, "A mail failure must reject the synchronous webhook request");
+          assertEqual(steps[1].status, "reject", "The mail operation must record failure rather than false success");
+        }
         if (captureEnabled) {
           assertEqual(steps[1].status, "resolve", "Mail must reach the test SMTP server");
           const mail = await capturedMail(marker, "webhook-security@example.invalid");

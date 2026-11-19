@@ -81,6 +81,13 @@ The shared helper awaits mail because the pinned native generic sender does not;
 new account creation rolls back on send failure. Advisory locks prevent duplicate
 invites. Persistent rate limits are shared across both invitation interfaces.
 Local-team invitations remain a separate supported workflow.
+The pinned mail flow operation is source-hash patched to await `MailService.send`
+and reject cancelled/failed sends with sanitized errors. Native per-flow and
+global mail rate limits remain in place; no Directus version upgrade is involved.
+Registration reports its email step only after the welcome flow accepts a message
+containing the password-reset link. Generating a link or requesting the native
+fire-and-forget password-reset endpoint is not delivery confirmation. Transport
+acceptance does not prove inbox delivery.
 
 ## Public data boundaries
 

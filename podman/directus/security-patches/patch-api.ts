@@ -1,6 +1,7 @@
 /** Narrow, source-verified hardening of the pinned 11.17.4 image. No version upgrade. */
 import { loggingPatches } from "./logging-patches.ts";
 import { authorizationPatches } from "./authorization-patches.ts";
+import { mailPatches } from "./mail-patches.ts";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -69,6 +70,7 @@ export function patchDirectusApi(root: string) {
     })),
     ...authorizationPatches,
     ...loggingPatches,
+    ...mailPatches,
   ];
   // Several independent guards can protect the same pinned file. Compose their
   // replacements before writing, so one guard can never overwrite another.

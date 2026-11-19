@@ -264,7 +264,27 @@ export async function runSearchInteractionFlow(
         await area.fill("again");
         await expect(page.locator(".slk-area-search-result").first()).toContainText("again");
         await area.press("Escape");
-        await goto("/regions/080000000000");
+        // This layout assertion must not depend on the live regional data provider.
+        // Navigate in the hydrated app so browser fixtures also cover its API reads.
+        await page.route(
+          (url) => url.pathname === "/api/area-by-slug" && url.searchParams.get("slug") === "080000000000",
+          (route) =>
+            route.fulfill({ json: { ars: "080000000000", name: "Baden-Württemberg", prefix: "Land", level: 2 } }),
+        );
+        await page.route(
+          (url) => url.pathname === "/api/public/regions/080000000000",
+          (route) => route.fulfill({ status: 503, json: { statusMessage: "Fixture provider unavailable" } }),
+        );
+        await page.evaluate(async () => {
+          const root = document.querySelector("#nuxt-root") as Element & {
+            __vue_app__?: { config: { globalProperties: { $router?: { push: (path: string) => Promise<unknown> } } } };
+          };
+          const router = root?.__vue_app__?.config.globalProperties.$router;
+          if (!router) throw new Error("Hydrated Nuxt router is required for client navigation");
+          await router.push("/regions/080000000000");
+        });
+        await expect(page).toHaveURL(`${origin}/regions/080000000000`);
+        await expect(page.getByRole("heading", { name: "Baden-Württemberg", exact: true })).toBeVisible();
         await expect(page.locator("[data-area-search-input]")).toHaveCount(0);
         const filterSlug = `search-filter-${fixture.config.runId}`;
         const filterPage = await fixture.admin.createItem<{ id: string }>("pages", {
