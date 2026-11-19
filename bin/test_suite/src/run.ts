@@ -177,7 +177,7 @@ async function main(): Promise<void> {
       });
     }
     try {
-      await runSearchInteractionFlow(runner, config.frontendUrl, browser);
+      await runSearchInteractionFlow(runner, config.frontendUrl, browser, fixture);
     } catch (e) {
       runner.results.push({
         name: "Search interaction flow",
