@@ -96,6 +96,38 @@ test("existing container output is already routed to the host journal", () => {
   assert.match(readFileSync(resolve(root, "podman-compose.yaml"), "utf8"), /driver: journald/);
 });
 
+test("additional container routes require exact names and bounded literal project/service labels", () => {
+  assert.deepEqual(loggingSettings(fields).containerRoutes, {});
+  const routes = {
+    campaignmanager_server_1: { project: "campaignmanager", service: "server" },
+  };
+  const settings = loggingSettings({ ...fields, SLK_LOG_CONTAINER_ROUTES: JSON.stringify(routes) });
+  assert.deepEqual(settings.containerRoutes, routes);
+  const artifacts = hostLoggingArtifacts(root, "slk-production", settings, 998);
+  const transform = artifacts[1]!.bytes.toString();
+  assert.ok(transform.includes(`container_routes = ${JSON.stringify(routes)}`));
+  assert.doesNotMatch(transform, /__SLK_/);
+  for (const value of [
+    "not-json",
+    "null",
+    "[]",
+    '"routes"',
+    '{"campaignmanager_*":{"project":"campaignmanager","service":"server"}}',
+    '{"campaignmanager_server_1":null}',
+    '{"campaignmanager_server_1":[]}',
+    '{"campaignmanager_server_1":{"project":"campaignmanager"}}',
+    '{"campaignmanager_server_1":{"project":"campaignmanager","service":"server","environment":"staging"}}',
+    JSON.stringify({ campaignmanager_server_1: { project: "${SECRET}", service: "server" } }),
+    JSON.stringify({ campaignmanager_server_1: { project: "campaignmanager", service: 'server"\n. = {}' } }),
+    JSON.stringify({ campaignmanager_server_1: { project: 42, service: "server" } }),
+    JSON.stringify({ campaignmanager_server_1: { project: "x".repeat(101), service: "server" } }),
+    JSON.stringify(
+      Object.fromEntries(Array.from({ length: 101 }, (_, i) => [`container_${i}`, routes.campaignmanager_server_1])),
+    ),
+  ])
+    assert.throws(() => loggingSettings({ ...fields, SLK_LOG_CONTAINER_ROUTES: value }));
+});
+
 test("encrypted backup scope includes opted-in private logging files and rejects exposed credentials", () => {
   assert.deepEqual(hostLoggingBackupPaths({ loggingConfig: null }), []);
   const directory = mkdtempSync(resolve(tmpdir(), "slk-log-backup-"));

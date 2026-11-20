@@ -276,6 +276,12 @@ per-host credential and sends filtered JSON lines over authenticated HTTPS. Its
 restart recovery across boots. It receives no engine socket or application dotenv.
 Native secret-file lookup keeps environment interpolation disabled. The admin API
 is disabled; metrics bind only to loopback. Exact release binary hashes are pinned.
+Other trusted stacks in the same host environment use the optional validated
+`SLK_LOG_CONTAINER_ROUTES` exact-container map for project/service classification;
+application JSON cannot override those labels. Production CampaignManager's
+web/server/PostgreSQL route configuration is documented in `docs/CENTRAL_LOGGING.md`.
+Unlisted containers retain the existing fallback; cross-environment routing and
+untrusted-tenant isolation are not provided by this map.
 The monitoring backend uses Podman Quadlets: single-node VictoriaLogs on a
 dedicated internal network and named volume, with additive Grafana/proxy network
 drop-ins and no published backend port by default. Query access uses private

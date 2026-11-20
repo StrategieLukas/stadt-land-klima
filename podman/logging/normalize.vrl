@@ -7,6 +7,7 @@ record_time = .timestamp
 if record_time == null { record_time = now() }
 parsed = object(parse_json(message) ?? {}) ?? {}
 service = "host"
+project = "stadt-land-klima"
 raw_unit = ._SYSTEMD_USER_UNIT
 if raw_unit == null { raw_unit = ._SYSTEMD_UNIT }
 unit = to_string(raw_unit) ?? ""
@@ -21,6 +22,13 @@ if container != "" {
 aliases = {"frontend": "nuxt", "db": "postgresql", "cache": "redis"}
 alias = get(aliases, [service]) ?? null
 if alias != null { service = to_string!(alias) }
+
+container_routes = __SLK_LOG_CONTAINER_ROUTES__
+route = get(container_routes, [container]) ?? null
+if route != null {
+  project = to_string!(route.project)
+  service = to_string!(route.service)
+}
 
 raw_level = parsed.severity
 if raw_level == null { raw_level = parsed.level }
@@ -52,7 +60,7 @@ for_each(["event", "severity", "userId", "actorType", "requestId", "route", "met
 . = merge(details, {
   "timestamp": record_time,
   "message": message,
-  "project": "stadt-land-klima",
+  "project": project,
   "environment": "__SLK_LOG_ENVIRONMENT__",
   "host": "__SLK_LOG_HOST__",
   "service_name": service,

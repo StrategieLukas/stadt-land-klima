@@ -174,9 +174,66 @@ The account has journal-read membership, no engine socket/root privileges, and n
 access to application home-directory dotenv files. Metrics bind only to loopback;
 Vector's administrative API is disabled. Metrics availability is not delivery proof.
 
-The collector reads all retained readable host journal records across boots. The
-single project/environment configuration assumes one SLK deployment per host;
-mixed-environment hosts require reviewed per-project routing before activation.
+The collector reads all retained readable host journal records across boots. Its
+default project is `stadt-land-klima`. Additional trusted stacks in the same
+environment can use exact container routes as described below. Mixed-environment
+hosts still require reviewed environment routing before activation.
+
+### Additional components: production CampaignManager
+
+Read-only discovery on 2026-11-20 confirmed that production `slk-prod` already runs
+`slk-vector.service`, sending to `https://logs.stadt-land-klima.de/insert/jsonline`.
+Grafana is served at `https://monitoring.stadt-land-klima.de`; the HTTPS ingestion
+hostname is separate. CampaignManager runs under the separate rootless
+`campaignmanager` account (UID 1001). Its `web`, `server` and `postgres` containers
+already use the `journald` log driver, and the `slk-vector` account can read their
+records. No application rebuild, additional collector or engine-socket access is
+needed. Before explicit routing, those containers share the fallback labels
+`project="stadt-land-klima"`, `service_name="container"`.
+
+For these additional trusted production components, add the following **single
+dotenv line** to the existing root-owned mode-0600
+`/root/.config/slk/logging.env`:
+
+```dotenv
+SLK_LOG_CONTAINER_ROUTES='{"campaignmanager_web_1":{"project":"campaignmanager","service":"web"},"campaignmanager_server_1":{"project":"campaignmanager","service":"server"},"campaignmanager_postgres_1":{"project":"campaignmanager","service":"postgresql"}}'
+```
+
+This optional JSON object maps exact journal `CONTAINER_NAME` values to explicit
+`project` and `service` labels. It accepts at most 100 entries; names and labels
+are validated before rendering VRL. Unlisted containers keep the existing behavior.
+Application JSON cannot override these labels, the host or the environment. Add
+explicit entries when replicas or container names change. This is classification
+inside the existing trusted tenant, not a new permission or privacy boundary.
+The original log message remains intact; review each component's logging before
+adding it, since this does not redact secrets or personal information in messages.
+
+After the production approval required by `AGENTS.md`, obtain the reviewed
+revision through the normal deployment workflow, retain a private backup of the
+logging dotenv and installed Vector files, then use `slk host plan/install/verify`
+as above. Review the full host plan before installing: that command also manages
+the existing host-maintenance artifacts. Validate the rendered configuration with
+`vector validate --no-environment --deny-warnings` and restart only
+`slk-vector.service` to activate the updated transform. Preserve
+`/var/lib/slk-vector` and the existing credentials. CampaignManager's containers,
+database and the monitoring stack do not need restarting. Restore the previous
+dotenv/artifacts and restart Vector if validation or delivery fails.
+
+In Grafana Explore, select **Stadt-Land-Klima Logs** and use LogsQL:
+
+```text
+project:="campaignmanager" environment:="production"
+project:="campaignmanager" service_name:="server"
+project:="campaignmanager" service_name:="web"
+project:="campaignmanager" service_name:="postgresql"
+```
+
+Each line is a separate query. Services appear after emitting new logs; the
+persistent journal cursor is retained, so previously ingested records keep their
+old labels. Do not reset the cursor to relabel history. Confirm fresh records
+from each container and successful collector delivery, then check their rendering
+in Grafana. Repository preparation and local fixtures do not activate production
+or establish deployed Grafana acceptance.
 
 ## 7. Confirm delivery in Grafana and test recovery
 
