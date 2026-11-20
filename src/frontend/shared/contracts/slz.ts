@@ -184,7 +184,7 @@ export const SummarySchema = z
             license_url: z.string().nullable().optional(),
             effective_date: z.string().nullable().optional(),
           })
-          .optional(),
+          .nullish(),
       })
       .loose(),
     source_attributions: z.array(sourceAttribution).optional(),

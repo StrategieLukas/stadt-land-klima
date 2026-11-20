@@ -28,6 +28,8 @@ import { checkedWahlcheckState, ElectionTeamSchema } from "../../../src/frontend
 import { WahlcheckEmbedHostMessageSchema } from "../../../src/frontend/shared/wahlcheckEmbed.js";
 import { StatisticsSchema } from "../../../src/frontend/shared/contracts/municipality.js";
 import { SummarySchema, CollectionsResponseSchema } from "../../../src/frontend/shared/contracts/slz.js";
+import { formatKpiValue, kpiValueFromAggregate } from "../../../src/frontend/utils/dataProducts.js";
+import { resolveDataAttribution } from "../../../src/frontend/utils/dataAttribution.js";
 import { kMeans, pairwiseDominance, statisticsDatum } from "../../../src/frontend/shared/statistics.js";
 import { formatProjectDate } from "../../../src/frontend/shared/projectDate.js";
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
@@ -390,6 +392,66 @@ test("collection summaries retain metadata and native chart vocabulary, rejectin
   assert.equal(SummarySchema.safeParse({ aggregate: { metadata: "invalid" } }).success, false);
 });
 
+test("collection summaries preserve cycling KPIs with null, omitted or populated metadata", () => {
+  const kpi = {
+    plot_id: "kpi-ratio" as const,
+    type: "kpi" as const,
+    field: "bicycle_infrastructure_ratio",
+    is_percentage: true,
+    thresholds: { darkgreen: 0.5 },
+    vegalite_spec: null,
+  };
+  const source = {
+    source: "OpenStreetMap",
+    attribution: "© OpenStreetMap contributors",
+    source_url: "https://www.openstreetmap.org/copyright",
+    license_name: "ODbL",
+  };
+  const populated = {
+    attribution: "Aggregate credits",
+    attribution_url: "https://example.org/source",
+    license_name: "CC BY",
+    license_url: null,
+    effective_date: "2026-10-01",
+  };
+  for (const metadata of [null, undefined, populated]) {
+    const input = {
+      aggregate: { bicycle_infrastructure_ratio: 0.28778, ...(metadata === undefined ? {} : { metadata }) },
+      kpi_values: { "kpi-ratio": { raw_value: 0.28778, value: 0.28778, precision: 1 } },
+    };
+    const summary = SummarySchema.parse(input);
+    assert.deepEqual(summary, input);
+    assert.equal(kpiValueFromAggregate(kpi, summary.aggregate), 0.28778);
+    const canonical = summary.kpi_values?.[kpi.plot_id];
+    assert.ok(canonical);
+    assert.equal(formatKpiValue(kpi, canonical.value, canonical.precision), "28,8 %");
+    const localize = () => "";
+    const credits = resolveDataAttribution({ summary: { ...summary, source_attributions: [source] } }, localize);
+    assert.equal(credits[0]?.source, source.source);
+    assert.equal(credits[0]?.sourceUrl, source.source_url);
+    const fallback = resolveDataAttribution({ summary, collection: { source_attributions: [source] } }, localize);
+    assert.deepEqual(fallback, credits);
+    const aggregateCredits = resolveDataAttribution({ summary }, localize);
+    assert.equal(aggregateCredits[0]?.source, metadata ? populated.attribution : undefined);
+  }
+});
+
+test("collection summary metadata rejects malformed objects and non-object values", () => {
+  for (const metadata of [
+    "invalid",
+    1,
+    false,
+    [],
+    { attribution: 1 },
+    { attribution_url: [] },
+    { license_name: false },
+    { license_url: {} },
+    { effective_date: 2026 },
+  ]) {
+    assert.equal(SummarySchema.safeParse({ aggregate: { metadata } }).success, false);
+  }
+});
+
 test("chart calculations compare common ratings and guard malformed payloads and PCA points", () => {
   const { wins, compared } = pairwiseDominance(
     [
@@ -711,7 +773,8 @@ test("newsletter selection never permits client-requested private lists, includi
 });
 
 test("newsletter normalizes provider URLs, validates acknowledgement and hides provider failures", async () => {
-  let response: unknown = { data: true };
+  // Listmonk 6.2 returns opt-in metadata after it has queued the confirmation.
+  let response: unknown = { data: { has_optin: true } };
   let defaultListId = "1";
   const requests: Row[] = [];
   const handler = load(
@@ -739,8 +802,8 @@ test("newsletter normalizes provider URLs, validates acknowledgement and hides p
   assert.equal((await handler(event)).success, true);
   assert.deepEqual(plain(requests[0]!.body.list_uuids), ["public-id"]);
   assert.ok(!requests[0]!.headers.Authorization, "Public subscription never receives provider credentials");
-  for (const hasOptin of [true, false]) {
-    response = { data: { has_optin: hasOptin } };
+  for (const value of [{ data: { has_optin: true } }, { data: { has_optin: false } }, { data: true }]) {
+    response = value;
     assert.deepEqual(plain(await handler(event)), { success: true, alreadySubscribed: false });
   }
   for (const value of [
