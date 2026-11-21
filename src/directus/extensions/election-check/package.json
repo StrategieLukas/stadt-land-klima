@@ -44,6 +44,11 @@
         "type": "endpoint",
         "name": "election-actions",
         "source": "src/endpoint/index.ts"
+      },
+      {
+        "type": "hook",
+        "name": "election-category-access",
+        "source": "src/category-access/index.ts"
       }
     ]
   },
@@ -56,13 +61,13 @@
   },
   "devDependencies": {
     "@directus/extensions-sdk": "18.1.1",
+    "@directus/types": "^18.1.0",
+    "@types/express": "^4.17.25",
     "esbuild": "^0.28.2",
     "knex": "3.1.0",
     "typescript": "^6.0.3",
     "vue": "3.5.43",
-    "@directus/types": "^18.1.0",
-    "vue-tsc": "3.3.14",
-    "@types/express": "^4.17.25"
+    "vue-tsc": "3.3.14"
   },
   "overrides": {
     "esbuild": "^0.28.2",
@@ -76,6 +81,7 @@
     "zod": "4.6.7"
   },
   "dependencies": {
+    "@directus/errors": "^3.1.0",
     "html-validate": "^11.21.0"
   }
 }

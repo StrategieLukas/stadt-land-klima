@@ -203,6 +203,7 @@ export const translationKeys = [
   "donate.widget.iframe_fallback",
   "donate.widget.iframe_title",
   "election.descriptor.placeholder",
+  "election.is_localzero.note",
   "election_info.contribution",
   "election_info.current_status",
   "election_info.fallback_catalog",
@@ -1296,6 +1297,7 @@ export const translationKeys = [
   "tour.visit_tomorrow",
   "tour.what_is_project",
   "tour.whole_route",
-  "translation.machine_notice"
+  "translation.machine_notice",
+  "user.is_localzero.note"
 ] as const;
 export type TranslationKey = (typeof translationKeys)[number];
