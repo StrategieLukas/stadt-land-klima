@@ -431,3 +431,134 @@ test("REST Insights panels preserve query permissions, variables, refresh and ex
   assert.equal(unsubscribed, true);
   assert.equal(requests.at(-1)?.signal.aborted, true);
 });
+
+test("Wahlcheck categories constrain reads, mutations and profile escalation in checked YAML", () => {
+  const yaml = frontend("yaml");
+  const read = (path: string) => yaml.parse(readFileSync(new URL(`../${path}`, extensions), "utf8"));
+  const policy = read("policies/WahlcheckAdmin.yaml");
+  const permission = (collection: string, action: string) =>
+    policy.permissions.find((entry: any) => entry.collection === collection && entry.action === action);
+  const category = { is_localzero: { _eq: "$CURRENT_USER.is_localzero" } };
+  for (const collection of ["elections", "questions", "candidate"]) {
+    const scope = collection === "elections" ? category : { election: category };
+    for (const action of ["read", "update"]) assert.deepEqual(permission(collection, action).permissions, scope);
+  }
+  assert.deepEqual(permission("answers", "read").permissions, {
+    _and: [{ question: { election: category } }, { candidate: { election: category } }],
+  });
+  assert.deepEqual(permission("candidate", "delete").permissions._and, [
+    { has_answered: { _eq: false } },
+    { election: category },
+  ]);
+  assert.deepEqual(permission("questions", "delete").permissions._and, [
+    { election: { response_cutoff_date: { _eq: null } } },
+    { election: category },
+  ]);
+  for (const action of ["create", "update"]) {
+    assert.deepEqual(permission("elections", action).validation, category);
+    assert.ok(permission("elections", action).fields.includes("is_localzero"));
+  }
+  assert.deepEqual(permission("elections", "create").presets, { is_localzero: "$CURRENT_USER.is_localzero" });
+  for (const collection of ["elections", "directus_users"]) {
+    const field = read(`schema/fields/${collection}/is_localzero.yaml`);
+    assert.equal(field.schema.default_value, false);
+    assert.equal(field.schema.is_nullable, false);
+    assert.equal(field.meta.translations.length, 3);
+  }
+  const own = read("policies/App-Zugriff-Minimum.yaml").permissions;
+  assert.ok(
+    own
+      .find((entry: any) => entry.collection === "directus_users" && entry.action === "read")
+      .fields.includes("is_localzero"),
+  );
+  for (const file of readdirSync(new URL("../policies/", extensions))) {
+    const policy = read(`policies/${file}`);
+    for (const entry of policy.permissions ?? []) {
+      if (entry.collection !== "directus_users" || !["update", "create"].includes(entry.action)) continue;
+      assert.ok(
+        !entry.fields?.includes("is_localzero") && !entry.fields?.includes("*"),
+        `${file}: category escalation`,
+      );
+    }
+  }
+});
+
+test("Wahlcheck relation guards reject foreign and nested election writes and scope comments by readable questions", async () => {
+  type Row = Record<string, any>;
+  type Filter = (payload: Row, meta: Row, context: Row) => Promise<Row>;
+  const filters = new Map<string, Filter>();
+  let roleName = "WahlcheckAdmin";
+  let questionIds = ["owned-question"];
+  const database: any = () => ({
+    whereIn() {
+      return this;
+    },
+    where() {
+      return this;
+    },
+    first: async () => (roleName === "WahlcheckAdmin" ? { id: "role" } : undefined),
+  });
+  const accountability = { user: "editor", role: "role", roles: ["role"], admin: false };
+  const context = { database, schema: null, accountability };
+  let reads = 0;
+  class ItemsService {
+    constructor(
+      readonly collection: string,
+      options: Row,
+    ) {
+      assert.equal(options.accountability, accountability);
+      assert.equal(options.knex, database);
+      assert.ok(options.schema);
+    }
+    async readOne(id: string) {
+      reads++;
+      if (id !== "owned-election") throw Object.assign(new Error("Forbidden"), { status: 403 });
+      return { id };
+    }
+    async readByQuery(query: Row) {
+      assert.equal(this.collection, "questions");
+      assert.equal(query.limit, -1);
+      return questionIds.map((id) => ({ id }));
+    }
+  }
+  const hook = load<{ default: (register: Row, context: Row) => void }>(
+    "election-check/src/category-access/index.ts",
+    {},
+    { "@directus/extensions-sdk": { defineHook: (handler: unknown) => handler } },
+  );
+  hook.default(
+    { filter: (name: string, handler: Filter) => filters.set(name, handler) },
+    {
+      services: { ItemsService },
+      getSchema: async () => ({ collections: {} }),
+    },
+  );
+  for (const collection of ["candidate", "questions"]) {
+    const create = filters.get("items.create")!;
+    const update = filters.get("items.update")!;
+    for (const handler of [create, update]) {
+      await handler({ election: "owned-election" }, { collection }, context);
+      for (const election of ["foreign-election", null, { id: "owned-election" }, { is_localzero: false }])
+        await assert.rejects(handler({ election }, { collection }, context), { status: 403 });
+    }
+    await assert.rejects(create({}, { collection }, context), { status: 403 });
+    const before = reads;
+    await update({ title: "Unrelated edit" }, { collection }, context);
+    await create({ election: "foreign-election" }, { collection }, { ...context, accountability: { admin: true } });
+    await create({ election: "foreign-election" }, { collection }, { ...context, accountability: null });
+    assert.equal(reads, before);
+  }
+  const query = { filter: { item: { _eq: "foreign-question" } }, limit: 10 };
+  const comments = filters.get("comments.query")!;
+  const scoped = await comments(query, {}, context);
+  assert.deepEqual(JSON.parse(JSON.stringify(scoped)), {
+    limit: 10,
+    filter: { _and: [query.filter, { collection: { _eq: "questions" } }, { item: { _in: questionIds } }] },
+  });
+  questionIds = [];
+  assert.deepEqual(JSON.parse(JSON.stringify((await comments({}, {}, context)).filter._and.at(-1))), {
+    item: { _in: [] },
+  });
+  roleName = "LokalteamMitglied";
+  assert.equal(await comments(query, {}, context), query);
+});

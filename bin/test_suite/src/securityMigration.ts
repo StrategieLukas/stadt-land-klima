@@ -548,6 +548,79 @@ try {
     },
   );
 
+  await step("MIG-16: Wahlcheck admins can access only their LocalZero or SLK category", async () => {
+    const client = fixture.wahlcheckAdmin.client;
+    const denied = async (operation: () => Promise<unknown>) => {
+      let rejected = false;
+      try {
+        await operation();
+      } catch (error) {
+        rejected = error instanceof Error && /failed with (400|403):/.test(error.message);
+      }
+      assert(rejected, "Cross-category access must be rejected");
+    };
+    await fixture.admin.updateItem("elections", foreignElection.id, { is_localzero: true });
+    try {
+      for (const isLocalzero of [false, true]) {
+        await fixture.admin.updateUser(fixture.wahlcheckAdmin.id, { is_localzero: isLocalzero });
+        await client.login(fixture.wahlcheckAdmin.email, fixture.wahlcheckAdmin.password);
+        const ownElection = isLocalzero ? foreignElection : election;
+        const otherElection = isLocalzero ? election : foreignElection;
+        for (const [collection, own, other] of [
+          ["elections", ownElection, otherElection],
+          ["questions", isLocalzero ? foreignQuestion : question, isLocalzero ? question : foreignQuestion],
+          ["candidate", isLocalzero ? foreignCandidate : candidateB, isLocalzero ? candidateB : foreignCandidate],
+          ["answers", isLocalzero ? foreignAnswer : answerB, isLocalzero ? answerB : foreignAnswer],
+        ] as const) {
+          const rows = await client.readItems<{ id: string }>(collection, {
+            fields: ["id"],
+            filter: { id: { _in: [own.id, other.id] } },
+          });
+          assert(rows.length === 1 && rows[0]?.id === own.id, `${collection}: category lists must be isolated`);
+          await denied(() => client.readItem(collection, other.id, ["id"]));
+        }
+        await client.updateItem("elections", ownElection.id, { descriptor: `Category ${config.runId}` });
+        await denied(() => client.updateItem("elections", otherElection.id, { is_approved: true }));
+        await denied(() => client.updateItem("elections", ownElection.id, { is_localzero: !isLocalzero }));
+        const createdElection = await client.createItem<{ id: string; is_localzero: boolean }>("elections", {
+          descriptor: `Category preset ${config.runId}`,
+          localteam: isLocalzero ? foreignTeam.id : fixture.localteam.id,
+        });
+        assert(createdElection.is_localzero === isLocalzero, "New elections must use the admin's category");
+        await fixture.admin.deleteItem("elections", createdElection.id);
+        await denied(() => client.request("PATCH", "/users/me", { body: { is_localzero: !isLocalzero } }));
+        await denied(() =>
+          client.updateItem("candidate", isLocalzero ? foreignCandidate.id : candidateB.id, {
+            election: otherElection.id,
+          }),
+        );
+        for (const [collection, data] of [
+          ["questions", { title: `Category thesis ${config.runId}`, thesis: "Category thesis", status: "draft" }],
+          [
+            "candidate",
+            {
+              name: `Category candidate ${config.runId}`,
+              email: "category@example.invalid",
+              salutation: "neutral",
+              party: "SPD",
+            },
+          ],
+        ] as const) {
+          const created = await client.createItem<{ id: string }>(collection, { ...data, election: ownElection.id });
+          await fixture.admin.deleteItem(collection, created.id);
+          await denied(() => client.createItem(collection, { ...data, election: otherElection.id }));
+        }
+        await denied(() =>
+          client.request("POST", "/election-actions/generate", { body: { election_id: otherElection.id } }),
+        );
+      }
+    } finally {
+      await fixture.admin.updateUser(fixture.wahlcheckAdmin.id, { is_localzero: false });
+      await fixture.admin.updateItem("elections", foreignElection.id, { is_localzero: false });
+      await client.login(fixture.wahlcheckAdmin.email, fixture.wahlcheckAdmin.password);
+    }
+  });
+
   await step(
     "MIG-14: built public scripts, source maps and extracted payloads contain no configured credentials",
     async () => {

@@ -61,6 +61,24 @@ policies are compatibility/deployment state, not templates for new access.
 | Recruiter, WahlcheckAdmin               | Named editorial responsibilities defined by their checked policies.                                                                                                                                                                                     |
 | API and remaining roles                 | Keep the exact checked allowlists in `src/directus/{roles,policies}`; do not infer administrator access from a role label.                                                                                                                              |
 
+Wahlcheck administration is split by the non-null boolean `is_localzero` on
+`elections` and `directus_users` (default `false`, meaning SLK). Administrators
+assign the user flag; personal profile updates cannot change it. The
+`WahlcheckAdmin` policy matches election categories for elections, questions,
+candidates and both ends of answers, preserving existing deletion conditions.
+Election creation presets the caller's category and validation prevents category
+changes. Local teams can set their own election's flag. This classification is
+independent of the public `?theme=localzero` styling parameter.
+The election-check category hook validates question/candidate election IDs using
+the caller's permissions before create/reassignment, refusing nested election
+payloads. Question comments are restricted to readable question IDs for
+Wahlcheck admins because their generic item references cannot be joined by YAML.
+Local-team selectors include matching-category elections and teams without any
+elections, allowing first-time setup. Existing records require explicit
+reclassification if they belong to LocalZero. Permissions from additional roles
+or direct policies remain additive; assign scoped Wahlcheck admins only the
+intended policy set.
+
 Native Insights metric/chart query callbacks use GraphQL, which Caddy intentionally
 blocks on both CMS origins. Maintained Allgemein/Maßnahmen panels therefore use
 `slk-rest-metric` / `slk-rest-pie-chart` from the community-activity bundle. These

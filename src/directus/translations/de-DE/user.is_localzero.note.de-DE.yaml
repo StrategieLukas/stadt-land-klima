@@ -1,0 +1,3 @@
+key: user.is_localzero.note
+language: de-DE
+value: "Ja: Zugriff auf LocalZero-Wahlchecks. Nein: Zugriff auf alle anderen Wahlchecks (SLK). Nur Administrator:innen können diese Zuordnung ändern."

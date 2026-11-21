@@ -80,6 +80,7 @@ permissions:
       - status
       - role
       - verified
+      - is_localzero
   - collection: directus_users
     action: update
     permissions:

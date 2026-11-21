@@ -1,0 +1,3 @@
+key: user.is_localzero.note
+language: it-IT
+value: "Sì: accesso ai Wahlcheck LocalZero. No: accesso a tutti gli altri Wahlcheck (SLK). Solo gli amministratori possono modificare questa assegnazione."
