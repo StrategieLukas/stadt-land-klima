@@ -23,7 +23,8 @@ function load(file: string, dependencies: Record<string, unknown> = {}): Record<
     .replace(/^import .*;\r?\n/gm, "")
     .replace(/export \{ [^}]+ \};/, "")
     .replaceAll("import.meta.url", JSON.stringify(pathToFileURL(join(root, file)).href));
-  return runInNewContext(`(function(){${code}; return {${names}};})()`, {
+  const exports = names.replace(/(\w+) as (\w+)/g, "$2: $1");
+  return runInNewContext(`(function(){${code}; return {${exports}};})()`, {
     URL,
     Uint8Array,
     Buffer,
@@ -41,6 +42,68 @@ async function check(name: string, run: () => Promise<void> | void) {
   passed++;
   console.info(`PASS ${name}`);
 }
+
+await check("mail flows await transport acceptance and sanitize rejected or cancelled sends", async () => {
+  let accept!: (value: unknown) => void;
+  let send: (message: unknown) => Promise<unknown> = () =>
+    new Promise((resolve) => {
+      accept = resolve;
+    });
+  let sent: any;
+  let limited = 0;
+  const logs: unknown[] = [];
+  const operation = load("dist/operations/mail/index.js", {
+    defineOperationApi: (value: unknown) => value,
+    md: (body: string) => body,
+    useLogger: () => ({ error: (...args: unknown[]) => logs.push(args) }),
+    useFlowsEmailRateLimiter: async (id: string) => {
+      assert.equal(id, "flow-id");
+      limited++;
+    },
+    MailService: class {
+      async send(message: unknown) {
+        sent = message;
+        return send(message);
+      }
+    },
+  }).default;
+  const context = {
+    accountability: { user: "user-id" },
+    database: {},
+    getSchema: async () => ({}),
+    flow: { id: "flow-id" },
+  };
+  const payload = {
+    to: "approved@example.invalid",
+    subject: "Welcome",
+    type: "template",
+    template: "welcome",
+    data: { url: "secret-reset-link" },
+  };
+  let completed = false;
+  const pending = operation.handler(payload, context).then(() => {
+    completed = true;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(completed, false);
+  assert.equal(limited, 1);
+  assert.equal(sent.to, payload.to);
+  assert.equal(sent.template.name, payload.template);
+  assert.equal(sent.template.data.url, payload.data.url);
+  accept({ accepted: [payload.to] });
+  await pending;
+  assert.equal(completed, true);
+  for (const outcome of ["reject", "cancel"]) {
+    send = async () => {
+      if (outcome === "reject") throw new Error("SMTP password secret-reset-link approved@example.invalid");
+      return null;
+    };
+    await assert.rejects(operation.handler(payload, context), /^Error: Mail transport did not accept the message$/);
+  }
+  assert.equal(limited, 3);
+  assert.equal(logs.length, 2);
+  assert.ok(!/SMTP|secret-reset-link|approved@example/.test(JSON.stringify(logs)));
+});
 
 await check("unauthorized flow/user deletion has no cleanup side effects", async () => {
   for (const [file, name] of [

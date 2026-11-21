@@ -79,6 +79,80 @@ function load(path: string, dependencies: Row = {}, globals: Row = {}): Row {
 }
 const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
+test("local-team registration reports mail acceptance, not reset-link generation or a queued reset request", async () => {
+  for (const scenario of ["accepted", "welcome-failed", "welcome-missing", "reset-fallback", "admin-failed"]) {
+    const calls: string[] = [];
+    const config = {
+      directusServerUrl: "http://cms.internal",
+      directusAdminToken: "private-token",
+      directusFlowNotifyAdmin: "admin-flow",
+      directusFlowWelcomeEmail: scenario === "welcome-missing" ? "" : "welcome-flow",
+    };
+    const handler = load(
+      "server/api/register-municipality.post.ts",
+      {
+        "../utils/abuseProtection": { abuseProtection: () => ({ hmacKey: "test-key", devMode: false }) },
+        "../utils/verifyAltcha": { verifyAltcha: async () => true },
+        "../utils/verifyMathChallenge": { verifyMathChallenge: () => true },
+        "../utils/sendDirectusMailFlow": {
+          sendDirectusMailFlow: async (flow: string) => {
+            calls.push(flow);
+            if (
+              (flow === "welcome-flow" && scenario === "welcome-failed") ||
+              (flow === "admin-flow" && scenario === "admin-failed")
+            )
+              throw new Error("transport unavailable");
+          },
+        },
+      },
+      {
+        useRuntimeConfig: () => config,
+        readRequestBody: async (event: Row) => event.body,
+        getLokalteamAdminRoleId: async () => "localteam-role",
+        $fetch: async (url: string, options: Row = {}) => {
+          const path = new URL(url).pathname;
+          if (options.method === "PATCH") return {};
+          if (path === "/users") return { data: options.method === "POST" ? { id: "new-user" } : [] };
+          if (path === "/users/new-user") return { data: { role: "localteam-role" } };
+          if (path === "/items/localteams") return { data: { id: "new-team" } };
+          if (path === "/items/junction_directus_users_localteams") return { data: [{ id: "junction" }] };
+          if (path === "/items/municipalities")
+            return {
+              data: options.params["filter[localteam_id][_eq]"] ? [{ id: "municipality", slug: "test-town" }] : [],
+            };
+          if (path === "/generate-reset-link") {
+            if (scenario === "reset-fallback") throw new Error("reset-link unavailable");
+            return { url: "https://cms.example/admin/reset-password?token=private-reset-token" };
+          }
+          if (path === "/auth/password/request") {
+            calls.push("reset-request");
+            return {};
+          }
+          throw new Error("Unexpected registration request: " + path);
+        },
+      },
+    ).default;
+    const result = await handler({
+      body: {
+        firstName: "Test",
+        lastName: "User",
+        email: "test@example.invalid",
+        ars: "123456789012",
+        municipalityName: "Test town",
+        altcha: "mocked-proof",
+        mathChallenge: { token: "mocked-token", answer: "4" },
+      },
+    });
+    assert.equal(result.success, true, scenario);
+    assert.equal(result.steps.user, true, scenario);
+    assert.equal(result.steps.team, true, scenario);
+    assert.equal(result.steps.notify, scenario !== "admin-failed", scenario);
+    assert.equal(result.steps.welcome, !["welcome-failed", "welcome-missing"].includes(scenario), scenario);
+    assert.equal(result.steps.email, ["accepted", "admin-failed"].includes(scenario), scenario);
+    assert.equal(calls.includes("reset-request"), scenario === "reset-fallback");
+  }
+});
+
 test("all pages parse and their scripts use TypeScript", () => {
   const compiler = frontend(
     "@vue/compiler-sfc",
@@ -728,9 +802,9 @@ test("newsletter normalizes provider URLs, validates acknowledgement and hides p
   assert.equal((await handler(event)).success, true);
   assert.deepEqual(plain(requests[0]!.body.list_uuids), ["public-id"]);
   assert.ok(!requests[0]!.headers.Authorization, "Public subscription never receives provider credentials");
-  for (const value of [{ data: { has_optin: false } }, { data: true }]) {
+  for (const value of [{ data: { has_optin: true } }, { data: { has_optin: false } }, { data: true }]) {
     response = value;
-    assert.equal((await handler(event)).success, true);
+    assert.deepEqual(plain(await handler(event)), { success: true, alreadySubscribed: false });
   }
   for (const value of [
     { data: false },
