@@ -45,7 +45,7 @@
             class="question-card w-full self-start border border-(--slk-border) bg-(--slk-surface) p-4 sm:p-6"
           >
             <div
-              class="question-content mb-3 flex h-80 items-start gap-3 overflow-y-auto overscroll-contain sm:h-56 sm:gap-4"
+              class="question-content mb-3 flex max-h-80 items-start gap-3 overflow-y-auto overscroll-contain sm:max-h-56 sm:gap-4"
               role="region"
               :aria-label="currentQuestion.title || $t('elections.wahlcheck.questions.title')"
               tabindex="0"
@@ -139,16 +139,10 @@
 
       <!-- Navigation Buttons (Requirement 1) -->
       <div
-        class="mt-6 flex flex-col gap-4 border-t border-solid-gray-10 pt-6 sm:flex-row sm:items-center sm:justify-between"
+        data-testid="wahlcheck-question-navigation"
+        class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div class="text-center text-xs text-mid-gray sm:text-left sm:text-sm">
-          {{
-            $t("elections.wahlcheck.questions.answered_count", {
-              ":count": completedCount,
-              ":total": props.questions.length,
-            })
-          }}
-        </div>
+        <ElectionsWahlCheckFooter inline />
         <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
           <CanonicalButton
             data-testid="wahlcheck-questions-prev"
@@ -157,7 +151,6 @@
             :label="$t('generic.back')"
             icon-slug="mdi:arrow-left"
             :color="isLocalzero ? 'yellow' : 'dark'"
-            variant="outline"
             @click="handlePrevQuestion"
           />
           <CanonicalButton
@@ -391,10 +384,6 @@ const canProceedToNext = computed(() => {
   }
   // For other questions, can always proceed (can skip)
   return true;
-});
-
-const completedCount = computed(() => {
-  return completedQuestions.value.size;
 });
 
 // Get current question

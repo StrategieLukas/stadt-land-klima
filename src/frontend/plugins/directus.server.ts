@@ -1,5 +1,13 @@
 import { requestLog } from "../server/utils/securityLogging";
-import { defineNuxtPlugin, useCookie, useRequestHeaders, useRequestEvent, useRuntimeConfig, useState } from "#app";
+import {
+  defineNuxtPlugin,
+  useCookie,
+  useRequestHeaders,
+  useRequestEvent,
+  useRequestURL,
+  useRuntimeConfig,
+  useState,
+} from "#app";
 import { createDirectus, staticToken, rest, readTranslations } from "@directus/sdk";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode";
 import { serviceBaseUrl } from "~/shared/serviceUrl";
@@ -8,8 +16,11 @@ import { TranslationsSchema, type TranslationEntry } from "~/shared/i18n";
 
 export default defineNuxtPlugin(async () => {
   const config = useRuntimeConfig();
+  const embeddedWahlcheck = useRequestURL().pathname.startsWith("/embed/wahlcheck/");
   const locale = resolveFullLocaleCode(
-    useCookie<unknown>("slk_locale").value || useRequestHeaders(["accept-language"])["accept-language"],
+    embeddedWahlcheck
+      ? "de-DE"
+      : useCookie<unknown>("slk_locale").value || useRequestHeaders(["accept-language"])["accept-language"],
   );
   useHead({ htmlAttrs: { lang: locale } });
   useState("slk-locale", () => locale).value = locale;

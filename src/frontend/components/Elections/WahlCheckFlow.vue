@@ -130,6 +130,7 @@
         />
       </Transition>
     </div>
+    <ElectionsWahlCheckFooter :class="{ 'sm:hidden': currentStep === 1 && electionData }" />
   </div>
 </template>
 
