@@ -1,6 +1,7 @@
 import type { AnswerValue, NumericValue, Sector } from "~/shared/domain";
 export interface Election {
   id?: string | undefined;
+  date_created?: string | null | undefined;
   descriptor?: string | null | undefined;
   is_party_election?: boolean | null | undefined;
   simple_answer_mode?: boolean | null | undefined;

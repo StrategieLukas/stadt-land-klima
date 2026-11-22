@@ -130,7 +130,10 @@
         />
       </Transition>
     </div>
-    <ElectionsWahlCheckFooter :class="{ 'sm:hidden': currentStep === 1 && electionData }" />
+    <ElectionsWahlCheckFooter
+      :date-created="electionData?.election.date_created"
+      :class="{ 'sm:hidden': currentStep === 1 && electionData }"
+    />
   </div>
 </template>
 

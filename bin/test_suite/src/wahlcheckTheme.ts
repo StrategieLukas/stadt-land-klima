@@ -10,6 +10,7 @@ const questionId = "00000000-0000-4000-8000-000000000001";
 const secondQuestionId = "00000000-0000-4000-8000-000000000009";
 const election = {
   id: "00000000-0000-4000-8000-000000000002",
+  date_created: "2026-11-23T00:00:00+01:00",
   descriptor: "Automated Wahlcheck",
   is_party_election: false,
   custom_logo: null,
@@ -257,17 +258,19 @@ try {
     const context = await newContext(browser);
     await context.addInitScript((preference) => localStorage.setItem("slk_theme_preference", preference), mode);
     let longStatements = false;
+    let dateCreated: string | null = election.date_created;
     await context.route(/\/api\/public\/wahlcheck\/theme-test(?:\?|$)/, (route) =>
       route.fulfill({
-        json: longStatements
-          ? {
-              ...fixture,
-              questions: fixture.questions.map((question) => ({
+        json: {
+          ...fixture,
+          election: { ...fixture.election, date_created: dateCreated, date_updated: "2027-01-01T00:00:00Z" },
+          questions: longStatements
+            ? fixture.questions.map((question) => ({
                 ...question,
                 thesis: "Long statement with enough text to require keyboard scrolling. ".repeat(100),
-              })),
-            }
-          : fixture,
+              }))
+            : fixture.questions,
+        },
       }),
     );
     await context.route(/\/api\/public\/wahlcheck(?:\?|$)/, (route) =>
@@ -493,6 +496,62 @@ try {
       }
     }
     longStatements = false;
+    for (const created of ["2026-11-22T22:59:59.999Z", null, election.date_created]) {
+      dateCreated = created;
+      const branded = created === election.date_created;
+      for (const path of ["/elections/wahlcheck/theme-test", "/embed/wahlcheck/theme-test?theme=localzero"]) {
+        await page.evaluate(() => sessionStorage.clear());
+        await page.goto(`${origin}${path}`, { waitUntil: "domcontentloaded" });
+        await page.locator(`input[name="question-${questionId}"]`).first().waitFor();
+        for (const width of [390, 1440]) {
+          await page.setViewportSize({ width, height: 1000 });
+          if (branded) await assertProjectFooter(page);
+          else {
+            assertEqual(
+              await page.locator(".wahlcheck-footer").count(),
+              0,
+              "Old/undated elections omit all cooperation branding despite recent updates",
+            );
+            if (width === 1440) {
+              // Measure in one frame: the wizard may still be sliding into place.
+              const rightOffset = await page.getByTestId("wahlcheck-question-navigation").evaluate((element) => {
+                const button = element.querySelector('[data-testid="wahlcheck-questions-next"]');
+                if (!button) throw new Error("Missing question action");
+                return element.getBoundingClientRect().right - button.getBoundingClientRect().right;
+              });
+              assert(
+                Math.abs(rightOffset) <= 1,
+                `Unbranded desktop question actions remain right aligned: offset ${rightOffset}`,
+              );
+            }
+          }
+        }
+        const shared = new URL(`${origin}${path}`);
+        shared.searchParams.set(
+          "share",
+          Buffer.from(
+            encodeURIComponent(
+              JSON.stringify({ electionId: election.id, answers: { [questionId]: 4 }, doubleWeighted: [] }),
+            ),
+          ).toString("base64"),
+        );
+        await page.goto(shared.href, { waitUntil: "domcontentloaded" });
+        await page.getByTestId("wahlcheck-results-overview").waitFor();
+        assertEqual(
+          await page.getByTestId("wahlcheck-footer").count(),
+          branded ? 1 : 0,
+          "Shared results use the same creation-date cutoff",
+        );
+        await page.getByTestId("wahlcheck-results-prev").click();
+        await page.locator(".weight-toggle-checkbox").first().waitFor();
+        assertEqual(
+          await page.getByTestId("wahlcheck-footer").count(),
+          branded ? 1 : 0,
+          "Summary uses the same creation-date cutoff",
+        );
+      }
+    }
+    dateCreated = election.date_created;
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(`${origin}/elections/wahlcheck`, { waitUntil: "domcontentloaded" });
     await page.getByText("Automated Wahlcheck", { exact: true }).waitFor();

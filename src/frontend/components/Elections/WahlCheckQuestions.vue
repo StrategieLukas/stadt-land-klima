@@ -142,8 +142,8 @@
         data-testid="wahlcheck-question-navigation"
         class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <ElectionsWahlCheckFooter inline />
-        <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
+        <ElectionsWahlCheckFooter inline :date-created="election?.date_created" />
+        <div class="flex w-full items-center justify-between gap-3 sm:ml-auto sm:w-auto sm:justify-end">
           <CanonicalButton
             data-testid="wahlcheck-questions-prev"
             :disabled="currentQuestionIndex === 0"

@@ -21,7 +21,7 @@ the normal full-page URL. Existing embed URLs and shared-result queries also wor
 The embed layout renders only the Wahlcheck, without the site's global header, footer,
 mobile dock or search. LocalZero/SLK logos sit beside question navigation from
 640px and in the project footer on smaller screens; later steps retain the project
-footer at all widths. Both positions show a translated cooperation credit above
+footer at all widths. This cooperation branding appears only for Wahlchecks created on or after 23 November 2026 at 00:00 Europe/Berlin, using `date_created` rather than `date_updated`; older or undated Wahlchecks omit both logos and the credit. Both positions show a translated cooperation credit above
 the yellow LocalZero logo and theme-specific SLK logo without a background panel. Result links generated inside the iframe open the normal
 standalone Wahlcheck. Embedded Wahlchecks use German translations regardless of
 the browser language or website locale cookie; regular pages retain their locale

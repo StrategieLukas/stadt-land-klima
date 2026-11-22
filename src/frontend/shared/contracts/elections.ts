@@ -57,7 +57,7 @@ export const CandidateReadSchema = z.object({
 });
 export const WahlcheckSchema = z.object({
   municipality: z.object({ slug: z.string(), name: z.string() }),
-  election: ElectionSchema,
+  election: ElectionSchema.extend({ date_created: NullableTextSchema }),
   questions: z.array(ElectionQuestionSchema),
   candidates: z.array(
     ElectionCandidateSchema.extend({ answers: z.array(ElectionAnswerSchema.omit({ candidate: true })) }),

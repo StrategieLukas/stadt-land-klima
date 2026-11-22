@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { firefox, type Browser, type Page } from "playwright";
 import { WahlcheckSchema } from "../../../src/frontend/shared/contracts/elections.js";
 import { routeSlug } from "../../../src/frontend/shared/routeValues.js";
+import { showsWahlcheckCooperation } from "../../../src/frontend/shared/wahlcheckCooperation.js";
 import { assert, assertEqual } from "./lib/assert.js";
 import { collectPublicPageErrors, launchBrowser, newContext } from "./lib/browser.js";
 import { waitFor } from "./lib/wait.js";
@@ -132,8 +133,8 @@ export async function assertWahlcheckEmbed(
     );
     assertEqual(
       await frame.getByTestId("wahlcheck-desktop-logos").locator("a img").count(),
-      2,
-      "Embed retains both project logos",
+      showsWahlcheckCooperation(data.election.date_created) ? 2 : 0,
+      "Embed shows project logos only for elections created since cooperation started",
     );
     const initialViewport = page.viewportSize();
     assert(initialViewport, "The host needs a viewport");

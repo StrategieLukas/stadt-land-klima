@@ -25,6 +25,14 @@ import {
 } from "../../../src/frontend/shared/wahlcheckAnswerOptions.js";
 import { calculateAndAddSimilarityScores } from "../../../src/frontend/shared/compareMunicipalities.js";
 import { getScorePercentageColor, isRaster } from "../../../src/frontend/shared/utils.js";
+import { showsWahlcheckCooperation } from "../../../src/frontend/shared/wahlcheckCooperation.js";
+
+test("Wahlcheck cooperation starts on 23 November 2026 in Berlin using only the creation timestamp", () => {
+  for (const value of [undefined, null, "", "invalid", "2026-11-23T00:00:00", "2026-11-22T22:59:59.999Z"])
+    assert.equal(showsWahlcheckCooperation(value), false, String(value));
+  for (const value of ["2026-11-22T23:00:00Z", "2026-11-23T00:00:00+01:00", "2027-01-01T00:00:00Z"])
+    assert.equal(showsWahlcheckCooperation(value), true, value);
+});
 
 type Row = Record<string, any>;
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
