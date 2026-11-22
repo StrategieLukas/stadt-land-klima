@@ -4,6 +4,7 @@ import { newContext, waitForHydration, collectPublicPageErrors } from "../lib/br
 import type { TestRunner } from "../lib/runner.js";
 
 export async function runSharedStateFlow(runner: TestRunner, frontendUrl: string, browser: Browser): Promise<void> {
+  await runContactFeedbackFlow(runner, frontendUrl, browser);
   await runner.step(
     "Shared state: German, English and Italian SSR/hydration, theme persistence and search controls",
     async () => {
@@ -141,4 +142,101 @@ export async function runSharedStateFlow(runner: TestRunner, frontendUrl: string
       await context.close();
     }
   });
+}
+
+export async function runContactFeedbackFlow(runner: TestRunner, frontendUrl: string, browser: Browser): Promise<void> {
+  await runner.step(
+    "Contact form: translated department categories and accessible localteam onboarding guidance",
+    async () => {
+      for (const scenario of [
+        { locale: "de-DE", colorScheme: "light" as const, width: 1440 },
+        { locale: "de-DE", colorScheme: "dark" as const, width: 390 },
+        { locale: "en-GB", colorScheme: "dark" as const, width: 1440 },
+        { locale: "it-IT", colorScheme: "light" as const, width: 390 },
+      ]) {
+        const context = await newContext(browser, {
+          locale: scenario.locale,
+          colorScheme: scenario.colorScheme,
+          viewport: { width: scenario.width, height: 900 },
+          reducedMotion: "reduce",
+        });
+        try {
+          await context.addCookies([{ name: "slk_locale", value: scenario.locale, url: frontendUrl }]);
+          const page = await context.newPage();
+          const errors = collectPublicPageErrors(page);
+          let calendarRequests = 0;
+          await page.route("https://app.cal.com/**", (route) => {
+            calendarRequests++;
+            return route.fulfill({ contentType: "text/html", body: "<html><body>Calendar fixture</body></html>" });
+          });
+          const response = await page.goto(`${frontendUrl}/contact?type=onboarding`, { waitUntil: "domcontentloaded" });
+          assert(response?.ok(), "Contact route responds successfully");
+          await waitForHydration(page);
+          const category = page.locator("#feedback-type");
+          const hint = page.locator("#feedback-onboarding-hint");
+          await hint.waitFor();
+          assert((await category.inputValue()) === "onboarding", "New category supports direct links");
+          const options = await category
+            .locator("option")
+            .evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
+          assert(
+            options.includes("press") && options.includes("onboarding") && options.length === 9,
+            "Both new categories coexist with the existing six",
+          );
+          assert(
+            await category.evaluate((element) => element.nextElementSibling?.id === "feedback-onboarding-hint"),
+            "Warning appears immediately below category selection",
+          );
+          assert(
+            (await hint.locator('a[href="/register_localteam"]').count()) === 1,
+            "Warning links to self-registration",
+          );
+          const text = await hint.innerText();
+          assert(!text.includes("feedback.onboarding.") && text.length > 150, "Warning is translated");
+          const expected = {
+            "de-DE": "technisches Problem",
+            "en-GB": "technical problem",
+            "it-IT": "problema tecnico",
+          };
+          assert(
+            text.includes(expected[scenario.locale as keyof typeof expected]),
+            "Warning limits contact to registration problems in the selected language",
+          );
+          assert(calendarRequests === 0, "Calendar stays unloaded before choosing personal onboarding");
+          const appointment = hint.getByRole("button");
+          await appointment.focus();
+          await page.keyboard.press("Enter");
+          const dialog = page.locator("dialog[open]");
+          await dialog.waitFor();
+          const calendar = dialog.locator("iframe");
+          await calendar.waitFor();
+          assert(
+            (await calendar.getAttribute("src"))?.includes("app.cal.com/stadt-land-klima/onboarding"),
+            "Personal onboarding uses the existing calendar",
+          );
+          assert(!!(await calendar.getAttribute("title")), "Calendar has an accessible title");
+          await page.keyboard.press("Escape");
+          await dialog.waitFor({ state: "hidden" });
+          assert(
+            await appointment.evaluate((element) => element === document.activeElement),
+            "Closing returns keyboard focus to the booking action",
+          );
+          await appointment.click();
+          await dialog.waitFor();
+          await dialog.getByRole("button").click();
+          await dialog.waitFor({ state: "hidden" });
+          await category.selectOption("press");
+          await hint.waitFor({ state: "hidden" });
+          assert((await category.inputValue()) === "press", "Press selection hides localteam-only guidance");
+          assert(
+            await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+            "Contact form fits narrow and desktop layouts",
+          );
+          assert(errors.length === 0, `Contact form has no runtime or hydration errors: ${errors.join("; ")}`);
+        } finally {
+          await context.close();
+        }
+      }
+    },
+  );
 }

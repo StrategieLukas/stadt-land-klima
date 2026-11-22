@@ -315,6 +315,19 @@ The label-only action audit covers maintained frontend pages and components, inc
 
 In dark mode, canonical fills mix 65% accent with the theme surface. Their 1px inset edge mixes 80% rendered fill with 20% accent; hover outlines match the rendered fill. Keyboard focus uses 60% rendered fill with 40% white for a distinct visible outline. Filled-button icon/text dividers use soft off-white `--slk-text-inverse` in light mode and soft gray-white `--slk-text-muted` (`#b8c4cc`) in dark mode. At rest, outline-button dividers match the outline border through `--btn-edge` in both themes. Hover fills outline buttons with `--btn-ink`, with contrasting theme-surface text/icons and divider; only keyboard focus adds a focus ring. Outline hover fill, text/icons and divider transition in and out over 150ms with easing, matching the focus-ring timing. Reduced-motion preferences disable button and divider transitions. Resting divider colors remain independent of explicit button text-color overrides. Disabled buttons receive no hover emphasis.
 
+## Contact form onboarding guidance
+
+When the localteam category is selected on `/contact`, show a translated warning
+immediately below the category selector. Offer the existing `/register_localteam`
+route and a dark-green CanonicalButton calendar action, then explain that contact
+messages are reserved for technical registration problems. Other categories hide
+this guidance. Keep the existing form layout and shared button styling.
+
+Personal onboarding opens `CalBookingFrame` lazily in `OnboardingDialog`, a native
+modal dialog with a translated heading and close control, Escape support, focus
+restoration and a 50% translucent theme backdrop. The popup keeps the contact form
+state intact and introduces no motion. Reuse the existing calendar URL.
+
 ## Verification references and limits
 
 For appearance changes, inspect both themes at narrow and desktop widths and

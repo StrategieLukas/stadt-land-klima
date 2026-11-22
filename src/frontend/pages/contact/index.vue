@@ -24,16 +24,49 @@
 
         <!-- Type -->
         <div class="mb-4">
-          <label class="mb-1 block font-semibold">{{ $t("feedback.form.type") }}*</label>
-          <select v-model="form.type" class="w-full rounded-sm border p-2" required>
+          <label for="feedback-type" class="mb-1 block font-semibold">{{ $t("feedback.form.type") }}*</label>
+          <select
+            id="feedback-type"
+            v-model="form.type"
+            class="w-full rounded-sm border p-2"
+            :aria-describedby="form.type === 'onboarding' ? 'feedback-onboarding-hint' : undefined"
+            required
+          >
             <option disabled value="">{{ $t("generic.form.please_select") }}</option>
             <option value="legal">{{ $t("feedback.type.legal") }}</option>
             <option value="bug">{{ $t("feedback.type.bug") }}</option>
             <option value="inaccuracy">{{ $t("feedback.type.inaccuracy") }}</option>
             <option value="suggestion">{{ $t("feedback.type.suggestion") }}</option>
             <option value="cooperation">{{ $t("feedback.type.cooperation") }}</option>
+            <option value="press">{{ $t("feedback.type.press") }}</option>
+            <option value="onboarding">{{ $t("feedback.type.onboarding") }}</option>
             <option value="other">{{ $t("feedback.type.other") }}</option>
           </select>
+          <div
+            v-if="form.type === 'onboarding'"
+            id="feedback-onboarding-hint"
+            class="slk-badge slk-badge--warning mt-3 alert block"
+            role="status"
+          >
+            <p>{{ $t("feedback.onboarding.registration_hint") }}</p>
+            <div class="my-3 flex flex-col items-start gap-3">
+              <CanonicalButton
+                href="/register_localteam"
+                :label="$t('feedback.onboarding.register')"
+                color="dark-green"
+                icon-slug="mdi:account-group"
+              />
+              <p>{{ $t("feedback.onboarding.appointment_hint") }}</p>
+              <CanonicalButton
+                type="button"
+                :label="$t('onboarding.book_appointment.short')"
+                color="dark-green"
+                icon-slug="mdi:calendar-clock"
+                @click="showOnboarding = true"
+              />
+            </div>
+            <p>{{ $t("feedback.onboarding.technical_hint") }}</p>
+          </div>
         </div>
 
         <!-- Content -->
@@ -125,12 +158,13 @@
 
       <p class="mt-4 text-xs italic">{{ $t("generic.privacy.disclaimer") }}</p>
     </div>
+    <OnboardingDialog v-model:open="showOnboarding" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { FeedbackRequestSchema } from "~/shared/contracts/submissions";
+import { FeedbackRequestSchema, FeedbackTypeSchema } from "~/shared/contracts/submissions";
 import { routeText } from "~/shared/routeValues";
 import { captchaEventData, captchaWidgetValue, requestErrorMessage } from "~/shared/requestError";
 
@@ -140,12 +174,12 @@ const runtimeConfig = useRuntimeConfig();
 
 usePageSeo({ title: ref($t("feedback.nav_label")) });
 
-const ALLOWED_TYPES = ["legal", "bug", "inaccuracy", "suggestion", "cooperation", "other"];
+const showOnboarding = ref(false);
 
 // Form state — pre-fill from query params when arriving from a content page
 const form = ref({
   title: routeText(route.query.title, 200),
-  type: ALLOWED_TYPES.includes(routeText(route.query.type, 40)) ? routeText(route.query.type, 40) : "",
+  type: FeedbackTypeSchema.safeParse(routeText(route.query.type, 40)).success ? routeText(route.query.type, 40) : "",
   content: routeText(route.query.content, 5000),
   name: "",
   contact: "",

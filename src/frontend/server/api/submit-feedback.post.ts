@@ -6,7 +6,6 @@ import { verifyAltcha } from "../utils/verifyAltcha";
 import { verifyMathChallenge } from "../utils/verifyMathChallenge";
 import { rateLimit } from "../utils/rateLimit";
 
-const ALLOWED_TYPES = ["legal", "bug", "inaccuracy", "suggestion", "cooperation", "other"];
 const MAX_TITLE_LENGTH = 200;
 const MAX_CONTENT_LENGTH = 5000;
 const MAX_NAME_LENGTH = 200;
@@ -29,11 +28,6 @@ export default defineEventHandler(async (event) => {
   // Validate required fields
   if (!title?.trim() || !type?.trim() || !content?.trim() || !name?.trim() || !contact?.trim()) {
     throw createError({ statusCode: 400, message: "Bitte alle Pflichtfelder ausfüllen." });
-  }
-
-  // Allowlist type to prevent arbitrary values reaching the DB
-  if (!ALLOWED_TYPES.includes(type)) {
-    throw createError({ statusCode: 400, message: "Ungültiger Feedback-Typ." });
   }
 
   // Basic email check

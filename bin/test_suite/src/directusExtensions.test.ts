@@ -562,3 +562,64 @@ test("Wahlcheck relation guards reject foreign and nested election writes and sc
   roleName = "LokalteamMitglied";
   assert.equal(await comments(query, {}, context), query);
 });
+
+test("contact notifications route every category to a fixed department and escape user HTML", async () => {
+  const yaml = frontend("yaml");
+  const flow = yaml.parse(readFileSync(new URL("../flows/notifyNewFeedback.yaml", extensions), "utf8"));
+  const prepare = flow.operations.find((operation: { key: string }) => operation.key === flow.operation_key);
+  const notification = flow.operations.find((operation: { key: string }) => operation.key === prepare.resolve_key);
+  const copy = flow.operations.find((operation: { key: string }) => operation.key === "send_feedback_copy");
+  const module = { exports: undefined as unknown as (data: unknown) => Promise<Record<string, string>> };
+  runInNewContext(prepare.options.code, { module }, { timeout: 1000 });
+  const expected = {
+    legal: "legal",
+    inaccuracy: "legal",
+    bug: "info",
+    suggestion: "info",
+    other: "info",
+    cooperation: "kooperationen",
+    press: "presse",
+    onboarding: "onboarding",
+  };
+  const field = yaml.parse(readFileSync(new URL("../schema/fields/feedback/type.yaml", extensions), "utf8"));
+  assert.deepEqual(
+    field.meta.options.choices.map((choice: { value: string }) => choice.value).sort(),
+    Object.keys(expected).sort(),
+  );
+  assert.deepEqual(
+    field.meta.display_options.choices.map((choice: { value: string }) => choice.value).sort(),
+    Object.keys(expected).sort(),
+  );
+  for (const [type, mailbox] of [
+    ...Object.entries(expected),
+    ["unknown", "info"],
+    ["__proto__", "info"],
+    ["constructor", "info"],
+  ]) {
+    const prepared = await module.exports({
+      $trigger: {
+        payload: {
+          type,
+          recipient: "attacker@example.org",
+          sender_name: '<img src=x onerror="alert(1)">',
+          sender_contact: "person@example.org",
+          title: "<b>Subject</b>",
+          content: "<script>bad()</script>&",
+        },
+      },
+    });
+    assert.equal(prepared.recipient, `${mailbox}@stadt-land-klima.de`, type);
+    assert.equal(prepared.content, "&lt;script&gt;bad()&lt;/script&gt;&amp;");
+    assert.ok(!prepared.sender_name.includes("<"));
+  }
+  assert.deepEqual(notification.options.to, ["{{prepare_feedback_email.recipient}}"]);
+  assert.equal(notification.resolve_key, "condition_send_copy");
+  const condition = flow.operations.find((operation: { key: string }) => operation.key === notification.resolve_key);
+  assert.equal(condition.options.filter.$trigger.payload.send_copy._eq, true);
+  assert.equal(condition.resolve_key, copy.key);
+  assert.deepEqual(copy.options.to, ["{{$trigger.payload.sender_contact}}"]);
+  for (const mail of [notification, copy]) {
+    assert.ok(mail.options.body.includes("{{prepare_feedback_email.content}}"));
+    assert.ok(!mail.options.body.includes("{{$trigger.payload."));
+  }
+});

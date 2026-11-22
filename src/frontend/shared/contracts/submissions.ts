@@ -6,7 +6,16 @@ const mathChallenge = z.object({
   token: z.string().min(1).max(4096),
   answer: z.string().min(1).max(10),
 });
-export const FeedbackTypeSchema = z.enum(["legal", "bug", "inaccuracy", "suggestion", "cooperation", "other"]);
+export const FeedbackTypeSchema = z.enum([
+  "legal",
+  "bug",
+  "inaccuracy",
+  "suggestion",
+  "cooperation",
+  "press",
+  "onboarding",
+  "other",
+]);
 export const FeedbackRequestSchema = z.strictObject({
   title: requiredText(200),
   type: FeedbackTypeSchema,

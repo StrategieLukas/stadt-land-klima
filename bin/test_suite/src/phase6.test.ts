@@ -254,6 +254,8 @@ test("contact and registration reject malformed JSON, limits, invalid coordinate
     mathChallenge: { token: "signed", answer: "20" },
   };
   assert.equal(FeedbackRequestSchema.parse(feedback).title, "Subject");
+  for (const type of ["legal", "inaccuracy", "bug", "suggestion", "cooperation", "other", "press", "onboarding"])
+    assert.equal(FeedbackRequestSchema.safeParse({ ...feedback, type }).success, true, type);
   for (const body of [
     null,
     [],
@@ -263,6 +265,8 @@ test("contact and registration reject malformed JSON, limits, invalid coordinate
     { ...feedback, sendCopy: "yes" },
     { ...feedback, content: "a".repeat(5001) },
     { ...feedback, unexpected: true },
+    { ...feedback, type: "press@example.org" },
+    { ...feedback, recipient: "attacker@example.org" },
   ])
     assert.equal(FeedbackRequestSchema.safeParse(body).success, false);
   const registration = {

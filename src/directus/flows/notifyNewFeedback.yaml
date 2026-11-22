@@ -1,7 +1,7 @@
 name: notifyNewFeedback
 icon: email
 color: null
-description: Send email to info@stadt-land-klima.de whenever a new feedback item is created
+description: Route contact requests to the responsible SLK department
 status: active
 trigger: event
 accountability: all
@@ -12,6 +12,29 @@ options:
   collections:
     - feedback
 operations:
+  - name: Prepare Department Notification
+    key: prepare_feedback_email
+    type: exec
+    position_x: 1
+    position_y: 1
+    resolve_key: send_feedback_email
+    options:
+      code: |-
+        module.exports = async function(data) {
+          const payload = data.$trigger.payload;
+          let recipient;
+          switch (payload.type) {
+            case 'legal':
+            case 'inaccuracy': recipient = 'legal@stadt-land-klima.de'; break;
+            case 'cooperation': recipient = 'kooperationen@stadt-land-klima.de'; break;
+            case 'press': recipient = 'presse@stadt-land-klima.de'; break;
+            case 'onboarding': recipient = 'onboarding@stadt-land-klima.de'; break;
+            default: recipient = 'info@stadt-land-klima.de';
+          }
+          const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
+          const fields = ['sender_name', 'sender_contact', 'title', 'type', 'content'];
+          return { recipient, ...Object.fromEntries(fields.map(key => [key, escape(payload[key])])) };
+        };
   - name: Send Notification Email
     key: send_feedback_email
     type: mail
@@ -20,14 +43,14 @@ operations:
     resolve_key: condition_send_copy
     options:
       to:
-        - info@stadt-land-klima.de
+        - "{{prepare_feedback_email.recipient}}"
       subject: "Neue Kontaktanfrage: {{$trigger.payload.title}}"
       body:
         <p>Eine neue Kontaktanfrage ist eingegangen.</p><p><strong>Name:</strong>
-        {{$trigger.payload.sender_name}}</p><p><strong>Kontakt:</strong>
-        {{$trigger.payload.sender_contact}}</p><p><strong>Betreff:</strong>
-        {{$trigger.payload.title}}</p><p><strong>Typ:</strong>
-        {{$trigger.payload.type}}</p><p><strong>Nachricht:</strong></p><p>{{$trigger.payload.content}}</p>
+        {{prepare_feedback_email.sender_name}}</p><p><strong>Kontakt:</strong>
+        {{prepare_feedback_email.sender_contact}}</p><p><strong>Betreff:</strong>
+        {{prepare_feedback_email.title}}</p><p><strong>Typ:</strong>
+        {{prepare_feedback_email.type}}</p><p><strong>Nachricht:</strong></p><p>{{prepare_feedback_email.content}}</p>
       type: wysiwyg
   - name: Should Send Copy
     key: condition_send_copy
@@ -52,7 +75,7 @@ operations:
       subject: "Kopie deiner Nachricht an Stadt.Land.Klima!: {{$trigger.payload.title}}"
       body: <p>Vielen Dank für deine Nachricht. Dies ist die gewünschte Kopie
         deines Feedbacks.</p><p><strong>Betreff:</strong>
-        {{$trigger.payload.title}}</p><p><strong>Typ:</strong>
-        {{$trigger.payload.type}}</p><p><strong>Nachricht:</strong></p><p>{{$trigger.payload.content}}</p>
+        {{prepare_feedback_email.title}}</p><p><strong>Typ:</strong>
+        {{prepare_feedback_email.type}}</p><p><strong>Nachricht:</strong></p><p>{{prepare_feedback_email.content}}</p>
       type: wysiwyg
-operation_key: send_feedback_email
+operation_key: prepare_feedback_email

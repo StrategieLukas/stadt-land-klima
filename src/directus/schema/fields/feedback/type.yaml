@@ -27,6 +27,14 @@ meta:
         icon: handshake
         text: $t:feedback.type.cooperation
         value: cooperation
+      - color: "#2196F3"
+        icon: newspaper
+        text: $t:feedback.type.press
+        value: press
+      - color: "#AFCA0B"
+        icon: groups
+        text: $t:feedback.type.onboarding
+        value: onboarding
       - color: "#505050"
         icon: home_max_dots
         text: $t:feedback.type.other
@@ -48,6 +56,10 @@ meta:
         value: suggestion
       - text: $t:feedback.type.cooperation
         value: cooperation
+      - text: $t:feedback.type.press
+        value: press
+      - text: $t:feedback.type.onboarding
+        value: onboarding
       - text: $t:feedback.type.other
         value: other
   readonly: false
