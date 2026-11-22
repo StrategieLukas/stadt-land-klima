@@ -210,9 +210,8 @@ See [resource hardening](PROJECT_DECISIONS.md#pinned-directus-and-dependency-sec
 
 ## Deployment
 
-You may deploy to STAGING and FUTURE, but only if ASKED TO.
+You may deploy to STAGING, but only if ASKED TO.
 Staging: `ssh root@staging`
-Future: `ssh root@future`
 
 NEVER deploy to PRODUCTION or any other server. Ask user to confirm-verify if you ever think the user intends to deploy to PRODUCTION.
 
