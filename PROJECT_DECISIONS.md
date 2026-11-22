@@ -498,13 +498,23 @@ false so nested SSR chunks preserve absolute shared source identities for that
 second pass. Do not replace this with generated-path aliases or copy shared source
 files into build output. The production build gate verifies this integration.
 
-Run `./bin/slk check ready` and wait for completion. The TypeScript plan in
-`bin/cli/check-plan.ts` supplies both local gates and all four GitHub Actions
+Application changes require `./bin/slk check ready` and completion before finishing
+or an authorized push. Read-only investigations use targeted evidence, and
+qualifying documentation-only changes use the explicit formatting, diff and link
+checks in [documentation-only validation](docs/CHECKS.md#documentation-only-validation).
+Review the entire unpublished range; mixed or uncertain changes require the full
+application path. This scoping rule does not change CLI plans or CI gates.
+The TypeScript plan in `bin/cli/check-plan.ts` supplies both local gates and all
+four GitHub Actions
 workflows; `bin/cli/checks.test.ts` checks workflow coverage. The runner keeps
 complete private logs and incremental/final JSON reports under `.reports/checks/`,
-with bounded diagnostic tails for agents. Exit codes, signals, timeouts and
-prerequisites determine outcomes; diagnostic text is never parsed to infer a pass.
-Selected runs do not replace complete verification. After investigating current upstream fixes, an authorized push may proceed with documented, currently unresolvable dependency advisories as its only remaining failures; audit exit statuses and findings stay unchanged. Exception eligibility is manually reviewed and never converts the check report or CI to a pass. Native matrix and deployed
+with bounded diagnostic tails for agents. Prefer summary output with a short tail;
+inspect failed results and saved logs instead of dumping full JSON or rerunning
+commands for more output. An unchanged verified application tree needs no repeat
+full run solely for a documentation commit or transfer. Exit codes, signals,
+timeouts and prerequisites determine outcomes; diagnostic text is never parsed
+to infer a pass.
+For application changes, selected runs do not replace complete verification. After investigating current upstream fixes, an authorized push may proceed with documented, currently unresolvable dependency advisories as its only remaining failures; audit exit statuses and findings stay unchanged. Exception eligibility is manually reviewed and never converts the check report or CI to a pass. Native matrix and deployed
 revision acceptance remain explicit separate environments. See [check runner
 reference](docs/CHECKS.md). Curl localhost:8080 after frontend changes.
 Explicit full HTTPS/editor/image/proxy/storage tests use disposable environments;

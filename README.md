@@ -158,17 +158,25 @@ future work. Do not rerun apply after success or restore SUPERUSER as a shortcut
 
 ## Checks
 
+Choose validation by task scope: read-only investigations use relevant evidence,
+and qualifying Markdown-only edits use the focused formatting, diff and link
+checks in [documentation-only validation](docs/CHECKS.md#documentation-only-validation).
+Application changes still require the complete readiness run. CLI and CI gates
+are unchanged.
+
 ```bash
-./bin/slk check ready
-./bin/slk check ready --only static --output json
+./bin/slk check ready --output summary --tail 12
+./bin/slk check ready --only static --output summary --tail 12
 ./bin/slk check quality --list
 ```
 
 The shared TypeScript check runner is used locally and by all four GitHub Actions
 workflows. It prints concise results and bounded failure excerpts while retaining
-complete private logs and a JSON report in `.reports/checks/`. Use `--output full`
-to stream every byte. Exit statuses determine results; filtered text never decides
-whether a check passed. Selected checks include their prerequisites.
+complete private logs and a JSON report in `.reports/checks/`. Prefer summaries for
+assistant work; use JSON for programmatic parsing and `--output full` when the
+complete stream is needed. Read saved failure logs instead of rerunning checks
+only to obtain more output. Exit statuses determine results; filtered text never
+decides whether a check passed. Selected checks include their prerequisites.
 
 See [the check runner reference](docs/CHECKS.md) for setup, profiles, selectors,
 timeouts, native/deployed limitations and report handling. The existing
