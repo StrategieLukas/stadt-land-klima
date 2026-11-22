@@ -134,7 +134,13 @@ test("only the disposable frontend builder relaxes rootfs writes; runtime code n
   assert.equal(builder.read_only, false);
   assert.equal(builder.ports, undefined);
   assert.deepEqual(builder.depends_on, {});
-  assert.deepEqual(production.services["frontend-build"].environment, production.services.frontend.environment);
+  assert.deepEqual(production.services["frontend-build"].environment, {
+    ...production.services.frontend.environment,
+    NODE_OPTIONS: "--max-old-space-size=3072",
+  });
+  assert.equal(production.services.frontend.environment.NODE_OPTIONS, undefined);
+  assert.equal(builder.mem_limit, "${SLK_FRONTEND_BUILD_MEMORY_LIMIT:-4G}");
+  assert.equal(builder.memswap_limit, "${SLK_FRONTEND_BUILD_SWAP_LIMIT:-8G}");
   assert.match(builder.command.join(" "), /npm ci --include=dev.*npm run build.*productionOutput.mts stamp/);
   assert.doesNotMatch(base.services.frontend.command.join(" "), /npm|build/);
   assert.match(base.services.frontend.command.join(" "), /productionOutput.mts verify/);

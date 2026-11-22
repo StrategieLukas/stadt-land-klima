@@ -112,6 +112,27 @@ export function retainImages(apply = false) {
   podman(["system", "df"], false);
 }
 
+export function imageRetentionLocks(runtime: string, project: string, command: string, args: string[]): string[] {
+  return [
+    "--nonblock",
+    "--conflict-exit-code",
+    "75",
+    `${runtime}/${project}.update.lock`,
+    "flock",
+    "--nonblock",
+    "--conflict-exit-code",
+    "75",
+    `${runtime}/${project}.release.lock`,
+    "flock",
+    "--nonblock",
+    "--conflict-exit-code",
+    "75",
+    `${runtime}/${project}.lock`,
+    command,
+    ...args,
+  ];
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     if (process.platform !== "linux" || process.getuid?.() === 0)
@@ -130,26 +151,15 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     else {
       const runtime = `/run/user/${process.getuid!()}/slk-podman`;
       if (!existsSync(runtime)) throw new Error("Prepare the project's runtime before maintenance");
-      const lock = `${runtime}/${values.project}.release.lock`;
       const result = spawnSync(
         "flock",
-        [
-          "--nonblock",
-          "--conflict-exit-code",
-          "75",
-          lock,
-          "flock",
-          "--nonblock",
-          "--conflict-exit-code",
-          "75",
-          `${runtime}/${values.project}.lock`,
-          process.execPath,
+        imageRetentionLocks(runtime, values.project, process.execPath, [
           fileURLToPath(import.meta.url),
           "--project",
           values.project,
           "--apply",
           "--locked",
-        ],
+        ]),
         { stdio: "inherit" },
       );
       if (result.status === 75) console.log("Image retention skipped: release or stack operation is active.");

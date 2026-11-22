@@ -394,17 +394,29 @@ const parser = yargs(hideBin(process.argv))
     },
   )
   .command(
-    "release <action> <config> <tag> <previous>",
-    "Stage, back up, activate or roll back an application release",
+    "release <action> [config] [tag] [previous]",
+    "Update main automatically, or back up, stage, activate and roll back an application release",
     (p) =>
       p
-        .positional("action", { choices: ["backup", "stage", "stage-prebuilt", "activate", "rollback"] as const })
+        .positional("action", {
+          choices: ["update", "backup", "stage", "stage-prebuilt", "activate", "rollback"] as const,
+        })
         .positional("config", { type: "string" })
         .positional("tag", { type: "string" })
         .positional("previous", { type: "string" })
-        .check((argv) => argv.env === "production" || "Release operations require explicit --env production"),
+        .check((argv) => argv.env === "production" || "Release operations require explicit --env production")
+        .check((argv) =>
+          argv.action === "update"
+            ? (!argv.tag && !argv.previous) || "Automatic updates select their own release tags"
+            : Boolean(argv.config && argv.tag && argv.previous) || "Provide config, tag and previous release",
+        ),
     async (argv) => {
       if (argv.env !== "production") throw new Error("Release operations require explicit --env production");
+      if (argv.action === "update") {
+        const { releaseUpdate } = await import("./release-update.ts");
+        await releaseUpdate(argv.config);
+        return;
+      }
       await run("bash", [root + "podman/release/run.sh", argv.config!, argv.action!, argv.tag!, argv.previous!], {
         env: hostEnvironment(argv.config!, false),
       });
@@ -441,11 +453,19 @@ const parser = yargs(hideBin(process.argv))
     (p) =>
       p
         .positional("action", { choices: ["update", "staging"] as const })
+        .option("config", { type: "string", description: "Private host config for production updates" })
         .option("no-backup", { type: "boolean", default: false })
         .option("no-restart", { type: "boolean", default: false })
         .option("no-directus-build", { type: "boolean", default: false })
         .option("no-frontend-build", { type: "boolean", default: false }),
     async (argv) => {
+      if (argv.action === "update" && argv.env === "production") {
+        if (argv.noBackup || argv.noRestart || argv.noDirectusBuild || argv.noFrontendBuild)
+          throw new Error("Production updates use verified application releases; skip flags are unavailable");
+        const { releaseUpdate } = await import("./release-update.ts");
+        await releaseUpdate(argv.config);
+        return;
+      }
       const { update } = await import("./operations.ts");
       if (argv.action === "staging")
         await run("ssh", [
@@ -462,6 +482,7 @@ const parser = yargs(hideBin(process.argv))
     },
   )
   .example("$0 stack build --env production", "Build application/data/maintenance images")
+  .example("$0 release update --env production", "Fetch main, verify backups, stage and activate an application update")
   .example("$0 stack start --env production --import", "Start and import YAML")
   .example("$0 stack restart frontend --env production", "Reload edited runtime settings")
   .example("$0 cache flush", "Flush development application caches and restart CMS/frontend")

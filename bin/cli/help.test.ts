@@ -53,6 +53,8 @@ test("incomplete commands show contextual help once and exit unsuccessfully befo
     ["release", "stage"],
     ["release", "stage", "config", "tag"],
     ["release", "activate", "config", "tag", "previous"],
+    ["release", "update"],
+    ["release", "update", "config", "tag", "previous", "--env", "production"],
     ["cms-origin", "prepare", "config", "state"],
     ["backup", "verify"],
     ["backup", "create"],
@@ -79,6 +81,17 @@ test("incomplete commands show contextual help once and exit unsuccessfully befo
     assert.match(result.stderr, /--help/);
     assert.doesNotMatch(result.stderr, /Command failed|Use a non-root|AppArmor|ENOENT|could not be started|\n\s+at /);
   }
+});
+
+test("production deploy aliases cannot bypass release backups/builds", () => {
+  for (const flag of ["--no-backup", "--no-restart", "--no-directus-build", "--no-frontend-build"]) {
+    const result = cli(["deploy", "update", "--env", "production", flag]);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /skip flags are unavailable/);
+  }
+  const help = cli(["release", "update", "--help"]);
+  assert.equal(help.status, 0);
+  assert.match(help.stdout, /update/);
 });
 
 test("help uses mint green when color is forced, and honors NO_COLOR and FORCE_COLOR=0", () => {

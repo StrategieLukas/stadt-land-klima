@@ -15,7 +15,7 @@ const required = [
   "source.before.tar.gz",
   "config.before.tar.gz",
 ];
-const payloads = [...required, "database.before.list", "private-env.before.tar.gz"];
+const payloads = [...required, "database.before.list", "database.before.json", "private-env.before.tar.gz"];
 const namePattern = /^(?:release-[a-f0-9]{8,40}|20\d{6}-[a-f0-9]{8,40})$/;
 
 async function regular(path: string) {

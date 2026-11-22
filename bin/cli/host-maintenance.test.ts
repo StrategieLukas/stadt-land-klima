@@ -89,6 +89,23 @@ test("host plan includes all executable dependencies, pinned runtime and current
   assert.match(text("/etc/systemd/system/staedtechallenge-backup.timer"), /03:30:00 Europe\/Berlin/);
 });
 
+test("release backup elevation only starts the fixed root-owned service and never executes the deploy checkout", () => {
+  const files = hostArtifacts(resolve(import.meta.dirname, "../.."), settings, "/root/host.env", 33);
+  const sudo = files.find((file) => file.path === "/etc/sudoers.d/slk-release-backup")!;
+  assert.equal(sudo.mode, 0o440);
+  assert.equal(sudo.uid, 0);
+  assert.equal(
+    sudo.bytes.toString(),
+    "deploy ALL=(root) NOPASSWD: /usr/bin/systemctl start slk-release-backup.service\n",
+  );
+  const service = files
+    .find((file) => file.path === "/etc/systemd/system/slk-release-backup.service")!
+    .bytes.toString();
+  assert.match(service, /\/usr\/local\/lib\/slk\/release-cloud.ts \/root\/host.env/);
+  assert.doesNotMatch(service, /stadt-land-klima\/bin|%i|EnvironmentFile=/);
+  assert(files.some((file) => file.path === "/usr/local/lib/slk/release-checkpoint.ts"));
+});
+
 test("cloud backup streams paths directly and completes scoped remote retention/check before any local cleanup", () => {
   const commands: string[][] = [];
   const run: BackupCommand = (tool, args) => {

@@ -9,6 +9,7 @@ host_command() (
   trap - ERR
   if [[ -v release_lock ]]; then exec {release_lock}>&-; fi
   if [[ -v project_lock ]]; then exec {project_lock}>&-; fi
+  if [[ -v update_lock ]]; then exec {update_lock}>&-; fi
   action="$1"; shift
   if [[ "$action" == compose ]]; then
     node "$SCRIPT_DIR/cli/host-environment.ts" "$config" "$SCRIPT_DIR/slk" stack compose --env production -- "$@"
@@ -35,6 +36,11 @@ exec {release_lock}>"$state/release.lock"
 flock --nonblock "$release_lock" || { echo 'This release is already running.' >&2; exit 1; }
 export SLK_PODMAN_TAG="$next_tag"
 host_command doctor
+if [[ "${SLK_RELEASE_UPDATE_LOCKED:-}" != "$project" ]]; then
+  exec {update_lock}>"$XDG_RUNTIME_DIR/slk-podman/$project.update.lock"
+  flock --nonblock "$update_lock" || { echo 'An automatic update is already running.' >&2; exit 1; }
+fi
+export SLK_RELEASE_UPDATE_LOCKED="$project"
 exec {project_lock}>"$XDG_RUNTIME_DIR/slk-podman/$project.release.lock"
 flock --nonblock "$project_lock" || { echo 'Another release operation is active for this project.' >&2; exit 1; }
 seccomp="$XDG_RUNTIME_DIR/slk-podman/seccomp.json"
@@ -49,6 +55,7 @@ compose() {
 podman() (
   trap - ERR
   exec {release_lock}>&- {project_lock}>&-
+  if [[ -v update_lock ]]; then exec {update_lock}>&-; fi
   command podman "$@"
 )
 staged="${project}_frontend-output_${next_tag#release-}"
@@ -146,13 +153,21 @@ case "$action" in
     [[ ! -e "$state/backups.sha256" ]] || { echo 'Preserve the existing backup; use a new release record.' >&2; exit 1; }
     database="$(podman --remote=false ps -q --filter "label=io.podman.compose.project=$project" --filter label=io.podman.compose.service=db)"
     [[ -n "$database" ]] || exit 1
-    node "$SCRIPT_DIR/cli/release-backup.ts" "$database" > "$state/database.before.dump"
+    node "$SCRIPT_DIR/cli/release-backup.ts" "$database" --metadata "$state/database.before.json" > "$state/database.before.dump"
     podman --remote=false exec -i "$database" pg_restore --list < "$state/database.before.dump" > "$state/database.before.list"
     podman --remote=false volume export "${project}_uploads" > "$state/uploads.before.tar"
     podman --remote=false volume export "$active" > "$state/frontend-output.before.tar"
-    tar --exclude=.git --exclude=node_modules --exclude=.nuxt --exclude=.output --exclude=uploads --exclude='core.*' --exclude=podman/data --exclude=docker/data --exclude=backups --exclude=.reports -czf "$state/source.before.tar.gz" .
+    if [[ -n "${SLK_RELEASE_PREVIOUS_REVISION:-}" ]]; then
+      [[ "$SLK_RELEASE_PREVIOUS_REVISION" =~ ^[a-f0-9]{40}$ ]] || exit 2
+      git archive --format=tar.gz --output="$state/source.before.tar.gz" "$SLK_RELEASE_PREVIOUS_REVISION"
+    else
+      tar --exclude=.git --exclude=node_modules --exclude=.nuxt --exclude=.output --exclude=uploads --exclude='core.*' --exclude=podman/data --exclude=docker/data --exclude=backups --exclude=.reports -czf "$state/source.before.tar.gz" .
+    fi
+    node "$SCRIPT_DIR/cli/release-backup.ts" private-env > "$state/private-env.paths"
+    tar --null --verbatim-files-from -czf "$state/private-env.before.tar.gz" -T "$state/private-env.paths"
+    rm "$state/private-env.paths"
     tar -czf "$state/config.before.tar.gz" "$config" "$HOME/.config/systemd/user/slk.service"
-    (cd "$state"; sha256sum database.before.dump uploads.before.tar frontend-output.before.tar source.before.tar.gz config.before.tar.gz > backups.sha256)
+    (cd "$state"; sha256sum database.before.dump database.before.json uploads.before.tar frontend-output.before.tar source.before.tar.gz config.before.tar.gz private-env.before.tar.gz > backups.sha256)
     (
       exec {release_lock}>&- {project_lock}>&-
       node "$SCRIPT_DIR/cli/release-retention.ts" --apply
@@ -162,6 +177,7 @@ case "$action" in
   stage|stage-prebuilt)
     [[ -z "$(git status --porcelain)" ]] || { echo 'Commit and push source changes before staging a release.' >&2; exit 1; }
     revision="$(git rev-parse HEAD)"
+    export SLK_RELEASE_REVISION="$revision"
     [[ "$revision" == "${next_tag#release-}"* ]] || { echo 'Tag does not identify this checkout.' >&2; exit 1; }
     rm -f "$state/stage.ok"
     printf '%s\n' "$revision" > "$state/revision"
@@ -175,6 +191,13 @@ case "$action" in
     else
       compose --profile maintenance build directus frontend maintenance
     fi
+    for service in directus frontend; do
+      image_revision="$(podman --remote=false image inspect "localhost/slk-podman-$service:$next_tag" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+      [[ "$image_revision" == "$revision" ]] || { echo 'Built image does not identify the staged source revision.' >&2; exit 1; }
+    done
+    # Reuse an unchanged frontend build only after the new image verifies its
+    # source/runtime fingerprint. Never modify the active output while staging.
+    if ! podman --remote=false volume exists "$staged"; then copy_output "$active" "$staged"; fi
     if ! compose -f "$state/stage.yaml" run --rm --no-deps -T frontend node scripts/productionOutput.mts verify; then
       compose -f "$state/stage.yaml" --profile build run --rm --no-deps -T frontend-build
     fi
@@ -206,6 +229,8 @@ case "$action" in
     persist_tag "$next_tag"
     compose up -d --no-build --no-deps frontend
     wait_ready "http://127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}/"
+    wait_ready "http://127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}/api/public/site-layout"
+    wait_ready "http://127.0.0.1:${SLK_PODMAN_WEB_PORT:-9000}/api/public/catalogs"
     host_command audit
     compose exec -T frontend node scripts/productionOutput.mts verify
     compose --profile maintenance stop maintenance

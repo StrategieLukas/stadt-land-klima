@@ -561,6 +561,25 @@ Local workflow validation does not establish an actual hosted-runner execution.
 
 ## Service failure handling
 
+Routine production application updates use `slk release update --env production`
+or the production `deploy update` alias. The coordinator fast-forwards main only
+after a complete local checkpoint, checksum-verified encrypted off-host backup,
+and isolated database restore/count comparison (including paid translation memory).
+It never upgrades/recreates datastore containers. Runtime input hashes control base
+image rebuilds; application revision labels and actual public DTO reads verify
+cutover. Existing guarded activation handles rollback, including post-cutover read
+failures. Private dotenv files remain runtime inputs rather than build inputs.
+
+The release backup service is installed from reviewed root-owned source. Its only
+deployment-user elevation is the exact fixed `systemctl start slk-release-backup.service`
+command. It validates private checkpoint files, uses the existing root-only Restic
+credentials, and reads back every payload before recording evidence as deploy. It
+does not execute user-writable checkout code as root. Release cloud snapshots use
+a separately bounded five-snapshot tag scope; nightly backup scope is unchanged.
+Application runners use journalled user services with `KillMode=process`, so SSH
+disconnects and runner cleanup cannot shut down the application monitors. Periodic
+separate-host disaster recovery tests still require their own environment.
+
 Directus must not mount an autoloaded `/directus/.env`. Its library loader can override
 protected process values from that file, re-enabling response caching and serving stale
 translation results after direct database commits. The launcher supplies private values

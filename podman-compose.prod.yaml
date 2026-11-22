@@ -19,6 +19,8 @@ services:
       SLK_ENV: production
       TRUST_PROXY: "true"
   frontend-build:
-    environment: *frontend-environment
+    environment:
+      <<: *frontend-environment
+      NODE_OPTIONS: "--max-old-space-size=3072"
   maintenance:
     ports: ["127.0.0.1:${SLK_PODMAN_MAINTENANCE_PORT:-9090}:8080"]

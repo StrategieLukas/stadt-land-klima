@@ -254,3 +254,15 @@ Portable application recovery uses `./bin/slk backup create` and `backup verify`
 see [the recovery guide](bin/PORTABLE_BACKUP.md). Production application release
 coordination and private CMS-origin checkpoints are described in
 [PODMAN.md](PODMAN.md#application-release-coordination).
+
+After the one-time [production updater installation](docs/PRODUCTION_UPDATE.md),
+run as deploy from the repository root:
+
+```bash
+./bin/slk release update --env production
+```
+
+This fetches/checks out main, verifies an encrypted off-host checkpoint and an
+isolated database restore, builds/stages the application, imports YAML and checks
+the activated release. It preserves private dotenv files and running datastores.
+`slk deploy update --env production` uses the same guarded workflow.

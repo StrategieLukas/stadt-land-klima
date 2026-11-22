@@ -287,6 +287,9 @@ export async function performStack(
     return run(
       "flock",
       [
+        ...(process.env.SLK_RELEASE_UPDATE_LOCKED === rt.project
+          ? []
+          : ["--nonblock", join(process.env.XDG_RUNTIME_DIR!, "slk-podman", `${rt.project}.update.lock`), "flock"]),
         "--nonblock",
         join(process.env.XDG_RUNTIME_DIR!, "slk-podman", `${rt.project}.lock`),
         process.execPath,

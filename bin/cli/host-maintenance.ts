@@ -9,15 +9,18 @@ import {
   existsSync,
   lstatSync,
   mkdirSync,
+  mkdtempSync,
   openSync,
   readFileSync,
   readdirSync,
   renameSync,
+  rmSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
 import {
   hostPath,
   loadHostSettings,
@@ -49,6 +52,8 @@ const helpers = [
   "cloud-retention.ts",
   "release-retention.ts",
   "image-retention.ts",
+  "release-cloud.ts",
+  "release-checkpoint.ts",
 ];
 export type HostArtifact = { path: string; bytes: Buffer; mode: number; uid: number; gid: number };
 const hash = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
@@ -92,6 +97,16 @@ export function hostArtifacts(
     `[Unit]\nDescription=Encrypted Stadt-Land-Klima cloud backup\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nExecStart=${library}/node ${library}/host-backup.ts ${config}\nNice=10\nIOSchedulingClass=best-effort\nUMask=0077\nStandardOutput=journal\nStandardError=journal\n`,
   );
   text("/etc/systemd/system/staedtechallenge-backup.timer", source("podman/host-backup.timer"));
+  text(
+    "/etc/systemd/system/slk-release-backup.service",
+    `[Unit]\nDescription=Verify encrypted Stadt-Land-Klima release checkpoint\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/flock --timeout 900 /run/lock/staedtechallenge-backup.lock ${library}/node ${library}/release-cloud.ts ${config}\nUMask=0077\nStandardOutput=journal\nStandardError=journal\n`,
+  );
+  // Exact arguments grant no shell, arbitrary unit/option, checkout execution or credentials.
+  text(
+    "/etc/sudoers.d/slk-release-backup",
+    `${settings.user} ALL=(root) NOPASSWD: /usr/bin/systemctl start slk-release-backup.service\n`,
+    0o440,
+  );
   const applicationUnit = source("podman/slk-application-only.service.example")
     .replaceAll("slk-podman-production", settings.project)
     .replaceAll("%h/.config/slk/production.env", settings.appConfig)
@@ -224,6 +239,16 @@ export function performHostMaintenance(action: "plan" | "install" | "verify", co
     if (checkout.trim()) throw new Error("Install and verify only from a clean, reviewed checkout");
   }
   if (action === "install") {
+    const check = mkdtempSync(join(tmpdir(), "slk-sudoers-"));
+    const candidate = join(check, "release-backup");
+    try {
+      writeFileSync(candidate, files.find((file) => file.path === "/etc/sudoers.d/slk-release-backup")!.bytes, {
+        mode: 0o440,
+      });
+      run("/usr/sbin/visudo", ["-c", "-f", candidate]);
+    } finally {
+      rmSync(check, { recursive: true, force: true });
+    }
     for (const file of files) {
       if (file.uid === 0) installHostArtifact(file);
       else installApplicationUnit(file, settings);

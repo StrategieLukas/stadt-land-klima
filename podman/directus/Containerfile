@@ -1,5 +1,7 @@
 # Extends the pinned, patched CMS runtime.
 FROM localhost/slk-podman-directus-runtime:local
+ARG SLK_REVISION=unknown
+LABEL org.opencontainers.image.revision=$SLK_REVISION
 USER node
 COPY --chown=1000:1000 src/directus/cli /directus/cli
 COPY --chown=1000:1000 src/directus/extensions /directus/extensions

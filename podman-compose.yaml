@@ -89,6 +89,8 @@ services:
     build:
       context: .
       dockerfile: podman/directus/Containerfile
+      args:
+        SLK_REVISION: "${SLK_RELEASE_REVISION:-unknown}"
     environment:
       DB_OPTIONS: "-c timezone=Europe/Berlin"
       CACHE_AUTO_PURGE: "true"
@@ -159,6 +161,8 @@ services:
     build:
       context: .
       dockerfile: podman/frontend/Containerfile
+      args:
+        SLK_REVISION: "${SLK_RELEASE_REVISION:-unknown}"
     environment:
       SLK_DEPLOYMENT_TARGET: development
       NPM_CONFIG_CACHE: /tmp/npm
@@ -192,6 +196,8 @@ services:
     profiles: [build]
     restart: "no"
     read_only: false
+    mem_limit: "${SLK_FRONTEND_BUILD_MEMORY_LIMIT:-4G}"
+    memswap_limit: "${SLK_FRONTEND_BUILD_SWAP_LIMIT:-8G}"
     depends_on: {}
     healthcheck:
       disable: true
