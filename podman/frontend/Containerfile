@@ -1,4 +1,6 @@
 FROM localhost/slk-podman-frontend-runtime:local
+ARG SLK_REVISION=unknown
+LABEL org.opencontainers.image.revision=$SLK_REVISION
 COPY --chown=1000:1000 src/frontend /frontend
 COPY --chown=1000:1000 src/directus/translations /directus/translations
 USER node

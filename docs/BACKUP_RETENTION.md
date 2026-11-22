@@ -1,6 +1,6 @@
 # Production backup and image retention
 
-Production has two independent backup paths:
+Production has independent nightly and release backup paths:
 
 - The nightly root-owned `staedtechallenge-backup` systemd job sends logical
   database dumps, upload files and private configuration directly to encrypted
@@ -11,6 +11,11 @@ Production has two independent backup paths:
   tar is deliberately a complete, independently recoverable volume export. It is
   not an incremental backup and was previously retained indefinitely. Each release
   added roughly 700 MB of uploads even when little changed.
+- Automatic `slk release update` checkpoints are also sent by the fixed root-owned
+  `slk-release-backup.service` to encrypted Restic storage. It reads back every
+  payload checksum; the deploy coordinator restores the matching dump into a
+  temporary database and verifies captured application/translation-memory counts.
+  This requires the one-time [host installation](PRODUCTION_UPDATE.md).
 
 Keep **five** complete local rollback checkpoints and **five** nightly cloud
 snapshots for this application. These are separate recovery scopes. Five local
@@ -18,6 +23,12 @@ sets currently need roughly 3.6 GiB. Retention does not replace the pre-deployme
 off-host verification requirement. Portable recovery bundles and explicitly named
 legacy bootstrap/migration recovery artifacts are separate and never recursively
 deleted by these commands.
+
+Keep five automatic release cloud snapshots in the separate
+`<application-tag>-release` scope as well. Their retention cannot expire the five
+nightly snapshots. Snapshot creation never initializes or silently switches an
+unavailable remote repository. Backup credentials remain root-only; deploy may
+only start the fixed backup service, without arbitrary systemd arguments.
 
 ## Commands
 
@@ -92,7 +103,7 @@ activated release tags, all named non-release/runtime/datastore images, and
 explicit rollback/recovery tags. Failed newer builds cannot displace the previous
 successful release. Temporary stopped containers protect retained images during
 `podman image prune --all`; they never start or create anonymous volumes. Podman
-preserves layers required by those images. Cleanup holds the project's release
+preserves layers required by those images. Cleanup holds the project's automatic-update, release
 and stack-operation locks and never prunes volumes or restarts services. Raw
 Podman builds outside the CLI also need to finish before maintenance. An unknown
 Compose project is refused before cleanup, so a project typo cannot bypass its locks.

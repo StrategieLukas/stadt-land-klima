@@ -350,6 +350,19 @@ try {
     await page.locator(`input[name="question-${secondQuestionId}"][value="4"]`).check({ force: true });
     await page.clock.runFor(700);
     await page.locator(".weight-toggle-checkbox").first().waitFor();
+    const normalWeight = page.locator(".weight-toggle-checkbox").first();
+    await normalWeight.check();
+    assertEqual(
+      await normalWeight.evaluate((element) => getComputedStyle(element, "::before").content),
+      "none",
+      "Normal 2× marker has no checkbox tick",
+    );
+    assertEqual(
+      await normalWeight.evaluate((element) => getComputedStyle(element, "::after").content),
+      '"2×"',
+      "Normal marker retains its 2× label",
+    );
+    await normalWeight.uncheck();
     await assertCenteredIntroduction(page);
     await page.clock.resume();
     await page.getByTestId("wahlcheck-summary-next").click();
@@ -414,6 +427,13 @@ try {
     await page.locator(`input[name="question-${secondQuestionId}"][value="4"]`).check({ force: true });
     await page.clock.runFor(400);
     await page.locator(".weight-toggle-checkbox").first().check();
+    assert(
+      (await page
+        .locator(".weight-toggle-checkbox")
+        .first()
+        .evaluate((element) => getComputedStyle(element, "::before").content)) !== "none",
+      "LocalZero retains its checkbox tick",
+    );
     assertEqual(
       await page
         .locator(".weight-toggle-checkbox")

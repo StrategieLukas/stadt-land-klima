@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { imageRetentionPlan } from "./image-retention.ts";
+import { imageRetentionPlan, imageRetentionLocks } from "./image-retention.ts";
+import { spawn, spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { once } from "node:events";
 
 test("image retention distinguishes build-cache rows from active, successful previous and explicit recovery images", () => {
   const image = (n: number, Names: string[], Containers = 0) => ({
@@ -29,3 +34,37 @@ test("image retention distinguishes build-cache rows from active, successful pre
   assert.throws(() => imageRetentionPlan(rows, []));
   assert.throws(() => imageRetentionPlan([{ ...rows[0]!, Id: "--all" }], ["release-11111111"]));
 });
+
+test(
+  "image cleanup cannot prune staged images between automatic release phases",
+  { skip: process.platform !== "linux" },
+  async (t) => {
+    const runtime = mkdtempSync(join(tmpdir(), "slk-image-lock-"));
+    t.after(() => rmSync(runtime, { recursive: true, force: true }));
+    const holder = spawn(
+      "flock",
+      [
+        "--close",
+        join(runtime, "fixture.update.lock"),
+        process.execPath,
+        "-e",
+        "console.log('locked');process.stdin.resume()",
+      ],
+      { stdio: ["pipe", "pipe", "inherit"] },
+    );
+    const exited = once(holder, "close");
+    try {
+      await once(holder.stdout, "data");
+      const probe = spawnSync(
+        "flock",
+        imageRetentionLocks(runtime, "fixture", process.execPath, ["-e", "process.stdout.write('pruned')"]),
+        { encoding: "utf8" },
+      );
+      assert.equal(probe.status, 75);
+      assert.equal(probe.stdout, "");
+    } finally {
+      holder.stdin.end();
+      await exited;
+    }
+  },
+);

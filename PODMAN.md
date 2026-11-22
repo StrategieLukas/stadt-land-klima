@@ -379,6 +379,14 @@ with the administrator; there is no unconfined/rootful fallback.
 
 ## Application release coordination
 
+For routine production updates use `./bin/slk release update --env production` as
+deploy after the one-time [host setup](docs/PRODUCTION_UPDATE.md). It selects
+origin/main, verifies local/cloud recovery evidence and restores a temporary DB,
+then coordinates the existing backup/stage/activate actions. It supports detached
+checkouts and squashed merges while retaining the deployed source checkpoint. The production
+`deploy update` alias uses this same application-only path; skip flags are refused.
+The runner survives SSH disconnects and preserves application processes on exit.
+
 For reproducible host service copies (backup/timer, boot unit, Caddy and AppArmor),
 use [`slk host plan/install/verify`](docs/HOST_REPRODUCIBILITY.md) from the approved
 revision. Application releases remain deployment-user operations; privileged host
@@ -388,6 +396,9 @@ The production-only `slk release` command accepts `backup`, `stage`,
 `stage-prebuilt`, `activate` and `rollback` with a private host config, next tag
 and previous tag. It retains the upstream release protocol internally in
 `podman/release/run.sh`; operators use the TypeScript CLI.
+
+Automatic updates use `update` instead of supplying the following manual action
+arguments. Manual actions remain available for rehearsals and recovery.
 
 ```bash
 ./bin/slk release stage /private/host.env release-12345678 release-abcdef01 --env production

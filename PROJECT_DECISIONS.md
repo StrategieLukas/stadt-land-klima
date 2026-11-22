@@ -498,13 +498,23 @@ false so nested SSR chunks preserve absolute shared source identities for that
 second pass. Do not replace this with generated-path aliases or copy shared source
 files into build output. The production build gate verifies this integration.
 
-Run `./bin/slk check ready` and wait for completion. The TypeScript plan in
-`bin/cli/check-plan.ts` supplies both local gates and all four GitHub Actions
+Application changes require `./bin/slk check ready` and completion before finishing
+or an authorized push. Read-only investigations use targeted evidence, and
+qualifying documentation-only changes use the explicit formatting, diff and link
+checks in [documentation-only validation](docs/CHECKS.md#documentation-only-validation).
+Review the entire unpublished range; mixed or uncertain changes require the full
+application path. This scoping rule does not change CLI plans or CI gates.
+The TypeScript plan in `bin/cli/check-plan.ts` supplies both local gates and all
+four GitHub Actions
 workflows; `bin/cli/checks.test.ts` checks workflow coverage. The runner keeps
 complete private logs and incremental/final JSON reports under `.reports/checks/`,
-with bounded diagnostic tails for agents. Exit codes, signals, timeouts and
-prerequisites determine outcomes; diagnostic text is never parsed to infer a pass.
-Selected runs do not replace complete verification. After investigating current upstream fixes, an authorized push may proceed with documented, currently unresolvable dependency advisories as its only remaining failures; audit exit statuses and findings stay unchanged. Exception eligibility is manually reviewed and never converts the check report or CI to a pass. Native matrix and deployed
+with bounded diagnostic tails for agents. Prefer summary output with a short tail;
+inspect failed results and saved logs instead of dumping full JSON or rerunning
+commands for more output. An unchanged verified application tree needs no repeat
+full run solely for a documentation commit or transfer. Exit codes, signals,
+timeouts and prerequisites determine outcomes; diagnostic text is never parsed
+to infer a pass.
+For application changes, selected runs do not replace complete verification. After investigating current upstream fixes, an authorized push may proceed with documented, currently unresolvable dependency advisories as its only remaining failures; audit exit statuses and findings stay unchanged. Exception eligibility is manually reviewed and never converts the check report or CI to a pass. Native matrix and deployed
 revision acceptance remain explicit separate environments. See [check runner
 reference](docs/CHECKS.md). Curl localhost:8080 after frontend changes.
 Explicit full HTTPS/editor/image/proxy/storage tests use disposable environments;
@@ -560,6 +570,25 @@ Local workflow validation does not establish an actual hosted-runner execution.
   complete portable backups distinct by their recovery scope.
 
 ## Service failure handling
+
+Routine production application updates use `slk release update --env production`
+or the production `deploy update` alias. The coordinator fast-forwards main only
+after a complete local checkpoint, checksum-verified encrypted off-host backup,
+and isolated database restore/count comparison (including paid translation memory).
+It never upgrades/recreates datastore containers. Runtime input hashes control base
+image rebuilds; application revision labels and actual public DTO reads verify
+cutover. Existing guarded activation handles rollback, including post-cutover read
+failures. Private dotenv files remain runtime inputs rather than build inputs.
+
+The release backup service is installed from reviewed root-owned source. Its only
+deployment-user elevation is the exact fixed `systemctl start slk-release-backup.service`
+command. It validates private checkpoint files, uses the existing root-only Restic
+credentials, and reads back every payload before recording evidence as deploy. It
+does not execute user-writable checkout code as root. Release cloud snapshots use
+a separately bounded five-snapshot tag scope; nightly backup scope is unchanged.
+Application runners use journalled user services with `KillMode=process`, so SSH
+disconnects and runner cleanup cannot shut down the application monitors. Periodic
+separate-host disaster recovery tests still require their own environment.
 
 Directus must not mount an autoloaded `/directus/.env`. Its library loader can override
 protected process values from that file, re-enabling response caching and serving stale

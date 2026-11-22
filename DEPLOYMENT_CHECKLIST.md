@@ -6,6 +6,12 @@ Use restored staging data before production. Current constraints are in
 
 ## Prepare and build
 
+Routine application updates can now run with `slk release update --env production`
+after the one-time [production updater installation](docs/PRODUCTION_UPDATE.md).
+It automates the checkpoint, cloud readback, temporary database restoration, build,
+YAML import and application cutover below while retaining existing datastores.
+Privileged host-policy changes and datastore migrations remain separate operations.
+
 1. Preserve a verified off-host database/uploads/configuration/gateway backup and
    all active `podman/core-storage/` overlays. Confirm restore and build RAM/disk.
    Apply the [five-backup retention policy](docs/BACKUP_RETENTION.md); nightly
@@ -33,8 +39,12 @@ loader aborts the backup; it never falls back to stale inherited values.
 The database name comes from the selected private Directus dotenv (`DB_DATABASE`),
 as with `slk database export`. A datastore's `POSTGRES_DB` is its initialization
 default and may refer to an obsolete database after a restored-database cutover.
-Before approving a checkpoint, restore it off-host and check representative current
-application data and paid translation memory, rather than schema presence alone.
+Before approving a checkpoint, verify its off-host bytes and restore/check
+representative current application data and paid translation memory, rather than
+schema presence alone. The automatic updater reads back every encrypted cloud
+payload and restores the checksum-identical dump into a temporary database,
+comparing its counts with the captured baseline. Periodically rehearse disaster
+recovery on a separate host as well.
 
 For the first native-secret-to-mounted-runtime transition, retain a clean checkout
 of the previous revision and its previous release CLI for rollback. Its compose

@@ -68,6 +68,7 @@
               <input
                 type="checkbox"
                 class="weight-toggle-checkbox checkbox checkbox-primary"
+                :class="{ 'weight-toggle-checkbox--localzero': isLocalzero }"
                 :checked="doubleWeightedQuestions.has(question.id)"
                 :aria-label="$t('elections.wahlcheck.results.double_weighted')"
                 :title="$t('elections.wahlcheck.results.double_weighted')"
@@ -261,6 +262,10 @@ const _skippedCount = computed(() => {
   box-shadow:
     0 1px 3px 0 rgba(0, 0, 0, 0.1),
     0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.weight-toggle-checkbox:not(.weight-toggle-checkbox--localzero)::before {
+  content: none;
 }
 
 .weight-toggle-checkbox:checked::after {

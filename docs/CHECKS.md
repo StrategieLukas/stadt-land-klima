@@ -1,12 +1,56 @@
 # Shared local and CI checks
 
-Run `./bin/slk check ready` before finishing work or making an authorized push.
+Run `./bin/slk check ready` for application changes before finishing work or making
+an authorized push. Use the documentation-only validation below for qualifying
+prose changes; read-only investigations need only the evidence relevant to the
+question unless validation is requested.
 The default output is a short result for each check plus the last 30 lines of
 failed checks. Complete logs and incremental/final JSON reports are retained in a
 unique private directory under `.reports/checks/`. The command returns nonzero if
 any selected check fails, times out, cannot start, is interrupted or is blocked.
 `ok` means the selected plan passed on the recorded host; it does not certify
 unexecuted workflows or a different deployed revision.
+
+## Documentation-only validation
+
+This is a task-scoping rule for agents and operators, not automatic skipping in
+the CLI. `check ready` still runs its complete plan, and the GitHub Actions gates
+remain unchanged.
+
+A change qualifies only when every changed path is a regular, non-executable
+Markdown file at the repository root or under `docs/`. Review additions,
+deletions and both sides of renames. Exclude symlinks, generated or runtime-served
+content, and any change to application code, configuration, schema, permissions,
+translations, assets, dependencies, scripts or CI workflows. Use the full
+readiness path whenever classification is uncertain. Deployment and security
+acceptance requests still require their applicable checks.
+
+Before committing, review the intended staged changes and any working-tree or
+untracked files involved in the task. Before pushing, compare the **entire
+unpublished range** with the current destination branch tip, or the explicit base
+for a new branch. A Markdown-only final commit cannot hide earlier unverified
+application changes. Validate the exact document versions being committed or
+pushed; use a clean worktree if unrelated edits interfere.
+
+For a documentation-only change:
+
+1. Review the scoped diff for accuracy and unintended changes.
+2. Run `git diff --check` for pending edits and `git diff --check <base> HEAD` for
+   the committed range being pushed. Include `--cached` for staged changes.
+3. Run the installed formatter against the explicit changed Markdown paths, for
+   example `./src/frontend/node_modules/.bin/prettier --check -- docs/COMPLIANCE_CHECKLIST.md`.
+   Check existing files; review deleted paths separately.
+4. Verify new or changed local file links and instruction references. Check
+   anchors where relevant. Do not crawl all historical links or external sites
+   unless the task needs source verification.
+5. Record this as documentation-only validation. No container build, dependency
+   audit, application compilation or browser fixture suite is required for these
+   prose changes.
+
+Preserve prior application verification evidence when only qualifying
+documentation changes afterward. An unchanged application tree does not need
+another full run solely for a documentation commit or branch transfer. Other
+changes still require their own appropriate checks and one final readiness run.
 
 ## Profiles
 
@@ -38,7 +82,7 @@ do not attest which Git revision is deployed; confirm that separately.
 ```bash
 ./bin/slk check ready --list
 ./bin/slk check quality --only static
-./bin/slk check ready --only types.cli,unit --output json
+./bin/slk check ready --only types.cli,unit --output summary --tail 12
 ./bin/slk check quality --only image.audit --tail 80
 ./bin/slk check quality --only extensions --output full
 ```
@@ -47,9 +91,11 @@ do not attest which Git revision is deployed; confirm that separately.
 selectors fail before checks run. Required prerequisites are included automatically;
 for example, `image.audit` includes both image builds and the Node check. A failed
 prerequisite blocks its dependants while unrelated checks continue. There is no
-changed-file heuristic or cached pass: selected runs are for iteration, and the
-final full run must test the final sources. Formatting runs last in the complete
-quality/ready plans, after generators and builds.
+changed-file heuristic or cached pass in the CLI: selected runs are for iteration,
+and application changes still require a final full run against their final
+sources. The documentation-only procedure above uses explicit scoped checks
+instead. Formatting runs last in the complete quality/ready plans, after
+generators and builds.
 
 | Option                  | Behavior                                                        |
 | ----------------------- | --------------------------------------------------------------- |
@@ -59,6 +105,18 @@ quality/ready plans, after generators and builds.
 | `--output full`         | Stream complete child stdout/stderr, then the summary           |
 | `--tail 80`             | Keep up to 80 trailing lines per failure; accepts 1–200         |
 | `--timeout-seconds 900` | Override each selected check's deadline; accepts 1–7200         |
+
+For assistant work, prefer `--output summary --tail 12`. Keep JSON for actual
+programmatic consumers: extract status, failed check IDs and relevant log paths
+instead of displaying the entire report. Successful logs and full output remain
+available on disk. Read the relevant saved log when diagnosing a failure rather
+than rerunning a check just to expand its output. During iteration, run only the
+affected gates; batch fixes before the required final application readiness run.
+Do not repeat a successful full run for a subsequent documentation-only change.
+Check local prerequisites before expensive builds, and reproduce failed live
+flows with their required disposable fixtures before repeating the full run.
+Preserve the real application routes and assertions; missing fixture content is
+an environment problem, not a reason to suppress a regression.
 
 Excerpts are bounded to 12,000 characters per failure, reading at most the final
 32 KiB of a log. ANSI/control sequences are stripped from excerpts. Logs retain the
