@@ -36,6 +36,8 @@ jobs:
           for package in src/directus/extensions/*/package-lock.json; do
             npm ci --prefix "$(dirname "$package")" --ignore-scripts
           done
+      - name: Install Playwright Chromium
+        run: npm --prefix bin/test_suite exec -- playwright install --with-deps chromium
       - name: Strict checking, lint and formatting
         run: node bin/slk check quality --only static --output full
       - name: Fast regressions without application credentials
