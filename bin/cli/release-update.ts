@@ -26,6 +26,7 @@ import {
   verifyCheckpoint,
 } from "./release-checkpoint.ts";
 import { applicationCountsSql, releaseSqlCommand } from "./release-backup.ts";
+import { databaseShell } from "./database-shell.ts";
 
 export type UpdateCommand = (program: string, args: string[], options?: RunOptions) => Promise<string>;
 const revisionPattern = /^[a-f0-9]{40}$/;
@@ -122,11 +123,7 @@ export async function restoreReleaseDatabase(directory: string, container: strin
         "exec",
         ...(options.input === undefined ? [] : ["-i"]),
         container,
-        "sh",
-        "-ec",
-        `if command -v slk-env >/dev/null 2>&1; then exec slk-env sh -ec '${script}' slk-verify "$@"; fi; ${script}`,
-        "slk-verify",
-        ...args,
+        ...databaseShell(script, "slk-verify", ...args),
       ],
       options,
     );
