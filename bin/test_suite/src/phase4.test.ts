@@ -25,6 +25,14 @@ import {
 } from "../../../src/frontend/shared/wahlcheckAnswerOptions.js";
 import { calculateAndAddSimilarityScores } from "../../../src/frontend/shared/compareMunicipalities.js";
 import { getScorePercentageColor, isRaster } from "../../../src/frontend/shared/utils.js";
+import { showsWahlcheckCooperation } from "../../../src/frontend/shared/wahlcheckCooperation.js";
+
+test("Wahlcheck cooperation starts on 23 November 2026 in Berlin using only the creation timestamp", () => {
+  for (const value of [undefined, null, "", "invalid", "2026-11-23T00:00:00", "2026-11-22T22:59:59.999Z"])
+    assert.equal(showsWahlcheckCooperation(value), false, String(value));
+  for (const value of ["2026-11-22T23:00:00Z", "2026-11-23T00:00:00+01:00", "2027-01-01T00:00:00Z"])
+    assert.equal(showsWahlcheckCooperation(value), true, value);
+});
 
 type Row = Record<string, any>;
 const frontend = createRequire(new URL("../../../src/frontend/package.json", import.meta.url));
@@ -288,56 +296,60 @@ test("cookie-session initialization is coalesced and an in-flight lookup cannot 
 });
 
 test("server and client plugins share the request locale and translations without exposing SDK credentials", async () => {
-  for (const language of i18n.locales) {
-    const states = new Map<string, Row>();
-    const state = (key: string, init: () => unknown) => {
-      if (!states.has(key)) states.set(key, vue.ref(init()));
-      return states.get(key);
-    };
-    const translations = [{ key: "generic.back", value: language }];
-    const config = {
-      public: { appEnv: "test" },
-      directusServerUrl: "http://cms.test",
-      directusFrontendServerToken: "private-canary",
-    };
-    const app = {
-      defineNuxtPlugin: (factory: unknown) => factory,
-      useCookie: () => ({ value: null }),
-      useRuntimeConfig: () => config,
-      useState: state,
-      useRequestHeaders: () => ({ "accept-language": language }),
-    };
-    const sdkClient: Row = { with: () => sdkClient, request: async () => translations };
-    const dependencies = {
-      "#app": app,
-      "~/shared/resolveFullLocaleCode": { __esModule: true, default: resolveLocale },
-      "~/shared/createTranslator": { __esModule: true, default: createTranslator },
-      "~/shared/i18n": i18n,
-      "~/shared/serviceUrl": urlHelpers,
-      "@directus/sdk": { createDirectus: () => sdkClient, rest() {}, staticToken() {}, readTranslations() {} },
-    };
-    const server = await load(
-      "plugins/directus.server.ts",
-      dependencies,
-      { useState: state, useHead() {} },
-      false,
-    ).default();
-    app.useCookie = () => {
-      throw new Error("Browser cookie access denied");
-    };
-    const client = await load("plugins/directus.client.ts", dependencies, {
-      useState: state,
-      document: { documentElement: { getAttribute: () => "de" } },
-      $fetch: async () => {
-        throw new Error("Hydrated translations must be reused");
-      },
-    }).default();
-    assert.equal(server.provide.locale, language);
-    assert.equal(client.provide.locale, language);
-    assert.equal(client.provide.t("generic.back"), language);
-    assert.ok(!JSON.stringify([...states]).includes("private-canary"));
-    assert.ok(!("directus" in server.provide) && !("directus" in client.provide));
-  }
+  for (const embedded of [false, true])
+    for (const language of i18n.locales) {
+      const expectedLocale = embedded ? "de-DE" : language;
+      const states = new Map<string, Row>();
+      const state = (key: string, init: () => unknown) => {
+        if (!states.has(key)) states.set(key, vue.ref(init()));
+        return states.get(key);
+      };
+      const translations = [{ key: "generic.back", value: expectedLocale }];
+      const config = {
+        public: { appEnv: "test" },
+        directusServerUrl: "http://cms.test",
+        directusFrontendServerToken: "private-canary",
+      };
+      const app = {
+        defineNuxtPlugin: (factory: unknown) => factory,
+        useCookie: () => ({ value: embedded ? language : null }),
+        useRequestURL: () =>
+          new URL(embedded ? "http://site.test/embed/wahlcheck/test" : "http://site.test/elections/wahlcheck/test"),
+        useRuntimeConfig: () => config,
+        useState: state,
+        useRequestHeaders: () => ({ "accept-language": language }),
+      };
+      const sdkClient: Row = { with: () => sdkClient, request: async () => translations };
+      const dependencies = {
+        "#app": app,
+        "~/shared/resolveFullLocaleCode": { __esModule: true, default: resolveLocale },
+        "~/shared/createTranslator": { __esModule: true, default: createTranslator },
+        "~/shared/i18n": i18n,
+        "~/shared/serviceUrl": urlHelpers,
+        "@directus/sdk": { createDirectus: () => sdkClient, rest() {}, staticToken() {}, readTranslations() {} },
+      };
+      const server = await load(
+        "plugins/directus.server.ts",
+        dependencies,
+        { useState: state, useHead() {} },
+        false,
+      ).default();
+      app.useCookie = () => {
+        throw new Error("Browser cookie access denied");
+      };
+      const client = await load("plugins/directus.client.ts", dependencies, {
+        useState: state,
+        document: { documentElement: { getAttribute: () => "de" } },
+        $fetch: async () => {
+          throw new Error("Hydrated translations must be reused");
+        },
+      }).default();
+      assert.equal(server.provide.locale, expectedLocale);
+      assert.equal(client.provide.locale, expectedLocale);
+      assert.equal(client.provide.t("generic.back"), expectedLocale);
+      assert.ok(!JSON.stringify([...states]).includes("private-canary"));
+      assert.ok(!("directus" in server.provide) && !("directus" in client.provide));
+    }
 });
 
 test("service configuration rejects credentials and unsafe URLs without echoing their values", () => {

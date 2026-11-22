@@ -176,6 +176,58 @@ timeouts, native/deployed limitations and report handling. The existing
 CMS fixture suite is writable and requires disposable data. The `ready` runner
 executes the development suite's unit and live halves once each.
 
+## Newsletter runtime configuration
+
+The frontend's private runtime dotenv must provide `LISTMONK_ENDPOINT`,
+`LISTMONK_API_USERNAME`, `LISTMONK_API_TOKEN`, and the numeric default
+`LISTMONK_LIST_ID`. The `NUXT_LISTMONK_*` runtime overrides are also supported.
+These values are server-only; keep credentials out of Git and public Nuxt config.
+The deployed frontend reads the mounted dotenv at startup, so changing it requires
+restarting the frontend. A successful frontend build or homepage health check does
+not verify newsletter configuration.
+
+Before a release, verify the configured provider's authenticated `/api/lists`
+response and that the selected default list exists and uses double opt-in. The
+website's read-only `/api/newsletter-lists` route must return the intended public
+lists. Missing endpoint/API credentials produce an unavailable newsletter service;
+do not replace an existing private dotenv with the empty example during deployment.
+Run diagnostic commands through the runtime environment loader: a bare container
+`exec` does not inherit the mounted dotenv values loaded by the server process.
+
+Subscription acknowledgement accepts both legacy `data: true` and Listmonk 6's
+`data: { has_optin: boolean }`. Actual confirmation-email delivery remains a
+separate acceptance check requiring an explicitly approved test recipient.
+
+## Local-team registration mail
+
+Directus needs private `EMAIL_TRANSPORT=smtp`, `EMAIL_FROM`, `EMAIL_SMTP_HOST`,
+`EMAIL_SMTP_PORT`, `EMAIL_SMTP_SECURE`, `EMAIL_SMTP_USER` and `EMAIL_SMTP_PASSWORD`.
+Keep these in its mounted private dotenv; never commit credentials. Production
+must not use the development sendmail logger or `/bin/false`. Restart Directus
+through the maintained deployment workflow after updating private settings.
+
+Production connectivity checks on 2026-11-19 found standard ports 465/587 to
+`mail.stadt-land-klima.de` unreachable from the application container. The existing
+mail server also publishes implicit TLS on port 2465; verify that endpoint from
+the target host with certificate verification enabled before selecting it.
+`EMAIL_SMTP_SECURE=true` is required for implicit TLS on either 465 or 2465.
+Use Nodemailer's [connection verification](https://nodemailer.com/smtp#verifying-the-connection)
+to check TLS/authentication without sending email. This does not test sender or
+recipient acceptance. Do not disable TLS certificate checks to solve connectivity.
+
+The two administrator-protected registration flows must be configured through
+`DIRECTUS_FLOW_NOTIFY_ADMIN` and `DIRECTUS_FLOW_WELCOME_EMAIL` in the frontend's
+private dotenv. Rebuild the pinned Directus runtime as well as the frontend when
+releasing this fix: the source-verified mail-operation patch makes synchronous
+flows await transport acceptance and propagate sanitized send failures. Native
+mail rate limits and the checked flow YAML remain unchanged.
+
+`steps.email` confirms an accepted welcome message containing the password link,
+not link generation. Registration preserves the created team/account if mail
+fails, so do not submit the same registration again as a delivery retry. Re-send
+through an approved operator workflow after restoring SMTP. Actual inbox delivery
+and newsletter double opt-in need an explicitly approved test recipient.
+
 ## Newsletter SMTP routing on staging
 
 The newsletter service is operated separately in `/home/deploy/newsletter`.

@@ -475,7 +475,6 @@ export default defineEventHandler(async (event) => {
       body: { email: email.trim() },
     });
     passwordResetUrl = resetData.url ?? null;
-    steps.email = true;
   } catch {
     // Non-fatal: fall back to sending a separate Directus password-reset email
     requestLog(event, "warn", "nuxt.registration.reset_link_fallback");
@@ -485,7 +484,8 @@ export default defineEventHandler(async (event) => {
         headers: { "Content-Type": "application/json" },
         body: { email: email.trim() },
       });
-      steps.email = true;
+      // The native password-reset endpoint acknowledges the request before sending.
+      // It cannot confirm mail acceptance, so do not report the email step as sent.
     } catch {
       requestLog(event, "error", "nuxt.registration.reset_mail_failed");
     }
@@ -552,6 +552,7 @@ export default defineEventHandler(async (event) => {
         },
       });
       steps.welcome = true;
+      steps.email = Boolean(passwordResetUrl);
       requestLog(event, "info", "nuxt.registration.welcome_mail_sent", { resourceId: userId, outcome: "success" });
     } catch {
       requestLog(event, "error", "nuxt.registration.welcome_mail_failed");

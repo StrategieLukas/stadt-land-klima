@@ -580,7 +580,6 @@
           :label="$t('generic.back')"
           icon-slug="mdi:arrow-left"
           :color="isLocalzero ? 'yellow' : 'dark'"
-          variant="outline"
           @click="$emit('prev')"
         />
         <CanonicalButton

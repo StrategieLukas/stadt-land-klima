@@ -14,6 +14,7 @@ const municipalitySchema = z.object({
 const teamSchema = z.object({ id: z.string(), name: nullableText, municipality_name: nullableText });
 const electionSchema = z.object({
   id: z.string(),
+  date_created: nullableText,
   is_public: z.literal(true),
   is_party_election: z.boolean(),
   simple_answer_mode: z.boolean().nullish(),
@@ -69,6 +70,7 @@ export async function resolvePublicWahlcheckRoute(client: Client, slug: string) 
         filter: { localteam: { _eq: localteamId }, is_public: { _eq: true } },
         fields: [
           "id",
+          "date_created",
           "is_public",
           "is_party_election",
           "simple_answer_mode",

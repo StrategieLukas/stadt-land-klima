@@ -18,9 +18,14 @@ URL field and click **Laden**. Normal URLs with
 `/elections/wahlcheck/{municipalitySlug}` are automatically converted to
 `/embed/wahlcheck/{municipalitySlug}` for the iframe. The standalone link retains
 the normal full-page URL. Existing embed URLs and shared-result queries also work.
-The embed layout renders only the Wahlcheck, without the site's header, footer,
-mobile dock or search. Result links generated inside the iframe open the normal
-standalone Wahlcheck.
+The embed layout renders only the Wahlcheck, without the site's global header, footer,
+mobile dock or search. LocalZero/SLK logos sit beside question navigation from
+640px and in the project footer on smaller screens; later steps retain the project
+footer at all widths. This cooperation branding appears only for Wahlchecks created on or after 23 November 2026 at 00:00 Europe/Berlin, using `date_created` rather than `date_updated`; older or undated Wahlchecks omit both logos and the credit. Both positions show a translated cooperation credit above
+the yellow LocalZero logo and theme-specific SLK logo without a background panel. Result links generated inside the iframe open the normal
+standalone Wahlcheck. Embedded Wahlchecks use German translations regardless of
+the browser language or website locale cookie; regular pages retain their locale
+selection. The test page’s DE/EN/IT selector only translates its host controls.
 
 Append `?theme=localzero` to a Wahlcheck URL to opt into LocalZero colours and
 the self-hosted Fabrikat font. This works on the overview, standalone and embed
@@ -146,3 +151,24 @@ import Vue's storage-dependent DevTools runtime before hydration. Development em
 now skip those overlays and use the upstream no-op DevTools API; locale initialization
 reuses the server-rendered locale without reading browser cookies. You do not need
 to allow third-party cookies or weaken browser privacy settings.
+
+## Local KlimaLautern integration example
+
+From the repository root, generate a local mock with the public header, navigation,
+footer and styles from <https://klimalautern.de/> around the development iframe:
+
+```bash
+node --import ./bin/test_suite/node_modules/tsx/dist/loader.mjs bin/test_suite/src/prepareKlimalauternExample.ts
+python3 -m http.server 8090 --bind 127.0.0.1 --directory .reports/wahlcheck-local-demo/host
+```
+
+Open <http://127.0.0.1:8090/klimalautern/>. The default is the existing local
+`wahlcheck-demo` election with `?theme=localzero`; pass another full embed URL as
+the generator's first argument if needed. The election must exist in the local CMS.
+The generated mock stays in ignored `.reports/`, reuses this example's resize,
+viewport and scroll controller, and loads public KlimaLautern styles and images.
+It omits WordPress scripts and does not modify or publish anything on KlimaLautern.
+Production framing permissions remain separate from this local demonstration.
+
+Coverage: manual browser integration acceptance at desktop/mobile sizes; no
+separate automated regression for the external site's changing header/footer.

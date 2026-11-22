@@ -94,6 +94,7 @@ async function buildWahlcheckResponse(
     municipality: { slug: municipality.slug, name: municipality.name },
     election: pick(election, [
       "id",
+      "date_created",
       "is_party_election",
       "simple_answer_mode",
       "descriptor",

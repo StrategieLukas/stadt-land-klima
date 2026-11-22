@@ -10,6 +10,7 @@ const questionId = "00000000-0000-4000-8000-000000000001";
 const secondQuestionId = "00000000-0000-4000-8000-000000000009";
 const election = {
   id: "00000000-0000-4000-8000-000000000002",
+  date_created: "2026-11-23T00:00:00+01:00",
   descriptor: "Automated Wahlcheck",
   is_party_election: false,
   custom_logo: null,
@@ -62,6 +63,105 @@ async function assertCenteredIntroduction(page: Page) {
     return Math.abs((logo.left + logo.right) / 2 - (container.left + container.right) / 2);
   });
   assert(logoOffset <= 1, "Wizard logo is centered");
+}
+
+async function assertProjectFooter(page: Page) {
+  const mobile = page.viewportSize()!.width < 640;
+  const footer = page.getByTestId(mobile ? "wahlcheck-footer" : "wahlcheck-desktop-logos");
+  assert(await footer.isVisible(), "Project logos are visible in the responsive position");
+  assert(
+    !(await page.getByTestId(mobile ? "wahlcheck-desktop-logos" : "wahlcheck-footer").isVisible()),
+    "Project logos are not duplicated",
+  );
+  assertEqual(await footer.locator("a img").count(), 2, "Both project logos are present");
+  assertEqual(
+    await footer.locator("p").innerText(),
+    "Dieser Wahlcheck ist entstanden als Kooperation von",
+    "Cooperation credit is translated",
+  );
+  assertEqual(
+    await footer.evaluate((element) => getComputedStyle(element).backgroundColor),
+    "rgba(0, 0, 0, 0)",
+    "Cooperation branding has no background",
+  );
+  const lightArtwork =
+    (await page.locator("html").getAttribute("data-theme")) === "staedteChallengeDark" &&
+    (await page.locator(".elections-flow").getAttribute("data-wahlcheck-theme")) !== "localzero";
+  assertEqual(
+    (await footer.locator('a[href="https://localzero.net/"] img').getAttribute("src"))!.includes("LocalZero-logo.svg"),
+    true,
+    "LocalZero artwork stays yellow in every theme",
+  );
+  assertEqual(
+    (await footer.locator('a[href="https://www.stadt-land-klima.de/"] img').getAttribute("src"))!.includes("Logo-dark"),
+    lightArtwork,
+    "SLK artwork follows its surface",
+  );
+  assertEqual(
+    await footer.locator("a").first().getAttribute("href"),
+    "https://www.stadt-land-klima.de/",
+    "SLK appears before LocalZero",
+  );
+  await footer
+    .locator("img")
+    .evaluateAll((images) => Promise.all(images.map((image) => (image as HTMLImageElement).decode())));
+  const logos = await footer.locator("img").evaluateAll((images) =>
+    images.map((image) => ({
+      loaded: (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0,
+      label: image.getAttribute("alt"),
+      height: image.getBoundingClientRect().height,
+    })),
+  );
+  assert(
+    logos.every((logo) => logo.loaded && logo.label && !logo.label.startsWith("elections.")),
+    "Translated project logos load",
+  );
+  assert(
+    logos.every((logo) => Math.abs(logo.height - (mobile ? 40 : 32)) <= 1),
+    "Project logos retain compact proportions",
+  );
+  const link = footer.locator("a").first();
+  await footer.locator("a").last().focus();
+  await page.keyboard.press("Shift+Tab");
+  assert(await link.evaluate((element) => element.matches(":focus-visible")), "Project link has keyboard focus");
+  const focus = await link.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      outline: style.outlineStyle,
+      color: style.outlineColor,
+      background: getComputedStyle(element.closest(".elections-flow")!).backgroundColor,
+    };
+  });
+  assertEqual(focus.outline, "solid", "Project links retain keyboard focus");
+  assert(focus.color !== focus.background, "Project link focus contrasts with its footer");
+}
+
+async function assertCompactStatement(page: Page) {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const height = await page
+      .locator(".question-content")
+      .evaluate((element) => element.getBoundingClientRect().height);
+    assert(height < 160, `A short statement must not reserve a large empty area at ${width}px`);
+    await assertProjectFooter(page);
+    const navigation = page.getByTestId("wahlcheck-question-navigation");
+    assertEqual(
+      await navigation.evaluate((element) => getComputedStyle(element).borderTopWidth),
+      "0px",
+      "Question navigation has no separator",
+    );
+    assert(!/\d+\s*\/\s*\d+/.test(await navigation.innerText()), "Question navigation has no answered counter");
+    assert(
+      !(await page.getByTestId("wahlcheck-questions-prev").getAttribute("class"))?.includes(
+        "canonical-button--outline",
+      ),
+      "Back action uses the shared filled variant",
+    );
+    assert(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      "Project footer fits the viewport",
+    );
+  }
 }
 
 async function assertAnswerFocus(page: Page, value: number) {
@@ -157,7 +257,22 @@ try {
   for (const mode of ["light", "dark"] as const) {
     const context = await newContext(browser);
     await context.addInitScript((preference) => localStorage.setItem("slk_theme_preference", preference), mode);
-    await context.route(/\/api\/public\/wahlcheck\/theme-test(?:\?|$)/, (route) => route.fulfill({ json: fixture }));
+    let longStatements = false;
+    let dateCreated: string | null = election.date_created;
+    await context.route(/\/api\/public\/wahlcheck\/theme-test(?:\?|$)/, (route) =>
+      route.fulfill({
+        json: {
+          ...fixture,
+          election: { ...fixture.election, date_created: dateCreated, date_updated: "2027-01-01T00:00:00Z" },
+          questions: longStatements
+            ? fixture.questions.map((question) => ({
+                ...question,
+                thesis: "Long statement with enough text to require keyboard scrolling. ".repeat(100),
+              }))
+            : fixture.questions,
+        },
+      }),
+    );
     await context.route(/\/api\/public\/wahlcheck(?:\?|$)/, (route) =>
       route.fulfill({
         json: [0, 1, 2].map((index) => ({
@@ -173,9 +288,11 @@ try {
     );
     await context.route("**/api/wahlcheck-complete", (route) => route.fulfill({ json: { success: true } }));
     const page = await context.newPage();
+    const hydrationErrors: string[] = [];
     page.on("pageerror", (error) => console.log("Browser error:", error.message));
     page.on("console", (message) => {
       if (message.type() === "error") console.log("Console:", message.text());
+      if (/hydration.*mismatch/i.test(message.text())) hydrationErrors.push(message.text());
     });
     await page.emulateMedia({ colorScheme: mode });
     const styles = () =>
@@ -218,6 +335,7 @@ try {
       content: ".elections-flow * { transition: none !important; animation: none !important; }",
     });
     await assertCenteredIntroduction(page);
+    await assertCompactStatement(page);
     assertEqual(
       await page
         .locator('.elections-flow img[src*="Klima-Wahlcheck-Logo"]')
@@ -278,6 +396,7 @@ try {
       ),
       "LocalZero retains the logo with dark lettering",
     );
+    await assertCompactStatement(page);
     await assertAnswerFocus(page, 3);
 
     const selected = root.locator(".bg-rating-3").first();
@@ -343,6 +462,96 @@ try {
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
       "Mobile embed does not overflow",
     );
+    await assertProjectFooter(page);
+    const navigation = page.getByTestId("wahlcheck-question-navigation");
+    assertEqual(
+      await navigation.evaluate((element) => getComputedStyle(element).borderTopWidth),
+      "0px",
+      "Question navigation has no separator",
+    );
+    assert(!/\d+\s*\/\s*\d+/.test(await navigation.innerText()), "Question navigation has no answered counter");
+    assert(
+      !(await page.getByTestId("wahlcheck-questions-prev").getAttribute("class"))?.includes(
+        "canonical-button--outline",
+      ),
+      "Back action uses the shared filled variant",
+    );
+    await page.clock.resume();
+    longStatements = true;
+    for (const theme of ["", "?theme=localzero"]) {
+      for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 1000 });
+        await page.goto(`${origin}/embed/wahlcheck/theme-test${theme}`, { waitUntil: "domcontentloaded" });
+        const statement = page.locator(".question-content");
+        await statement.waitFor();
+        const dimensions = await statement.evaluate((element) => ({
+          height: element.clientHeight,
+          content: element.scrollHeight,
+        }));
+        assertEqual(dimensions.height, width < 640 ? 320 : 224, "Long statements retain the scrollable height cap");
+        assert(dimensions.content > dimensions.height, "Long statements have scrollable content");
+        await statement.focus();
+        await page.keyboard.press("End");
+        await page.waitForFunction(() => (document.querySelector(".question-content")?.scrollTop ?? 0) > 0);
+      }
+    }
+    longStatements = false;
+    for (const created of ["2026-11-22T22:59:59.999Z", null, election.date_created]) {
+      dateCreated = created;
+      const branded = created === election.date_created;
+      for (const path of ["/elections/wahlcheck/theme-test", "/embed/wahlcheck/theme-test?theme=localzero"]) {
+        await page.evaluate(() => sessionStorage.clear());
+        await page.goto(`${origin}${path}`, { waitUntil: "domcontentloaded" });
+        await page.locator(`input[name="question-${questionId}"]`).first().waitFor();
+        for (const width of [390, 1440]) {
+          await page.setViewportSize({ width, height: 1000 });
+          if (branded) await assertProjectFooter(page);
+          else {
+            assertEqual(
+              await page.locator(".wahlcheck-footer").count(),
+              0,
+              "Old/undated elections omit all cooperation branding despite recent updates",
+            );
+            if (width === 1440) {
+              // Measure in one frame: the wizard may still be sliding into place.
+              const rightOffset = await page.getByTestId("wahlcheck-question-navigation").evaluate((element) => {
+                const button = element.querySelector('[data-testid="wahlcheck-questions-next"]');
+                if (!button) throw new Error("Missing question action");
+                return element.getBoundingClientRect().right - button.getBoundingClientRect().right;
+              });
+              assert(
+                Math.abs(rightOffset) <= 1,
+                `Unbranded desktop question actions remain right aligned: offset ${rightOffset}`,
+              );
+            }
+          }
+        }
+        const shared = new URL(`${origin}${path}`);
+        shared.searchParams.set(
+          "share",
+          Buffer.from(
+            encodeURIComponent(
+              JSON.stringify({ electionId: election.id, answers: { [questionId]: 4 }, doubleWeighted: [] }),
+            ),
+          ).toString("base64"),
+        );
+        await page.goto(shared.href, { waitUntil: "domcontentloaded" });
+        await page.getByTestId("wahlcheck-results-overview").waitFor();
+        assertEqual(
+          await page.getByTestId("wahlcheck-footer").count(),
+          branded ? 1 : 0,
+          "Shared results use the same creation-date cutoff",
+        );
+        await page.getByTestId("wahlcheck-results-prev").click();
+        await page.locator(".weight-toggle-checkbox").first().waitFor();
+        assertEqual(
+          await page.getByTestId("wahlcheck-footer").count(),
+          branded ? 1 : 0,
+          "Summary uses the same creation-date cutoff",
+        );
+      }
+    }
+    dateCreated = election.date_created;
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(`${origin}/elections/wahlcheck`, { waitUntil: "domcontentloaded" });
     await page.getByText("Automated Wahlcheck", { exact: true }).waitFor();
@@ -352,6 +561,7 @@ try {
       mode,
       "Site theme preference unchanged",
     );
+    assertEqual(hydrationErrors.length, 0, "Theme-specific artwork hydrates without mismatches");
     await context.close();
     console.log(`PASS: LocalZero flow, mobile embed and unchanged normal ${mode} view`);
   }

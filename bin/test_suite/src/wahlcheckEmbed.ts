@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { firefox, type Browser, type Page } from "playwright";
 import { WahlcheckSchema } from "../../../src/frontend/shared/contracts/elections.js";
 import { routeSlug } from "../../../src/frontend/shared/routeValues.js";
+import { showsWahlcheckCooperation } from "../../../src/frontend/shared/wahlcheckCooperation.js";
 import { assert, assertEqual } from "./lib/assert.js";
 import { collectPublicPageErrors, launchBrowser, newContext } from "./lib/browser.js";
 import { waitFor } from "./lib/wait.js";
@@ -59,7 +60,8 @@ export async function assertWahlcheckEmbed(
   assert(address && typeof address !== "string", "Static test server needs a TCP port");
   const parent = new URL(`http://127.0.0.1:${address.port}`);
   parent.searchParams.set("url", standalone.href);
-  const context = await newContext(browser);
+  const context = await newContext(browser, { locale: "en-US" });
+  await context.addCookies([{ name: "slk_locale", value: "it-IT", url: origin }]);
   try {
     await context.addInitScript(() => {
       for (const name of ["error", "unhandledrejection"]) {
@@ -90,6 +92,12 @@ export async function assertWahlcheckEmbed(
       assert(denied, "Firefox must actually deny storage inside the frame");
     }
     await frame.locator(`input[name="question-${question.id}"]`).first().waitFor({ timeout: 30_000 });
+    assertEqual(
+      await frame.locator("html").getAttribute("lang"),
+      "de-DE",
+      "Embed uses German despite foreign browser/cookie preferences",
+    );
+    await frame.getByRole("heading", { name: "Beantworte die Thesen", exact: true }).waitFor();
     const questionHeight = await fittedHeight(page);
     if (mode === "standard") {
       await page.evaluate((childOrigin) => {
@@ -119,9 +127,14 @@ export async function assertWahlcheckEmbed(
       );
     }
     assertEqual(
-      await frame.locator(".slk-header-surface, footer, #page-drawer").count(),
+      await frame.locator('.slk-header-surface, footer:not([data-testid="wahlcheck-footer"]), #page-drawer').count(),
       0,
       "Embed excludes site chrome",
+    );
+    assertEqual(
+      await frame.getByTestId("wahlcheck-desktop-logos").locator("a img").count(),
+      showsWahlcheckCooperation(data.election.date_created) ? 2 : 0,
+      "Embed shows project logos only for elections created since cooperation started",
     );
     const initialViewport = page.viewportSize();
     assert(initialViewport, "The host needs a viewport");
@@ -153,7 +166,7 @@ export async function assertWahlcheckEmbed(
     await results.getByTestId("wahlcheck-results-overview").waitFor({ timeout: 30_000 });
     const resultHeight = await fittedHeight(page);
     assertEqual(
-      await results.locator(".slk-header-surface, footer, #page-drawer").count(),
+      await results.locator('.slk-header-surface, footer:not([data-testid="wahlcheck-footer"]), #page-drawer').count(),
       0,
       "Results exclude site chrome",
     );
@@ -213,6 +226,11 @@ export async function assertWahlcheckEmbed(
     });
     assertEqual(normalResponse?.status(), 200, "Normal Wahlcheck still renders");
     await normalPage.locator(".slk-header-surface").first().waitFor({ timeout: 30_000 });
+    assertEqual(
+      await normalPage.locator("html").getAttribute("lang"),
+      mode === "blocked-storage" ? "en-GB" : "it-IT",
+      "Regular Wahlcheck retains the cookie preference or browser fallback when cookies are blocked",
+    );
   } finally {
     await context.close();
     await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
