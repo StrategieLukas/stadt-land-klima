@@ -107,7 +107,12 @@ export class Runtime {
     mkdirSync(directory, { recursive: true, mode: 0o700 });
     const output = join(directory, this.project + ".storage.compose.json"),
       temporary = output + "." + randomUUID();
-    writeFileSync(temporary, JSON.stringify(config) + "\n", { mode: 0o600, flag: "wx" });
+    // `config` has already been interpolated. Protect its literal dollars before
+    // Podman Compose reads the flattened configuration for a second time.
+    const serialized = JSON.stringify(config, (_key, value: unknown) =>
+      typeof value === "string" ? value.replaceAll("$", () => "$$") : value,
+    );
+    writeFileSync(temporary, serialized + "\n", { mode: 0o600, flag: "wx" });
     renameSync(temporary, output);
     const args: string[] = [];
     for (let index = 0; index < this.args.length; index++) {

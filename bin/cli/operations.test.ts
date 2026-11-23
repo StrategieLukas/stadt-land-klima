@@ -59,7 +59,14 @@ test("staged output overlays include build/maintenance profiles and replace each
       services: {
         frontend: { volumes: ["active:/frontend/.output:ro,U", "uploads:/uploads:ro"] },
         ...(args.includes("build")
-          ? { "frontend-build": { profiles: ["build"], volumes: ["active:/release:U"] } }
+          ? {
+              "frontend-build": {
+                profiles: ["build"],
+                volumes: ["active:/release:U"],
+                command: ["sh", "-ec", 'slk_input=$(printf hash); printf "%s" "$slk_input"'],
+                environment: { LITERAL: "${NOT_A_HOST_VARIABLE}:$5:$$" },
+              },
+            }
           : {}),
         ...(args.includes("maintenance")
           ? { maintenance: { profiles: ["maintenance"], image: "fixture-maintenance" } }
@@ -71,6 +78,12 @@ test("staged output overlays include build/maintenance profiles and replace each
   const output = yaml.parse(readFileSync(runtime.args.at(-1)!, "utf8"));
   assert.deepEqual(output.services.frontend.volumes, ["uploads:/uploads:ro", "staged:/frontend/.output:ro,U"]);
   assert.deepEqual(output.services["frontend-build"].volumes, ["staged:/release:U"]);
+  assert.deepEqual(output.services["frontend-build"].command, [
+    "sh",
+    "-ec",
+    'slk_input=$$(printf hash); printf "%s" "$$slk_input"',
+  ]);
+  assert.equal(output.services["frontend-build"].environment.LITERAL, "$${NOT_A_HOST_VARIABLE}:$$5:$$$$");
   assert.equal(output.services.maintenance.image, "fixture-maintenance");
   assert.equal(output.volumes.staged.name, "fixture-staged-output");
   writeFileSync(overlay, yaml.stringify({ services: { unknown: { volumes: [] } } }));
