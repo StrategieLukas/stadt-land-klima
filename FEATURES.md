@@ -484,6 +484,7 @@ Implemented on 2026-10-27. A bounded real-provider check verified EN/IT API over
 | Wahlcheck | Server-side election PDF proxy (no browser Directus token required) | src/frontend/server/api/election-pdf.post.ts | Not covered by a dedicated automated test |
 | Wahlcheck | Candidate and election PDF or guide generation where configured | src/directus/extensions/endpoint-pdf-service/src, src/directus/extensions/endpoint-pdf-service/typst | Not covered by a dedicated automated test |
 | Wahlcheck | Candidate-facing email delivery and content | src/directus/extensions/election-check/src, Directus email templates | MAN — email delivery is described as a manual check |
+| Wahlcheck | New elections receive invitation, reminder and thank-you defaults jointly signed by Stadt.Land.Klima! and LocalZero; invitation copy describes an equal cooperation. | `src/directus/schema/fields/elections/candidate{,_reminder,_thank_you}_email_template.yaml` | Manual copy review and rendered HTML validation; no dedicated automated copy test. Existing candidate-email send and validation coverage applies to the surrounding workflow. |
 | Wahlcheck | Election admin roles and collection permissions | src/directus/roles/WahlcheckAdmin.yaml, src/directus/policies/WahlcheckAdmin.yaml, src/directus/policies/Lokalteam-Wahlcheck.yaml | RAT — admin action UI and restricted workflow assertions |
 
 ### Erfolgsprojekte editorial workflow

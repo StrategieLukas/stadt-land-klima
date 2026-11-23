@@ -55,7 +55,7 @@ schema:
     <body style="margin: 0; padding: 0; background: #f6f6f6; color: #171717;
     font-family: Arial, Helvetica, sans-serif;">
       <div style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent;">
-        Ihre persönliche Einladung zum Klimawahl-Check für {{ municipality_name }}
+        Ihre persönliche Einladung von Stadt.Land.Klima! und LocalZero zum Klimawahl-Check für {{ municipality_name }}
       </div>
 
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse; background: #f6f6f6;">
@@ -89,7 +89,7 @@ schema:
                   <p style="margin: 0 0 16px;">{{ candidate_salutation }},</p>
 
                   <p style="margin: 0 0 24px;">
-                    wir freuen uns, Sie zur Teilnahme am Klimawahl-Check für die Gemeinde {{ municipality_name }} einzuladen. Über den untenstehenden Button gelangen Sie direkt zu Ihrem persönlichen Fragebogen, in dem Sie Ihre Positionen zu wichtigen Klimaschutz-Maßnahmen darlegen können.
+                    Stadt.Land.Klima! und LocalZero laden Sie gemeinsam zur Teilnahme am Klimawahl-Check für die Gemeinde {{ municipality_name }} ein. Über den untenstehenden Button gelangen Sie direkt zu Ihrem persönlichen Fragebogen, in dem Sie Ihre Positionen zu wichtigen Klimaschutz-Maßnahmen darlegen können.
                   </p>
 
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 30px; border-collapse: collapse;">
@@ -114,7 +114,7 @@ schema:
 
                   <p style="margin: 0; color: #737373; font-size: 14px; line-height: 21px;">
                     Vielen Dank für Ihren Beitrag zum Klimaschutz!<br />
-                    Ihr Team von {{ projectName }}
+                    Ihre Teams von Stadt.Land.Klima! und LocalZero
                   </p>
                 </td>
               </tr>
@@ -122,7 +122,7 @@ schema:
               <tr>
                 <td style="padding: 24px 30px; border-top: 1px solid #d3dae4; color: #737373; font-size: 12px; line-height: 18px;">
                   <p style="margin: 0 0 12px;">
-                    <strong style="color: #525252;">Stadt.Land.Klima!</strong> ist ein gemeinsames bewegungsübergreifendes Projekt mit Fokus auf Klimaschutz im kommunalen Kontext.
+                    Der Klimawahl-Check ist eine gleichberechtigte Kooperation von <strong style="color: #525252;">Stadt.Land.Klima!</strong> und <strong style="color: #525252;">LocalZero</strong> für kommunalen Klimaschutz.
                   </p>
                   <p style="margin: 0 0 12px;">
                     Zum Ranking:

@@ -65,7 +65,7 @@ schema:
                 <td style="padding: 20px 30px 30px; color: #525252; font-size: 16px; line-height: 24px;">
                   <h1 style="margin: 0 0 20px; color: #006e94; font-size: 28px; line-height: 34px;">Erinnerung an den Klimawahl-Check</h1>
                   <p style="margin: 0 0 16px;">{{ candidate_salutation }},</p>
-                  <p style="margin: 0 0 16px;">uns liegen noch keine Antworten von Ihnen für den Klimawahl-Check in {{ municipality_name }} vor. Wir freuen uns, wenn Sie Ihre Positionen noch einreichen.</p>
+                  <p style="margin: 0 0 16px;">Stadt.Land.Klima! und LocalZero möchten Sie gemeinsam an den Klimawahl-Check in {{ municipality_name }} erinnern. Uns liegen noch keine Antworten von Ihnen vor. Wir freuen uns, wenn Sie Ihre Positionen noch einreichen.</p>
                   <p style="margin: 0 0 24px;">Die Frist endet am <strong>{{ cutoff_date }}</strong>.</p>
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 30px; border-collapse: collapse;">
                     <tr>
@@ -74,7 +74,7 @@ schema:
                       </td>
                     </tr>
                   </table>
-                  <p style="margin: 0; color: #737373; font-size: 14px; line-height: 21px;">Vielen Dank für Ihre Zeit!<br />Ihr Team von {{ projectName }}</p>
+                  <p style="margin: 0; color: #737373; font-size: 14px; line-height: 21px;">Vielen Dank für Ihre Zeit!<br />Ihre Teams von Stadt.Land.Klima! und LocalZero</p>
                 </td>
               </tr>
             </table>
