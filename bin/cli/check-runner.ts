@@ -45,7 +45,7 @@ export type CheckReport = {
   checks: CheckResult[];
   pending: string[];
 };
-export type OutputMode = "summary" | "json" | "full";
+export type OutputMode = "brief" | "summary" | "json" | "full";
 
 let outputHandlersInstalled = false;
 export function handleCheckOutputErrors(): void {
@@ -294,21 +294,20 @@ export async function runChecks(
           excerpt: "",
         });
       } else {
-        process.stderr.write(`Running ${check.id}\n`);
-        report.checks.push(
-          await executeCheck(
-            check,
-            options.directory,
-            options.output,
-            options.tail,
-            controller.signal,
-            options.timeoutSeconds ?? check.timeoutSeconds ?? 600,
-          ),
+        if (options.output !== "brief") process.stderr.write(`Running ${check.id}\n`);
+        const result = await executeCheck(
+          check,
+          options.directory,
+          options.output,
+          options.tail,
+          controller.signal,
+          options.timeoutSeconds ?? check.timeoutSeconds ?? 600,
         );
-        const result = report.checks.at(-1)!;
-        process.stderr.write(
-          `${result.status.toUpperCase()} ${result.id} (${(result.durationMs / 1000).toFixed(1)}s)\n`,
-        );
+        report.checks.push(result);
+        if (options.output !== "brief")
+          process.stderr.write(
+            `${result.status.toUpperCase()} ${result.id} (${(result.durationMs / 1000).toFixed(1)}s)\n`,
+          );
       }
       save();
     }
@@ -336,12 +335,20 @@ export function printCheckReport(report: CheckReport, output: OutputMode): void 
   process.stdout.write(
     `\n${report.ok ? "PASS" : "FAIL"} ${report.profile}${report.selectors.length ? ` (selected: ${report.selectors.join(", ")}; prerequisites included)` : ""} — ${report.platform}/${report.arch}, Node ${report.node}\n`,
   );
-  for (const check of report.checks) {
+  const displayedChecks =
+    output === "brief" ? report.checks.filter((check) => check.status !== "passed") : report.checks;
+  if (output === "brief") {
+    const failed = displayedChecks.filter((check) => check.status === "failed").length;
+    process.stdout.write(
+      `${report.checks.length - displayedChecks.length} passed, ${failed} failed, ${displayedChecks.length - failed} blocked\n`,
+    );
+  }
+  for (const check of displayedChecks) {
     process.stdout.write(
       `${check.status.toUpperCase().padEnd(7)} ${check.id} ${(check.durationMs / 1000).toFixed(1)}s${check.reason ? ` — ${check.reason}` : ""}\n`,
     );
     if (check.status === "failed") {
-      if (check.excerpt && output !== "full") process.stdout.write(check.excerpt + "\n");
+      if (check.excerpt && output === "summary") process.stdout.write(check.excerpt + "\n");
       process.stdout.write(`Log: ${check.log}\n`);
     }
   }

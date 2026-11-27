@@ -246,7 +246,7 @@ const parser = yargs(hideBin(process.argv))
           default: [],
           description: "Check IDs/groups (comma-separated or repeated); includes prerequisites",
         })
-        .option("output", { choices: ["summary", "json", "full"] as const, default: "summary" as const })
+        .option("output", { choices: ["brief", "summary", "json", "full"] as const, default: "summary" as const })
         .option("list", { type: "boolean", default: false, description: "List the plan without executing checks" })
         .option("tail", {
           type: "number",
@@ -488,7 +488,7 @@ const parser = yargs(hideBin(process.argv))
   .example("$0 cache flush", "Flush development application caches and restart CMS/frontend")
   .example("$0 stack compose --env development -- exec -T directus node --version", "Forward provider options after --")
   .example("$0 database export --env production > backup.sql", "Export through the bootstrap operator")
-  .example("$0 check ready", "Run local readiness gates with concise results")
+  .example("$0 check ready --output brief", "Run local readiness gates and show only counts and failures")
   .example("$0 check quality --only static --output json", "Run only static CI gates with a JSON report")
   .example("$0 test dev", "Run the required development regression suite")
   .showHelpOnFail(true)

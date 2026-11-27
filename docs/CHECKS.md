@@ -82,7 +82,9 @@ do not attest which Git revision is deployed; confirm that separately.
 ```bash
 ./bin/slk check ready --list
 ./bin/slk check quality --only static
-./bin/slk check ready --only types.cli,unit --output summary --tail 12
+./bin/slk check ready --only types.cli,unit --output brief
+./bin/slk check ready --output brief
+./bin/slk check quality --only types.cli --output summary --tail 12
 ./bin/slk check quality --only image.audit --tail 80
 ./bin/slk check quality --only extensions --output full
 ```
@@ -97,26 +99,31 @@ sources. The documentation-only procedure above uses explicit scoped checks
 instead. Formatting runs last in the complete quality/ready plans, after
 generators and builds.
 
-| Option                  | Behavior                                                        |
-| ----------------------- | --------------------------------------------------------------- |
-| `--list`                | Show the plan without running it or creating a report directory |
-| `--output summary`      | Default: compact results and bounded failure tails              |
-| `--output json`         | One JSON object on stdout; progress remains on stderr           |
-| `--output full`         | Stream complete child stdout/stderr, then the summary           |
-| `--tail 80`             | Keep up to 80 trailing lines per failure; accepts 1–200         |
-| `--timeout-seconds 900` | Override each selected check's deadline; accepts 1–7200         |
+| Option                  | Behavior                                                                              |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| `--list`                | Show the plan without running it or creating a report directory                       |
+| `--output brief`        | At completion, show counts, failed/blocked checks, log paths and pending verification |
+| `--output summary`      | Default: compact results and bounded failure tails                                    |
+| `--output json`         | One JSON object on stdout; progress remains on stderr                                 |
+| `--output full`         | Stream complete child stdout/stderr, then the summary                                 |
+| `--tail 80`             | Keep up to 80 trailing lines per failure in the report and summary output (1–200)     |
+| `--timeout-seconds 900` | Override each selected check's deadline; accepts 1–7200                               |
 
-For assistant work, prefer `--output summary --tail 12`. Keep JSON for actual
-programmatic consumers: extract status, failed check IDs and relevant log paths
-instead of displaying the entire report. Successful logs and full output remain
-available on disk. Read the relevant saved log when diagnosing a failure rather
-than rerunning a check just to expand its output. During iteration, run only the
-affected gates; batch fixes before the required final application readiness run.
-Do not repeat a successful full run for a subsequent documentation-only change.
-Check local prerequisites before expensive builds, and reproduce failed live
-flows with their required disposable fixtures before repeating the full run.
-Preserve the real application routes and assertions; missing fixture content is
-an environment problem, not a reason to suppress a regression.
+Use `--output brief` when you plan to read the result after completion. It saves
+complete logs and the same incremental JSON report as the other modes. Use
+`--output summary --tail 12` when you need inline failure excerpts. For
+programmatic consumers, extract the needed fields from JSON before displaying it.
+For other verbose commands, redirect stdout and stderr to a log file and capture
+the command's exit status. Read the relevant part of the saved log for diagnosis.
+
+Check local prerequisites before expensive builds. Run affected gates during
+iteration and batch fixes before the final full application readiness run. Wait
+for completion before dependent analysis, checking progress when it can inform
+an action. If a check fails twice for the same reason, investigate the cause and
+address it before retrying. Reproduce failed live flows with their required
+disposable fixtures and real application routes and assertions before repeating
+the full run. Reuse successful application verification after qualifying
+documentation-only edits.
 
 Excerpts are bounded to 12,000 characters per failure, reading at most the final
 32 KiB of a log. ANSI/control sequences are stripped from excerpts. Logs retain the

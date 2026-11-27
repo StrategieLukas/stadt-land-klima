@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import {
   cpSync,
   existsSync,
@@ -225,6 +225,46 @@ test("CLI JSON stdout stays machine readable, npm keeps argv boundaries, and nat
   assert.equal(invocation.executable, process.execPath);
   assert.ok(invocation.args[0]!.endsWith("npm-cli.js"));
   assert.equal(invocation.args.at(-1), literal);
+});
+
+test("brief output shows counts and failure locations while retaining private diagnostics", (t) => {
+  const directory = fixture(t);
+  const checks = [
+    nodeCheck("passing-check", 'console.log("successful child output")'),
+    nodeCheck("failing-check", 'console.error("failure diagnostic"); process.exitCode = 17'),
+    { ...nodeCheck("blocked-check", ""), dependencies: ["failing-check"] },
+  ];
+  const code = `
+    import { runChecks, printCheckReport } from ${JSON.stringify(new URL("./check-runner.ts", import.meta.url).href)};
+    const report = await runChecks(${JSON.stringify(checks)}, ${JSON.stringify({
+      ...runOptions(directory),
+      output: "brief",
+    })});
+    printCheckReport(report, "brief");
+    process.exitCode = report.ok ? 0 : 1;
+  `;
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", code], {
+    cwd: root,
+    encoding: "utf8",
+    timeout: 10000,
+  });
+  assert.ifError(result.error);
+  assert.equal(result.status, 1);
+  assert.equal(result.stderr, "");
+  assert.match(result.stdout, /1 passed, 1 failed, 1 blocked/);
+  assert.match(result.stdout, /FAILED\s+failing-check .*Exited 17/);
+  assert.match(result.stdout, /BLOCKED\s+blocked-check .*Requires passing: failing-check/);
+  assert.doesNotMatch(result.stdout, /passing-check|successful child output|failure diagnostic/);
+
+  const failureLog = join(directory, "failing-check.log");
+  const reportPath = join(directory, "report.json");
+  assert.ok(result.stdout.includes(`Log: ${failureLog}`));
+  assert.ok(result.stdout.includes(`Report: ${reportPath}`));
+  assert.equal(readFileSync(failureLog, "utf8").trim(), "failure diagnostic");
+  assert.equal(readFileSync(join(directory, "passing-check.log"), "utf8").trim(), "successful child output");
+  const report = JSON.parse(readFileSync(reportPath, "utf8"));
+  assert.equal(report.ok, false);
+  assert.equal(report.checks[1].excerpt, "failure diagnostic");
 });
 
 test("CLI rejects a nonlocal live target before executing any checks", () => {
