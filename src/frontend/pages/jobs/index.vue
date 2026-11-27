@@ -18,6 +18,13 @@
           color="orange"
           text-color="white"
         />
+        <CanonicalButton
+          :label="$t('theses.title')"
+          href="/abschlussarbeiten"
+          icon-slug="mdi:school-outline"
+          color="orange"
+          text-color="white"
+        />
       </div>
     </header>
 

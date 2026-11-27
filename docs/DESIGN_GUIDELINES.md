@@ -128,6 +128,7 @@ artifacts under `.reports/layout-gutters/`.
 | Route family                                 | Routes                                                                                                                                              | Width treatment and regression coverage                                                                                                                                                                                                                 |
 | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Standard overview/listing                    | `/jobs`, `/organisation`, `/municipalities`, `/news`, `/events`, `/projects`, `/tools`, `/measures`, `/stats`, `/contact`, `/elections/wahlcheck`   | Shared 1280px grid; targeted browser geometry at 960px in both themes. Jobs/news also cover 390, 639, 640, 767, 768, 1024 and 1440px. Contact keeps its inner form cap.                                                                                 |
+| Thesis topics                                | `/abschlussarbeiten`                                                                                                                                | Shared outer gutter, left-aligned list with an explicit 896px cap. Targeted desktop light and narrow dark browser checks cover focus and horizontal fit.                                                                                                |
 | Event-series listing                         | `/events/series/:slug`                                                                                                                              | Shared grid; targeted 960px geometry with the Public Navigation fixture.                                                                                                                                                                                |
 | CMS and homepage                             | `/`, `/:slug`                                                                                                                                       | Shared outer gutter; authored block widths/padding and legacy prose widths remain. Homepage and the Public Navigation CMS fixture have targeted browser geometry; arbitrary authored combinations and editor geometry remain manual-only.               |
 | Narrow reading/details                       | `/news/:slug`, `/events/:slug`, `/projects/tours/:tourSlug/:stopSlug`, `/measures/:slug`, `/jobs/:slug`, `/municipalities/updates`, `/regions/:ars` | Preserve explicit caps: 768px for news/events/station reports, 1024px for measures, 1152px for jobs, 896px for updates/regions. News/event/measure fixture details and updates have targeted gutter geometry; the other detail caps remain manual-only. |
@@ -155,6 +156,18 @@ editor geometry also require visual review.
 - Keep section headings subordinate to the hero, normally `font-heading text-3xl font-bold`. Use smaller headings inside detail panels and member cards instead of increasing every heading level together.
 
 Reference implementations: [news](../src/frontend/pages/news/index.vue), [events](../src/frontend/pages/events/index.vue), [tools](../src/frontend/pages/tools/index.vue), [organisation](../src/frontend/pages/organisation/index.vue).
+
+## Thesis topics
+
+Use one column of flat, square disclosures with a themed edge. Keep the title,
+optional plain-text preview and semantic discipline badges visible when collapsed. Use shared
+filter pills for multi-select disciplines and a labelled select for degree level.
+Expanded topics show the Markdown description and put degree levels next to the
+shared contact copy and action.
+Disclosures work with the keyboard, have a visible focus outline and expand
+without animation.
+
+Reference: [thesis listing](../src/frontend/pages/abschlussarbeiten/index.vue).
 
 ## Loading stability
 

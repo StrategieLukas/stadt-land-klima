@@ -35,6 +35,10 @@ meta:
         icon: groups
         text: $t:feedback.type.onboarding
         value: onboarding
+      - color: "#2196F3"
+        icon: school
+        text: $t:feedback.type.thesis
+        value: thesis
       - color: "#505050"
         icon: home_max_dots
         text: $t:feedback.type.other
@@ -60,6 +64,8 @@ meta:
         value: press
       - text: $t:feedback.type.onboarding
         value: onboarding
+      - text: $t:feedback.type.thesis
+        value: thesis
       - text: $t:feedback.type.other
         value: other
   readonly: false

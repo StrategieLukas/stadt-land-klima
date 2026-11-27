@@ -1,4 +1,6 @@
+import { deepEqual } from "node:assert/strict";
 import type { Browser } from "playwright";
+import { FeedbackTypeSchema } from "../../../../src/frontend/shared/contracts/submissions.js";
 import { assert } from "../lib/assert.js";
 import { newContext, waitForHydration, collectPublicPageErrors } from "../lib/browser.js";
 import type { TestRunner } from "../lib/runner.js";
@@ -179,10 +181,13 @@ export async function runContactFeedbackFlow(runner: TestRunner, frontendUrl: st
           const options = await category
             .locator("option")
             .evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
-          assert(
-            options.includes("press") && options.includes("onboarding") && options.length === 9,
-            "Both new categories coexist with the existing six",
+          deepEqual(
+            options,
+            ["", ...FeedbackTypeSchema.options],
+            "Contact categories should match the allowed submission types",
           );
+          const thesisLabel = (await category.locator('option[value="thesis"]').textContent())?.trim();
+          assert(thesisLabel && thesisLabel !== "feedback.type.thesis", "The thesis category is translated");
           assert(
             await category.evaluate((element) => element.nextElementSibling?.id === "feedback-onboarding-hint"),
             "Warning appears immediately below category selection",

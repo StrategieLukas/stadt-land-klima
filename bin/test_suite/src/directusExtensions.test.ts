@@ -664,6 +664,7 @@ test("contact notifications route every category to a fixed department and escap
     cooperation: "kooperationen",
     press: "presse",
     onboarding: "onboarding",
+    thesis: "abschlussarbeiten",
   };
   const field = yaml.parse(readFileSync(new URL("../schema/fields/feedback/type.yaml", extensions), "utf8"));
   assert.deepEqual(

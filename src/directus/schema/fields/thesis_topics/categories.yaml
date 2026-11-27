@@ -1,0 +1,63 @@
+collection: thesis_topics
+field: categories
+type: json
+meta:
+  collection: thesis_topics
+  conditions: null
+  display: null
+  display_options: null
+  field: categories
+  group: null
+  hidden: false
+  interface: select-multiple-checkbox
+  note: null
+  options:
+    choices:
+      - text: $t:theses.category.political_science
+        value: political_science
+      - text: $t:theses.category.public_administration
+        value: public_administration
+      - text: $t:theses.category.computer_and_data_science
+        value: computer_and_data_science
+      - text: $t:theses.category.climate_action_management
+        value: climate_action_management
+      - text: $t:theses.category.climate_and_environmental_engineering
+        value: climate_and_environmental_engineering
+  readonly: false
+  required: true
+  searchable: true
+  sort: 4
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Fachrichtungen
+    - language: en-GB
+      translation: Fields of study
+    - language: it-IT
+      translation: Ambiti di studio
+  validation:
+    _or:
+      - categories:
+          _null: true
+      - count(categories):
+          _gt: 0
+  validation_message: null
+  width: full
+schema:
+  name: categories
+  table: thesis_topics
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

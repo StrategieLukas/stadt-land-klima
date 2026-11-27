@@ -20,6 +20,7 @@ export const PUBLIC_NUXT_ROUTES = [
   },
   { id: "static_news", url: "/news", titleKey: "news.title", textKeys: ["news.description"] },
   { id: "static_jobs", url: "/jobs", titleKey: "jobs.title", textKeys: ["jobs.description"] },
+  { id: "static_theses", url: "/abschlussarbeiten", titleKey: "theses.title", textKeys: ["theses.intro"] },
   { id: "static_organisation", url: "/organisation", titleKey: "organisation.title", textKeys: [] },
   { id: "static_events", url: "/events", titleKey: "events.title", textKeys: ["events.hero.description"] },
   { id: "static_data", url: "/data", titleKey: "data.overview.title", textKeys: ["data.dashboard.intro"] },

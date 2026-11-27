@@ -29,6 +29,7 @@ operations:
             case 'cooperation': recipient = 'kooperationen@stadt-land-klima.de'; break;
             case 'press': recipient = 'presse@stadt-land-klima.de'; break;
             case 'onboarding': recipient = 'onboarding@stadt-land-klima.de'; break;
+            case 'thesis': recipient = 'abschlussarbeiten@stadt-land-klima.de'; break;
             default: recipient = 'info@stadt-land-klima.de';
           }
           const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));

@@ -19,6 +19,7 @@ import { runPublicNavigationFlow } from "./flows/publicNavigationFlow.js";
 import { runSearchInteractionFlow } from "./flows/searchInteractionFlow.js";
 import { runSharedStateFlow } from "./flows/sharedStateFlow.js";
 import { runJobsFlow } from "./flows/jobsFlow.js";
+import { runThesisTopicsFlow } from "./flows/thesisTopicsFlow.js";
 import { runEditorSessionFlow } from "./flows/editorSessionFlow.js";
 import { runAssetTransformFlow } from "./flows/assetTransformFlow.js";
 
@@ -208,6 +209,15 @@ async function main(): Promise<void> {
     } catch (e) {
       runner.results.push({
         name: "Public navigation flow",
+        status: "failed",
+        error: e instanceof Error ? e : new Error(String(e)),
+      });
+    }
+    try {
+      await runThesisTopicsFlow(runner, fixture, browser);
+    } catch (e) {
+      runner.results.push({
+        name: "Thesis topics flow",
         status: "failed",
         error: e instanceof Error ? e : new Error(String(e)),
       });

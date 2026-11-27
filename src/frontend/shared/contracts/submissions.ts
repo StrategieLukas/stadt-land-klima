@@ -14,6 +14,7 @@ export const FeedbackTypeSchema = z.enum([
   "cooperation",
   "press",
   "onboarding",
+  "thesis",
   "other",
 ]);
 export const FeedbackRequestSchema = z.strictObject({

@@ -49,6 +49,7 @@ export const SECURITY_LOG_ROUTES = [
   "/api/public/projects-tours",
   "/api/public/ratings",
   "/api/public/site-layout",
+  "/api/public/thesis-topics",
   "/api/public/tour-detail",
   "/api/public/tour-stop-articles",
   "/api/public/tour-stops-by-tour",

@@ -42,6 +42,8 @@ export const staticSearchMessages = {
     "seo.description": "Wie steht deine Kommune beim Klimaschutz da? Entdecke unabhängige Bewertungen, konkrete Maßnahmen, Klima-Wahlchecks und erfolgreiche Projekte bei Stadt.Land.Klima!",
     "seo.title": "Klimaschutz in deiner Kommune",
     "stats.title": "Zahlen & Statistiken",
+    "theses.intro": "Wir unterstützen dich gerne bei deiner Abschlussarbeit zum kommunalen Klimaschutz. Hier findest du Themenvorschläge aus unserer Arbeit mit Kommunen und Lokalteams. Wenn dich ein Thema interessiert, schreib uns. Gemeinsam können wir die Fragestellung eingrenzen und besprechen, welche Daten oder Praxiserfahrungen wir beisteuern können.",
+    "theses.title": "Abschlussarbeiten",
     "tools.description": "Eine kuratierte Übersicht externer Werkzeuge, die Kommunen und Lokalteams bei Planung, Analyse, Beteiligung und Kommunikation im Klimaschutz unterstützen.",
     "tools.title": "Klima-Tools"
   },
@@ -86,6 +88,8 @@ export const staticSearchMessages = {
     "seo.description": "How is your municipality doing on climate action? Explore independent assessments, practical measures, climate election checks and successful projects with Stadt.Land.Klima!",
     "seo.title": "Climate action in your municipality",
     "stats.title": "Data and statistics",
+    "theses.intro": "We’d be happy to support your thesis on local climate action. The suggested topics draw on our work with municipalities and local teams. If one sparks your interest, get in touch. Together we can narrow down your research question and discuss what data or practical experience we can share.",
+    "theses.title": "Thesis topics",
     "tools.description": "A curated overview of external tools that help municipalities and local teams with climate planning, analysis, participation, and communication.",
     "tools.title": "Climate tools"
   },
@@ -130,6 +134,8 @@ export const staticSearchMessages = {
     "seo.description": "A che punto è il tuo comune nella protezione del clima? Scopri valutazioni indipendenti, misure concrete, confronti elettorali sul clima e progetti di successo con Stadt.Land.Klima!",
     "seo.title": "Protezione del clima nel tuo comune",
     "stats.title": "Numeri e statistiche",
+    "theses.intro": "Ci fa piacere sostenerti nella tua tesi sull’azione per il clima a livello comunale. Gli argomenti proposti nascono dal nostro lavoro con i comuni e i gruppi locali. Se un argomento ti interessa, scrivici. Possiamo definire insieme la domanda di ricerca e capire quali dati o esperienze sul campo possiamo condividere.",
+    "theses.title": "Argomenti di tesi",
     "tools.description": "Una panoramica curata di strumenti esterni che aiutano comuni e team locali nella pianificazione, nell'analisi, nella partecipazione e nella comunicazione climatica.",
     "tools.title": "Strumenti climatici"
   }

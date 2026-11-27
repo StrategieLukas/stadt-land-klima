@@ -1,5 +1,5 @@
 /**
- * Internal Directus schema types for the jobs feature.
+ * Internal Directus schema types for public listings.
  *
  * These types describe the actual CMS structure. They are NOT public contracts —
  * public responses are constructed explicitly in the API routes using allowlisted
@@ -39,8 +39,19 @@ export interface DirectusAssets {
   type: string | null;
 }
 
+export interface DirectusThesisTopic {
+  id: string;
+  title: string;
+  short_description: string | null;
+  description: string;
+  categories: unknown;
+  levels: unknown;
+  status: string;
+}
+
 export interface DirectusSchema {
   job_offers: DirectusJobOffer[];
   organisations: DirectusOrganisation[];
   directus_files: DirectusAssets[];
+  thesis_topics: DirectusThesisTopic[];
 }

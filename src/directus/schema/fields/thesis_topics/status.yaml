@@ -1,0 +1,73 @@
+collection: thesis_topics
+field: status
+type: string
+meta:
+  collection: thesis_topics
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - background: var(--primary)
+        foreground: "#FFFFFF"
+        text: $t:theses.status.published
+        value: published
+      - background: "#D3DAE4"
+        foreground: "#18222F"
+        text: $t:theses.status.in_progress
+        value: in_progress
+      - background: var(--warning)
+        foreground: "#FFFFFF"
+        text: $t:theses.status.completed
+        value: completed
+    showAsDot: true
+  field: status
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: $t:theses.status.published
+        value: published
+      - text: $t:theses.status.in_progress
+        value: in_progress
+      - text: $t:theses.status.completed
+        value: completed
+  readonly: false
+  required: true
+  searchable: true
+  sort: 2
+  special: null
+  translations:
+    - language: de-DE
+      translation: Status
+    - language: en-GB
+      translation: Status
+    - language: it-IT
+      translation: Stato
+  validation:
+    _and:
+      - status:
+          _in:
+            - published
+            - in_progress
+            - completed
+  validation_message: null
+  width: full
+schema:
+  name: status
+  table: thesis_topics
+  data_type: character varying
+  default_value: published
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

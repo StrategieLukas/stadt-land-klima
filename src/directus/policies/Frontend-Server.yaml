@@ -824,6 +824,21 @@ permissions:
     presets: null
     fields:
       - '*'
+  - collection: thesis_topics
+    action: read
+    permissions:
+      status:
+        _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - title
+      - short_description
+      - description
+      - categories
+      - levels
+      - status
   - collection: elections
     action: update
     permissions:

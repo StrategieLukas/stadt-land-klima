@@ -1,0 +1,62 @@
+collection: thesis_topics
+field: levels
+type: json
+meta:
+  collection: thesis_topics
+  conditions: null
+  display: null
+  display_options: null
+  field: levels
+  group: null
+  hidden: false
+  interface: select-multiple-checkbox
+  note: null
+  options:
+    choices:
+      - text: $t:theses.level.bachelor
+        value: bachelor
+      - text: $t:theses.level.master
+        value: master
+      - text: $t:theses.level.phd
+        value: phd
+  readonly: false
+  required: true
+  searchable: true
+  sort: 5
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Abschlussniveau
+    - language: en-GB
+      translation: Degree levels
+    - language: it-IT
+      translation: Livelli di laurea
+  validation:
+    _or:
+      - levels:
+          _null: true
+      - count(levels):
+          _gt: 0
+  validation_message: null
+  width: full
+schema:
+  name: levels
+  table: thesis_topics
+  data_type: json
+  default_value:
+    - bachelor
+    - master
+    - phd
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

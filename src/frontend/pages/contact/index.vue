@@ -40,6 +40,7 @@
             <option value="cooperation">{{ $t("feedback.type.cooperation") }}</option>
             <option value="press">{{ $t("feedback.type.press") }}</option>
             <option value="onboarding">{{ $t("feedback.type.onboarding") }}</option>
+            <option value="thesis">{{ $t("feedback.type.thesis") }}</option>
             <option value="other">{{ $t("feedback.type.other") }}</option>
           </select>
           <div
