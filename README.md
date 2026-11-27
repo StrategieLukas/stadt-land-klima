@@ -108,6 +108,23 @@ No rebuild is required for runtime keys. Image/source changes still require a
 build; published-port/mount/resource changes require recreation. Persisted account
 passwords must be rotated in the actual service as well as its private config.
 
+## Weekly rating CSV mail
+
+The measure-rating report is restricted to the real HTTPS production site
+(`stadt-land-klima.de` or `www.stadt-land-klima.de`) with `SLK_ENV=production` and
+`SLK_DEPLOYMENT_TARGET=production`. Staging/future never send this report,
+even with production builds. Set `REPORT_ENABLED=false` in the private Directus
+dotenv to disable it; `true` cannot bypass the environment/origin guards. An unset
+switch retains the guarded production default. Optional `REPORT_CRON` and
+`REPORT_RECIPIENT_EMAIL` retain their existing defaults.
+
+On an older staging release without these guards, disable the
+`hook-measure-rating-reports` extension through Directus extension management.
+This unloads its scheduled hook without disabling other scheduled jobs or mail.
+Keep the private disable switch for the subsequent code release. Changing source
+requires the normal reviewed build/deployment; changing private settings alone
+cannot add a guard to an already compiled extension.
+
 ## Configuration, extensions and migrations
 
 The source of truth is `src/directus/` YAML; never replace its importer with SQL

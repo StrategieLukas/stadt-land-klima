@@ -63,6 +63,20 @@
             :external="applicationIsExternal"
             class="mt-4 w-full"
           />
+          <CanonicalButton
+            :label="jobShareText($locale, 'jobs.share.open')"
+            icon-slug="mdi:share-variant"
+            variant="outline"
+            color="gray"
+            class="mt-3 w-full"
+            @click="shareOpen = true"
+          />
+          <LazyJobsJobShareDialog
+            v-if="shareOpen"
+            :job="job"
+            :site-url="config.public.siteUrl"
+            @close="shareOpen = false"
+          />
         </aside>
 
         <div
@@ -94,14 +108,16 @@
 <script setup lang="ts">
 import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useReferrer } from "~/composables/useReferrer";
 import { routeSlug } from "~/shared/routeValues";
 import { resolveJobApplicationLink } from "~/shared/jobApplicationLink";
 import { canonicalUrl } from "~/shared/seo";
+import { jobShareImagePath, jobShareText, resolveJobShareContent } from "~/shared/jobSharing";
+const shareOpen = ref(false);
 const fetchContent = useContentFetch();
 
-const { $t } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 const route = useRoute();
 const config = useRuntimeConfig();
 const slug = routeSlug(route.params.slug);
@@ -139,7 +155,26 @@ if (!jobData.value) {
 
 const job = computed(() => jobData.value?.job);
 
-usePageSeo({ title: job.value?.role_title ?? $t("jobs.title") });
+const shareContent = computed(() =>
+  job.value ? resolveJobShareContent(job.value, $locale, config.public.siteUrl) : null,
+);
+usePageSeo({
+  title: () => job.value?.role_title ?? $t("jobs.title"),
+  description: () =>
+    shareContent.value
+      ? [
+          shareContent.value.title,
+          shareContent.value.organisation,
+          shareContent.value.type,
+          shareContent.value.hours,
+          shareContent.value.pay,
+          shareContent.value.period,
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : undefined,
+  socialImagePath: () => (job.value ? jobShareImagePath(job.value.slug, $locale, "link") : undefined),
+});
 
 const applicationHref = computed(() => {
   const configuredLink = resolveJobApplicationLink(job.value?.application_url);

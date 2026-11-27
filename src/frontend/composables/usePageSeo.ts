@@ -66,7 +66,11 @@ export function usePageSeo(options: MaybeRefOrGetter<PageSeoOptions> = {}) {
   const image = computed(() => {
     if (privateRoute.value) return null;
     const path = toValue(toValue(options).socialImagePath);
-    if (path && /^\/api\/public\/municipalities\/[a-z0-9-]{1,160}\/social-image(?:\?|$)/.test(path))
+    if (
+      path &&
+      (/^\/api\/public\/municipalities\/[a-z0-9-]{1,160}\/social-image(?:\?|$)/.test(path) ||
+        /^\/api\/public\/jobs\/[a-z0-9-]{1,160}\/social-image(?:\?|$)/.test(path))
+    )
       return new URL(path, site).href;
     return socialAssetUrl(config.public.clientDirectusUrl, toValue(toValue(options).image), site);
   });

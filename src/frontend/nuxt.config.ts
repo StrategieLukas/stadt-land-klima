@@ -242,6 +242,13 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
+    serverAssets: [
+      {
+        baseName: "job-brand",
+        dir: fileURLToPath(new URL("./assets/images", import.meta.url)),
+        pattern: "Stadt-Land-Klima-Logo.svg",
+      },
+    ],
     errorHandler: fileURLToPath(new URL("./server/errorHandler.ts", import.meta.url)),
     preset: "node-server",
     rollupConfig: {

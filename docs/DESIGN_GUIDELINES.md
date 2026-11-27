@@ -195,6 +195,25 @@ Reference implementations: [news](../src/frontend/pages/news/index.vue), [events
   24px padding. Keep complete wrapping role titles, an organisation name/logo,
   and plain metadata below a divider; hover/focus underlines the title. Do not
   restore raised hover motion, rounded shadow cards or decorative type badges.
+  Show available salary/hourly wage beside weekly hours in the same wrapping
+  metadata row, with no separator when either value is absent. Prefer hourly
+  wage for working students and salary for other paid types; omit employment
+  compensation for volunteer roles. Preserve authored currency, ranges and units.
+- Job sharing opens a native, labelled dialog from an outline CanonicalButton
+  below the orange contact action. Keep its backdrop translucent at 50% in both
+  themes, its preview frame stable across formats, and the decoded previous image
+  visible during replacement. Disable image actions until the selected image is
+  ready; link actions remain usable. Escape restores focus to the share trigger.
+  Platform actions use monochrome icons and shared outline canonical styling.
+- Job share artwork has a fixed light brand palette, official SLK artwork and
+  readable organisation text, with a validated raster logo when available. Export
+  Story at 1080 × 1920, feed at 1080 × 1350 and link previews at 1200 × 630. Story
+  content stays inside 72px side insets, 288px top clearance and 672px bottom
+  clearance, including logos and the CTA. These are project defaults pending
+  physical Instagram acceptance, not universal platform specifications. Guides
+  appear only over the preview. Employment emphasizes hours/pay, early-career
+  roles put the period first, and volunteering leads with a short task excerpt
+  when space allows. Preserve pay before optional excerpts and never infer units.
 - Job details retain an unboxed heading and one bordered content panel with
   divided sections, beside a 20rem sticky facts sidebar from `lg`; on mobile the
   facts/actions precede the content. Do not turn each prose section into a

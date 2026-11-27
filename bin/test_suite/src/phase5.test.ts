@@ -1,4 +1,5 @@
 import { isRaster } from "../../../src/frontend/shared/utils.js";
+import { jobCompensation } from "../../../src/frontend/shared/jobCompensation.js";
 import { withCollectionBarAxes } from "../../../src/frontend/shared/collectionChartAxes.js";
 import { prepareButtonIcons } from "../../../src/frontend/utils/buttonIcons.js";
 import { loggingModule } from "./lib/loggingModules.js";
@@ -93,6 +94,48 @@ async function render(
   app.directive("blokkli-editable", { getSSRProps: () => ({}) });
   return ssr.renderToString(app);
 }
+
+test("job cards pair hours with type-appropriate compensation and omit empty separators", async () => {
+  const base = {
+    slug: "climate-role",
+    role_title: "Climate role",
+    type: "full_time",
+    start_date: null,
+    end_date: null,
+    organisation: null,
+    salary: null,
+    hourly_wage: null,
+    weekly_hours: " 32–40h ",
+  };
+  const logo = vue.defineComponent({ render: () => null });
+  async function card(overrides: Record<string, unknown>) {
+    return render(
+      "JobOfferCard.vue",
+      { job: { ...base, ...overrides }, typeLabel: () => "Role type", flexibleDateLabel: "Flexible start" },
+      {},
+      { "~/shared/jobCompensation": { jobCompensation } },
+      { OrganisationLogo: logo },
+    );
+  }
+  const salary = await card({ salary: " 4.500 € / Monat ", hourly_wage: "18 €/h" });
+  assert.match(salary, /32–40h[\s\S]*?·[\s\S]*?4\.500 € \/ Monat/);
+  assert.doesNotMatch(salary, /18 €\/h/);
+  const student = await card({ type: "working_student", salary: "900 €", hourly_wage: " 18 €/h " });
+  assert.match(student, /32–40h[\s\S]*?18 €\/h/);
+  assert.doesNotMatch(student, /900 €/);
+  const payOnly = await card({ weekly_hours: " ", salary: "Negotiable" });
+  assert.match(payOnly, /Negotiable/);
+  assert.doesNotMatch(payOnly, /·/);
+  for (const overrides of [
+    { salary: " ", hourly_wage: " " },
+    { type: "volunteer", salary: "900 €", hourly_wage: "18 €/h" },
+  ]) {
+    const html = await card(overrides);
+    assert.match(html, /32–40h/);
+    assert.doesNotMatch(html, /·|900 €|18 €\/h/);
+  }
+  assert.match(await card({ salary: '<script>alert("pay")</script>' }), /&lt;script&gt;/);
+});
 
 test("measure rating bars count numeric and string ratings, not-applicable and unrated published municipalities", async () => {
   for (const stringify of [false, true]) {

@@ -1,0 +1,3 @@
+language: en-GB
+key: jobs.share.error
+value: "The image could not be created. You can still share the link."

@@ -1,4 +1,5 @@
 import { JobsListResponseSchema, JobsDetailResponseSchema } from "../../../../src/frontend/shared/contracts/jobs.js";
+import { JOB_SHARE_FORMATS } from "../../../../src/frontend/shared/jobSharing.js";
 import type { Browser } from "playwright";
 import { assert, assertIncludes, assertNotIncludes } from "../lib/assert.js";
 import { newContext, waitForHydration, collectPublicPageErrors } from "../lib/browser.js";
@@ -78,6 +79,7 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
       const listPage = await pageHtml(`${config.frontendUrl}/jobs`);
       assertIncludes(listPage, `Automated role ${config.runId}`, "Jobs list page should render the job title");
       assertIncludes(listPage, `Automated org ${config.runId}`, "Jobs list page should render the organisation");
+      assertIncludes(listPage, "45000 €", "Jobs list cards should render salary beside weekly hours");
 
       const detailPage = await pageHtml(`${config.frontendUrl}/jobs/${slug}`);
       assertIncludes(detailPage, `Automated role ${config.runId}`, "Detail page should render the job title");
@@ -100,6 +102,8 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
       assertNotIncludes(draftList, `Draft job ${config.runId}`, "Draft jobs must not appear in list");
       const draftDetail = await fetch(`${config.frontendUrl}/api/public/jobs/${slug}-draft`);
       assert(draftDetail.status === 404, "Draft jobs must return 404 via API");
+      const draftImage = await fetch(`${config.frontendUrl}/api/public/jobs/${slug}-draft/social-image`);
+      assert(draftImage.status === 404, "Draft jobs must not produce public share images");
       await admin.deleteItem("job_offers", draftJob.id);
       delete ids.draft;
 
@@ -124,6 +128,142 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
           "Build climate solutions",
           "Detail page should render in browser",
         );
+      } finally {
+        await context.close();
+      }
+    });
+    await runner.step("Jobs: generated share images, safe format switching and sharing fallbacks", async () => {
+      for (const [format, dimensions] of Object.entries(JOB_SHARE_FORMATS)) {
+        const response = await fetch(
+          `${config.frontendUrl}/api/public/jobs/${slug}/social-image?format=${format}&lang=de-DE`,
+        );
+        assert(response.ok, `${format} share image should return 200, received ${response.status}`);
+        assertIncludes(response.headers.get("content-type") ?? "", "image/png", "Share image content type");
+        const png = Buffer.from(await response.arrayBuffer());
+        assert(
+          png.readUInt32BE(16) === dimensions.width && png.readUInt32BE(20) === dimensions.height,
+          `${format} PNG dimensions`,
+        );
+      }
+      const invalid = await fetch(`${config.frontendUrl}/api/public/jobs/${slug}/social-image?format=invalid`);
+      assert(invalid.status === 400, "Image format must be allowlisted");
+      const duplicate = await fetch(`${config.frontendUrl}/api/public/jobs/${slug}/social-image?lang=de-DE&lang=it-IT`);
+      assert(duplicate.status === 400, "Duplicate image options must be rejected");
+      const linkImage = `${config.frontendUrl}/api/public/jobs/${slug}/social-image?format=link&lang=de-DE`;
+      const initial = await fetch(linkImage);
+      const etag = initial.headers.get("etag");
+      await initial.arrayBuffer();
+      assert(etag, "Images provide a content ETag");
+      await admin.updateItem("job_offers", ids.job!.id, { status: "draft" });
+      try {
+        const withdrawn = await fetch(linkImage, { headers: { "If-None-Match": etag } });
+        assert(withdrawn.status === 404, "Withdrawn jobs cannot return cached images or 304");
+      } finally {
+        await admin.updateItem("job_offers", ids.job!.id, { status: "published" });
+      }
+      const html = await pageHtml(`${config.frontendUrl}/jobs/${slug}`);
+      assertIncludes(
+        html,
+        `/api/public/jobs/${slug}/social-image?format=link`,
+        "Crawler SSR exposes the job link image",
+      );
+      const context = await newContext(browser);
+      try {
+        // Use a script string so the TS runner cannot capture naming helpers in browser callbacks.
+        await context.addInitScript({
+          content: `
+          window.jobShareCalls = 0;
+          Object.defineProperty(navigator, 'share', { configurable: true, value: async () => {
+            window.jobShareCalls++; throw new DOMException('Canceled', 'AbortError');
+          } });
+          Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
+          Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
+            writeText: async (text) => { window.jobCopied = text; }
+          } });
+        `,
+        });
+        const page = await context.newPage();
+        await page.goto(`${config.frontendUrl}/jobs/${slug}`, { waitUntil: "domcontentloaded" });
+        await waitForHydration(page);
+        const trigger = page.getByRole("button", { name: "Job teilen", exact: true });
+        await trigger.click();
+        const dialog = page.getByRole("dialog");
+        const image = dialog.getByTestId("job-share-preview").locator("img");
+        await image.waitFor();
+        const share = dialog.getByRole("button", { name: "Bild für Instagram teilen", exact: true });
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll<HTMLButtonElement>("dialog button")].some(
+            (el) => el.textContent?.includes("Bild für Instagram teilen") && !el.disabled,
+          ),
+        );
+        let downloads = 0;
+        page.on("download", () => {
+          downloads++;
+        });
+        await share.click();
+        await page.waitForFunction(() => (window as Window & { jobShareCalls?: number }).jobShareCalls === 1);
+        assert(downloads === 0, "Canceled native shares must not trigger downloads");
+        assert((await dialog.getByRole("alert").count()) === 0, "Canceled sharing is not an error");
+        await dialog.getByRole("button", { name: "Link kopieren", exact: true }).click();
+        const copied = await page.evaluate(() => (window as Window & { jobCopied?: string }).jobCopied);
+        assert(copied?.endsWith(`/jobs/${slug}`), "Copy uses the canonical job detail URL");
+        const downloadEvent = page.waitForEvent("download");
+        await dialog.getByRole("button", { name: "Bild herunterladen", exact: true }).click();
+        const download = await downloadEvent;
+        const stream = await download.createReadStream();
+        const chunks: Buffer[] = [];
+        for await (const chunk of stream) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        const png = Buffer.concat(chunks);
+        assert(png.readUInt32BE(16) === 1080 && png.readUInt32BE(20) === 1920, "Story download is full resolution");
+        await page.evaluate("Object.defineProperty(navigator, 'canShare', { configurable: true, value: undefined })");
+        const fallbackDownload = page.waitForEvent("download");
+        await share.click();
+        assert(
+          (await fallbackDownload).suggestedFilename().endsWith("-story.png"),
+          "Unsupported file sharing downloads the selected image",
+        );
+        await page.evaluate(
+          "Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw Error('Denied'); } } })",
+        );
+        await dialog.getByRole("button", { name: "Link kopieren", exact: true }).click();
+        assert(
+          (await dialog.locator("textarea").inputValue()).endsWith(`/jobs/${slug}`),
+          "Clipboard denial exposes selectable copy text",
+        );
+        const previous = await image.getAttribute("src");
+        const frame = await dialog.getByTestId("job-share-preview").boundingBox();
+        let release!: () => void;
+        const hold = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        await page.route(
+          (url) => url.pathname.endsWith("/social-image") && url.searchParams.get("format") === "feed",
+          async (route) => {
+            await hold;
+            await route.continue();
+          },
+        );
+        await dialog.getByLabel("Bildformat").selectOption("feed");
+        assert((await image.getAttribute("src")) === previous, "Retain the decoded image while replacement loads");
+        assert(await share.isDisabled(), "Image actions cannot share a stale format");
+        release();
+        await page.waitForFunction(
+          (old) =>
+            document.querySelector<HTMLImageElement>('[data-testid="job-share-preview"] img')?.getAttribute("src") !==
+            old,
+          previous,
+        );
+        const nextFrame = await dialog.getByTestId("job-share-preview").boundingBox();
+        assert(
+          frame?.width === nextFrame?.width && frame?.height === nextFrame?.height,
+          "Format changes preserve the preview frame",
+        );
+        await page.keyboard.press("Escape");
+        await dialog.waitFor({ state: "detached" });
+        assert(await trigger.evaluate((el) => el === document.activeElement), "Closing restores keyboard focus");
+        let limited = false;
+        for (let count = 0; count < 11 && !limited; count++) limited = (await fetch(linkImage)).status === 429;
+        assert(limited, "Expensive image requests enforce their rate-limit result");
       } finally {
         await context.close();
       }

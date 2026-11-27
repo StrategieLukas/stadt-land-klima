@@ -596,7 +596,7 @@ test("runtime mounts contain paths only and the builder receives no private moun
     assert.ok(service.volumes.every((mount) => mount.endsWith(":ro,z")));
     assert.deepEqual(
       Object.keys(service.environment).sort(),
-      name === "frontend"
+      name === "frontend" || name === "directus"
         ? ["SLK_DEPLOYMENT_TARGET", "SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"]
         : ["SLK_ENV_FILES", "SLK_ENV_LOCKED_KEYS"],
     );
@@ -607,6 +607,17 @@ test("runtime mounts contain paths only and the builder receives no private moun
     "staging",
   );
   assert.ok(plan.services.frontend!.environment.SLK_ENV_LOCKED_KEYS?.includes("SLK_DEPLOYMENT_TARGET"));
+  assert.equal(plan.services.directus!.environment.SLK_DEPLOYMENT_TARGET, "production");
+  assert.ok(plan.services.directus!.environment.SLK_ENV_LOCKED_KEYS?.includes("SLK_DEPLOYMENT_TARGET"));
+  for (const target of ["staging", "future", "development"])
+    assert.equal(
+      podmanEnvironmentPlan(paths, true, target).services.directus!.environment.SLK_DEPLOYMENT_TARGET,
+      target,
+    );
+  assert.equal(
+    podmanEnvironmentPlan(paths, false, "production").services.directus!.environment.SLK_DEPLOYMENT_TARGET,
+    "development",
+  );
 });
 
 test("managed runtime controls are declared in their Compose environments", () => {

@@ -1,5 +1,7 @@
 /** Exact, dated dispositions. New advisories/versions never inherit an exception. */
-export const IMAGE_REVIEW_EXPIRES = "2026-11-24";
+// Reassessed against current upstream advisories and rebuilt-image controls on
+// 2026-11-27; evidence and supported-version constraints: PROJECT_DECISIONS.md.
+export const IMAGE_REVIEW_EXPIRES = "2026-12-04";
 export const IMAGE_ADVISORY_REVIEW = [
   {
     name: "directus",

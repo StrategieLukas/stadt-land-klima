@@ -92,6 +92,7 @@ services:
       args:
         SLK_REVISION: "${SLK_RELEASE_REVISION:-unknown}"
     environment:
+      SLK_DEPLOYMENT_TARGET: development
       DB_OPTIONS: "-c timezone=Europe/Berlin"
       CACHE_AUTO_PURGE: "true"
       LOGGER_HTTP_AUTO_LOGGING: "false"

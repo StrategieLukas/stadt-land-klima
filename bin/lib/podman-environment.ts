@@ -11,6 +11,7 @@ export const managedPodmanEnvironment = {
   db: [],
   meilisearch: ["MEILI_NO_ANALYTICS"],
   directus: [
+    "SLK_DEPLOYMENT_TARGET",
     "DB_OPTIONS",
     "CACHE_AUTO_PURGE",
     "LOGGER_HTTP_AUTO_LOGGING",
@@ -59,7 +60,7 @@ export function podmanEnvironmentPlan(
       environment: {
         SLK_ENV_FILES: files.join(":"),
         SLK_ENV_LOCKED_KEYS: locked.join(","),
-        ...(service === "frontend"
+        ...(service === "frontend" || service === "directus"
           ? { SLK_DEPLOYMENT_TARGET: translationDeploymentTarget(production ? "production" : "development", target) }
           : {}),
       },

@@ -236,7 +236,7 @@ is retired; reassess the integrity guard when upgrading the fixed upstream relea
 `audit:directus-image` retains raw findings. The reviewed gate additionally checks
 production controls, vendor regressions and the exact package/version/advisory
 list in `bin/test_suite/src/lib/imageAdvisoryReview.ts`. **The review expires
-2026-11-24.** Unknown findings/versions and expired reviews fail; renew with
+2026-12-04.** Unknown findings/versions and expired reviews fail; renew with
 evidence. Current dispositions cover disabled Directus response caching,
 validated unspecified-IP fetching, bounded own-property stream-json handling,
 source-verified deepmerge own-property writes,
@@ -525,7 +525,7 @@ protection still require actual repository administration.
 Remaining acceptance/maintenance tasks:
 
 1. Review fresh dependency/image findings and renew exact image dispositions
-   before 2026-11-24. A local source patch does not waive new advisories.
+   before 2026-12-04. A local source patch does not waive new advisories.
 2. On each deployment target verify restored backups, effective secrets, DB role,
    proxy/network/resource limits, matching images/compiled extensions/imports,
    public search and configured credentials. Record revision/date/results.
@@ -550,6 +550,36 @@ when NODE_ENV=production. Noninteractive builder runs use `-T`. GitHub workflows
 pin checkout 7.0.1, setup-node 7.1.0 and upload-artifact 7.0.2 by full commit IDs;
 release compatibility was checked against the official action release notes.
 Local workflow validation does not establish an actual hosted-runner execution.
+
+## Image advisory reassessment (2026-11-27)
+
+Rechecked the GitHub Advisory Database and its current fixed-version metadata for
+all eight image findings on 27 November 2026. The rebuilt Linux image passed all
+14 `podman/directus/security-patches/test-runtime.ts` regressions, including share
+ownership/target authorization, connection-time SSRF rejection, hostile JSON keys
+and depth bounds. An isolated image probe confirmed that the 1.x JSONC parser is
+absent; maintained container commands run Directus directly, without PM2 or an
+esbuild development server. The existing cache-off and IP-deny-list controls stay
+mandatory and are checked by `directusImageAudit.ts --reviewed`. The next review
+expires on 4 December 2026; new findings or changed versions still fail.
+
+| Package / finding                                                                            | Current upstream fix | Maintained disposition and evidence                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Directus 11.17.4 — [GHSA-c6w9-5g5j-jh2p](https://github.com/advisories/GHSA-c6w9-5g5j-jh2p)  | 12.0.0               | Above the 11.17.4 cap. Response caching remains disabled in Compose and the effective-library probe.                                                                                        |
+| Directus 11.17.4 — [GHSA-j5h6-vqc3-phqh](https://github.com/advisories/GHSA-j5h6-vqc3-phqh)  | 12.0.0               | Above the cap. Retain the exact-source unspecified-address backport, connection-time address checks and deny-list; rebuilt-image tests reject literal, DNS and redirected loopback targets. |
+| Directus 11.17.4 — [GHSA-7h45-q5jx-7r87](https://github.com/advisories/GHSA-7h45-q5jx-7r87)  | 12.3.1               | Above the cap. Retain the upstream share-update backport; rebuilt-image tests cover creator changes and effective full/partial target changes before mutation.                              |
+| stream-json 1.9.1 — [GHSA-hqr4-qq8f-hg3x](https://github.com/advisories/GHSA-hqr4-qq8f-hg3x) | 3.6.0                | The reported JSONC implementation does not exist in the maintained 1.x package. Keep the Directus-compatible 1.x API and the runtime absence check.                                         |
+| stream-json 1.9.1 — [GHSA-mjw6-4jj6-33hc](https://github.com/advisories/GHSA-mjw6-4jj6-33hc) | 3.6.0                | Keep the compatible own-data-property backport. The actual image retains hostile keys without inherited privileges.                                                                         |
+| stream-json 1.9.1 — [GHSA-528h-pc64-c93x](https://github.com/advisories/GHSA-528h-pc64-c93x) | 3.5.0                | Keep compatible parser/assembler depth bounds. The actual image rejects excessive nesting before filter work.                                                                               |
+| esbuild 0.27.3 — [GHSA-g7r4-m6w7-qqqr](https://github.com/advisories/GHSA-g7r4-m6w7-qqqr)    | 0.28.1               | The advisory concerns a Windows development server. The audited runtime is Linux and runs no esbuild development server; project build tooling already has its separately locked version.   |
+| pm2 6.0.14 — [GHSA-x5gf-qvw8-r2rm](https://github.com/advisories/GHSA-x5gf-qvw8-r2rm)        | 7.0.0                | The affected monitoring CLI is not used by maintained startup commands. No request-controlled expression is sent to it.                                                                     |
+
+The [deepmerge advisory GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)
+was withdrawn upstream on 16 November 2026 and is absent from the current eight
+raw findings. Keep the existing own-property backport and regression as defense
+in depth. This reassessment changes no dependency version, security control or
+raw audit result; the dated disposition is renewed only with the evidence above.
+Deployed and native-host acceptance still require their own environments.
 
 ## Upstream integration (2026-11-12)
 
@@ -639,6 +669,30 @@ launcher locks this setting and forces background generation off outside product
 regardless of copied generation switches. Prepared reads and explicit bounded sample
 commands remain available. Production deployment still requires explicit authorization;
 repository changes and read-only diagnosis do not authorize a live deployment.
+
+Job share images reuse the checked published-job route and its read-only prepared
+translations through an internal Nuxt request. A single measured SVG layout per
+format produces PNGs for previews, downloads and native file sharing through the
+existing Resvg dependency. Bundled YAML-derived labels and a narrowly packaged
+original logo keep crawler output independent of browser execution and CMS label
+import timing. The renderer accepts no caller-supplied text, CSS, dimensions or
+asset URLs. Organisation artwork is a bounded, transformed raster read from the
+configured CMS; failures retain text identity. The in-process render cache is
+content-addressed, bounded to 64 entries / 32 MiB / 60 seconds with two concurrent
+jobs, and public-job authorization is repeated before cache/ETag reuse. Canonical
+job metadata uses only the explicitly allowed same-origin image route. Native
+sharing remains user-mediated; no social credentials or automatic posting exist.
+
+Weekly measure-rating CSV mail is a production-only side effect. Directus receives
+and locks the same `SLK_DEPLOYMENT_TARGET` as the frontend. The report extension
+requires `SLK_ENV=production`, `SLK_DEPLOYMENT_TARGET=production` and an HTTPS
+`PUBLIC_URL` on `stadt-land-klima.de` or `www.stadt-land-klima.de`. Missing or unknown
+deployment identities fail closed.
+`REPORT_ENABLED=false` disables both scheduling and execution; enabling it cannot
+bypass the production checks. Staging/future production builds must never mail
+these reports. Current staging can be stopped immediately with Directus's supported
+extension disable control; private `REPORT_ENABLED=false` preserves the intended
+state for subsequent guarded releases. No mail is sent to verify configuration.
 
 Production host maintenance is installed from a clean reviewed Git revision using
 `slk host plan/install/verify` and private dotenv references. Root-owned copies of

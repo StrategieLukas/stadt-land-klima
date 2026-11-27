@@ -19,6 +19,7 @@ export interface RateLimitPreset {
 export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
   "municipality-updates": { max: 10, windowSeconds: 60 },
   "municipality-social-image": { max: 10, windowSeconds: 60 },
+  "job-social-image": { max: 10, windowSeconds: 60 },
   "role-invitation": { max: 5, windowSeconds: 60 },
   "role-invitation-roles": { max: 10, windowSeconds: 60 },
   "content-translation-control": { max: 5, windowSeconds: 60 },

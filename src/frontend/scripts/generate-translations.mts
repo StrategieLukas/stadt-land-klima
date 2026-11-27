@@ -7,6 +7,7 @@ if (readdirSync(root).some((name) => name.endsWith(".yaml")))
   throw new Error("Move translations into their supported language directory");
 const languages = ["de-DE", "en-GB", "it-IT"];
 const seoMessages: Record<string, Record<string, string>> = {};
+const jobShareMessages: Record<string, Record<string, string>> = {};
 const staticSearchKeys = new Set<string>([
   ...PUBLIC_NUXT_ROUTES.flatMap((route) => [route.titleKey, ...route.textKeys]),
   ...Object.values(ORGANISATION_TEAM_LABELS).flat(),
@@ -15,6 +16,8 @@ const staticSearchMessages: Record<string, Record<string, string>> = {};
 const sets = languages.map((language) => {
   const seo: Record<string, string> = {};
   seoMessages[language] = seo;
+  const jobs: Record<string, string> = {};
+  jobShareMessages[language] = jobs;
   const search: Record<string, string> = {};
   staticSearchMessages[language] = search;
   const dir = new URL(`${language}/`, root);
@@ -38,6 +41,7 @@ const sets = languages.map((language) => {
     }
     keys.add(entry.key);
     if (entry.key.startsWith("seo.")) seo[entry.key] = entry.value;
+    if (entry.key.startsWith("jobs.")) jobs[entry.key] = entry.value;
     if (staticSearchKeys.has(entry.key)) search[entry.key] = entry.value;
   }
   return keys;
@@ -59,6 +63,12 @@ if (process.argv.includes("--check")) {
   if (readFileSync(seoTarget, "utf8") !== seoOutput)
     throw new Error("SEO translations changed; run npm run translations:generate");
 } else writeFileSync(seoTarget, seoOutput);
+const jobShareOutput = `// Generated from job translation YAML files; do not edit.\n// prettier-ignore\nexport const jobShareMessages = ${JSON.stringify(jobShareMessages, null, 2)} as const;\n`;
+const jobShareTarget = new URL("../shared/jobShareMessages.ts", import.meta.url);
+if (process.argv.includes("--check")) {
+  if (readFileSync(jobShareTarget, "utf8") !== jobShareOutput)
+    throw new Error("Job sharing translations changed; run npm run translations:generate");
+} else writeFileSync(jobShareTarget, jobShareOutput);
 const searchOutput = `// Generated from the translation YAML files; do not edit.\n// prettier-ignore\nexport const staticSearchMessages = ${JSON.stringify(staticSearchMessages, null, 2)} as const;\n`;
 const searchTarget = new URL("../shared/staticSearchMessages.ts", import.meta.url);
 if (process.argv.includes("--check")) {

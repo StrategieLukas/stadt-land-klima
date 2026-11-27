@@ -172,6 +172,13 @@ test("weekly rating report uses the extension database through the supported kne
   const extension = load<{ default: (registrar: unknown, context: unknown) => void }>(
     "hook-measure-rating-reports/src/index.ts",
     {
+      process: {
+        env: {
+          SLK_ENV: "production",
+          SLK_DEPLOYMENT_TARGET: "production",
+          PUBLIC_URL: "https://www.stadt-land-klima.de/backend",
+        },
+      },
       console: {
         warn() {},
         error(message: unknown) {
@@ -213,6 +220,83 @@ test("weekly rating report uses the extension database through the supported kne
   assert.equal(options?.knex, database);
   assert.equal(options?.schema, schema);
   assert.equal(options?.database, undefined);
+});
+
+test("weekly rating reports never schedule or access services outside real production", () => {
+  const production = {
+    SLK_ENV: "production",
+    SLK_DEPLOYMENT_TARGET: "production",
+    PUBLIC_URL: "https://www.stadt-land-klima.de/backend",
+  };
+  const cases = [
+    {},
+    { ...production, SLK_ENV: "development" },
+    { ...production, SLK_DEPLOYMENT_TARGET: "staging" },
+    { ...production, SLK_DEPLOYMENT_TARGET: "future" },
+    { ...production, SLK_DEPLOYMENT_TARGET: undefined },
+    { ...production, PUBLIC_URL: "https://staging.stadt-land-klima.de/backend" },
+    { ...production, SLK_DEPLOYMENT_TARGET: undefined, PUBLIC_URL: "https://staging.stadt-land-klima.de/backend" },
+    { ...production, PUBLIC_URL: "https://stadt-land-klima.de.evil.example/backend" },
+    { ...production, PUBLIC_URL: "http://stadt-land-klima.de/backend" },
+    { ...production, PUBLIC_URL: "https://user@stadt-land-klima.de/backend" },
+    { ...production, PUBLIC_URL: "https://stadt-land-klima.de:8443/backend" },
+    { ...production, PUBLIC_URL: "invalid" },
+    { ...production, REPORT_ENABLED: "false" },
+    { ...production, REPORT_ENABLED: "true", SLK_DEPLOYMENT_TARGET: "staging" },
+  ];
+  for (const env of cases) {
+    const extension = load<{ default: (registrar: unknown, context: unknown) => void }>(
+      "hook-measure-rating-reports/src/index.ts",
+      { process: { env } },
+      { "./reportCsv": {} },
+    );
+    extension.default(
+      {
+        schedule() {
+          assert.fail("A non-production report must not be scheduled");
+        },
+      },
+      {
+        get services() {
+          return assert.fail("Disabled reporting must not access mail/data services");
+        },
+      },
+    );
+  }
+});
+
+test("weekly rating reports support both production hostnames and recheck before scheduled work", async () => {
+  for (const hostname of ["stadt-land-klima.de", "www.stadt-land-klima.de"]) {
+    const env = {
+      SLK_ENV: "production",
+      SLK_DEPLOYMENT_TARGET: "production",
+      PUBLIC_URL: `https://${hostname}/backend`,
+      REPORT_ENABLED: "true",
+    };
+    let run: (() => Promise<void>) | undefined;
+    const extension = load<{ default: (registrar: unknown, context: unknown) => void }>(
+      "hook-measure-rating-reports/src/index.ts",
+      { process: { env } },
+      { "./reportCsv": {} },
+    );
+    extension.default(
+      {
+        schedule(cron: string, handler: () => Promise<void>) {
+          assert.equal(cron, "0 0 * * 0");
+          run = handler;
+        },
+      },
+      {
+        services: {},
+        getSchema() {
+          assert.fail("Disabling a scheduled report must prevent data access and email");
+        },
+      },
+    );
+    assert.ok(run);
+    env.REPORT_ENABLED = "false";
+    await run();
+  }
 });
 
 test("consent hook retains service-role exemptions and requires both current legal agreements", async () => {

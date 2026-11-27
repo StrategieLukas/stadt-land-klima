@@ -72,6 +72,25 @@ interface HookServices {
 const REPORT_EMAIL = process.env.REPORT_RECIPIENT_EMAIL ?? "massnahmen@stadt-land-klima.de";
 const CRON_PERIOD = process.env.REPORT_CRON ?? "0 0 * * 0"; // Every Sunday at midnight
 
+// Production builds also run on staging. Require the real public origin as well
+// as the deployment identity; absent or unknown identities fail closed.
+function reportEnabled(): boolean {
+  if (process.env.REPORT_ENABLED === "false" || process.env.SLK_ENV !== "production") return false;
+  if (process.env.SLK_DEPLOYMENT_TARGET !== "production") return false;
+  try {
+    const url = new URL(process.env.PUBLIC_URL ?? "");
+    return (
+      url.protocol === "https:" &&
+      !url.username &&
+      !url.password &&
+      !url.port &&
+      ["stadt-land-klima.de", "www.stadt-land-klima.de"].includes(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function formatTimestamp(d: Date): string {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -102,10 +121,13 @@ function mapToRow(raw: RatingMeasure): RatingMeasureRow {
   };
 }
 
-export default ({ schedule }: HookContext, { services, database, getSchema }: HookServices) => {
+export default ({ schedule }: HookContext, context: HookServices) => {
+  if (!reportEnabled()) return;
+  const { services, database, getSchema } = context;
   const { MailService, ItemsService } = services;
 
   schedule(CRON_PERIOD, async () => {
+    if (!reportEnabled()) return;
     let filePath: string | null = null;
 
     try {

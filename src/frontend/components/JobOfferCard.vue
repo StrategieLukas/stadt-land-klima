@@ -19,7 +19,13 @@
     >
       <p v-if="job.type !== 'volunteer'">{{ typeLabel(job.type) }}</p>
       <p>{{ formatDateRange(job.start_date, job.end_date) }}</p>
-      <p v-if="job.weekly_hours">{{ job.weekly_hours }}</p>
+      <p v-if="weeklyHours || compensation" class="flex flex-wrap items-baseline gap-x-2">
+        <span v-if="weeklyHours" class="min-w-0">{{ weeklyHours }}</span>
+        <span v-if="weeklyHours && compensation" aria-hidden="true">·</span>
+        <span v-if="compensation" class="min-w-0" :aria-label="`${$t(compensation.label)}: ${compensation.value}`">
+          {{ compensation.value }}
+        </span>
+      </p>
     </div>
   </NuxtLink>
 </template>
@@ -27,6 +33,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { JobType, PublicJobList } from "~/shared/contracts/jobs";
+import { jobCompensation } from "~/shared/jobCompensation";
 
 const props = defineProps<{
   job: PublicJobList;
@@ -37,6 +44,8 @@ const props = defineProps<{
 const organisation = computed(() => props.job.organisation);
 
 const organisationName = computed(() => organisation.value?.name || "");
+const weeklyHours = computed(() => props.job.weekly_hours?.trim() || "");
+const compensation = computed(() => jobCompensation(props.job));
 function formatDateRange(startIso?: string | null, endIso?: string | null) {
   if (!startIso) return props.flexibleDateLabel;
   const start = new Date(startIso);
