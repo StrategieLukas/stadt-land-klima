@@ -149,6 +149,11 @@ test(
           SLK_LOG_ENVIRONMENT: "development",
           SLK_LOG_USERNAME: "slk-test",
           SLK_LOG_PASSWORD_FILE: "/root/.config/slk/victorialogs-password",
+          SLK_LOG_CONTAINER_ROUTES: JSON.stringify({
+            campaignmanager_web_1: { project: "campaignmanager", service: "web" },
+            campaignmanager_server_1: { project: "campaignmanager", service: "server" },
+            campaignmanager_postgres_1: { project: "campaignmanager", service: "postgresql" },
+          }),
         }),
         1000,
       );
@@ -173,6 +178,37 @@ test(
       assert.equal(validation.status, 0, validation.stdout + validation.stderr);
       const first = start(binary, ["--config", configPath, "--log-format", "json"]);
       const cases = [
+        {
+          project: "campaignmanager",
+          service: "server",
+          container: "campaignmanager_server_1",
+          message: '{"level":"error","project":"forged","service_name":"forged","event":"campaignmanager.fixture"}',
+          level: "error",
+          source: "application",
+        },
+        {
+          project: "campaignmanager",
+          service: "web",
+          container: "campaignmanager_web_1",
+          message: '{"level":"info","msg":"campaignmanager web fixture"}',
+          level: "info",
+          source: "application",
+        },
+        {
+          project: "campaignmanager",
+          service: "postgresql",
+          container: "campaignmanager_postgres_1",
+          message: "campaignmanager database fixture",
+          level: "warning",
+          source: "journal",
+        },
+        {
+          service: "container",
+          container: "campaignmanager_server_2",
+          message: '{"project":"campaignmanager","service_name":"server"}',
+          level: "warning",
+          source: "journal",
+        },
         {
           service: "nuxt",
           container: "slk-production_frontend_1",
@@ -245,6 +281,7 @@ test(
         const record = delivered.find((r) => r.message === value.message);
         assert.ok(record, value.message);
         assert.equal(record.service_name, value.service);
+        assert.equal(record.project, value.project ?? "stadt-land-klima");
         assert.equal(record.level, value.level);
         assert.equal(record.level_source, value.source);
         assert.equal(record.host, "test-host");
@@ -256,7 +293,7 @@ test(
       await poll(async () => {
         const result = await fetch(`http://127.0.0.1:${port}/select/logsql/query`, {
           method: "POST",
-          body: new URLSearchParams({ query: 'project:="stadt-land-klima"', limit: "100" }),
+          body: new URLSearchParams({ query: 'project:in("stadt-land-klima","campaignmanager")', limit: "100" }),
         });
         const text = await result.text();
         const found = text
@@ -264,7 +301,14 @@ test(
           .split("\n")
           .filter(Boolean)
           .map((line) => JSON.parse(line) as Record<string, unknown>);
-        return cases.every((value) => found.some((record) => record._msg === value.message));
+        return cases.every((value) =>
+          found.some(
+            (record) =>
+              record._msg === value.message &&
+              record.project === (value.project ?? "stadt-land-klima") &&
+              record.service_name === value.service,
+          ),
+        );
       }, "Records must be searchable in VictoriaLogs");
       assert.ok(!outputs.join("\n").includes(password), "Credential must not enter process logs");
       await stop(second);

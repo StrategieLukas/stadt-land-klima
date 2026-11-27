@@ -20,6 +20,28 @@ export function assertVectorBuild(version: string): void {
     throw new Error(`Install the reviewed Vector ${HOST_VECTOR_VERSION} binary before host maintenance`);
 }
 
+/** Exact container identities for additional trusted deployments on the same host. */
+function containerRoutes(value = ""): Record<string, { project: string; service: string }> {
+  if (!value) return {};
+  const routes: unknown = JSON.parse(value);
+  if (!routes || typeof routes !== "object" || Array.isArray(routes) || Object.keys(routes).length > 100)
+    throw new Error("SLK_LOG_CONTAINER_ROUTES must be an object with at most 100 container routes");
+  for (const [container, route] of Object.entries(routes)) {
+    if (
+      !/^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/.test(container) ||
+      !route ||
+      typeof route !== "object" ||
+      Array.isArray(route) ||
+      Object.keys(route).sort().join(",") !== "project,service" ||
+      ![route.project, route.service].every(
+        (label) => typeof label === "string" && /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$/.test(label),
+      )
+    )
+      throw new Error("Invalid SLK_LOG_CONTAINER_ROUTES container, project or service");
+  }
+  return routes as Record<string, { project: string; service: string }>;
+}
+
 export function loggingSettings(fields: Record<string, string | undefined>) {
   const endpoint = fields.SLK_LOG_ENDPOINT ?? "";
   let url: URL;
@@ -55,6 +77,7 @@ export function loggingSettings(fields: Record<string, string | undefined>) {
     environment,
     username: label("SLK_LOG_USERNAME"),
     passwordFile: hostPath(fields.SLK_LOG_PASSWORD_FILE ?? ""),
+    containerRoutes: containerRoutes(fields.SLK_LOG_CONTAINER_ROUTES),
   };
 }
 
@@ -74,6 +97,7 @@ export function hostLoggingArtifacts(
     __SLK_LOG_ENVIRONMENT__: settings.environment,
     __SLK_LOG_ENDPOINT__: settings.endpoint,
     __SLK_LOG_USERNAME__: settings.username,
+    __SLK_LOG_CONTAINER_ROUTES__: JSON.stringify(settings.containerRoutes),
   };
   const render = (path: string) => {
     let value = readFileSync(join(root, path), "utf8");
