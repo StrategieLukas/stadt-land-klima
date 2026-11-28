@@ -20,6 +20,7 @@ import {
   hostLoggingBackupPaths,
   type HostSettings,
 } from "./host-configuration.ts";
+import { databaseShell } from "./database-shell.ts";
 
 type CommandOptions = { input?: string; output?: string; quiet?: boolean; environment?: NodeJS.ProcessEnv };
 export type BackupCommand = (command: string, args: string[], options?: CommandOptions) => string;
@@ -75,15 +76,16 @@ export function backupAndRetain(settings: HostSettings, paths: string[], run: Ba
 
 export function dumpHostDatabases(dumps: string, database: string, podman: BackupCommand) {
   for (const file of readdirSync(dumps)) if (file.endsWith(".partial")) unlinkSync(join(dumps, file));
-  podman("", [database, "sh", "-c", 'pg_dumpall -U "$POSTGRES_USER" --globals-only'], {
+  podman("", [database, ...databaseShell('pg_dumpall -U "$POSTGRES_USER" --globals-only', "slk-backup")], {
     output: `${dumps}/globals.sql.partial`,
   });
   renameSync(`${dumps}/globals.sql.partial`, `${dumps}/globals.sql`);
   const databases = podman("", [
     database,
-    "sh",
-    "-c",
-    `psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT datname FROM pg_database WHERE NOT datistemplate AND datname <> 'postgres' ORDER BY 1"`,
+    ...databaseShell(
+      `psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT datname FROM pg_database WHERE NOT datistemplate AND datname <> 'postgres' ORDER BY 1"`,
+      "slk-backup",
+    ),
   ])
     .trim()
     .split("\n");
@@ -91,7 +93,9 @@ export function dumpHostDatabases(dumps: string, database: string, podman: Backu
     throw new Error("No safe database names found");
   for (const db of databases) {
     const partial = `${dumps}/${db}.pgdump.partial`;
-    podman("", [database, "sh", "-c", 'pg_dump -U "$POSTGRES_USER" -Fc -Z 6 "$1"', "_", db], { output: partial });
+    podman("", [database, ...databaseShell('pg_dump -U "$POSTGRES_USER" -Fc -Z 6 "$1"', "slk-backup", db)], {
+      output: partial,
+    });
     podman("", ["-i", database, "pg_restore", "--list"], { input: partial });
     renameSync(partial, `${dumps}/${db}.pgdump`);
   }

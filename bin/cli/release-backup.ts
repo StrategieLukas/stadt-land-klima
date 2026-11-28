@@ -5,6 +5,7 @@ import { databaseSettings } from "../lib/database-settings.ts";
 import { writeFileSync, existsSync } from "node:fs";
 import { root } from "./process.ts";
 import { checkedDataCounts } from "./release-checkpoint.ts";
+import { databaseShell } from "./database-shell.ts";
 
 export const applicationCountsSql = `SELECT json_build_object(
  'municipalities',(SELECT count(*) FROM municipalities),
@@ -13,26 +14,14 @@ export const applicationCountsSql = `SELECT json_build_object(
 
 export function releaseSqlCommand(database: string, sql: string) {
   const query = 'exec psql -X -q -At -v ON_ERROR_STOP=1 -U "${POSTGRES_USER:?}" -d "$1" -c "$2"';
-  return [
-    "sh",
-    "-ec",
-    `if command -v slk-env >/dev/null 2>&1; then exec slk-env sh -ec '${query}' slk-query "$@"; fi; ${query}`,
-    "slk-query",
-    database,
-    sql,
-  ];
+  return databaseShell(query, "slk-query", database, sql);
 }
 
-const dump = 'exec pg_dump -U "${POSTGRES_USER:?POSTGRES_USER is required}" -d "$1" -Fc';
-// Existing native-secret containers already receive POSTGRES_* in their process
-// environment. New containers must load their private mounts before the dump.
-// A present but failing loader must never fall back to stale inherited settings.
-export const releaseDatabaseDumpCommand = [
-  "sh",
-  "-ec",
-  `if command -v slk-env >/dev/null 2>&1; then exec slk-env sh -ec '${dump}' slk-release-backup "$1"; fi; ${dump}`,
+// The database name follows as the script's $1 (releaseDatabaseDump).
+export const releaseDatabaseDumpCommand = databaseShell(
+  'exec pg_dump -U "${POSTGRES_USER:?POSTGRES_USER is required}" -d "$1" -Fc',
   "slk-release-backup",
-];
+);
 
 export async function releaseDatabaseDump(container: string, metadata?: string): Promise<void> {
   if (!/^[a-f0-9]{12,64}$/.test(container)) throw new Error("Expected one running release database container ID");
