@@ -30,15 +30,9 @@
       "categories": {
         "type": "array",
         "minItems": 1,
-        "maxItems": 5,
+        "maxItems": 3,
         "items": {
-          "enum": [
-            "political_science",
-            "public_administration",
-            "computer_and_data_science",
-            "climate_action_management",
-            "climate_and_environmental_engineering"
-          ]
+          "enum": ["political_science", "data_science", "climate_action_management"]
         }
       },
       "levels": {

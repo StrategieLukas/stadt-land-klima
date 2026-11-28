@@ -160,12 +160,20 @@ Reference implementations: [news](../src/frontend/pages/news/index.vue), [events
 ## Thesis topics
 
 Use one column of flat, square disclosures with a themed edge. Keep the title,
-optional plain-text preview and semantic discipline badges visible when collapsed. Use shared
-filter pills for multi-select disciplines and a labelled select for degree level.
+optional plain-text preview and discipline badges visible when collapsed. Use
+shared filter pills for multi-select disciplines on a neutral panel. Keep
+politics and administration red, informatics blue, and climate management and
+environmental engineering green across the filter pills and badges in both themes.
 Expanded topics show the Markdown description and put degree levels next to the
 shared contact copy and action.
 Disclosures work with the keyboard, have a visible focus outline and expand
 without animation.
+
+In Directus Data Studio, the title leads the collection table and edit form.
+The table follows the title with translated discipline badges, green degree badges
+and publication status. Discipline badges wrap and match the public colors.
+The edit form uses the standard checkboxes and shows older discipline assignments
+under their current labels.
 
 Reference: [thesis listing](../src/frontend/pages/abschlussarbeiten/index.vue).
 

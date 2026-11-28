@@ -40,11 +40,14 @@ export async function runThesisTopicsFlow(runner: TestRunner, fixture: TestFixtu
         () => createTopic({ title: `Thesis without a category ${config.runId}`, categories: [] }),
         /failed with 400/,
       );
-      const defaults = await createTopic({ title: defaultTitle });
+      const defaults = await createTopic({
+        title: defaultTitle,
+        categories: ["public_administration", "political_science"],
+      });
       const master = await createTopic({
         title: masterTitle,
         short_description: preview,
-        categories: ["computer_and_data_science", "climate_and_environmental_engineering"],
+        categories: ["computer_and_data_science", "climate_and_environmental_engineering", "climate_action_management"],
         levels: ["master"],
       });
       const withdrawn = await createTopic({ title: `Thesis C ${config.runId}` });
@@ -53,11 +56,14 @@ export async function runThesisTopicsFlow(runner: TestRunner, fixture: TestFixtu
       const topics = await listTopics();
       assert(defaults.status === "published", "New thesis topics should be public by default");
       const listedDefault = topics.find(({ id }) => id === defaults.id);
+      const listedMaster = topics.find(({ id }) => id === master.id);
       assert(listedDefault?.levels.join(",") === "bachelor,master,phd", "All three degree levels should be selected");
       assert(listedDefault.short_description === null, "Older topics can omit the short description");
+      assert(listedDefault.categories.join(",") === "political_science", "Politics and administration merge once");
+      assert(listedMaster?.short_description === preview, "The published topic should include the short description");
       assert(
-        topics.find(({ id }) => id === master.id)?.short_description === preview,
-        "The published topic should include the short description",
+        listedMaster.categories.join(",") === "data_science,climate_action_management",
+        "Engineering and climate management merge once",
       );
       assert(
         topics.some(({ id }) => id === withdrawn.id),
@@ -73,7 +79,7 @@ export async function runThesisTopicsFlow(runner: TestRunner, fixture: TestFixtu
       assert(!(await listTopics()).some(({ id }) => id === withdrawn.id), "In-progress topics should be hidden");
     });
 
-    await runner.step("Thesis topics: combined filters, keyboard disclosure and protected contact", async () => {
+    await runner.step("Thesis topics: category filters, keyboard disclosure and protected contact", async () => {
       for (const [theme, width] of [
         ["light", 1440],
         ["dark", 390],
@@ -94,9 +100,23 @@ export async function runThesisTopicsFlow(runner: TestRunner, fixture: TestFixtu
           }, theme);
           const defaultTopic = page.locator("details").filter({ hasText: defaultTitle });
           const masterTopic = page.locator("details").filter({ hasText: masterTitle });
-          const politics = page.getByRole("button", { name: "Politikwissenschaft" });
+          const politics = page.getByRole("button", { name: "Politik- und Verwaltungswissenschaften" });
           const computing = page.getByRole("button", { name: "Informatik & Data Science" });
-          const level = page.getByLabel("Abschlussniveau");
+          const climate = page.getByRole("button", { name: "Klimaschutzmanagement & Umwelttechnik" });
+          const pills = page.locator(".thesis-category-filter");
+          assert((await pills.count()) === 3, "Only the three merged categories should be offered");
+          assert(!(await page.locator(".slk-page-main select").count()), "Degree levels should not be a filter");
+          const filterColors = await pills.evaluateAll((elements) => elements.map((el) => getComputedStyle(el).color));
+          const expectedColors =
+            theme === "dark"
+              ? ["rgb(255, 160, 166)", "rgb(74, 184, 212)", "rgb(191, 233, 164)"]
+              : ["rgb(165, 28, 42)", "rgb(0, 110, 148)", "rgb(31, 111, 49)"];
+          assert(filterColors.join() === expectedColors.join(), "Politics is red, informatics blue and climate green");
+          const politicsBadge = defaultTopic.locator("summary .thesis-category-badge");
+          assert(
+            (await politicsBadge.evaluate((element) => getComputedStyle(element).color)) === filterColors[0],
+            "The politics badge matches its filter color",
+          );
 
           await politics.click();
           assert(!(await masterTopic.count()), "A selected category filters out unrelated topics");
@@ -105,16 +125,11 @@ export async function runThesisTopicsFlow(runner: TestRunner, fixture: TestFixtu
             (await masterTopic.count()) && (await defaultTopic.count()),
             "Multiple categories match any selection",
           );
-          await level.selectOption("bachelor");
-          assert(
-            !(await masterTopic.count()) && (await defaultTopic.count()),
-            "The degree filter combines with categories",
-          );
           await politics.click();
-          assert(!(await masterTopic.count()) && !(await defaultTopic.count()), "Both filters must match");
-          await level.selectOption("master");
+          await climate.click();
+          await computing.click();
           await masterTopic.waitFor();
-          assert(!(await defaultTopic.count()), "Deselecting a category removes nonmatching topics");
+          assert(!(await defaultTopic.count()), "Climate matches topics assigned to either merged category");
 
           const summary = masterTopic.locator("summary");
           const degree = masterTopic.locator("dd").filter({ hasText: /^Master$/ });
@@ -123,7 +138,11 @@ export async function runThesisTopicsFlow(runner: TestRunner, fixture: TestFixtu
           assert(!(await summary.getByText("Master", { exact: true }).count()), "The title row should omit levels");
           assert(!(await degree.isVisible()), "Degree levels should start collapsed");
           assert(!(await description.isVisible()), "Markdown should start collapsed");
-          await level.focus();
+          const badgeColors = await summary
+            .locator(".thesis-category-badge")
+            .evaluateAll((elements) => elements.map((el) => getComputedStyle(el).color));
+          assert(badgeColors.join() === filterColors.slice(1).join(), "Card badges match their filter colors");
+          await climate.focus();
           await page.keyboard.press("Tab");
           // Move to our fixture if other published Master topics are also present.
           await summary.focus();

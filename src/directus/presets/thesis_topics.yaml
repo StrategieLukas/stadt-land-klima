@@ -1,0 +1,27 @@
+bookmark: null
+user: null
+role: null
+collection: thesis_topics
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - title
+      - categories
+      - levels
+      - status
+    sort:
+      - title
+layout_options:
+  tabular:
+    spacing: comfortable
+    widths:
+      title: 320
+      categories: 510
+      levels: 225
+      status: 105
+refresh_interval: null
+filter: null
+icon: school
+color: null

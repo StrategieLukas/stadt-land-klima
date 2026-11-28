@@ -1,12 +1,7 @@
 import { z } from "zod";
+import { THESIS_CATEGORIES } from "../thesisCategories";
 
-export const ThesisCategorySchema = z.enum([
-  "political_science",
-  "public_administration",
-  "computer_and_data_science",
-  "climate_action_management",
-  "climate_and_environmental_engineering",
-]);
+export const ThesisCategorySchema = z.enum(THESIS_CATEGORIES);
 export const ThesisLevelSchema = z.enum(["bachelor", "master", "phd"]);
 
 export type ThesisCategory = z.infer<typeof ThesisCategorySchema>;

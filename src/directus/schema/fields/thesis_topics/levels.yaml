@@ -4,8 +4,21 @@ type: json
 meta:
   collection: thesis_topics
   conditions: null
-  display: null
-  display_options: null
+  display: labels
+  display_options:
+    choices:
+      - background: "light-dark(#ebf7ef, #203821)"
+        foreground: "light-dark(#1f6f31, #bfe9a4)"
+        text: $t:theses.level.bachelor
+        value: bachelor
+      - background: "light-dark(#ebf7ef, #203821)"
+        foreground: "light-dark(#1f6f31, #bfe9a4)"
+        text: $t:theses.level.master
+        value: master
+      - background: "light-dark(#ebf7ef, #203821)"
+        foreground: "light-dark(#1f6f31, #bfe9a4)"
+        text: $t:theses.level.phd
+        value: phd
   field: levels
   group: null
   hidden: false

@@ -5,7 +5,7 @@
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("theses.intro") }}</p>
     </header>
 
-    <div v-if="data?.topics.length" class="slk-filter-panel slk-filter-theme-blue mb-6 space-y-4">
+    <div v-if="data?.topics.length" class="slk-filter-panel slk-filter-theme-neutral mb-6">
       <fieldset class="min-w-0">
         <legend class="mb-2 text-sm font-semibold">{{ $t("theses.categories") }}</legend>
         <div class="flex flex-wrap gap-2">
@@ -13,8 +13,8 @@
             v-for="category in ThesisCategorySchema.options"
             :key="category"
             type="button"
-            class="slk-filter-pill max-w-full text-left whitespace-normal!"
-            :class="{ 'slk-filter-pill--active': selectedCategories.includes(category) }"
+            class="slk-filter-pill thesis-category-filter max-w-full text-left whitespace-normal!"
+            :class="[categoryClasses[category], { 'slk-filter-pill--active': selectedCategories.includes(category) }]"
             :aria-pressed="selectedCategories.includes(category)"
             @click="toggleCategory(category)"
           >
@@ -22,19 +22,6 @@
           </button>
         </div>
       </fieldset>
-      <div>
-        <label for="thesis-level" class="mb-2 block text-sm font-semibold">{{ $t("theses.levels") }}</label>
-        <select
-          id="thesis-level"
-          v-model="selectedLevel"
-          class="select w-full max-w-56 border-(--slk-border) bg-(--slk-surface) text-(--slk-text) focus-visible:outline-(--slk-filter-accent)"
-        >
-          <option value="">{{ $t("theses.all_levels") }}</option>
-          <option v-for="level in ThesisLevelSchema.options" :key="level" :value="level">
-            {{ $t(`theses.level.${level}`) }}
-          </option>
-        </select>
-      </div>
     </div>
 
     <p v-if="!data && status === 'pending'" role="status">{{ $t("generic.loading") }}</p>
@@ -62,7 +49,8 @@
                 <span
                   v-for="category in topic.categories"
                   :key="category"
-                  class="slk-badge slk-badge--info rounded-full px-2.5 py-1 text-xs font-semibold wrap-anywhere"
+                  class="slk-badge thesis-category-badge rounded-full px-2.5 py-1 text-xs font-semibold wrap-anywhere"
+                  :class="categoryClasses[category]"
                 >
                   {{ $t(`theses.category.${category}`) }}
                 </span>
@@ -101,12 +89,7 @@
 <script setup lang="ts">
 import MarkdownIt from "markdown-it";
 import { computed, ref } from "vue";
-import {
-  ThesisCategorySchema,
-  ThesisLevelSchema,
-  type ThesisCategory,
-  type ThesisLevel,
-} from "~/shared/contracts/thesisTopics";
+import { ThesisCategorySchema, type ThesisCategory } from "~/shared/contracts/thesisTopics";
 import { sanitizeHtml } from "~/utils/sanitizeHtml";
 
 const { $t } = useNuxtApp();
@@ -116,7 +99,11 @@ const router = useRouter();
 const markdown = new MarkdownIt({ html: false, linkify: true });
 const { data, error, status } = await useFetch("/api/public/thesis-topics");
 const selectedCategories = ref<ThesisCategory[]>([]);
-const selectedLevel = ref<ThesisLevel | "">("");
+const categoryClasses = {
+  political_science: "thesis-category-red",
+  data_science: "thesis-category-blue",
+  climate_action_management: "thesis-category-green",
+} satisfies Record<ThesisCategory, string>;
 
 function thesisContactLink(title: string) {
   return router.resolve({ path: "/contact", query: { type: "thesis", title } }).href;
@@ -130,15 +117,42 @@ function toggleCategory(category: ThesisCategory) {
 
 const visibleTopics = computed(() =>
   (data.value?.topics ?? []).filter(
-    ({ categories, levels }) =>
-      (!selectedCategories.value.length ||
-        selectedCategories.value.some((category) => categories.includes(category))) &&
-      (!selectedLevel.value || levels.includes(selectedLevel.value)),
+    ({ categories }) =>
+      !selectedCategories.value.length || selectedCategories.value.some((category) => categories.includes(category)),
   ),
 );
 </script>
 
 <style scoped>
+.thesis-category-red {
+  --thesis-category-color: light-dark(#a51c2a, #ffa0a6);
+  --thesis-category-tint: var(--slk-red-tint);
+}
+
+.thesis-category-blue {
+  --thesis-category-color: var(--slk-blue);
+  --thesis-category-tint: var(--slk-blue-tint);
+}
+
+.thesis-category-green {
+  --thesis-category-color: var(--slk-success-text);
+  --thesis-category-tint: var(--slk-green-tint);
+}
+
+.thesis-category-filter {
+  --slk-filter-accent: var(--thesis-category-color);
+  --slk-filter-active-bg: var(--thesis-category-color);
+  --slk-filter-active-text: var(--slk-surface);
+  --slk-filter-inactive-text: var(--thesis-category-color);
+  --slk-filter-inactive-border: var(--thesis-category-color);
+  --slk-filter-hover-bg: var(--thesis-category-tint);
+}
+
+.thesis-category-badge {
+  background-color: var(--thesis-category-tint);
+  color: var(--thesis-category-color);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .slk-filter-pill {
     transition: none;

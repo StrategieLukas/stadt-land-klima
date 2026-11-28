@@ -17,6 +17,11 @@
     },
     "entries": [
       {
+        "type": "display",
+        "name": "slk-thesis-categories",
+        "source": "./src/thesis-categories/index.ts"
+      },
+      {
         "type": "endpoint",
         "name": "data-page-catalog",
         "source": "./src/data-page-catalog/endpoint.ts"
@@ -55,6 +60,11 @@
         "type": "interface",
         "name": "navigation-editor",
         "source": "./src/navigation-editor/index.ts"
+      },
+      {
+        "type": "interface",
+        "name": "slk-thesis-category-picker",
+        "source": "./src/thesis-categories/picker.ts"
       },
       {
         "type": "interface",

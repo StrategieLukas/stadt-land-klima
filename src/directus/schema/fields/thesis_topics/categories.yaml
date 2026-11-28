@@ -4,25 +4,34 @@ type: json
 meta:
   collection: thesis_topics
   conditions: null
-  display: null
-  display_options: null
+  display: slk-thesis-categories
+  display_options:
+    choices:
+      - background: "light-dark(#fdf1f2, #3d1f24)"
+        foreground: "light-dark(#a51c2a, #ffa0a6)"
+        text: $t:theses.category.political_science
+        value: political_science
+      - background: "light-dark(#e6f1f5, #173444)"
+        foreground: "light-dark(#006e94, #4ab8d4)"
+        text: $t:theses.category.data_science
+        value: data_science
+      - background: "light-dark(#ebf7ef, #203821)"
+        foreground: "light-dark(#1f6f31, #bfe9a4)"
+        text: $t:theses.category.climate_action_management
+        value: climate_action_management
   field: categories
   group: null
   hidden: false
-  interface: select-multiple-checkbox
+  interface: slk-thesis-category-picker
   note: null
   options:
     choices:
       - text: $t:theses.category.political_science
         value: political_science
-      - text: $t:theses.category.public_administration
-        value: public_administration
-      - text: $t:theses.category.computer_and_data_science
-        value: computer_and_data_science
+      - text: $t:theses.category.data_science
+        value: data_science
       - text: $t:theses.category.climate_action_management
         value: climate_action_management
-      - text: $t:theses.category.climate_and_environmental_engineering
-        value: climate_and_environmental_engineering
   readonly: false
   required: true
   searchable: true
